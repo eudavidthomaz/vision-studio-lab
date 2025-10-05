@@ -187,19 +187,21 @@ const Index = () => {
       {/* Hero Section */}
       {!transcript && !weeklyPack && (
         <section className="container mx-auto px-4 py-20 text-center animate-fade-in">
-          <h2 className="text-5xl md:text-6xl font-bold text-white mb-6 animate-scale-in">
-            Transforme Suas Pregações
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
-              Em Conteúdo Poderoso
-            </span>
-          </h2>
-          <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-            Grave sua pregação e receba automaticamente um pacote completo de conteúdo para redes sociais
-          </p>
-          
-          <div className="flex justify-center">
-            <RecordingButton onTranscriptionComplete={handleTranscriptionComplete} />
+          <div className="max-w-3xl mx-auto bg-card/30 backdrop-blur-md border border-border/50 rounded-2xl p-8 md:p-12 shadow-2xl">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 animate-scale-in">
+              Transforme Suas Pregações
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
+                Em Conteúdo Poderoso
+              </span>
+            </h2>
+            <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Grave sua pregação e receba automaticamente um pacote completo de conteúdo para redes sociais
+            </p>
+            
+            <div className="flex justify-center">
+              <RecordingButton onTranscriptionComplete={handleTranscriptionComplete} />
+            </div>
           </div>
         </section>
       )}
