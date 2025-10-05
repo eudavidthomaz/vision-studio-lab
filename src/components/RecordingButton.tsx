@@ -125,11 +125,12 @@ const RecordingButton = ({ onTranscriptionComplete }: RecordingButtonProps) => {
         <Button
           onClick={startRecording}
           size="lg"
-          className="relative h-40 w-40 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-2xl border border-primary/20 hover:border-primary/40 shadow-[0_8px_32px_0_rgba(168,85,247,0.2)] hover:shadow-[0_8px_48px_0_rgba(168,85,247,0.4)] transition-all duration-500 hover:scale-105 overflow-hidden group"
+          variant="ghost"
+          className="relative h-40 w-40 rounded-full bg-gradient-to-br from-white/5 to-primary/20 backdrop-blur-xl border-2 border-white/20 hover:border-white/30 shadow-[0_8px_32px_0_rgba(168,85,247,0.3)] hover:shadow-[0_8px_48px_0_rgba(168,85,247,0.5)] transition-all duration-500 hover:scale-105 overflow-hidden group"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-40 group-hover:opacity-60 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
           <div className="relative z-10">
-            <Podcast className="h-24 w-24 text-primary/80 drop-shadow-[0_0_20px_rgba(168,85,247,0.6)] group-hover:text-primary group-hover:drop-shadow-[0_0_30px_rgba(168,85,247,0.8)] transition-all duration-500" strokeWidth={1.5} />
+            <Podcast className="h-24 w-24 text-white drop-shadow-[0_0_25px_rgba(168,85,247,0.9)] group-hover:drop-shadow-[0_0_35px_rgba(168,85,247,1)] transition-all duration-500" strokeWidth={1.5} />
           </div>
         </Button>
       )}
