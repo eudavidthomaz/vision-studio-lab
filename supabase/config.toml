@@ -1,1 +1,10 @@
 project_id = "imitktxtunqovyqsmplb"
+
+[functions.transcribe-sermon]
+verify_jwt = true
+
+[functions.generate-week-pack]
+verify_jwt = true
+
+[functions.generate-ideon-challenge]
+verify_jwt = true
