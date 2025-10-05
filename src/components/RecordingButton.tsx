@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, Square, Loader2 } from "lucide-react";
+import { Podcast, Square, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface RecordingButtonProps {
@@ -128,9 +128,12 @@ const RecordingButton = ({ onTranscriptionComplete }: RecordingButtonProps) => {
           className="relative h-40 w-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-xl border-2 border-primary/30 hover:border-primary/50 shadow-2xl hover:shadow-primary/30 transition-all duration-500 hover:scale-105 overflow-hidden group"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
-          <div className="relative flex flex-col items-center gap-2 z-10">
-            <Mic className="h-16 w-16 text-primary group-hover:text-primary/90 transition-colors" />
-            <span className="text-sm font-semibold text-foreground">Iniciar</span>
+          <div className="relative flex flex-col items-center gap-3 z-10">
+            <div className="relative">
+              <Podcast className="h-20 w-20 text-primary drop-shadow-[0_0_15px_rgba(168,85,247,0.5)] group-hover:drop-shadow-[0_0_25px_rgba(168,85,247,0.7)] transition-all duration-500" strokeWidth={1.5} />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-sm opacity-60" />
+            </div>
+            <span className="text-base font-bold text-foreground tracking-wide">Gravar</span>
           </div>
         </Button>
       )}
