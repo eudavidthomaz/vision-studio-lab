@@ -11,6 +11,7 @@ import IdeonChallengeCard from "@/components/IdeonChallengeCard";
 const Index = () => {
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [transcript, setTranscript] = useState("");
   const [weeklyPack, setWeeklyPack] = useState<any>(null);
   const [challenge, setChallenge] = useState<any>(null);
@@ -20,28 +21,30 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check for existing session first
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        setLoading(false);
       }
     );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
 
     return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
-    if (user === null && session === null) {
+    if (!loading && !user) {
       navigate("/auth");
     }
-  }, [user, session, navigate]);
+  }, [loading, user, navigate]);
 
   const handleTranscriptionComplete = async (transcriptText: string) => {
     setTranscript(transcriptText);
@@ -156,6 +159,14 @@ const Index = () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+        <Loader2 className="h-12 w-12 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   if (!user) {
     return null;
