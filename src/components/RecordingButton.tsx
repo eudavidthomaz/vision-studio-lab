@@ -120,16 +120,17 @@ const RecordingButton = ({ onTranscriptionComplete }: RecordingButtonProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-6">
       {!isRecording && !isProcessing && (
         <Button
           onClick={startRecording}
           size="lg"
-          className="h-32 w-32 rounded-full bg-gradient-to-br from-primary to-primary/70 hover:from-primary/90 hover:to-primary/60 shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:scale-105"
+          className="relative h-40 w-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-xl border-2 border-primary/30 hover:border-primary/50 shadow-2xl hover:shadow-primary/30 transition-all duration-500 hover:scale-105 overflow-hidden group"
         >
-          <div className="flex flex-col items-center gap-2">
-            <Mic className="h-12 w-12" />
-            <span className="text-sm font-medium">Iniciar</span>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse" />
+          <div className="relative flex flex-col items-center gap-2 z-10">
+            <Mic className="h-16 w-16 text-primary group-hover:text-primary/90 transition-colors" />
+            <span className="text-sm font-semibold text-foreground">Iniciar</span>
           </div>
         </Button>
       )}
@@ -138,22 +139,24 @@ const RecordingButton = ({ onTranscriptionComplete }: RecordingButtonProps) => {
         <Button
           onClick={stopRecording}
           size="lg"
-          className="h-32 w-32 rounded-full bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 animate-pulse"
+          className="relative h-40 w-40 rounded-full bg-gradient-to-br from-destructive/20 to-destructive/10 backdrop-blur-xl border-2 border-destructive/30 hover:border-destructive/50 shadow-2xl hover:shadow-destructive/30 transition-all duration-500 hover:scale-105 overflow-hidden group animate-pulse"
         >
-          <div className="flex flex-col items-center gap-2">
-            <Square className="h-12 w-12" />
-            <span className="text-sm font-medium">Parar</span>
+          <div className="absolute inset-0 bg-gradient-to-br from-destructive/30 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
+          <div className="relative flex flex-col items-center gap-2 z-10">
+            <Square className="h-16 w-16 text-destructive group-hover:text-destructive/90 transition-colors" />
+            <span className="text-sm font-semibold text-foreground">Parar</span>
           </div>
         </Button>
       )}
 
       {isProcessing && (
-        <div className="h-32 w-32 rounded-full bg-gradient-to-br from-primary to-primary/70 shadow-2xl flex items-center justify-center">
-          <Loader2 className="h-12 w-12 animate-spin" />
+        <div className="relative h-40 w-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-xl border-2 border-primary/30 shadow-2xl flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent animate-pulse" />
+          <Loader2 className="relative h-16 w-16 text-primary animate-spin z-10" />
         </div>
       )}
 
-      <p className="text-sm text-gray-400 text-center max-w-xs">
+      <p className="text-sm text-muted-foreground text-center max-w-xs">
         {!isRecording && !isProcessing && "Clique para iniciar a gravação da pregação"}
         {isRecording && "Gravando... Clique para parar"}
         {isProcessing && "Transcrevendo sua pregação..."}
