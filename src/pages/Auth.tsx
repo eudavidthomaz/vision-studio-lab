@@ -82,14 +82,14 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold text-white mb-2">Ide.On</h1>
-          <p className="text-gray-400">Transforme suas pregações em conteúdo</p>
+          <h1 className="text-4xl font-bold text-foreground mb-2">Ide.On</h1>
+          <p className="text-muted-foreground">Transforme suas pregações em conteúdo</p>
         </div>
 
-        <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-lg p-8 shadow-2xl animate-scale-in">
+        <div className="bg-card backdrop-blur-sm border border-border rounded-lg p-8 shadow-2xl animate-scale-in">
           <div className="flex gap-2 mb-6">
             <Button
               type="button"
@@ -111,27 +111,27 @@ const Auth = () => {
 
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
-              <Label htmlFor="email" className="text-gray-300">Email</Label>
+              <Label htmlFor="email" className="text-foreground">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-gray-900/50 border-gray-600 text-white"
+                className="bg-input border-border text-foreground"
                 placeholder="seu@email.com"
               />
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-gray-300">Senha</Label>
+              <Label htmlFor="password" className="text-foreground">Senha</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-gray-900/50 border-gray-600 text-white"
+                className="bg-input border-border text-foreground"
                 placeholder="••••••••"
                 minLength={6}
               />
@@ -139,7 +139,7 @@ const Auth = () => {
 
             <Button
               type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-white"
+              className="w-full"
               disabled={loading}
             >
               {loading ? (
