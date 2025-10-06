@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { CORE_PRINCIPLES, CONTENT_METHOD, PILLAR_DISTRIBUTION } from '../_shared/prompt-principles.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,24 +21,40 @@ serve(async (req) => {
 
     console.log('Generating weekly pack...');
 
-    const systemPrompt = `Você é Ide.On, um mentor espiritual especializado em criar conteúdo evangelístico para redes sociais.
+    const systemPrompt = `${CORE_PRINCIPLES}
+
+${CONTENT_METHOD}
+
+${PILLAR_DISTRIBUTION}
+
+Você é Ide.On, um mentor espiritual especializado em criar conteúdo evangelístico para redes sociais.
 Você recebe uma transcrição de uma pregação e deve gerar um pacote completo de conteúdo para uma semana.
 
 IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional antes ou depois. O JSON deve conter as seguintes chaves:
 
 {
+  "versiculos_base": ["Romanos 12:1-2", "João 3:16"],
+  "principio_atemporal": "Frase-chave que captura a verdade central da pregação",
   "resumo": "Resumo conciso da pregação em 2-3 parágrafos",
   "frases_impactantes": ["array com 5-7 frases marcantes da pregação"],
   "stories": ["array com 3-5 ideias de stories para Instagram/Facebook"],
   "estudo_biblico": {
     "tema": "Tema principal do estudo",
-    "versiculos": ["array com versículos relevantes"],
+    "versiculos": ["array com versículos relevantes com referência completa"],
     "perguntas": ["array com 5-7 perguntas para reflexão em grupo"]
   },
-  "legendas": ["array com 3-5 legendas prontas para posts"],
+  "legendas": [
+    {
+      "texto": "Legenda completa do post",
+      "pilar_estrategico": "Edificar" | "Alcançar" | "Pertencer" | "Servir",
+      "cta": "Call-to-action específico (ex: Envie CÉLULA no DM)",
+      "hashtags": ["array", "de", "hashtags"]
+    }
+  ],
   "carrosseis": [
     {
       "titulo": "Título do carrossel",
+      "pilar_estrategico": "Edificar" | "Alcançar" | "Pertencer" | "Servir",
       "slides": [
         {
           "texto": "Texto do slide",
@@ -49,6 +66,7 @@ IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional antes ou de
   "reels": [
     {
       "titulo": "Título do reel",
+      "pilar_estrategico": "Edificar" | "Alcançar" | "Pertencer" | "Servir",
       "roteiro": "Roteiro completo do vídeo",
       "duracao_estimada": "30-60 segundos",
       "hook": "Gancho inicial para prender atenção"

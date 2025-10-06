@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      content_planners: {
+        Row: {
+          content: Json
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+          week_start_date: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+          week_start_date: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+          week_start_date?: string
+        }
+        Relationships: []
+      }
       ideon_challenges: {
         Row: {
           challenge: Json | null
