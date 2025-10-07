@@ -1,11 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Edit } from "lucide-react";
+import { Copy, Trash2, Edit, Image } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import ImageGenerationModal from "./ImageGenerationModal";
 
 interface ContentCardProps {
   content: {
@@ -37,6 +38,7 @@ export default function ContentCard({ content, onDelete, onUpdate }: ContentCard
   const [editedTitulo, setEditedTitulo] = useState(content.titulo);
   const [editedCopy, setEditedCopy] = useState(content.copy);
   const [editedHashtags, setEditedHashtags] = useState(content.hashtags.join(" "));
+  const [imageModalOpen, setImageModalOpen] = useState(false);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -158,8 +160,23 @@ export default function ContentCard({ content, onDelete, onUpdate }: ContentCard
             <Copy className="h-3 w-3 mr-1" />
             #
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setImageModalOpen(true)}
+          >
+            <Image className="h-3 w-3 mr-1" />
+            Imagem
+          </Button>
         </div>
       </CardContent>
+      
+      <ImageGenerationModal
+        open={imageModalOpen}
+        onOpenChange={setImageModalOpen}
+        copy={content.copy}
+        pilar={content.pilar}
+      />
     </Card>
   );
 }

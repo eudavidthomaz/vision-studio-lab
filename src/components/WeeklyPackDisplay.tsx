@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, Image } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import ImageGenerationModal from "./ImageGenerationModal";
 
 interface WeeklyPackProps {
   pack: {
@@ -34,6 +35,8 @@ interface WeeklyPackProps {
 
 const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<{ copy: string; pilar: string } | null>(null);
   const { toast } = useToast();
 
   const copyToClipboard = (text: string, id: string) => {
@@ -44,6 +47,11 @@ const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
       title: "Copiado!",
       description: "Conteúdo copiado para a área de transferência.",
     });
+  };
+
+  const openImageModal = (copy: string, pilar: string) => {
+    setSelectedContent({ copy, pilar });
+    setImageModalOpen(true);
   };
 
   return (
@@ -159,17 +167,27 @@ const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
             <Card key={index} className="bg-gray-800/50 border-gray-700">
               <CardContent className="pt-6">
                 <p className="text-gray-300 mb-4 whitespace-pre-wrap">{legenda}</p>
-                <Button
-                  onClick={() => copyToClipboard(legenda, `legenda-${index}`)}
-                  variant="outline"
-                  size="sm"
-                >
-                  {copiedIndex === `legenda-${index}` ? (
-                    <><Check className="h-4 w-4 mr-2" /> Copiado</>
-                  ) : (
-                    <><Copy className="h-4 w-4 mr-2" /> Copiar</>
-                  )}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => copyToClipboard(legenda, `legenda-${index}`)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {copiedIndex === `legenda-${index}` ? (
+                      <><Check className="h-4 w-4 mr-2" /> Copiado</>
+                    ) : (
+                      <><Copy className="h-4 w-4 mr-2" /> Copiar</>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => openImageModal(legenda, "Edificar")}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Image className="h-4 w-4 mr-2" />
+                    Gerar Imagem
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -216,22 +234,41 @@ const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
                   <h4 className="text-sm font-semibold text-white mb-2">Roteiro:</h4>
                   <p className="text-gray-300 whitespace-pre-wrap">{reel.roteiro}</p>
                 </div>
-                <Button
-                  onClick={() => copyToClipboard(reel.roteiro || '', `reel-${index}`)}
-                  variant="outline"
-                  size="sm"
-                >
-                  {copiedIndex === `reel-${index}` ? (
-                    <><Check className="h-4 w-4 mr-2" /> Copiado</>
-                  ) : (
-                    <><Copy className="h-4 w-4 mr-2" /> Copiar</>
-                  )}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => copyToClipboard(reel.roteiro || '', `reel-${index}`)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {copiedIndex === `reel-${index}` ? (
+                      <><Check className="h-4 w-4 mr-2" /> Copiado</>
+                    ) : (
+                      <><Copy className="h-4 w-4 mr-2" /> Copiar</>
+                    )}
+                  </Button>
+                  <Button
+                    onClick={() => openImageModal(reel.hook || reel.titulo || '', "Alcançar")}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Image className="h-4 w-4 mr-2" />
+                    Gerar Capa
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
         </TabsContent>
       </Tabs>
+
+      {selectedContent && (
+        <ImageGenerationModal
+          open={imageModalOpen}
+          onOpenChange={setImageModalOpen}
+          copy={selectedContent.copy}
+          pilar={selectedContent.pilar}
+        />
+      )}
     </div>
   );
 };

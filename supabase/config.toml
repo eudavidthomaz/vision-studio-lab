@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.generate-content-idea]
 verify_jwt = true
+
+[functions.generate-post-image]
+verify_jwt = true

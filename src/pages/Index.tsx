@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import RecordingButton from "@/components/RecordingButton";
+import AudioInput from "@/components/AudioInput";
 import WeeklyPackDisplay from "@/components/WeeklyPackDisplay";
 import IdeonChallengeCard from "@/components/IdeonChallengeCard";
 
@@ -205,7 +205,7 @@ const Index = () => {
             </p>
             
             <div className="flex justify-center">
-              <RecordingButton onTranscriptionComplete={handleTranscriptionComplete} />
+              <AudioInput onTranscriptionComplete={handleTranscriptionComplete} />
             </div>
           </div>
         </section>
