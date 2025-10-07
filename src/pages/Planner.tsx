@@ -40,6 +40,7 @@ interface ContentItem {
   copy: string;
   hashtags: string[];
   cta: string;
+  imagem_url?: string;
   [key: string]: any;
 }
 

@@ -19,6 +19,7 @@ interface ContentCardProps {
     copy: string;
     hashtags: string[];
     cta: string;
+    imagem_url?: string;
   };
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: any) => void;
@@ -42,6 +43,7 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
   const [editedCopy, setEditedCopy] = useState(content.copy);
   const [editedHashtags, setEditedHashtags] = useState(content.hashtags.join(" "));
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
 
   const {
     attributes,
@@ -59,6 +61,14 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+  };
+
+  const handleImageGenerated = (imageUrl: string) => {
+    onUpdate(content.id, { imagem_url: imageUrl });
+    toast({
+      title: "Imagem salva!",
+      description: "A imagem foi adicionada ao post.",
+    });
   };
 
   const copyToClipboard = (text: string, label: string) => {
@@ -140,6 +150,27 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
+        {/* Image Preview */}
+        {content.imagem_url && !isEditing && (
+          <div className="relative group">
+            <img
+              src={content.imagem_url}
+              alt={content.titulo}
+              className="w-full h-32 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => setShowImagePreview(true)}
+            />
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowImagePreview(true)}
+              >
+                Ver Imagem
+              </Button>
+            </div>
+          </div>
+        )}
+
         {isEditing ? (
           <>
             <Textarea
@@ -200,7 +231,7 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
             onClick={() => setImageModalOpen(true)}
           >
             <Image className="h-3 w-3 mr-1" />
-            Imagem
+            {content.imagem_url ? "Editar" : "Gerar"}
           </Button>
         </div>
       </CardContent>
@@ -210,7 +241,32 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
         onOpenChange={setImageModalOpen}
         copy={content.copy}
         pilar={content.pilar}
+        onImageGenerated={handleImageGenerated}
       />
+
+      {/* Image Lightbox */}
+      {showImagePreview && content.imagem_url && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setShowImagePreview(false)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh]">
+            <img
+              src={content.imagem_url}
+              alt={content.titulo}
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            />
+            <Button
+              variant="secondary"
+              size="sm"
+              className="absolute top-4 right-4"
+              onClick={() => setShowImagePreview(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
