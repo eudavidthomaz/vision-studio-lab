@@ -12,7 +12,7 @@ import OnboardingTour from "@/components/OnboardingTour";
 import EmptyState from "@/components/EmptyState";
 import ProgressSteps from "@/components/ProgressSteps";
 
-const Index = () => {
+const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -508,4 +508,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Dashboard;

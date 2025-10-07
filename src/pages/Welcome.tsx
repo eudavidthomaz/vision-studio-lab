@@ -13,7 +13,7 @@ const Welcome = () => {
     // Check if user has seen welcome before
     const seen = localStorage.getItem("ide-on-welcome-seen");
     if (seen) {
-      navigate("/", { replace: true });
+      navigate("/dashboard", { replace: true });
     }
     
     // Launch confetti on mount
@@ -27,7 +27,7 @@ const Welcome = () => {
   const handleStart = () => {
     localStorage.setItem("ide-on-welcome-seen", "true");
     setHasSeenWelcome(true);
-    navigate("/");
+    navigate("/dashboard");
   };
 
   return (

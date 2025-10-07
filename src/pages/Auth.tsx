@@ -20,7 +20,7 @@ const Auth = () => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/", { replace: true });
+        navigate("/dashboard", { replace: true });
       }
     };
     checkUser();
@@ -33,7 +33,7 @@ const Auth = () => {
         if (!hasSeenWelcome) {
           navigate("/welcome", { replace: true });
         } else {
-          navigate("/", { replace: true });
+          navigate("/dashboard", { replace: true });
         }
       }
     });
@@ -58,7 +58,7 @@ const Auth = () => {
           title: "Bem-vindo!",
           description: "Login realizado com sucesso.",
         });
-        navigate("/");
+        navigate("/dashboard");
       } else {
         const { error } = await supabase.auth.signUp({
           email,
