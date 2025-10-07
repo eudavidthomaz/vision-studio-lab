@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Loader2 } from "lucide-react";
+import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ContentIdeaModal from "@/components/ContentIdeaModal";
 import ContentCard from "@/components/ContentCard";
 import PillarLegend from "@/components/PillarLegend";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import {
   DndContext,
   DragEndEvent,
@@ -258,6 +260,41 @@ export default function Planner() {
     return null;
   };
 
+  // Calculate weekly metrics
+  const weeklyMetrics = useMemo(() => {
+    const allContent = Object.values(contentByDay).flat();
+    const totalPosts = allContent.length;
+    const targetPosts = 21; // 3 posts per day * 7 days
+    
+    // Count posts with images (assuming posts that have been through image generation)
+    const postsWithImage = allContent.filter(c => c.imagem_url).length;
+    
+    // Count by type
+    const typeCount = allContent.reduce((acc, content) => {
+      acc[content.tipo] = (acc[content.tipo] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return {
+      totalPosts,
+      targetPosts,
+      postsWithImage,
+      typeCount,
+      completionPercentage: Math.round((totalPosts / targetPosts) * 100),
+      imagePercentage: totalPosts > 0 ? Math.round((postsWithImage / totalPosts) * 100) : 0,
+    };
+  }, [contentByDay]);
+
+  // Calculate daily status
+  const getDayStatus = (day: string) => {
+    const contents = contentByDay[day] || [];
+    const count = contents.length;
+    
+    if (count === 0) return { color: "bg-red-500", label: "Vazio", icon: "🔴" };
+    if (count < 2) return { color: "bg-yellow-500", label: "Incompleto", icon: "🟡" };
+    return { color: "bg-green-500", label: "Completo", icon: "🟢" };
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
@@ -298,6 +335,64 @@ export default function Planner() {
         </header>
 
         <div className="container mx-auto px-4 py-8">
+          {/* Weekly Progress Bar */}
+          <div className="mb-6 bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                Progresso Semanal
+              </h2>
+              <Badge variant="outline" className="text-lg px-4 py-1">
+                {weeklyMetrics.totalPosts}/{weeklyMetrics.targetPosts} posts
+              </Badge>
+            </div>
+
+            <div className="space-y-4">
+              {/* Main Progress */}
+              <div>
+                <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                  <span>Total de posts planejados</span>
+                  <span className="font-medium text-foreground">{weeklyMetrics.completionPercentage}%</span>
+                </div>
+                <Progress value={weeklyMetrics.completionPercentage} className="h-3" />
+              </div>
+
+              {/* Secondary Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-border/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <FileText className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{weeklyMetrics.totalPosts}</p>
+                    <p className="text-xs text-muted-foreground">Total de Posts</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/10">
+                    <ImageIcon className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{weeklyMetrics.postsWithImage}</p>
+                    <p className="text-xs text-muted-foreground">Com Imagem ({weeklyMetrics.imagePercentage}%)</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col">
+                  <p className="text-xs text-muted-foreground mb-2">Por Tipo:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(weeklyMetrics.typeCount).map(([type, count]) => (
+                      <Badge key={type} variant="secondary" className="text-xs">
+                        {type}: {count}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="mb-8">
             <PillarLegend />
           </div>
@@ -313,12 +408,43 @@ export default function Planner() {
               >
                 <div className="space-y-3">
                   <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-3">
-                    <h3 className="font-semibold text-foreground text-sm">{day}</h3>
-                    <p className="text-xs text-muted-foreground">{pilar}</p>
+                    {/* Day Header with Status */}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-foreground text-sm">{day}</h3>
+                          <span className="text-base">{getDayStatus(day).icon}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{pilar}</p>
+                      </div>
+                    </div>
+
+                    {/* Daily Stats */}
+                    <div className="space-y-1 mb-3 py-2 border-y border-border/30">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <FileText className="h-3 w-3" />
+                          Posts
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {(contentByDay[day] || []).length}/3
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <ImageIcon className="h-3 w-3" />
+                          Imagens
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {(contentByDay[day] || []).filter(c => c.imagem_url).length}/{(contentByDay[day] || []).length}
+                        </span>
+                      </div>
+                    </div>
+
                     <Button
                       size="sm"
                       variant="outline"
-                      className="w-full mt-2"
+                      className="w-full"
                       onClick={() => {
                         setSelectedDay(day);
                         setModalOpen(true);
@@ -364,9 +490,19 @@ export default function Planner() {
               >
                 <div className="space-y-3">
                   <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-4">
+                    {/* Mobile Day Header with Status */}
                     <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h3 className="font-semibold text-foreground">{day}</h3>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-foreground">{day}</h3>
+                          <span className="text-lg">{getDayStatus(day).icon}</span>
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs"
+                          >
+                            {(contentByDay[day] || []).length}/3
+                          </Badge>
+                        </div>
                         <p className="text-sm text-muted-foreground">{pilar}</p>
                       </div>
                       <Button
