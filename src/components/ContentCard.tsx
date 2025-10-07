@@ -1,12 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Edit, Image } from "lucide-react";
+import { Copy, Trash2, Edit, Image, GripVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import ImageGenerationModal from "./ImageGenerationModal";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface ContentCardProps {
   content: {
@@ -20,6 +22,7 @@ interface ContentCardProps {
   };
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: any) => void;
+  isDraggable?: boolean;
 }
 
 const pillarColors: Record<string, string> = {
@@ -32,13 +35,31 @@ const pillarColors: Record<string, string> = {
   "Cobertura": "bg-red-500"
 };
 
-export default function ContentCard({ content, onDelete, onUpdate }: ContentCardProps) {
+export default function ContentCard({ content, onDelete, onUpdate, isDraggable = false }: ContentCardProps) {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitulo, setEditedTitulo] = useState(content.titulo);
   const [editedCopy, setEditedCopy] = useState(content.copy);
   const [editedHashtags, setEditedHashtags] = useState(content.hashtags.join(" "));
   const [imageModalOpen, setImageModalOpen] = useState(false);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ 
+    id: content.id,
+    disabled: !isDraggable || isEditing
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -67,9 +88,22 @@ export default function ContentCard({ content, onDelete, onUpdate }: ContentCard
   };
 
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-colors">
+    <Card 
+      ref={setNodeRef} 
+      style={style}
+      className="bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-colors"
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
+          {isDraggable && !isEditing && (
+            <button
+              className="cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-muted rounded"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="h-4 w-4 text-muted-foreground" />
+            </button>
+          )}
           <div className="flex-1">
             {isEditing ? (
               <Input

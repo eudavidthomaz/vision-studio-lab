@@ -7,6 +7,17 @@ import { useToast } from "@/hooks/use-toast";
 import ContentIdeaModal from "@/components/ContentIdeaModal";
 import ContentCard from "@/components/ContentCard";
 import PillarLegend from "@/components/PillarLegend";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCorners,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 
 const daysOfWeek = [
   { day: "Segunda", pilar: "Edificar" },
@@ -37,8 +48,17 @@ export default function Planner() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<string>("Segunda");
   const [plannerId, setPlannerId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -162,6 +182,82 @@ export default function Planner() {
     savePlanner(updatedContent);
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Find source day and content
+    let sourceDay = "";
+    let draggedContent: ContentItem | null = null;
+
+    for (const [day, contents] of Object.entries(contentByDay)) {
+      const found = contents.find(c => c.id === activeId);
+      if (found) {
+        sourceDay = day;
+        draggedContent = found;
+        break;
+      }
+    }
+
+    if (!draggedContent) return;
+
+    // Check if dropped on a day container (column)
+    const targetDay = daysOfWeek.find(d => overId === d.day)?.day;
+
+    if (targetDay && targetDay !== sourceDay) {
+      // Moving between days
+      const updatedContent = {
+        ...contentByDay,
+        [sourceDay]: (contentByDay[sourceDay] || []).filter(c => c.id !== activeId),
+        [targetDay]: [...(contentByDay[targetDay] || []), draggedContent]
+      };
+      setContentByDay(updatedContent);
+      savePlanner(updatedContent);
+      toast({
+        title: "Movido!",
+        description: `Conteúdo movido para ${targetDay}.`,
+      });
+    } else if (activeId !== overId) {
+      // Reordering within the same day
+      for (const [day, contents] of Object.entries(contentByDay)) {
+        const activeIndex = contents.findIndex(c => c.id === activeId);
+        const overIndex = contents.findIndex(c => c.id === overId);
+
+        if (activeIndex !== -1 && overIndex !== -1) {
+          const newContents = [...contents];
+          const [removed] = newContents.splice(activeIndex, 1);
+          newContents.splice(overIndex, 0, removed);
+
+          const updatedContent = {
+            ...contentByDay,
+            [day]: newContents
+          };
+          setContentByDay(updatedContent);
+          savePlanner(updatedContent);
+          break;
+        }
+      }
+    }
+  };
+
+  const getActiveContent = () => {
+    if (!activeId) return null;
+    for (const contents of Object.values(contentByDay)) {
+      const found = contents.find(c => c.id === activeId);
+      if (found) return found;
+    }
+    return null;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
@@ -171,120 +267,164 @@ export default function Planner() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      {/* Header */}
-      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate("/")}
-                >
-                  <ArrowLeft className="h-5 w-5" />
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+        {/* Header */}
+        <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => navigate("/")}
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  <h1 className="text-2xl font-bold text-white">Planner Visual</h1>
+                </div>
+                <Button variant="outline" onClick={() => navigate("/historico")}>
+                  Histórico
                 </Button>
-                <h1 className="text-2xl font-bold text-white">Planner Visual</h1>
               </div>
-              <Button variant="outline" onClick={() => navigate("/historico")}>
-                Histórico
-              </Button>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <PillarLegend />
-        </div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <PillarLegend />
+          </div>
 
-        {/* Desktop: 7-column grid */}
-        <div className="hidden lg:grid lg:grid-cols-7 gap-4">
-          {daysOfWeek.map(({ day, pilar }) => (
-            <div key={day} className="space-y-3">
-              <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-3">
-                <h3 className="font-semibold text-foreground text-sm">{day}</h3>
-                <p className="text-xs text-muted-foreground">{pilar}</p>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full mt-2"
-                  onClick={() => {
-                    setSelectedDay(day);
-                    setModalOpen(true);
-                  }}
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Nova Ideia
-                </Button>
-              </div>
-              
-              <div className="space-y-3">
-                {(contentByDay[day] || []).map((content) => (
-                  <ContentCard
-                    key={content.id}
-                    content={content}
-                    onDelete={(id) => handleDelete(day, id)}
-                    onUpdate={(id, updates) => handleUpdate(day, id, updates)}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Mobile: Single column with tabs/sections */}
-        <div className="lg:hidden space-y-6">
-          {daysOfWeek.map(({ day, pilar }) => (
-            <div key={day} className="space-y-3">
-              <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{day}</h3>
-                    <p className="text-sm text-muted-foreground">{pilar}</p>
+          {/* Desktop: 7-column grid */}
+          <div className="hidden lg:grid lg:grid-cols-7 gap-4">
+            {daysOfWeek.map(({ day, pilar }) => (
+              <SortableContext
+                key={day}
+                id={day}
+                items={(contentByDay[day] || []).map(c => c.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-3">
+                  <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-3">
+                    <h3 className="font-semibold text-foreground text-sm">{day}</h3>
+                    <p className="text-xs text-muted-foreground">{pilar}</p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full mt-2"
+                      onClick={() => {
+                        setSelectedDay(day);
+                        setModalOpen(true);
+                      }}
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Nova Ideia
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      setSelectedDay(day);
-                      setModalOpen(true);
+                  
+                  <div
+                    id={day}
+                    className="space-y-3 min-h-[200px] p-2 rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: activeId && !contentByDay[day]?.find(c => c.id === activeId)
+                        ? 'rgba(var(--primary-rgb, 59, 130, 246), 0.1)'
+                        : 'transparent'
                     }}
                   >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Nova
-                  </Button>
+                    {(contentByDay[day] || []).map((content) => (
+                      <ContentCard
+                        key={content.id}
+                        content={content}
+                        onDelete={(id) => handleDelete(day, id)}
+                        onUpdate={(id, updates) => handleUpdate(day, id, updates)}
+                        isDraggable
+                      />
+                    ))}
+                  </div>
                 </div>
-                
-                <div className="space-y-3">
-                  {(contentByDay[day] || []).map((content) => (
-                    <ContentCard
-                      key={content.id}
-                      content={content}
-                      onDelete={(id) => handleDelete(day, id)}
-                      onUpdate={(id, updates) => handleUpdate(day, id, updates)}
-                    />
-                  ))}
-                  
-                  {(!contentByDay[day] || contentByDay[day].length === 0) && (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      Nenhum conteúdo planejado
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+              </SortableContext>
+            ))}
+          </div>
 
-      <ContentIdeaModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        defaultPilar={daysOfWeek.find(d => d.day === selectedDay)?.pilar}
-        onIdeaGenerated={handleIdeaGenerated}
-      />
-    </div>
+          {/* Mobile: Single column with tabs/sections */}
+          <div className="lg:hidden space-y-6">
+            {daysOfWeek.map(({ day, pilar }) => (
+              <SortableContext
+                key={day}
+                id={day}
+                items={(contentByDay[day] || []).map(c => c.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-3">
+                  <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h3 className="font-semibold text-foreground">{day}</h3>
+                        <p className="text-sm text-muted-foreground">{pilar}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setSelectedDay(day);
+                          setModalOpen(true);
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Nova
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {(contentByDay[day] || []).map((content) => (
+                        <ContentCard
+                          key={content.id}
+                          content={content}
+                          onDelete={(id) => handleDelete(day, id)}
+                          onUpdate={(id, updates) => handleUpdate(day, id, updates)}
+                          isDraggable
+                        />
+                      ))}
+                      
+                      {(!contentByDay[day] || contentByDay[day].length === 0) && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          Nenhum conteúdo planejado
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </SortableContext>
+            ))}
+          </div>
+        </div>
+
+        <ContentIdeaModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          defaultPilar={daysOfWeek.find(d => d.day === selectedDay)?.pilar}
+          onIdeaGenerated={handleIdeaGenerated}
+        />
+
+        <DragOverlay>
+          {activeId ? (
+            <div className="opacity-80">
+              <ContentCard
+                content={getActiveContent()!}
+                onDelete={() => {}}
+                onUpdate={() => {}}
+                isDraggable={false}
+              />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </div>
+    </DndContext>
   );
 }
