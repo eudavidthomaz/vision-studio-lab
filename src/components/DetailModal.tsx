@@ -1,9 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Download } from "lucide-react";
+import { useState, useEffect } from "react";
 import WeeklyPackDisplay from "./WeeklyPackDisplay";
 import IdeonChallengeCard from "./IdeonChallengeCard";
 
@@ -17,10 +16,36 @@ interface DetailModalProps {
 export default function DetailModal({ item, type, open, onOpenChange }: DetailModalProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [currentPlanner, setCurrentPlanner] = useState<Record<string, any[]>>({});
 
-  const handleImportToPlanner = async () => {
-    if (type !== "pack") return;
+  useEffect(() => {
+    if (open && type === "pack") {
+      loadCurrentPlanner();
+    }
+  }, [open, type]);
 
+  const loadCurrentPlanner = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const weekStart = getWeekStartDate();
+      const { data: existingPlanner } = await supabase
+        .from('content_planners')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('week_start_date', weekStart)
+        .maybeSingle();
+
+      if (existingPlanner) {
+        setCurrentPlanner((existingPlanner.content as Record<string, any[]>) || {});
+      }
+    } catch (error) {
+      console.error('Error loading planner:', error);
+    }
+  };
+
+  const handleImportToPlanner = async (selectedItems: any[], conflictResolution: 'replace' | 'add' | 'skip') => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não autenticado");
@@ -35,83 +60,47 @@ export default function DetailModal({ item, type, open, onOpenChange }: DetailMo
         .eq('week_start_date', weekStart)
         .maybeSingle();
 
-      const pack = item.pack;
-      const importedContent: any = {};
-
-      // Map content to days based on strategic pillar
-      const dayMapping: Record<string, string> = {
-        "Edificar": "Segunda",
-        "Alcançar": "Terça",
-        "Pertencer": "Quarta",
-        "Servir": "Quinta",
-        "Convite": "Sexta",
-        "Comunidade": "Sábado",
-        "Cobertura": "Domingo"
-      };
-
-      // Import legendas
-      if (pack.legendas) {
-        pack.legendas.forEach((legenda: any) => {
-          const day = dayMapping[legenda.pilar_estrategico] || "Segunda";
-          if (!importedContent[day]) importedContent[day] = [];
-          importedContent[day].push({
-            id: crypto.randomUUID(),
-            titulo: legenda.texto?.substring(0, 30) || "Legenda",
-            tipo: "Legenda",
-            pilar: legenda.pilar_estrategico || "Edificar",
-            dia_sugerido: day,
-            copy: legenda.texto || "",
-            hashtags: legenda.hashtags || [],
-            cta: legenda.cta || ""
-          });
+      // Organize selected items by day
+      const importedContent: Record<string, any[]> = {};
+      selectedItems.forEach(item => {
+        const day = item.dia_sugerido;
+        if (!importedContent[day]) importedContent[day] = [];
+        importedContent[day].push({
+          id: crypto.randomUUID(),
+          titulo: item.titulo,
+          tipo: item.tipo,
+          pilar: item.pilar,
+          dia_sugerido: day,
+          copy: item.copy,
+          hashtags: item.hashtags || [],
+          cta: item.cta || "",
+          slides: item.slides,
+          hook: item.hook,
+          roteiro: item.roteiro,
+          duracao_estimada: item.duracao
         });
-      }
-
-      // Import carrosseis
-      if (pack.carrosseis) {
-        pack.carrosseis.forEach((carrossel: any) => {
-          const day = dayMapping[carrossel.pilar_estrategico] || "Terça";
-          if (!importedContent[day]) importedContent[day] = [];
-          importedContent[day].push({
-            id: crypto.randomUUID(),
-            titulo: carrossel.titulo || "Carrossel",
-            tipo: "Carrossel",
-            pilar: carrossel.pilar_estrategico || "Alcançar",
-            dia_sugerido: day,
-            copy: carrossel.slides?.map((s: any) => s.texto).join('\n\n') || "",
-            slides: carrossel.slides || []
-          });
-        });
-      }
-
-      // Import reels
-      if (pack.reels) {
-        pack.reels.forEach((reel: any) => {
-          const day = dayMapping[reel.pilar_estrategico] || "Terça";
-          if (!importedContent[day]) importedContent[day] = [];
-          importedContent[day].push({
-            id: crypto.randomUUID(),
-            titulo: reel.titulo || "Reel",
-            tipo: "Reel",
-            pilar: reel.pilar_estrategico || "Alcançar",
-            dia_sugerido: day,
-            copy: reel.roteiro || "",
-            hook: reel.hook,
-            duracao_estimada: reel.duracao_estimada
-          });
-        });
-      }
+      });
 
       if (existingPlanner) {
-        // Merge with existing content
         const existingContent = (existingPlanner.content as Record<string, any[]>) || {};
-        const mergedContent: Record<string, any[]> = { ...existingContent };
+        let mergedContent: Record<string, any[]> = { ...existingContent };
 
         Object.keys(importedContent).forEach(day => {
-          mergedContent[day] = [
-            ...(mergedContent[day] || []),
-            ...importedContent[day]
-          ];
+          if (conflictResolution === 'replace') {
+            // Replace all content for this day
+            mergedContent[day] = importedContent[day];
+          } else if (conflictResolution === 'add') {
+            // Add to existing content
+            mergedContent[day] = [
+              ...(mergedContent[day] || []),
+              ...importedContent[day]
+            ];
+          } else if (conflictResolution === 'skip') {
+            // Only add if day is empty
+            if (!mergedContent[day] || mergedContent[day].length === 0) {
+              mergedContent[day] = importedContent[day];
+            }
+          }
         });
 
         await supabase
@@ -157,23 +146,17 @@ export default function DetailModal({ item, type, open, onOpenChange }: DetailMo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span>Detalhes do Conteúdo</span>
-            {type === "pack" && (
-              <Button
-                onClick={handleImportToPlanner}
-                size="sm"
-                className="ml-auto"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Importar para Planner
-              </Button>
-            )}
-          </DialogTitle>
+          <DialogTitle>Detalhes do Conteúdo</DialogTitle>
         </DialogHeader>
 
         <div className="mt-4">
-          {type === "pack" && <WeeklyPackDisplay pack={item.pack} />}
+          {type === "pack" && (
+            <WeeklyPackDisplay 
+              pack={item.pack}
+              currentPlanner={currentPlanner}
+              onImportToPlanner={handleImportToPlanner}
+            />
+          )}
           {type === "challenge" && <IdeonChallengeCard challenge={item.challenge} />}
         </div>
       </DialogContent>
