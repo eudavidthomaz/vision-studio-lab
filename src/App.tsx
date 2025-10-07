@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Welcome from "./pages/Welcome";
 import Planner from "./pages/Planner";
 import Historico from "./pages/Historico";
+import Metrics from "./pages/Metrics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/planner" element={<Planner />} />
           <Route path="/historico" element={<Historico />} />
+          <Route path="/metrics" element={<Metrics />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

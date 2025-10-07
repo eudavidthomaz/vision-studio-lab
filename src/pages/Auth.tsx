@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { Loader2 } from "lucide-react";
 
 const Auth = () => {
@@ -14,6 +15,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { trackEvent } = useAnalytics();
 
   useEffect(() => {
     // Check if user is already logged in
@@ -69,6 +71,9 @@ const Auth = () => {
         });
         
         if (error) throw error;
+        
+        // Track signup completion
+        await trackEvent('signup_completed', { email });
         
         toast({
           title: "Conta criada!",

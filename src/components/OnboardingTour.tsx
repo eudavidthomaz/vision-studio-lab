@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Joyride, { Step, CallBackProps, STATUS } from "react-joyride";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 interface OnboardingTourProps {
   run: boolean;
@@ -7,6 +8,7 @@ interface OnboardingTourProps {
 }
 
 const OnboardingTour = ({ run, onComplete }: OnboardingTourProps) => {
+  const { trackEvent } = useAnalytics();
   const [steps] = useState<Step[]>([
     {
       target: '[data-tour="audio-input"]',
@@ -36,6 +38,12 @@ const OnboardingTour = ({ run, onComplete }: OnboardingTourProps) => {
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
     if (finishedStatuses.includes(status)) {
+      // Track completion or skip
+      if (status === STATUS.FINISHED) {
+        trackEvent('tour_completed');
+      } else if (status === STATUS.SKIPPED) {
+        trackEvent('tour_skipped');
+      }
       onComplete();
     }
   };

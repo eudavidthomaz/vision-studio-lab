@@ -164,6 +164,60 @@ export type Database = {
         }
         Relationships: []
       }
+      user_analytics: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_feedback: {
+        Row: {
+          created_at: string | null
+          feedback_type: string
+          id: string
+          message: string
+          page_url: string | null
+          sentiment: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          feedback_type: string
+          id?: string
+          message: string
+          page_url?: string | null
+          sentiment?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          feedback_type?: string
+          id?: string
+          message?: string
+          page_url?: string | null
+          sentiment?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

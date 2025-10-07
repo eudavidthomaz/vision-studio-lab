@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Loader2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import HistoryCard from "@/components/HistoryCard";
 import DetailModal from "@/components/DetailModal";
 
@@ -20,6 +21,7 @@ export default function Historico() {
   const [modalType, setModalType] = useState<"pack" | "challenge" | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { trackEvent } = useAnalytics();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -27,9 +29,11 @@ export default function Historico() {
       setLoading(false);
       if (session?.user) {
         loadHistory(session.user.id);
+        // Track history visit
+        trackEvent('history_visited');
       }
     });
-  }, []);
+  }, [trackEvent]);
 
   useEffect(() => {
     if (!loading && !user) {

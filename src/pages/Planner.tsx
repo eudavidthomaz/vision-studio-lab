@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp, Download, Undo2, Redo2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import ContentIdeaModal from "@/components/ContentIdeaModal";
 import ContentCard from "@/components/ContentCard";
 import PillarLegend from "@/components/PillarLegend";
@@ -59,6 +60,7 @@ export default function Planner() {
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { trackEvent } = useAnalytics();
 
   // History management
   const {
@@ -115,9 +117,11 @@ export default function Planner() {
       setLoading(false);
       if (session?.user) {
         loadPlanner(session.user.id);
+        // Track planner visit
+        trackEvent('planner_visited');
       }
     });
-  }, []);
+  }, [trackEvent]);
 
   useEffect(() => {
     if (!loading && !user) {

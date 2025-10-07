@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mic, Sparkles, Calendar, ArrowRight } from "lucide-react";
 import confetti from "canvas-confetti";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const Welcome = () => {
   const navigate = useNavigate();
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
+  const { trackEvent } = useAnalytics();
 
   useEffect(() => {
     // Check if user has seen welcome before
@@ -16,13 +18,16 @@ const Welcome = () => {
       navigate("/dashboard", { replace: true });
     }
     
+    // Track welcome page view
+    trackEvent('welcome_page_viewed');
+    
     // Launch confetti on mount
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 }
     });
-  }, [navigate]);
+  }, [navigate, trackEvent]);
 
   const handleStart = () => {
     localStorage.setItem("ide-on-welcome-seen", "true");

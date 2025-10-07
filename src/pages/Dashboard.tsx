@@ -11,6 +11,9 @@ import IdeonChallengeCard from "@/components/IdeonChallengeCard";
 import OnboardingTour from "@/components/OnboardingTour";
 import EmptyState from "@/components/EmptyState";
 import ProgressSteps from "@/components/ProgressSteps";
+import FeedbackButton from "@/components/FeedbackButton";
+import NPSModal from "@/components/NPSModal";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -25,8 +28,10 @@ const Dashboard = () => {
   const [runTour, setRunTour] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [isFirstGeneration, setIsFirstGeneration] = useState(true);
+  const [showNPSModal, setShowNPSModal] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { trackEvent } = useAnalytics();
 
   useEffect(() => {
     // Check for existing session first
@@ -68,6 +73,9 @@ const Dashboard = () => {
     setTranscript(transcriptText);
     setIsGeneratingPack(true);
     setGenerationProgress(0);
+
+    // Track sermon upload
+    await trackEvent('sermon_uploaded');
 
     try {
       // Step 1: Transcription complete (25%)
@@ -124,6 +132,9 @@ const Dashboard = () => {
       // Step 4: Complete (100%)
       setGenerationProgress(100);
 
+      // Track successful pack generation
+      await trackEvent('pack_generated');
+
       // Celebration for first generation
       if (isFirstGeneration) {
         confetti({
@@ -132,6 +143,9 @@ const Dashboard = () => {
           origin: { y: 0.6 }
         });
         setIsFirstGeneration(false);
+        
+        // Show NPS modal after first successful generation
+        setTimeout(() => setShowNPSModal(true), 2000);
       }
 
       toast({
@@ -140,6 +154,10 @@ const Dashboard = () => {
       });
     } catch (error) {
       console.error('Error generating pack:', error);
+      
+      // Track failed pack generation
+      await trackEvent('pack_generation_failed', { error: String(error) });
+      
       toast({
         title: "Erro",
         description: "Não foi possível gerar o pacote semanal. Tente novamente.",
@@ -298,6 +316,9 @@ const Dashboard = () => {
           challenge: challengeData
         });
 
+      // Track challenge generation
+      await trackEvent('challenge_generated');
+
       toast({
         title: "Desafio criado!",
         description: "Um novo desafio Ide.On foi gerado para você.",
@@ -335,6 +356,12 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       {/* Onboarding Tour */}
       <OnboardingTour run={runTour} onComplete={handleTourComplete} />
+      
+      {/* NPS Modal */}
+      <NPSModal isOpen={showNPSModal} onClose={() => setShowNPSModal(false)} />
+      
+      {/* Feedback Button */}
+      <FeedbackButton />
 
       {/* Header */}
       <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
