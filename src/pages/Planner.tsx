@@ -2,11 +2,12 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp } from "lucide-react";
+import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ContentIdeaModal from "@/components/ContentIdeaModal";
 import ContentCard from "@/components/ContentCard";
 import PillarLegend from "@/components/PillarLegend";
+import ExportPlannerModal from "@/components/ExportPlannerModal";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -52,6 +53,8 @@ export default function Planner() {
   const [selectedDay, setSelectedDay] = useState<string>("Segunda");
   const [plannerId, setPlannerId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [weekStartDate, setWeekStartDate] = useState<string>("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -84,7 +87,9 @@ export default function Planner() {
     const day = today.getDay();
     const diff = today.getDate() - day + (day === 0 ? -6 : 1);
     const monday = new Date(today.setDate(diff));
-    return monday.toISOString().split('T')[0];
+    const dateStr = monday.toISOString().split('T')[0];
+    setWeekStartDate(dateStr);
+    return dateStr;
   };
 
   const loadPlanner = async (userId: string) => {
@@ -317,20 +322,30 @@ export default function Planner() {
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => navigate("/")}
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
-                  <h1 className="text-2xl font-bold text-white">Planner Visual</h1>
-                </div>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate("/")}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <h1 className="text-2xl font-bold text-white">Planner Visual</h1>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setExportModalOpen(true)}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar
+                </Button>
                 <Button variant="outline" onClick={() => navigate("/historico")}>
                   Histórico
                 </Button>
               </div>
+            </div>
             </div>
           </div>
         </header>
@@ -547,6 +562,13 @@ export default function Planner() {
           onOpenChange={setModalOpen}
           defaultPilar={daysOfWeek.find(d => d.day === selectedDay)?.pilar}
           onIdeaGenerated={handleIdeaGenerated}
+        />
+
+        <ExportPlannerModal
+          open={exportModalOpen}
+          onOpenChange={setExportModalOpen}
+          contentByDay={contentByDay}
+          weekStartDate={weekStartDate}
         />
 
         <DragOverlay>
