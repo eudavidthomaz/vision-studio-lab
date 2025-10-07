@@ -28,7 +28,13 @@ const Auth = () => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && event === 'SIGNED_IN') {
-        navigate("/", { replace: true });
+        // Check if this is a new user signup
+        const hasSeenWelcome = localStorage.getItem("ide-on-welcome-seen");
+        if (!hasSeenWelcome) {
+          navigate("/welcome", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
       }
     });
 
@@ -66,9 +72,10 @@ const Auth = () => {
         
         toast({
           title: "Conta criada!",
-          description: "Você já pode fazer login.",
+          description: "Redirecionando para boas-vindas...",
         });
-        setIsLogin(true);
+        // Navigate to welcome page for new users
+        navigate("/welcome");
       }
     } catch (error: any) {
       toast({

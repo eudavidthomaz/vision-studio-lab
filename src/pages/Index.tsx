@@ -2,11 +2,15 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import confetti from "canvas-confetti";
 import AudioInput from "@/components/AudioInput";
 import WeeklyPackDisplay from "@/components/WeeklyPackDisplay";
 import IdeonChallengeCard from "@/components/IdeonChallengeCard";
+import OnboardingTour from "@/components/OnboardingTour";
+import EmptyState from "@/components/EmptyState";
+import ProgressSteps from "@/components/ProgressSteps";
 
 const Index = () => {
   const [user, setUser] = useState<any>(null);
@@ -18,6 +22,9 @@ const Index = () => {
   const [isGeneratingPack, setIsGeneratingPack] = useState(false);
   const [isGeneratingChallenge, setIsGeneratingChallenge] = useState(false);
   const [currentPlanner, setCurrentPlanner] = useState<Record<string, any[]>>({});
+  const [runTour, setRunTour] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [isFirstGeneration, setIsFirstGeneration] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -46,14 +53,25 @@ const Index = () => {
       navigate("/auth");
     } else if (user) {
       loadCurrentPlanner();
+      
+      // Check if should show tour
+      const hasSeenTour = localStorage.getItem("ide-on-tour-completed");
+      const hasSeenWelcome = localStorage.getItem("ide-on-welcome-seen");
+      if (hasSeenWelcome && !hasSeenTour) {
+        // Wait a bit before starting tour
+        setTimeout(() => setRunTour(true), 1000);
+      }
     }
   }, [loading, user, navigate]);
 
   const handleTranscriptionComplete = async (transcriptText: string) => {
     setTranscript(transcriptText);
     setIsGeneratingPack(true);
+    setGenerationProgress(0);
 
     try {
+      // Step 1: Transcription complete (25%)
+      setGenerationProgress(25);
       // Save sermon to database
       const { data: sermonData, error: sermonError } = await supabase
         .from('sermons')
@@ -66,6 +84,9 @@ const Index = () => {
         .single();
 
       if (sermonError) throw sermonError;
+
+      // Step 2: Analyzing sermon (50%)
+      setGenerationProgress(50);
 
       // Generate weekly pack
       const packResponse = await fetch(
@@ -85,6 +106,10 @@ const Index = () => {
       }
 
       const pack = await packResponse.json();
+      
+      // Step 3: Content generated (75%)
+      setGenerationProgress(75);
+      
       setWeeklyPack(pack);
 
       // Save weekly pack to database
@@ -96,8 +121,21 @@ const Index = () => {
           pack: pack
         });
 
+      // Step 4: Complete (100%)
+      setGenerationProgress(100);
+
+      // Celebration for first generation
+      if (isFirstGeneration) {
+        confetti({
+          particleCount: 150,
+          spread: 100,
+          origin: { y: 0.6 }
+        });
+        setIsFirstGeneration(false);
+      }
+
       toast({
-        title: "Sucesso!",
+        title: "Sucesso! 🎉",
         description: "Pacote semanal gerado com sucesso!",
       });
     } catch (error) {
@@ -109,7 +147,13 @@ const Index = () => {
       });
     } finally {
       setIsGeneratingPack(false);
+      setGenerationProgress(0);
     }
+  };
+
+  const handleTourComplete = () => {
+    localStorage.setItem("ide-on-tour-completed", "true");
+    setRunTour(false);
   };
 
   const getWeekStartDate = () => {
@@ -289,15 +333,26 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      {/* Onboarding Tour */}
+      <OnboardingTour run={runTour} onComplete={handleTourComplete} />
+
       {/* Header */}
       <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-white">Ide.On</h1>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate("/historico")}>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/historico")}
+              data-tour="history-button"
+            >
               Histórico
             </Button>
-            <Button variant="outline" onClick={() => navigate("/planner")}>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate("/planner")}
+              data-tour="planner-button"
+            >
               Planner Visual
             </Button>
             <Button variant="outline" onClick={handleLogout}>
@@ -322,28 +377,52 @@ const Index = () => {
               Grave sua pregação e receba automaticamente um pacote completo de conteúdo para redes sociais
             </p>
             
-            <div className="flex justify-center">
+            <div className="flex justify-center" data-tour="audio-input">
               <AudioInput onTranscriptionComplete={handleTranscriptionComplete} />
             </div>
           </div>
         </section>
       )}
 
-      {/* Loading State */}
+      {/* Loading State with Progress */}
       {isGeneratingPack && (
-        <section className="container mx-auto px-4 py-20 text-center">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-16 w-16 text-primary animate-spin" />
-            <h3 className="text-2xl font-semibold text-white">Gerando seu pacote semanal...</h3>
-            <p className="text-gray-400">Isso pode levar alguns minutos. Aguarde.</p>
+        <section className="container mx-auto px-4 py-20">
+          <div className="max-w-2xl mx-auto space-y-8">
+            <div className="text-center">
+              <Loader2 className="h-16 w-16 text-primary animate-spin mx-auto mb-4" />
+              <h3 className="text-2xl font-semibold text-white mb-2">Gerando seu pacote semanal...</h3>
+              <p className="text-gray-400">Aguarde enquanto criamos conteúdo incrível para você</p>
+            </div>
+            
+            <ProgressSteps
+              steps={[
+                { 
+                  label: "Transcrevendo pregação", 
+                  status: generationProgress > 25 ? "completed" : generationProgress > 0 ? "active" : "pending" 
+                },
+                { 
+                  label: "Analisando conteúdo e temas principais", 
+                  status: generationProgress > 50 ? "completed" : generationProgress > 25 ? "active" : "pending" 
+                },
+                { 
+                  label: "Gerando posts, stories e reels", 
+                  status: generationProgress > 75 ? "completed" : generationProgress > 50 ? "active" : "pending" 
+                },
+                { 
+                  label: "Finalizando pacote semanal", 
+                  status: generationProgress === 100 ? "completed" : generationProgress > 75 ? "active" : "pending" 
+                },
+              ]}
+              currentProgress={generationProgress}
+            />
           </div>
         </section>
       )}
 
       {/* Results Section */}
       {weeklyPack && !isGeneratingPack && (
-        <section className="container mx-auto px-4 py-12">
-          <div className="mb-8 text-center">
+        <section className="container mx-auto px-4 py-12" data-tour="weekly-pack">
+          <div className="mb-8 text-center animate-fade-in">
             <h3 className="text-3xl font-bold text-white mb-4">Seu Pacote Semanal Está Pronto! 🎉</h3>
             <p className="text-gray-400 mb-6">
               Todo o conteúdo foi gerado com base na sua pregação
@@ -389,6 +468,40 @@ const Index = () => {
       {challenge && (
         <section className="container mx-auto px-4 py-12">
           <IdeonChallengeCard challenge={challenge} />
+        </section>
+      )}
+
+      {/* Empty State for Challenge */}
+      {!challenge && weeklyPack && !isGeneratingChallenge && (
+        <section className="container mx-auto px-4 py-12">
+          <EmptyState
+            icon={Sparkles}
+            title="Crie um Desafio Ide.On"
+            description="Engaje sua comunidade com desafios personalizados que promovem crescimento espiritual e compartilhamento do evangelho"
+            action={
+              <Button 
+                onClick={handleGenerateChallenge}
+                className="bg-primary hover:bg-primary/90"
+              >
+                Gerar Desafio Ide.On
+              </Button>
+            }
+          >
+            <div className="grid md:grid-cols-3 gap-4 text-left max-w-3xl mx-auto">
+              <div className="bg-card/50 p-4 rounded-lg">
+                <p className="text-white font-semibold mb-2">📱 Engajamento</p>
+                <p className="text-sm text-muted-foreground">Desafios que incentivam ação e compartilhamento</p>
+              </div>
+              <div className="bg-card/50 p-4 rounded-lg">
+                <p className="text-white font-semibold mb-2">🎯 Personalizado</p>
+                <p className="text-sm text-muted-foreground">Baseado no tema da sua pregação</p>
+              </div>
+              <div className="bg-card/50 p-4 rounded-lg">
+                <p className="text-white font-semibold mb-2">🌟 Impacto</p>
+                <p className="text-sm text-muted-foreground">Leva a mensagem além das redes sociais</p>
+              </div>
+            </div>
+          </EmptyState>
         </section>
       )}
     </div>
