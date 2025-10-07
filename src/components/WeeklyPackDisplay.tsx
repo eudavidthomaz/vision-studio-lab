@@ -16,9 +16,15 @@ interface WeeklyPackProps {
       versiculos?: string[];
       perguntas?: string[];
     };
-    legendas?: string[];
+    legendas?: Array<{
+      texto?: string;
+      pilar_estrategico?: string;
+      cta?: string;
+      hashtags?: string[];
+    }>;
     carrosseis?: Array<{
       titulo?: string;
+      pilar_estrategico?: string;
       slides?: Array<{
         texto?: string;
         sugestao_imagem?: string;
@@ -26,6 +32,7 @@ interface WeeklyPackProps {
     }>;
     reels?: Array<{
       titulo?: string;
+      pilar_estrategico?: string;
       roteiro?: string;
       duracao_estimada?: string;
       hook?: string;
@@ -163,34 +170,43 @@ const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
         </TabsContent>
 
         <TabsContent value="legendas" className="mt-6 space-y-4">
-          {pack.legendas?.map((legenda, index) => (
-            <Card key={index} className="bg-gray-800/50 border-gray-700">
-              <CardContent className="pt-6">
-                <p className="text-gray-300 mb-4 whitespace-pre-wrap">{legenda}</p>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => copyToClipboard(legenda, `legenda-${index}`)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    {copiedIndex === `legenda-${index}` ? (
-                      <><Check className="h-4 w-4 mr-2" /> Copiado</>
-                    ) : (
-                      <><Copy className="h-4 w-4 mr-2" /> Copiar</>
-                    )}
-                  </Button>
-                  <Button
-                    onClick={() => openImageModal(legenda, "Edificar")}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Image className="h-4 w-4 mr-2" />
-                    Gerar Imagem
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          {pack.legendas?.map((legenda, index) => {
+            const fullText = `${legenda.texto}\n\n${legenda.cta}\n\n${legenda.hashtags?.join(' ') || ''}`;
+            return (
+              <Card key={index} className="bg-gray-800/50 border-gray-700">
+                <CardContent className="pt-6">
+                  <p className="text-gray-300 mb-4 whitespace-pre-wrap">{legenda.texto}</p>
+                  {legenda.cta && (
+                    <p className="text-primary font-semibold mb-2">{legenda.cta}</p>
+                  )}
+                  {legenda.hashtags && legenda.hashtags.length > 0 && (
+                    <p className="text-sm text-blue-400 mb-4">{legenda.hashtags.join(' ')}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => copyToClipboard(fullText, `legenda-${index}`)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      {copiedIndex === `legenda-${index}` ? (
+                        <><Check className="h-4 w-4 mr-2" /> Copiado</>
+                      ) : (
+                        <><Copy className="h-4 w-4 mr-2" /> Copiar</>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={() => openImageModal(legenda.texto || '', legenda.pilar_estrategico || "Edificar")}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Image className="h-4 w-4 mr-2" />
+                      Gerar Imagem
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </TabsContent>
 
         <TabsContent value="carrosseis" className="mt-6 space-y-6">
@@ -246,8 +262,8 @@ const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
                       <><Copy className="h-4 w-4 mr-2" /> Copiar</>
                     )}
                   </Button>
-                  <Button
-                    onClick={() => openImageModal(reel.hook || reel.titulo || '', "Alcançar")}
+                   <Button
+                    onClick={() => openImageModal(reel.hook || reel.titulo || '', reel.pilar_estrategico || "Alcançar")}
                     variant="outline"
                     size="sm"
                   >
