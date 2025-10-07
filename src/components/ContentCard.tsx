@@ -1,14 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Edit, Image, GripVertical } from "lucide-react";
+import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import ImageGenerationModal from "./ImageGenerationModal";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface ContentCardProps {
   content: {
@@ -44,6 +45,25 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
   const [editedHashtags, setEditedHashtags] = useState(content.hashtags.join(" "));
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [showSavedCheck, setShowSavedCheck] = useState(false);
+
+  // Debounce edited values for auto-save
+  const debouncedTitulo = useDebounce(editedTitulo, 1000);
+  const debouncedCopy = useDebounce(editedCopy, 1000);
+  const debouncedHashtags = useDebounce(editedHashtags, 1000);
+
+  // Auto-save when debounced values change
+  useEffect(() => {
+    if (isEditing && (
+      debouncedTitulo !== content.titulo ||
+      debouncedCopy !== content.copy ||
+      debouncedHashtags !== content.hashtags.join(" ")
+    )) {
+      handleAutoSave();
+    }
+  }, [debouncedTitulo, debouncedCopy, debouncedHashtags]);
 
   const {
     attributes,
@@ -61,34 +81,52 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    scale: isDragging ? 1.05 : 1,
+  };
+
+  const handleAutoSave = async () => {
+    setIsSaving(true);
+    
+    await onUpdate(content.id, {
+      titulo: debouncedTitulo,
+      copy: debouncedCopy,
+      hashtags: debouncedHashtags.split(" ").filter(h => h.trim())
+    });
+    
+    setIsSaving(false);
+    setShowSavedCheck(true);
+    setTimeout(() => setShowSavedCheck(false), 2000);
   };
 
   const handleImageGenerated = (imageUrl: string) => {
+    setIsGeneratingImage(false);
     onUpdate(content.id, { imagem_url: imageUrl });
     toast({
-      title: "Imagem salva!",
-      description: "A imagem foi adicionada ao post.",
+      title: "✓ Imagem salva!",
+      description: (
+        <div className="flex items-center gap-2">
+          <img src={imageUrl} alt="" className="w-8 h-8 rounded object-cover" />
+          <span>Imagem adicionada ao post "{content.titulo}"</span>
+        </div>
+      ),
+      duration: 5000,
     });
   };
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: "Copiado!",
+      title: "📋 Copiado!",
       description: `${label} copiado para a área de transferência.`,
+      duration: 3000,
     });
   };
 
   const handleSave = () => {
-    onUpdate(content.id, {
-      titulo: editedTitulo,
-      copy: editedCopy,
-      hashtags: editedHashtags.split(" ").filter(h => h.trim())
-    });
     setIsEditing(false);
     toast({
-      title: "Atualizado!",
-      description: "Conteúdo atualizado com sucesso.",
+      title: "✓ Salvo!",
+      description: `"${content.titulo}" foi atualizado.`,
     });
   };
 
@@ -101,15 +139,16 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
     <Card 
       ref={setNodeRef} 
       style={style}
-      className="bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-colors"
+      className="bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           {isDraggable && !isEditing && (
             <button
-              className="cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-muted rounded"
+              className="cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-muted rounded animate-pulse"
               {...attributes}
               {...listeners}
+              title="Arraste para mover"
             >
               <GripVertical className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -131,18 +170,26 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
               </Badge>
             </div>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 items-center">
+            {isSaving && (
+              <Loader2 className="h-3 w-3 text-muted-foreground animate-spin" />
+            )}
+            {showSavedCheck && (
+              <CheckCircle2 className="h-3 w-3 text-green-500 animate-scale-in" />
+            )}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => isEditing ? handleSave() : setIsEditing(true)}
+              className="transition-transform hover:scale-110"
             >
-              <Edit className="h-4 w-4" />
+              {isEditing ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onDelete(content.id)}
+              className="transition-transform hover:scale-110 hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -228,10 +275,24 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setImageModalOpen(true)}
+            onClick={() => {
+              setIsGeneratingImage(true);
+              setImageModalOpen(true);
+            }}
+            disabled={isGeneratingImage}
+            className="transition-transform hover:scale-105"
           >
-            <Image className="h-3 w-3 mr-1" />
-            {content.imagem_url ? "Editar" : "Gerar"}
+            {isGeneratingImage ? (
+              <>
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                Gerando...
+              </>
+            ) : (
+              <>
+                <Image className="h-3 w-3 mr-1" />
+                {content.imagem_url ? "Editar" : "Gerar"}
+              </>
+            )}
           </Button>
         </div>
       </CardContent>

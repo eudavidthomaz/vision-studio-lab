@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Download, FileText, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Progress } from "@/components/ui/progress";
 import jsPDF from "jspdf";
 
 interface ContentItem {
@@ -41,16 +42,20 @@ const ExportPlannerModal = ({
   weekStartDate
 }: ExportPlannerModalProps) => {
   const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
   const { toast } = useToast();
 
   const generatePDF = async () => {
     setIsExporting(true);
+    setExportProgress(0);
 
     try {
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       let yPosition = 20;
+
+      setExportProgress(10);
 
       // Header
       pdf.setFontSize(24);
@@ -64,6 +69,8 @@ const ExportPlannerModal = ({
       
       yPosition += 15;
 
+      setExportProgress(20);
+
       // Summary
       const totalPosts = Object.values(contentByDay).flat().length;
       pdf.setFontSize(10);
@@ -74,9 +81,16 @@ const ExportPlannerModal = ({
       pdf.line(20, yPosition, pageWidth - 20, yPosition);
       yPosition += 10;
 
+      setExportProgress(30);
+
       // Content by day
-      for (const { day, pilar } of daysOfWeek) {
+      const totalDays = daysOfWeek.length;
+      for (let i = 0; i < totalDays; i++) {
+        const { day, pilar } = daysOfWeek[i];
         const contents = contentByDay[day] || [];
+
+        // Update progress
+        setExportProgress(30 + ((i / totalDays) * 60));
 
         // Check if we need a new page
         if (yPosition > pageHeight - 50) {
@@ -150,6 +164,8 @@ const ExportPlannerModal = ({
         yPosition += 5;
       }
 
+      setExportProgress(90);
+
       // Footer on last page
       pdf.setFontSize(8);
       pdf.setTextColor(150, 150, 150);
@@ -162,6 +178,8 @@ const ExportPlannerModal = ({
 
       // Save
       pdf.save(`planner-semanal-${weekStartDate}.pdf`);
+
+      setExportProgress(100);
 
       toast({
         title: "PDF gerado!",
@@ -178,6 +196,7 @@ const ExportPlannerModal = ({
       });
     } finally {
       setIsExporting(false);
+      setExportProgress(0);
     }
   };
 
@@ -246,7 +265,7 @@ const ExportPlannerModal = ({
               {isExporting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Gerando PDF...
+                  Gerando PDF... {exportProgress}%
                 </>
               ) : (
                 <>
@@ -255,6 +274,10 @@ const ExportPlannerModal = ({
                 </>
               )}
             </Button>
+
+            {isExporting && exportProgress > 0 && (
+              <Progress value={exportProgress} className="h-2" />
+            )}
 
             <Button
               onClick={generateCSV}

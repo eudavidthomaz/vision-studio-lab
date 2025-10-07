@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp, Download } from "lucide-react";
+import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp, Download, Undo2, Redo2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ContentIdeaModal from "@/components/ContentIdeaModal";
 import ContentCard from "@/components/ContentCard";
@@ -10,6 +10,8 @@ import PillarLegend from "@/components/PillarLegend";
 import ExportPlannerModal from "@/components/ExportPlannerModal";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useHistory } from "@/hooks/useHistory";
 import {
   DndContext,
   DragEndEvent,
@@ -48,15 +50,26 @@ interface ContentItem {
 export default function Planner() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [contentByDay, setContentByDay] = useState<Record<string, ContentItem[]>>({});
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<string>("Segunda");
   const [plannerId, setPlannerId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [weekStartDate, setWeekStartDate] = useState<string>("");
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // History management
+  const {
+    state: contentByDay,
+    set: setContentByDay,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    reset: resetHistory,
+  } = useHistory<Record<string, ContentItem[]>>({});
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -65,6 +78,36 @@ export default function Planner() {
       },
     })
   );
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        if (canUndo) {
+          undo();
+          toast({
+            title: "↩️ Desfeito",
+            description: "Ação anterior foi desfeita.",
+            duration: 2000,
+          });
+        }
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        if (canRedo) {
+          redo();
+          toast({
+            title: "↪️ Refeito",
+            description: "Ação foi refeita.",
+            duration: 2000,
+          });
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canUndo, canRedo, undo, redo, toast]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -107,7 +150,7 @@ export default function Planner() {
 
       if (data) {
         setPlannerId(data.id);
-        setContentByDay((data.content as Record<string, ContentItem[]>) || {});
+        resetHistory((data.content as Record<string, ContentItem[]>) || {});
       } else {
         // Create new planner for this week
         const { data: newPlanner, error: createError } = await supabase
@@ -122,7 +165,7 @@ export default function Planner() {
 
         if (createError) throw createError;
         setPlannerId(newPlanner.id);
-        setContentByDay({});
+        resetHistory({});
       }
     } catch (error) {
       console.error('Error loading planner:', error);
@@ -171,12 +214,25 @@ export default function Planner() {
   };
 
   const handleDelete = (day: string, contentId: string) => {
+    const deletedContent = (contentByDay[day] || []).find(c => c.id === contentId);
+    
     const updatedContent = {
       ...contentByDay,
       [day]: (contentByDay[day] || []).filter(c => c.id !== contentId)
     };
     setContentByDay(updatedContent);
     savePlanner(updatedContent);
+    
+    // Show toast with undo option
+    toast({
+      title: "🗑️ Excluído",
+      description: (
+        <div>
+          <p>"{deletedContent?.titulo}" foi removido.</p>
+        </div>
+      ),
+      duration: 5000,
+    });
   };
 
   const handleUpdate = (day: string, contentId: string, updates: any) => {
@@ -194,9 +250,18 @@ export default function Planner() {
     setActiveId(event.active.id as string);
   };
 
+  const handleDragOver = (event: any) => {
+    const { over } = event;
+    if (over) {
+      const day = daysOfWeek.find(d => over.id === d.day)?.day;
+      setDragOverDay(day || null);
+    }
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
+    setDragOverDay(null);
 
     if (!over) return;
 
@@ -231,8 +296,9 @@ export default function Planner() {
       setContentByDay(updatedContent);
       savePlanner(updatedContent);
       toast({
-        title: "Movido!",
-        description: `Conteúdo movido para ${targetDay}.`,
+        title: "📦 Movido!",
+        description: `"${draggedContent.titulo}" → ${targetDay}`,
+        duration: 3000,
       });
     } else if (activeId !== overId) {
       // Reordering within the same day
@@ -303,8 +369,21 @@ export default function Planner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-        <Loader2 className="h-12 w-12 text-primary animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
+        <div className="container mx-auto">
+          <div className="mb-6">
+            <Skeleton className="h-12 w-64 mb-4" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+            {[...Array(7)].map((_, i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -314,6 +393,7 @@ export default function Planner() {
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
@@ -331,6 +411,30 @@ export default function Planner() {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <h1 className="text-2xl font-bold text-white">Planner Visual</h1>
+                
+                {/* Undo/Redo buttons */}
+                <div className="flex gap-1 ml-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={undo}
+                    disabled={!canUndo}
+                    title="Desfazer (Ctrl+Z)"
+                    className="transition-transform hover:scale-110"
+                  >
+                    <Undo2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={redo}
+                    disabled={!canRedo}
+                    title="Refazer (Ctrl+Y)"
+                    className="transition-transform hover:scale-110"
+                  >
+                    <Redo2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button 
@@ -473,12 +577,11 @@ export default function Planner() {
                   
                   <div
                     id={day}
-                    className="space-y-3 min-h-[200px] p-2 rounded-lg transition-colors"
-                    style={{
-                      backgroundColor: activeId && !contentByDay[day]?.find(c => c.id === activeId)
-                        ? 'rgba(var(--primary-rgb, 59, 130, 246), 0.1)'
-                        : 'transparent'
-                    }}
+                    className={`space-y-3 min-h-[200px] p-2 rounded-lg transition-all duration-200 ${
+                      dragOverDay === day 
+                        ? 'bg-primary/20 border-2 border-primary border-dashed scale-105' 
+                        : 'border-2 border-transparent'
+                    }`}
                   >
                     {(contentByDay[day] || []).map((content) => (
                       <ContentCard
@@ -573,7 +676,7 @@ export default function Planner() {
 
         <DragOverlay>
           {activeId ? (
-            <div className="opacity-80">
+            <div className="opacity-90 rotate-3 scale-110 shadow-2xl animate-pulse">
               <ContentCard
                 content={getActiveContent()!}
                 onDelete={() => {}}
