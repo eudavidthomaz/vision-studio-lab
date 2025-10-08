@@ -21,6 +21,8 @@ import { QuotaIndicator } from "@/components/QuotaIndicator";
 import { AICreatorCard } from "@/components/AICreatorCard";
 import { AIPromptModal } from "@/components/AIPromptModal";
 import { RecentContentSection } from "@/components/RecentContentSection";
+import { UsageStatusCard } from "@/components/UsageStatusCard";
+import { WeeklyPackShortcut } from "@/components/WeeklyPackShortcut";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -332,23 +334,36 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* AI Creator & Recent Content Section */}
-          <section className="mb-12 sm:mb-16 grid grid-cols-1 lg:grid-cols-2 gap-6" data-tour="ai-creator">
-            <AICreatorCard onClick={() => setShowAIModal(true)} />
-            <RecentContentSection />
-          </section>
+          {/* Main Content Area */}
+          <div className="space-y-8">
+            {/* Hero Section - AI Creator */}
+            <section data-tour="ai-creator">
+              <AICreatorCard onClick={() => setShowAIModal(true)} />
+            </section>
+            
+            {/* Secondary Actions Grid */}
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <RecentContentSection />
+              <WeeklyPackShortcut 
+                onClick={() => {
+                  const audioSection = document.getElementById('audio-input-section');
+                  audioSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}
+              />
+              <UsageStatusCard />
+            </section>
 
-
-          {/* Audio Input Section */}
-          <section id="audio-input-section" className="mb-8 sm:mb-12">
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
-              <Mic className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-              Gerar Pacote Completo
-            </h2>
-            <div className="bg-card border border-border rounded-xl p-4 sm:p-6 lg:p-8" data-tour="audio-input">
-              <AudioInput onTranscriptionComplete={handleTranscriptionComplete} />
-            </div>
-          </section>
+            {/* Audio Input Section */}
+            <section id="audio-input-section" className="mb-8 sm:mb-12">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+                <Mic className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                Gerar Pacote Completo
+              </h2>
+              <div className="bg-card border border-border rounded-xl p-4 sm:p-6 lg:p-8" data-tour="audio-input">
+                <AudioInput onTranscriptionComplete={handleTranscriptionComplete} />
+              </div>
+            </section>
+          </div>
 
           {/* Loading State */}
           {isGeneratingPack && (
