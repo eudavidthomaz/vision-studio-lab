@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles, FileText } from "lucide-react";
+import { Loader2, Sparkles, FileText, Camera, Video, Edit, Mic, Calendar, Users, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import AudioInput from "@/components/AudioInput";
@@ -18,6 +18,10 @@ import { useSecureApi } from "@/hooks/useSecureApi";
 import { useQuota } from "@/hooks/useQuota";
 import { RateLimitIndicator } from "@/components/RateLimitIndicator";
 import { QuotaIndicator } from "@/components/QuotaIndicator";
+import { QuickActionCard } from "@/components/QuickActionCard";
+import { QuickPostModal } from "@/components/QuickPostModal";
+import { QuickPhotoModal } from "@/components/QuickPhotoModal";
+import { QuickVideoModal } from "@/components/QuickVideoModal";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -33,6 +37,9 @@ const Dashboard = () => {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [isFirstGeneration, setIsFirstGeneration] = useState(true);
   const [showNPSModal, setShowNPSModal] = useState(false);
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -363,7 +370,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <>
       {/* Onboarding Tour */}
       <OnboardingTour run={runTour} onComplete={handleTourComplete} />
       
@@ -373,201 +380,190 @@ const Dashboard = () => {
       {/* Feedback Button */}
       <FeedbackButton />
 
-      {/* Header */}
-      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-white">Ide.On</h1>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/historico")}
-                data-tour="history-button"
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-12">
+            <div>
+              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Ide.On
+              </h1>
+              <p className="text-muted-foreground">O que você quer fazer hoje?</p>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <RateLimitIndicator />
+              <QuotaIndicator />
+              
+              <Button
+                variant="outline"
+                onClick={() => navigate('/historico')}
+                className="gap-2"
               >
+                <FileText className="w-4 h-4" />
                 Histórico
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/planner")}
+              
+              <Button
+                variant="outline"
+                onClick={() => navigate('/planner')}
+                className="gap-2"
                 data-tour="planner-button"
               >
-                Planner Visual
+                <Calendar className="w-4 h-4" />
+                Planner
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/metrics")}
+
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="gap-2"
               >
-                Métricas
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/usage")}
-              >
-                Uso
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => navigate("/analytics")}
-              >
-                Analytics
-              </Button>
-              <Button variant="outline" onClick={handleLogout}>
                 Sair
               </Button>
             </div>
           </div>
-          
-          {/* Indicators */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <RateLimitIndicator />
-            <QuotaIndicator />
-          </div>
-        </div>
-      </header>
 
-      {/* Hero Section */}
-      {!transcript && !weeklyPack && (
-        <section className="container mx-auto px-4 py-20 text-center animate-fade-in">
-          <div className="max-w-3xl mx-auto bg-card/30 backdrop-blur-md border border-border/50 rounded-2xl p-8 md:p-12 shadow-2xl">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 animate-scale-in">
-              Transforme Suas Pregações
-              <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
-                Em Conteúdo Poderoso
-              </span>
+          {/* Quick Actions Grid */}
+          <section className="mb-16">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Zap className="w-6 h-6 text-primary" />
+              Ações Rápidas
             </h2>
-            <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Grave sua pregação e receba automaticamente um pacote completo de conteúdo para redes sociais
-            </p>
-            
-            <div className="flex justify-center" data-tour="audio-input">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <QuickActionCard
+                icon={Camera}
+                title="Criar Foto Rápida"
+                description="Post com arte sugerida"
+                color="purple"
+                onClick={() => setShowPhotoModal(true)}
+              />
+              <QuickActionCard
+                icon={Video}
+                title="Criar Vídeo Curto"
+                description="Roteiro de Reel/Short"
+                color="blue"
+                onClick={() => setShowVideoModal(true)}
+              />
+              <QuickActionCard
+                icon={Edit}
+                title="Criar Post Rápido"
+                description="Texto completo para feed"
+                color="cyan"
+                onClick={() => setShowPostModal(true)}
+              />
+              <QuickActionCard
+                icon={Mic}
+                title="Gerar Pack Completo"
+                description="Semana inteira de conteúdo"
+                color="green"
+                onClick={() => {
+                  const element = document.getElementById('audio-input-section');
+                  element?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              />
+              <QuickActionCard
+                icon={Calendar}
+                title="Organizar Semana"
+                description="Ver seu planner visual"
+                color="orange"
+                onClick={() => navigate('/planner')}
+              />
+              <QuickActionCard
+                icon={Users}
+                title="Gestão de Equipe"
+                description="Em breve"
+                color="pink"
+                onClick={() => toast({
+                  title: "Em breve!",
+                  description: "Funcionalidade de equipe chegando em breve.",
+                })}
+              />
+            </div>
+          </section>
+
+          {/* Audio Input Section */}
+          <section id="audio-input-section" className="mb-12">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Mic className="w-6 h-6 text-primary" />
+              Gerar Pacote Completo
+            </h2>
+            <div className="bg-card border border-border rounded-xl p-8" data-tour="audio-input">
               <AudioInput onTranscriptionComplete={handleTranscriptionComplete} />
             </div>
-          </div>
-        </section>
-      )}
+          </section>
 
-      {/* Loading State with Progress */}
-      {isGeneratingPack && (
-        <section className="container mx-auto px-4 py-20">
-          <div className="max-w-2xl mx-auto space-y-8">
-            <div className="text-center">
-              <Loader2 className="h-16 w-16 text-primary animate-spin mx-auto mb-4" />
-              <h3 className="text-2xl font-semibold text-white mb-2">Gerando seu pacote semanal...</h3>
-              <p className="text-gray-400">Aguarde enquanto criamos conteúdo incrível para você</p>
+          {/* Loading State */}
+          {isGeneratingPack && (
+            <div className="bg-card border border-border rounded-lg p-8">
+              <ProgressSteps 
+                steps={[
+                  { 
+                    label: "Transcrevendo pregação", 
+                    status: generationProgress > 25 ? "completed" : generationProgress > 0 ? "active" : "pending" 
+                  },
+                  { 
+                    label: "Analisando conteúdo", 
+                    status: generationProgress > 50 ? "completed" : generationProgress > 25 ? "active" : "pending" 
+                  },
+                  { 
+                    label: "Gerando conteúdo", 
+                    status: generationProgress > 75 ? "completed" : generationProgress > 50 ? "active" : "pending" 
+                  },
+                  { 
+                    label: "Finalizando", 
+                    status: generationProgress === 100 ? "completed" : generationProgress > 75 ? "active" : "pending" 
+                  },
+                ]}
+                currentProgress={generationProgress}
+              />
             </div>
-            
-            <ProgressSteps
-              steps={[
-                { 
-                  label: "Transcrevendo pregação", 
-                  status: generationProgress > 25 ? "completed" : generationProgress > 0 ? "active" : "pending" 
-                },
-                { 
-                  label: "Analisando conteúdo e temas principais", 
-                  status: generationProgress > 50 ? "completed" : generationProgress > 25 ? "active" : "pending" 
-                },
-                { 
-                  label: "Gerando posts, stories e reels", 
-                  status: generationProgress > 75 ? "completed" : generationProgress > 50 ? "active" : "pending" 
-                },
-                { 
-                  label: "Finalizando pacote semanal", 
-                  status: generationProgress === 100 ? "completed" : generationProgress > 75 ? "active" : "pending" 
-                },
-              ]}
-              currentProgress={generationProgress}
-            />
-          </div>
-        </section>
-      )}
+          )}
 
-      {/* Results Section */}
-      {weeklyPack && !isGeneratingPack && (
-        <section className="container mx-auto px-4 py-12" data-tour="weekly-pack">
-          <div className="mb-8 text-center animate-fade-in">
-            <h3 className="text-3xl font-bold text-white mb-4">Seu Pacote Semanal Está Pronto! 🎉</h3>
-            <p className="text-gray-400 mb-6">
-              Todo o conteúdo foi gerado com base na sua pregação
-            </p>
-            
-            <div className="flex gap-4 justify-center">
-              <Button
-                onClick={() => {
-                  setTranscript("");
-                  setWeeklyPack(null);
-                }}
-                variant="outline"
-              >
-                Nova Pregação
-              </Button>
+          {/* Results */}
+          {weeklyPack && !isGeneratingPack && (
+            <div className="space-y-8">
+              <WeeklyPackDisplay 
+                pack={weeklyPack}
+                currentPlanner={currentPlanner}
+                onImportToPlanner={handleImportToPlanner}
+              />
               
-              <Button
-                onClick={handleGenerateChallenge}
-                disabled={isGeneratingChallenge}
-                className="bg-primary hover:bg-primary/90"
-              >
-                {isGeneratingChallenge ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Gerando...
-                  </>
-                ) : (
-                  "Gerar Desafio Ide.On"
-                )}
-              </Button>
+              {challenge && (
+                <IdeonChallengeCard challenge={challenge} />
+              )}
+              
+              {!challenge && (
+                <div className="text-center">
+                  <Button 
+                    onClick={handleGenerateChallenge}
+                    disabled={isGeneratingChallenge}
+                    className="gap-2"
+                  >
+                    {isGeneratingChallenge ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Gerando...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Gerar Desafio Ide.On
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
-          </div>
+          )}
+        </div>
 
-          <WeeklyPackDisplay 
-            pack={weeklyPack}
-            currentPlanner={currentPlanner}
-            onImportToPlanner={handleImportToPlanner}
-          />
-        </section>
-      )}
-
-      {/* Challenge Section */}
-      {challenge && (
-        <section className="container mx-auto px-4 py-12">
-          <IdeonChallengeCard challenge={challenge} />
-        </section>
-      )}
-
-      {/* Empty State for Challenge */}
-      {!challenge && weeklyPack && !isGeneratingChallenge && (
-        <section className="container mx-auto px-4 py-12">
-          <EmptyState
-            icon={Sparkles}
-            title="Crie um Desafio Ide.On"
-            description="Engaje sua comunidade com desafios personalizados que promovem crescimento espiritual e compartilhamento do evangelho"
-            action={
-              <Button 
-                onClick={handleGenerateChallenge}
-                className="bg-primary hover:bg-primary/90"
-              >
-                Gerar Desafio Ide.On
-              </Button>
-            }
-          >
-            <div className="grid md:grid-cols-3 gap-4 text-left max-w-3xl mx-auto">
-              <div className="bg-card/50 p-4 rounded-lg">
-                <p className="text-white font-semibold mb-2">📱 Engajamento</p>
-                <p className="text-sm text-muted-foreground">Desafios que incentivam ação e compartilhamento</p>
-              </div>
-              <div className="bg-card/50 p-4 rounded-lg">
-                <p className="text-white font-semibold mb-2">🎯 Personalizado</p>
-                <p className="text-sm text-muted-foreground">Baseado no tema da sua pregação</p>
-              </div>
-              <div className="bg-card/50 p-4 rounded-lg">
-                <p className="text-white font-semibold mb-2">🌟 Impacto</p>
-                <p className="text-sm text-muted-foreground">Leva a mensagem além das redes sociais</p>
-              </div>
-            </div>
-          </EmptyState>
-        </section>
-      )}
-    </div>
+        {/* Modals */}
+        <QuickPostModal open={showPostModal} onOpenChange={setShowPostModal} />
+        <QuickPhotoModal open={showPhotoModal} onOpenChange={setShowPhotoModal} />
+        <QuickVideoModal open={showVideoModal} onOpenChange={setShowVideoModal} />
+      </div>
+    </>
   );
 };
 

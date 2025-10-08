@@ -14,3 +14,12 @@ verify_jwt = true
 
 [functions.generate-post-image]
 verify_jwt = true
+
+[functions.generate-quick-post]
+verify_jwt = true
+
+[functions.generate-photo-idea]
+verify_jwt = true
+
+[functions.generate-video-script]
+verify_jwt = true
