@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Copy, Check, Image, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageGenerationModal from "./ImageGenerationModal";
-import ImportToPlannerModal from "./ImportToPlannerModal";
 
 interface WeeklyPackProps {
   pack: {
@@ -39,14 +38,11 @@ interface WeeklyPackProps {
       hook?: string;
     }>;
   };
-  currentPlanner?: Record<string, any[]>;
-  onImportToPlanner?: (items: any[], conflictResolution: 'replace' | 'add' | 'skip') => void;
 }
 
-const WeeklyPackDisplay = ({ pack, currentPlanner = {}, onImportToPlanner }: WeeklyPackProps) => {
+const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [importModalOpen, setImportModalOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<{ copy: string; pilar: string } | null>(null);
   const { toast } = useToast();
 
@@ -65,27 +61,8 @@ const WeeklyPackDisplay = ({ pack, currentPlanner = {}, onImportToPlanner }: Wee
     setImageModalOpen(true);
   };
 
-  const handleImportToPlanner = (items: any[], conflictResolution: 'replace' | 'add' | 'skip') => {
-    if (onImportToPlanner) {
-      onImportToPlanner(items, conflictResolution);
-      toast({
-        title: "Importado com sucesso!",
-        description: `${items.length} conteúdo(s) adicionado(s) ao planner.`,
-      });
-    }
-  };
-
   return (
     <div className="w-full max-w-4xl mx-auto animate-fade-in">
-      {onImportToPlanner && (
-        <div className="mb-4 flex justify-end">
-          <Button onClick={() => setImportModalOpen(true)} className="gap-2">
-            <Download className="h-4 w-4" />
-            Importar para Planner
-          </Button>
-        </div>
-      )}
-      
       <Tabs defaultValue="resumo" className="w-full">
         <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 gap-2 h-auto bg-gray-800/50">
           <TabsTrigger value="resumo">Resumo</TabsTrigger>
@@ -306,16 +283,6 @@ const WeeklyPackDisplay = ({ pack, currentPlanner = {}, onImportToPlanner }: Wee
           onOpenChange={setImageModalOpen}
           copy={selectedContent.copy}
           pilar={selectedContent.pilar}
-        />
-      )}
-
-      {onImportToPlanner && (
-        <ImportToPlannerModal
-          open={importModalOpen}
-          onOpenChange={setImportModalOpen}
-          pack={pack}
-          currentPlanner={currentPlanner}
-          onImport={handleImportToPlanner}
         />
       )}
     </div>

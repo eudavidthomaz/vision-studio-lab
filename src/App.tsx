@@ -7,8 +7,6 @@ import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Welcome from "./pages/Welcome";
-import Planner from "./pages/Planner";
-import Historico from "./pages/Historico";
 import Biblioteca from "./pages/Biblioteca";
 import Metrics from "./pages/Metrics";
 import SecurityDashboard from "./pages/SecurityDashboard";
@@ -31,8 +29,6 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/welcome" element={<Welcome />} />
-          <Route path="/planner" element={<Planner />} />
-          <Route path="/historico" element={<Historico />} />
           <Route path="/biblioteca" element={<Biblioteca />} />
           <Route path="/metrics" element={<Metrics />} />
           <Route path="/security" element={<SecurityDashboard />} />

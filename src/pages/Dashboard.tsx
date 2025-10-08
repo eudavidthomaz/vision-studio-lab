@@ -34,7 +34,6 @@ const Dashboard = () => {
   const [challenge, setChallenge] = useState<any>(null);
   const [isGeneratingPack, setIsGeneratingPack] = useState(false);
   const [isGeneratingChallenge, setIsGeneratingChallenge] = useState(false);
-  const [currentPlanner, setCurrentPlanner] = useState<Record<string, any[]>>({});
   const [runTour, setRunTour] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [isFirstGeneration, setIsFirstGeneration] = useState(true);
@@ -72,8 +71,6 @@ const Dashboard = () => {
     if (!loading && !user) {
       navigate("/auth");
     } else if (user) {
-      loadCurrentPlanner();
-      
       // Check if should show tour
       const hasSeenTour = localStorage.getItem("ide-on-tour-completed");
       const hasSeenWelcome = localStorage.getItem("ide-on-welcome-seen");
@@ -191,118 +188,6 @@ const Dashboard = () => {
     setRunTour(false);
   };
 
-  const getWeekStartDate = () => {
-    const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(today.setDate(diff));
-    return monday.toISOString().split('T')[0];
-  };
-
-  const loadCurrentPlanner = async () => {
-    if (!user) return;
-    
-    try {
-      const weekStart = getWeekStartDate();
-      const { data: existingPlanner } = await supabase
-        .from('content_planners')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('week_start_date', weekStart)
-        .maybeSingle();
-
-      if (existingPlanner) {
-        setCurrentPlanner((existingPlanner.content as Record<string, any[]>) || {});
-      }
-    } catch (error) {
-      console.error('Error loading planner:', error);
-    }
-  };
-
-  const handleImportToPlanner = async (selectedItems: any[], conflictResolution: 'replace' | 'add' | 'skip') => {
-    try {
-      const weekStart = getWeekStartDate();
-      
-      // Check if planner exists for this week
-      const { data: existingPlanner } = await supabase
-        .from('content_planners')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('week_start_date', weekStart)
-        .maybeSingle();
-
-      // Organize selected items by day
-      const importedContent: Record<string, any[]> = {};
-      selectedItems.forEach(item => {
-        const day = item.dia_sugerido;
-        if (!importedContent[day]) importedContent[day] = [];
-        importedContent[day].push({
-          id: crypto.randomUUID(),
-          titulo: item.titulo,
-          tipo: item.tipo,
-          pilar: item.pilar,
-          dia_sugerido: day,
-          copy: item.copy,
-          hashtags: item.hashtags || [],
-          cta: item.cta || "",
-          slides: item.slides,
-          hook: item.hook,
-          roteiro: item.roteiro,
-          duracao_estimada: item.duracao
-        });
-      });
-
-      if (existingPlanner) {
-        const existingContent = (existingPlanner.content as Record<string, any[]>) || {};
-        let mergedContent: Record<string, any[]> = { ...existingContent };
-
-        Object.keys(importedContent).forEach(day => {
-          if (conflictResolution === 'replace') {
-            mergedContent[day] = importedContent[day];
-          } else if (conflictResolution === 'add') {
-            mergedContent[day] = [
-              ...(mergedContent[day] || []),
-              ...importedContent[day]
-            ];
-          } else if (conflictResolution === 'skip') {
-            if (!mergedContent[day] || mergedContent[day].length === 0) {
-              mergedContent[day] = importedContent[day];
-            }
-          }
-        });
-
-        await supabase
-          .from('content_planners')
-          .update({ content: mergedContent })
-          .eq('id', existingPlanner.id);
-      } else {
-        // Create new planner
-        await supabase
-          .from('content_planners')
-          .insert({
-            user_id: user.id,
-            week_start_date: weekStart,
-            content: importedContent
-          });
-      }
-
-      // Reload planner
-      await loadCurrentPlanner();
-
-      toast({
-        title: "Sucesso!",
-        description: `${selectedItems.length} conteúdo(s) importado(s) para o planner.`,
-      });
-    } catch (error) {
-      console.error('Error importing to planner:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível importar o conteúdo.",
-        variant: "destructive"
-      });
-    }
-  };
-
   const handleGenerateChallenge = async () => {
     if (!canUse('challenges')) {
       toast({
@@ -399,21 +284,12 @@ const Dashboard = () => {
               
               <Button
                 variant="outline"
-                onClick={() => navigate('/historico')}
+                onClick={() => navigate('/biblioteca')}
                 className="gap-2"
+                data-tour="biblioteca-button"
               >
-                <FileText className="w-4 h-4" />
-                Histórico
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={() => navigate('/planner')}
-                className="gap-2"
-                data-tour="planner-button"
-              >
-                <Calendar className="w-4 h-4" />
-                Planner
+                <Library className="w-4 h-4" />
+                Biblioteca
               </Button>
 
               <Button
@@ -466,27 +342,10 @@ const Dashboard = () => {
                   element?.scrollIntoView({ behavior: 'smooth' });
                 }}
               />
-              <QuickActionCard
-                icon={Calendar}
-                title="Organizar Semana"
-                description="Ver seu planner visual"
-                color="orange"
-                onClick={() => navigate('/planner')}
-              />
-              <QuickActionCard
-                icon={Users}
-                title="Gestão de Equipe"
-                description="Em breve"
-                color="pink"
-                onClick={() => toast({
-                  title: "Em breve!",
-                  description: "Funcionalidade de equipe chegando em breve.",
-                })}
-              />
             </MobileCardCarousel>
 
             {/* Desktop: Grid Layout */}
-            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-6">
               <QuickActionCard
                 icon={Camera}
                 title="Criar Foto Rápida"
@@ -517,23 +376,6 @@ const Dashboard = () => {
                   const element = document.getElementById('audio-input-section');
                   element?.scrollIntoView({ behavior: 'smooth' });
                 }}
-              />
-              <QuickActionCard
-                icon={Calendar}
-                title="Organizar Semana"
-                description="Ver seu planner visual"
-                color="orange"
-                onClick={() => navigate('/planner')}
-              />
-              <QuickActionCard
-                icon={Users}
-                title="Gestão de Equipe"
-                description="Em breve"
-                color="pink"
-                onClick={() => toast({
-                  title: "Em breve!",
-                  description: "Funcionalidade de equipe chegando em breve.",
-                })}
               />
             </div>
           </section>
@@ -604,8 +446,6 @@ const Dashboard = () => {
             <div className="space-y-8">
               <WeeklyPackDisplay 
                 pack={weeklyPack}
-                currentPlanner={currentPlanner}
-                onImportToPlanner={handleImportToPlanner}
               />
               
               {challenge && (

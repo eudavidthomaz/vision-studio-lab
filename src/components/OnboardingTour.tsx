@@ -22,13 +22,8 @@ const OnboardingTour = ({ run, onComplete }: OnboardingTourProps) => {
       placement: "top",
     },
     {
-      target: '[data-tour="planner-button"]',
-      content: "Use o Planner Visual para organizar e agendar todo o seu conteúdo da semana de forma interativa.",
-      placement: "bottom",
-    },
-    {
-      target: '[data-tour="history-button"]',
-      content: "Acesse todo o seu histórico de conteúdos gerados, desafios e pacotes anteriores.",
+      target: '[data-tour="biblioteca-button"]',
+      content: "Acesse sua biblioteca com todo o conteúdo criado, organize e edite quando precisar.",
       placement: "bottom",
     },
   ]);
