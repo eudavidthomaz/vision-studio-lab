@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp, Download, Undo2, Redo2, ChevronLeft, ChevronRight, Sparkles, BarChart3, Eye, Calendar } from "lucide-react";
+import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp, Download, Undo2, Redo2, ChevronLeft, ChevronRight, Sparkles, BarChart3, Eye, Calendar, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import ContentIdeaModal from "@/components/ContentIdeaModal";
@@ -22,6 +22,7 @@ import PillarStats from "@/components/PillarStats";
 import PostPreviewModal from "@/components/PostPreviewModal";
 import PlannerTourButton from "@/components/PlannerTourButton";
 import KeyboardShortcutsHelper from "@/components/KeyboardShortcutsHelper";
+import AutoSaveIndicator from "@/components/AutoSaveIndicator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -99,6 +100,8 @@ export default function Planner() {
   });
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkMode, setBulkMode] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "idle">("idle");
+  const [lastSaved, setLastSaved] = useState<Date>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -242,6 +245,7 @@ export default function Planner() {
   const savePlanner = async (newContent: Record<string, ContentItem[]>) => {
     if (!plannerId) return;
 
+    setSaveStatus("saving");
     try {
       const { error } = await supabase
         .from('content_planners')
@@ -249,8 +253,13 @@ export default function Planner() {
         .eq('id', plannerId);
 
       if (error) throw error;
+      
+      setSaveStatus("saved");
+      setLastSaved(new Date());
+      setTimeout(() => setSaveStatus("idle"), 2000);
     } catch (error) {
       console.error('Error saving planner:', error);
+      setSaveStatus("idle");
       toast({
         title: "Erro",
         description: "Não foi possível salvar as alterações.",
@@ -750,6 +759,7 @@ export default function Planner() {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <h1 className="text-2xl font-bold text-white">Planner Visual</h1>
+                <AutoSaveIndicator status={saveStatus} lastSaved={lastSaved} />
                 
                 {/* Undo/Redo buttons */}
                 <div className="flex gap-1 ml-4">

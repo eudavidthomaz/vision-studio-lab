@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2, Star, Archive } from "lucide-react";
+import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2, Star, Archive, RefreshCw } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import ContentStatusBadge from "./ContentStatusBadge";
 import TagManagerDialog from "./TagManagerDialog";
+import RegenerateContentDialog from "./RegenerateContentDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -58,6 +59,7 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [showSavedCheck, setShowSavedCheck] = useState(false);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
 
   // Debounce edited values for auto-save
   const debouncedTitulo = useDebounce(editedTitulo, 1000);
@@ -352,6 +354,7 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
             size="sm"
             onClick={() => onUpdate(content.id, { is_favorite: !content.is_favorite })}
             className={content.is_favorite ? "text-yellow-500" : ""}
+            title="Favoritar"
           >
             <Star className={`h-3 w-3 ${content.is_favorite ? 'fill-current' : ''}`} />
           </Button>
@@ -359,13 +362,23 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
             variant="ghost"
             size="sm"
             onClick={() => setTagDialogOpen(true)}
+            title="Gerenciar Tags"
           >
             Tags
           </Button>
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => setRegenerateDialogOpen(true)}
+            title="Regenerar com IA"
+          >
+            <RefreshCw className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => onUpdate(content.id, { is_archived: !content.is_archived })}
+            title="Arquivar"
           >
             <Archive className="h-3 w-3" />
           </Button>
@@ -409,6 +422,16 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
         onOpenChange={setTagDialogOpen}
         currentTags={content.tags || []}
         onSave={(tags) => onUpdate(content.id, { tags })}
+      />
+
+      <RegenerateContentDialog
+        open={regenerateDialogOpen}
+        onOpenChange={setRegenerateDialogOpen}
+        content={content}
+        onRegenerated={(newContent) => {
+          onUpdate(content.id, newContent);
+          setRegenerateDialogOpen(false);
+        }}
       />
     </Card>
     </>
