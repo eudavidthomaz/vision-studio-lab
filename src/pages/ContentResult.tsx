@@ -47,7 +47,7 @@ export default function ContentResult() {
       // Já está salvo, apenas mostrar feedback
       toast.success('Conteúdo salvo na sua biblioteca!');
       setTimeout(() => {
-        navigate('/biblioteca');
+        navigate('/meus-conteudos');
       }, 1000);
     } catch (error) {
       console.error('Error saving:', error);
