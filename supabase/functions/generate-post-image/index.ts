@@ -87,28 +87,28 @@ serve(async (req) => {
 
     console.log('Generating image with params:', { formato, estilo, pilar });
 
-    // Define dimensions based on format
+    // Define dimensions based on format - Instagram optimized resolutions
     const formatoDimensoes: Record<string, { width: number; height: number }> = {
-      'feed_square': { width: 1024, height: 1024 },
-      'feed_portrait': { width: 1024, height: 1536 },
-      'story': { width: 1024, height: 1536 },
-      'reel_cover': { width: 1024, height: 1536 }
+      'feed_square': { width: 1080, height: 1080 },
+      'feed_portrait': { width: 1080, height: 1350 },
+      'story': { width: 1080, height: 1920 },
+      'reel_cover': { width: 1080, height: 1920 }
     };
     const dimensoes = formatoDimensoes[formato] || { width: 1024, height: 1024 };
 
     // Build intelligent prompt based on pilar and estilo
     const pilarStyles = {
-      'Edificar': 'pastel tones, serif typography, contemplative and peaceful imagery, soft lighting',
-      'Alcançar': 'vibrant colors, bold typography, dynamic and energetic imagery, bright lighting',
-      'Pertencer': 'warm tones, humanist typography, community and connection imagery, welcoming atmosphere',
-      'Servir': 'earthy tones, simple typography, action and hands-on imagery, authentic feel'
+      'Edificar': 'sophisticated pastel color palette, elegant serif typography with hierarchy, contemplative and serene imagery with depth, soft cinematic lighting, peaceful atmosphere, premium editorial feel',
+      'Alcançar': 'vibrant energetic color scheme with contrast, bold impactful typography, dynamic and action-oriented imagery, bright studio lighting, motivational energy, modern advertising quality',
+      'Pertencer': 'warm inviting color tones, friendly humanist typography, authentic community connection imagery, welcoming ambient lighting, inclusive atmosphere, lifestyle photography quality',
+      'Servir': 'organic earthy color palette, clean simple typography, genuine hands-on action imagery, natural authentic lighting, purposeful feel, documentary-style quality'
     };
 
     const estiloDescriptions = {
-      'minimalista': 'minimalist design, clean lines, lots of white space, simple composition',
-      'tipografico': 'typography-focused, text as main visual element, creative font usage',
-      'fotografico': 'photographic style, realistic imagery, human-centered',
-      'ilustrativo': 'illustrated style, artistic, creative graphics and drawings'
+      'minimalista': 'ultra-minimalist design with premium aesthetics, clean geometric lines, abundant strategic white space, sophisticated simplicity, balanced negative space, professional magazine-style layout',
+      'tipografico': 'typography-driven design with premium font pairings, text as the hero element, creative typographic hierarchy, professional kerning and spacing, modern font treatments, editorial quality',
+      'fotografico': 'high-end photographic style with professional lighting, cinematic composition, authentic human moments, premium photo treatment, professional color grading, magazine-quality photography',
+      'ilustrativo': 'premium illustrated style with custom artwork, sophisticated graphics, professional illustration techniques, cohesive visual storytelling, modern artistic approach, gallery-quality illustrations'
     };
 
     const pilarStyle = pilarStyles[pilar as keyof typeof pilarStyles] || pilarStyles['Edificar'];
@@ -117,14 +117,31 @@ serve(async (req) => {
     // Truncate copy if too long
     const truncatedCopy = sanitizedCopy.length > 200 ? sanitizedCopy.substring(0, 200) + '...' : sanitizedCopy;
 
-    const prompt = `Create a professional Instagram post image for a church social media.
-Style: ${estiloDesc}
-Visual theme: ${pilarStyle}
-Text content to feature: "${truncatedCopy}"
-${sanitizedContexto ? `Additional context: ${sanitizedContexto}` : ''}
-The image should be suitable for Christian content, inspiring, and visually appealing.
-Aspect ratio: ${dimensoes.width}x${dimensoes.height}px
-High quality, professional design.`;
+    const prompt = `Create a premium, professional Instagram post image for church social media content.
+
+STYLE SPECIFICATIONS:
+- Design Style: ${estiloDesc}
+- Visual Theme: ${pilarStyle}
+- Quality: Ultra-high definition, 300 DPI equivalent, professional print quality
+- Composition: Rule of thirds, balanced layout, professional graphic design standards
+
+VISUAL REQUIREMENTS:
+- Typography: Professional, legible, hierarchy clear, church-appropriate fonts
+- Color Palette: Harmonious, professional color grading, balanced contrast
+- Graphics: Sharp, crisp, no pixelation, smooth gradients
+- Layout: Spacious, breathing room, professional margins, Instagram-optimized
+
+TEXT CONTENT TO FEATURE:
+"${truncatedCopy}"
+
+${sanitizedContexto ? `ADDITIONAL CONTEXT: ${sanitizedContexto}` : ''}
+
+TECHNICAL SPECS:
+- Resolution: ${dimensoes.width}x${dimensoes.height}px
+- Output: Clean, polished, publication-ready
+- Style: Modern Christian content, inspiring, engaging, professional
+
+IMPORTANT: Create a visually stunning, magazine-quality image that would stand out in a professional church's Instagram feed. Focus on clean design, professional aesthetics, and visual impact.`;
 
     console.log('Calling Lovable AI...');
 
@@ -143,7 +160,10 @@ High quality, professional design.`;
             content: prompt
           }
         ],
-        modalities: ['image', 'text']
+        modalities: ['image', 'text'],
+        quality: 'high',
+        output_format: 'png',
+        output_compression: 100
       }),
     });
 
