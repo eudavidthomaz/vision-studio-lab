@@ -97,10 +97,10 @@ const Landing = () => {
             <span className="text-primary text-xs sm:text-sm font-semibold">Beta Aberto · Uso 100% Gratuito</span>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 animate-scale-in leading-tight">
-            Do Altar à Timeline:<br className="hidden sm:block" />
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 animate-scale-in leading-tight">
+            A câmera desliga.<br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
-              sua pregação vira uma semana de conteúdo.
+              A missão continua.
             </span>
           </h1>
           {/* Headline alternativa V2 para A/B test:
@@ -112,8 +112,10 @@ const Landing = () => {
           </h1>
           */}
           
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-2 line-clamp-3 md:line-clamp-none">
-            O Ide.On usa IA com base bíblica validada para transformar a mensagem do culto em posts, carrosséis, reels e legends que falam a língua da internet — sem perder a fidelidade ao Evangelho.
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
+            Do altar ao feed: o Ide.On transforma sua pregação em uma semana de conteúdo. 
+            Carrosséis, roteiros de reels e legendas, tudo com fundamento bíblico, 
+            citações visíveis e linguagem que fala com a cidade.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12 px-4">
@@ -142,17 +144,17 @@ const Landing = () => {
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground px-4">
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-              Sem cartão
+              Mais Bíblia no feed
             </span>
             <span className="hidden sm:inline">•</span>
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-              2 min setup
+              Posts que engajam
             </span>
             <span className="hidden sm:inline">•</span>
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-              Beta grátis
+              Alcance com propósito
             </span>
           </div>
         </div>
