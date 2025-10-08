@@ -14,8 +14,6 @@ interface ImageGenerationModalProps {
   onOpenChange: (open: boolean) => void;
   copy: string;
   pilar: string;
-  mode?: 'single' | 'carousel';
-  slides?: Array<{ texto: string }>;
   onImageGenerated?: (imageUrl: string) => void;
 }
 
@@ -24,43 +22,16 @@ const ImageGenerationModal = ({
   onOpenChange, 
   copy, 
   pilar,
-  mode = 'single',
-  slides,
   onImageGenerated 
 }: ImageGenerationModalProps) => {
   const [formato, setFormato] = useState("feed_square");
   const [estilo, setEstilo] = useState("minimalista");
-  const [tema, setTema] = useState("minimalista");
   const [editedCopy, setEditedCopy] = useState(copy);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
   const { toast } = useToast();
   const { invokeFunction } = useSecureApi();
   const { canUse, incrementUsage } = useQuota();
-
-  const temas = [
-    { 
-      value: "minimalista", 
-      label: "Minimalista", 
-      description: "Ultra-minimalista com muito espaço em branco, limpo e elegante"
-    },
-    { 
-      value: "tipografico", 
-      label: "Tipográfico", 
-      description: "Foco em tipografia forte, texto como elemento principal"
-    },
-    { 
-      value: "fotografico", 
-      label: "Fotográfico", 
-      description: "Imagens cinematográficas com iluminação dramática e realista"
-    },
-    { 
-      value: "ilustrativo", 
-      label: "Ilustrativo", 
-      description: "Estilo ilustrado com colagem, texturas e paleta terrosa"
-    }
-  ];
 
   // Função para normalizar o formato do pilar com mapeamento inteligente
   const normalizePilar = (pilar: string): string => {
@@ -100,52 +71,31 @@ const ImageGenerationModal = ({
     setIsGenerating(true);
 
     try {
-      if (mode === 'carousel' && slides) {
-        // Geração em lote para carrosséis
-        const images: string[] = [];
-        for (let i = 0; i < slides.length; i++) {
-          const data = await invokeFunction<{ image_url: string }>('generate-post-image', {
-            formato: 'feed_square',
-            copy: slides[i].texto,
-            estilo: tema,
-            pilar: normalizePilar(pilar),
-          });
+      const data = await invokeFunction<{ image_url: string }>('generate-post-image', {
+        formato,
+        copy: editedCopy,
+        estilo,
+        pilar: normalizePilar(pilar),
+      });
 
-          if (data) {
-            images.push(data.image_url);
-            incrementUsage('images');
-          }
-        }
-        setGeneratedImages(images);
-        toast({
-          title: `${images.length} imagens geradas!`,
-          description: "Todas as imagens do carrossel foram criadas.",
-        });
-      } else {
-        // Geração única
-        const data = await invokeFunction<{ image_url: string }>('generate-post-image', {
-          formato,
-          copy: editedCopy,
-          estilo: tema,
-          pilar: normalizePilar(pilar),
-        });
-
-        if (!data) {
-          return;
-        }
-
-        setGeneratedImage(data.image_url);
-        incrementUsage('images');
-        
-        if (onImageGenerated) {
-          onImageGenerated(data.image_url);
-        }
-
-        toast({
-          title: "Imagem gerada!",
-          description: "Sua imagem foi criada com sucesso.",
-        });
+      if (!data) {
+        // Error already handled by useSecureApi
+        return;
       }
+
+      setGeneratedImage(data.image_url);
+      
+      // Increment quota usage
+      incrementUsage('images');
+      
+      if (onImageGenerated) {
+        onImageGenerated(data.image_url);
+      }
+
+      toast({
+        title: "Imagem gerada!",
+        description: "Sua imagem foi criada com sucesso.",
+      });
     } catch (error) {
       console.error('Unexpected error:', error);
     } finally {
@@ -171,33 +121,14 @@ const ImageGenerationModal = ({
 
   const handleRegenerate = () => {
     setGeneratedImage(null);
-    setGeneratedImages([]);
   };
 
   const handleClose = () => {
     setGeneratedImage(null);
-    setGeneratedImages([]);
     setEditedCopy(copy);
     setFormato("feed_square");
     setEstilo("minimalista");
-    setTema("minimalista");
     onOpenChange(false);
-  };
-
-  const handleDownloadAll = () => {
-    generatedImages.forEach((img, idx) => {
-      const link = document.createElement('a');
-      link.href = img;
-      link.download = `carrossel-slide-${idx + 1}-${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
-
-    toast({
-      title: "Downloads iniciados",
-      description: `${generatedImages.length} imagens estão sendo baixadas.`,
-    });
   };
 
   return (
@@ -208,70 +139,52 @@ const ImageGenerationModal = ({
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          {!generatedImage && generatedImages.length === 0 ? (
+          {!generatedImage ? (
             <>
-              {mode === 'single' && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="formato">Formato</Label>
-                    <Select value={formato} onValueChange={setFormato}>
-                      <SelectTrigger id="formato">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="feed_square">Feed Quadrado (1:1)</SelectItem>
-                        <SelectItem value="feed_portrait">Feed Vertical (4:5)</SelectItem>
-                        <SelectItem value="story">Story (9:16)</SelectItem>
-                        <SelectItem value="reel_cover">Capa de Reel (9:16)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="copy">Texto do Post</Label>
-                    <Textarea
-                      id="copy"
-                      value={editedCopy}
-                      onChange={(e) => setEditedCopy(e.target.value)}
-                      rows={6}
-                      className="resize-none"
-                      placeholder="Digite o texto do seu post aqui..."
-                    />
-                  </div>
-                </>
-              )}
-
               <div className="space-y-2">
-                <Label htmlFor="tema">Tema Visual</Label>
-                <Select value={tema} onValueChange={setTema}>
-                  <SelectTrigger id="tema">
+                <Label htmlFor="formato">Formato</Label>
+                <Select value={formato} onValueChange={setFormato}>
+                  <SelectTrigger id="formato">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {temas.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{t.label}</span>
-                          <span className="text-xs text-muted-foreground">{t.description}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="feed_square">Feed Quadrado (1:1)</SelectItem>
+                    <SelectItem value="feed_portrait">Feed Vertical (4:5)</SelectItem>
+                    <SelectItem value="story">Story (9:16)</SelectItem>
+                    <SelectItem value="reel_cover">Capa de Reel (9:16)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              {mode === 'carousel' && slides && (
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm font-medium mb-2">Preview do Carrossel:</p>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {slides.map((slide, idx) => (
-                      <div key={idx} className="text-xs p-2 bg-background rounded border">
-                        <span className="font-semibold">Slide {idx + 1}:</span> {slide.texto.substring(0, 50)}...
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="space-y-2">
+                <Label htmlFor="estilo">Estilo</Label>
+                <Select value={estilo} onValueChange={setEstilo}>
+                  <SelectTrigger id="estilo">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="minimalista">Minimalista</SelectItem>
+                    <SelectItem value="tipografico">Tipográfico</SelectItem>
+                    <SelectItem value="fotografico">Fotográfico</SelectItem>
+                    <SelectItem value="ilustrativo">Ilustrativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="copy">Texto do Post</Label>
+            <Textarea
+              id="copy"
+              value={editedCopy}
+              onChange={(e) => setEditedCopy(e.target.value)}
+              rows={6}
+              className="resize-none"
+              placeholder="Digite o texto do seu post aqui..."
+            />
+            <p className="text-xs text-muted-foreground">
+              Você pode editar o texto se desejar
+            </p>
+          </div>
 
               <div className="flex gap-2 pt-4">
                 <Button
@@ -282,10 +195,8 @@ const ImageGenerationModal = ({
                   {isGenerating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Gerando{mode === 'carousel' ? ` (${generatedImages.length}/${slides?.length})` : ''}...
+                      Gerando...
                     </>
-                  ) : mode === 'carousel' ? (
-                    `Gerar ${slides?.length} Imagens`
                   ) : (
                     "Gerar Imagem"
                   )}
@@ -296,37 +207,6 @@ const ImageGenerationModal = ({
                   disabled={isGenerating}
                 >
                   Cancelar
-                </Button>
-              </div>
-            </>
-          ) : generatedImages.length > 0 ? (
-            <>
-              <div className="space-y-4">
-                <p className="text-sm font-medium">{generatedImages.length} imagens geradas:</p>
-                <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
-                  {generatedImages.map((img, idx) => (
-                    <div key={idx} className="relative rounded-lg overflow-hidden bg-muted">
-                      <img src={img} alt={`Slide ${idx + 1}`} className="w-full h-auto" />
-                      <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                        Slide {idx + 1}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={handleDownloadAll} className="flex-1">
-                    <Download className="mr-2 h-4 w-4" />
-                    Baixar Todas
-                  </Button>
-                  <Button onClick={handleRegenerate} variant="outline">
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Regenerar
-                  </Button>
-                </div>
-
-                <Button onClick={handleClose} variant="ghost" className="w-full">
-                  Fechar
                 </Button>
               </div>
             </>

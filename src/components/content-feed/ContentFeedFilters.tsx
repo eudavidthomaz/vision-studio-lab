@@ -75,13 +75,13 @@ export function ContentFeedFilters({
       <Tabs value={sourceFilter} onValueChange={(v) => setSourceFilter(v as any)}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="all">Todos ({totalCount})</TabsTrigger>
-          <TabsTrigger value="ai_prompt" className="gap-2">
+          <TabsTrigger value="ai-creator" className="gap-2">
             <Sparkles className="h-4 w-4" />
-            Criação com IA
+            IA Criativa
           </TabsTrigger>
-          <TabsTrigger value="transcript" className="gap-2">
+          <TabsTrigger value="week-pack" className="gap-2">
             <AudioLines className="h-4 w-4" />
-            De Pregação
+            Pack Semanal
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -109,8 +109,8 @@ export function ContentFeedFilters({
             <SelectItem value="all">Todos os pilares</SelectItem>
             <SelectItem value="ALCANÇAR">🎯 ALCANÇAR</SelectItem>
             <SelectItem value="EDIFICAR">🏗️ EDIFICAR</SelectItem>
-            <SelectItem value="PERTENCER">🤝 PERTENCER</SelectItem>
-            <SelectItem value="SERVIR">💝 SERVIR</SelectItem>
+            <SelectItem value="ENVIAR">🚀 ENVIAR</SelectItem>
+            <SelectItem value="EXALTAR">🙌 EXALTAR</SelectItem>
           </SelectContent>
         </Select>
 

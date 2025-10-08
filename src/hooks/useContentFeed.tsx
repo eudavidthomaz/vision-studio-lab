@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-export type ContentSource = "ai_prompt" | "transcript" | "all";
+export type ContentSource = "ai-creator" | "week-pack";
 export type ContentFormat = "carrossel" | "reel" | "post" | "story" | "all";
-export type ContentPilar = "ALCANÇAR" | "EDIFICAR" | "PERTENCER" | "SERVIR" | "all";
+export type ContentPilar = "ALCANÇAR" | "EDIFICAR" | "ENVIAR" | "EXALTAR" | "all";
 
 export interface NormalizedContent {
   id: string;
@@ -35,62 +35,71 @@ export function useContentFeed() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Buscar APENAS content_planners (unificado)
-      const { data: contents, error } = await supabase
+      // Buscar content_planners (IA)
+      const { data: aiContent, error: aiError } = await supabase
         .from("content_planners")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (aiError) throw aiError;
+
+      // Buscar weekly_packs
+      const { data: weekPacks, error: packError } = await supabase
+        .from("weekly_packs")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (packError) throw packError;
 
       const normalized: NormalizedContent[] = [];
 
-      // Normalizar todos os conteúdos
-      contents?.forEach((item) => {
+      // Normalizar content_planners (IA)
+      aiContent?.forEach((item) => {
         const plannerDataArray = item.content as any[];
         const plannerData = plannerDataArray?.[0];
         
-        if (!plannerData) return;
-
-        const sourceType = plannerData.source_type || 
-                          (plannerData.tipo === "ai-generated" || plannerData.prompt_original ? "ai_prompt" : "transcript");
-        
-        const verses = plannerData.fundamento_biblico?.versiculos || [];
-        const firstVerse = Array.isArray(verses) && verses.length > 0 
-          ? (typeof verses[0] === 'string' ? verses[0] : `${verses[0]?.versiculo} - ${verses[0]?.referencia}`)
-          : "";
-
-        // Determinar título
-        let title = "Conteúdo";
-        if (sourceType === "ai_prompt") {
-          title = plannerData.prompt_original || "Conteúdo IA";
-        } else if (sourceType === "transcript") {
-          title = plannerData.conteudo?.resumo_pregacao?.substring(0, 50) + "..." || "Pregação";
-        }
-
-        // Determinar preview
-        let preview = "";
-        if (plannerData.conteudo?.legenda) {
-          preview = plannerData.conteudo.legenda;
-        } else if (plannerData.conteudo?.resumo_pregacao) {
-          preview = plannerData.conteudo.resumo_pregacao.substring(0, 150);
-        } else if (plannerData.conteudo?.frases_impactantes?.[0]) {
-          preview = plannerData.conteudo.frases_impactantes[0];
-        }
+        // Detectar se é conteúdo de IA
+        if (plannerData?.tipo === "ai-generated" || plannerData?.prompt_original) {
+          const verses = plannerData.fundamento_biblico?.versiculos || [];
+          const firstVerse = verses[0] ? `${verses[0].versiculo} - ${verses[0].referencia}` : "";
           
-        normalized.push({
-          id: `content-${item.id}`,
-          source: sourceType as ContentSource,
-          format: (plannerData.conteudo?.tipo || "post") as ContentFormat,
-          pilar: (plannerData.conteudo?.pilar || "EDIFICAR") as ContentPilar,
-          title,
-          verse: firstVerse,
-          preview,
-          hashtags: plannerData.dica_producao?.hashtags || [],
-          createdAt: new Date(item.created_at || Date.now()),
-          rawData: plannerData,
-        });
+          normalized.push({
+            id: `ai-${item.id}`,
+            source: "ai-creator",
+            format: (plannerData.conteudo?.tipo || "post") as ContentFormat,
+            pilar: (plannerData.conteudo?.pilar || "ALCANÇAR") as ContentPilar,
+            title: plannerData.prompt_original || "Conteúdo IA",
+            verse: firstVerse,
+            preview: plannerData.conteudo?.legenda || plannerData.conteudo?.roteiro || "",
+            hashtags: plannerData.dica_producao?.hashtags || [],
+            createdAt: new Date(item.created_at || Date.now()),
+            rawData: plannerData,
+          });
+        }
+      });
+
+      // Normalizar weekly_packs
+      weekPacks?.forEach((item) => {
+        const packData = item.pack as any;
+        
+        if (packData) {
+          const verse = packData.versiculo_principal || "";
+          
+          normalized.push({
+            id: `pack-${item.id}`,
+            source: "week-pack",
+            format: "carrossel",
+            pilar: "EXALTAR" as ContentPilar,
+            title: packData.titulo_principal || "Pack Semanal",
+            verse: verse,
+            preview: packData.resumo_pregacao || "",
+            hashtags: packData.hashtags_sugeridas || [],
+            createdAt: new Date(item.created_at || Date.now()),
+            rawData: packData,
+          });
+        }
       });
 
       setContents(normalized);
@@ -154,9 +163,15 @@ export function useContentFeed() {
     try {
       const [type, uuid] = id.split("-");
       
-      if (type === "content") {
+      if (type === "ai") {
         const { error } = await supabase
           .from("content_planners")
+          .delete()
+          .eq("id", uuid);
+        if (error) throw error;
+      } else if (type === "pack") {
+        const { error } = await supabase
+          .from("weekly_packs")
           .delete()
           .eq("id", uuid);
         if (error) throw error;

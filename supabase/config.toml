@@ -26,6 +26,3 @@ verify_jwt = true
 
 [functions.generate-ai-content]
 verify_jwt = true
-
-[functions.generate-content-from-transcript]
-verify_jwt = true

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { UnifiedContentDisplay } from "@/components/UnifiedContentDisplay";
+import { ContentResultDisplay } from "@/components/ContentResultDisplay";
 import { toast } from "sonner";
 
 export default function ContentResult() {
@@ -105,7 +105,12 @@ export default function ContentResult() {
           </p>
         </div>
 
-        <UnifiedContentDisplay content={content} />
+        <ContentResultDisplay
+          content={content}
+          onSave={handleSave}
+          onRegenerate={handleRegenerate}
+          isSaving={isSaving}
+        />
       </div>
     </div>
   );
