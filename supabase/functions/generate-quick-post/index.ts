@@ -93,7 +93,7 @@ Diretrizes:
 
     // Salvar no banco
     const { error: insertError } = await supabaseClient
-      .from('content_planner')
+      .from('content_planners')
       .insert({
         user_id: userId,
         tipo_conteudo: tipo,

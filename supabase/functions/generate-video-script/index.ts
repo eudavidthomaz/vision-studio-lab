@@ -99,7 +99,7 @@ Diretrizes:
     const fullContent = `🎬 HOOK (0-3s):\n${parsedContent.hook}\n\n📝 ROTEIRO:\n${parsedContent.roteiro}\n\n🎥 VISUAL:\n${parsedContent.sugestoes_visuais}\n\n💬 CTA:\n${parsedContent.cta}`;
 
     const { error: insertError } = await supabaseClient
-      .from('content_planner')
+      .from('content_planners')
       .insert({
         user_id: userId,
         tipo_conteudo: 'reel',

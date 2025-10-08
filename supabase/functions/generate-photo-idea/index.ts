@@ -97,7 +97,7 @@ Diretrizes:
     const fullContent = `${parsedContent.copy}\n\n📸 Imagem sugerida:\n${parsedContent.descricao_imagem}\n\n🎨 Design:\n${parsedContent.sugestao_design}`;
 
     const { error: insertError } = await supabaseClient
-      .from('content_planner')
+      .from('content_planners')
       .insert({
         user_id: userId,
         tipo_conteudo: 'post',

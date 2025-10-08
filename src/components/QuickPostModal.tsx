@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,20 @@ export const QuickPostModal = ({ open, onOpenChange }: QuickPostModalProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (open && isMobile) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      
+      return () => {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+      };
+    }
+  }, [open, isMobile]);
 
   const handleGenerate = async () => {
     if (!tema.trim()) {
@@ -176,7 +190,14 @@ export const QuickPostModal = ({ open, onOpenChange }: QuickPostModalProps) => {
           onChange={(e) => setTema(e.target.value)}
           onFocus={(e) => {
             setTimeout(() => {
-              e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              const drawer = e.target.closest('[role="dialog"]');
+              if (drawer) {
+                e.target.scrollIntoView({ 
+                  behavior: 'smooth', 
+                  block: 'nearest',
+                  inline: 'nearest'
+                });
+              }
             }, 300);
           }}
           rows={3}
