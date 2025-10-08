@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Library } from "lucide-react";
-import { RateLimitIndicator } from "@/components/RateLimitIndicator";
 
 interface HeroHeaderProps {
   onNavigateToContent: () => void;
@@ -28,8 +27,6 @@ export const HeroHeader = ({ onNavigateToContent, onLogout }: HeroHeaderProps) =
           
           {/* Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <RateLimitIndicator />
-            
             <Button
               variant="outline"
               size="sm"
