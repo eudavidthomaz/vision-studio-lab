@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Library } from "lucide-react";
 import { RateLimitIndicator } from "@/components/RateLimitIndicator";
-import { QuotaIndicator } from "@/components/QuotaIndicator";
 
 interface HeroHeaderProps {
   onNavigateToContent: () => void;
@@ -28,7 +27,6 @@ export const HeroHeader = ({ onNavigateToContent, onLogout }: HeroHeaderProps) =
           
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <RateLimitIndicator />
-            <QuotaIndicator />
             
             <Button
               variant="outline"
