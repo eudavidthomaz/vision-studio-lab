@@ -1,7 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2 } from "lucide-react";
+import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2, Star, Archive } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import ContentStatusBadge from "./ContentStatusBadge";
+import TagManagerDialog from "./TagManagerDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,10 +24,16 @@ interface ContentCardProps {
     hashtags: string[];
     cta: string;
     imagem_url?: string;
+    status?: string;
+    tags?: string[];
+    is_favorite?: boolean;
+    is_archived?: boolean;
   };
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: any) => void;
   isDraggable?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 const pillarColors: Record<string, string> = {
@@ -37,7 +46,7 @@ const pillarColors: Record<string, string> = {
   "Cobertura": "bg-red-500"
 };
 
-export default function ContentCard({ content, onDelete, onUpdate, isDraggable = false }: ContentCardProps) {
+export default function ContentCard({ content, onDelete, onUpdate, isDraggable = false, isSelected = false, onToggleSelect }: ContentCardProps) {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitulo, setEditedTitulo] = useState(content.titulo);
@@ -48,6 +57,7 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [showSavedCheck, setShowSavedCheck] = useState(false);
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
 
   // Debounce edited values for auto-save
   const debouncedTitulo = useDebounce(editedTitulo, 1000);
@@ -136,23 +146,35 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
   };
 
   return (
+    <>
     <Card 
       ref={setNodeRef} 
       style={style}
-      className="bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+      className={`bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg ${
+        isSelected ? 'ring-2 ring-primary' : ''
+      } ${content.is_archived ? 'opacity-60' : ''}`}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
-          {isDraggable && !isEditing && (
-            <button
-              className="cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-muted rounded animate-pulse"
-              {...attributes}
-              {...listeners}
-              title="Arraste para mover"
-            >
-              <GripVertical className="h-4 w-4 text-muted-foreground" />
-            </button>
-          )}
+          <div className="flex items-start gap-2 flex-1">
+            {onToggleSelect && (
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={onToggleSelect}
+                className="mt-1"
+              />
+            )}
+            {isDraggable && !isEditing && (
+              <button
+                className="cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-muted rounded animate-pulse"
+                {...attributes}
+                {...listeners}
+                title="Arraste para mover"
+              >
+                <GripVertical className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
           <div className="flex-1">
             {isEditing ? (
               <Input
@@ -163,11 +185,27 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
             ) : (
               <CardTitle className="text-foreground text-base">{content.titulo}</CardTitle>
             )}
-            <div className="flex gap-2 mt-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               <Badge variant="secondary" className="text-xs">{content.tipo}</Badge>
               <Badge className={`${pillarColors[content.pilar] || 'bg-gray-500'} text-white text-xs`}>
                 {content.pilar}
               </Badge>
+              {content.status && (
+                <ContentStatusBadge
+                  status={content.status}
+                  onChange={(newStatus) => onUpdate(content.id, { status: newStatus })}
+                />
+              )}
+              {content.is_favorite && (
+                <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-xs">
+                  <Star className="h-3 w-3 fill-current" />
+                </Badge>
+              )}
+              {content.is_archived && (
+                <Badge variant="outline" className="text-orange-500 border-orange-500 text-xs">
+                  <Archive className="h-3 w-3" />
+                </Badge>
+              )}
             </div>
           </div>
           <div className="flex gap-1 items-center">
@@ -246,6 +284,17 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
           </>
         )}
         
+        {/* Tags Display */}
+        {content.tags && content.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {content.tags.map((tag, i) => (
+              <Badge key={i} variant="outline" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
+        
         <div className="flex gap-2 pt-2">
           <Button
             variant="outline"
@@ -295,6 +344,32 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
             )}
           </Button>
         </div>
+
+        {/* Quick Actions Row */}
+        <div className="flex gap-2 border-t pt-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onUpdate(content.id, { is_favorite: !content.is_favorite })}
+            className={content.is_favorite ? "text-yellow-500" : ""}
+          >
+            <Star className={`h-3 w-3 ${content.is_favorite ? 'fill-current' : ''}`} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setTagDialogOpen(true)}
+          >
+            Tags
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onUpdate(content.id, { is_archived: !content.is_archived })}
+          >
+            <Archive className="h-3 w-3" />
+          </Button>
+        </div>
       </CardContent>
       
       <ImageGenerationModal
@@ -328,6 +403,14 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
           </div>
         </div>
       )}
+
+      <TagManagerDialog
+        open={tagDialogOpen}
+        onOpenChange={setTagDialogOpen}
+        currentTags={content.tags || []}
+        onSave={(tags) => onUpdate(content.id, { tags })}
+      />
     </Card>
+    </>
   );
 }

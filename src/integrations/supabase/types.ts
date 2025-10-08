@@ -411,6 +411,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      search_content_by_tags: {
+        Args: { _tags: string[]; _user_id: string }
+        Returns: {
+          content: Json
+          planner_id: string
+          week_start_date: string
+        }[]
+      }
       validate_text_input: {
         Args: {
           _field_name?: string
@@ -423,6 +431,7 @@ export type Database = {
     }
     Enums: {
       app_role: "free" | "pro" | "team" | "admin"
+      content_status: "draft" | "approved" | "published" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -551,6 +560,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["free", "pro", "team", "admin"],
+      content_status: ["draft", "approved", "published", "archived"],
     },
   },
 } as const

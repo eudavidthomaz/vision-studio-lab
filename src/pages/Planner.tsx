@@ -14,6 +14,9 @@ import PillarLegend from "@/components/PillarLegend";
 import ExportPlannerModal from "@/components/ExportPlannerModal";
 import TemplateGallery from "@/components/TemplateGallery";
 import PlannerFilters, { FilterState } from "@/components/PlannerFilters";
+import AdvancedFilters, { AdvancedFilterState } from "@/components/AdvancedFilters";
+import BulkActionsBar from "@/components/BulkActionsBar";
+import ContentPreviewCard from "@/components/ContentPreviewCard";
 import MonthlyCalendar from "@/components/MonthlyCalendar";
 import PillarStats from "@/components/PillarStats";
 import PostPreviewModal from "@/components/PostPreviewModal";
@@ -58,6 +61,10 @@ interface ContentItem {
   hashtags: string[];
   cta: string;
   imagem_url?: string;
+  status?: string;
+  tags?: string[];
+  is_favorite?: boolean;
+  is_archived?: boolean;
   [key: string]: any;
 }
 
@@ -79,12 +86,19 @@ export default function Planner() {
   const [previewContent, setPreviewContent] = useState<ContentItem | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"week" | "month" | "stats">("week");
-  const [filters, setFilters] = useState<FilterState>({
+  const [filters, setFilters] = useState<AdvancedFilterState>({
     type: "all",
     pillar: "all",
     hasImage: "all",
     day: "all",
+    status: "all",
+    favorite: "all",
+    archived: "no",
+    searchTerm: "",
+    tags: [],
   });
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkMode, setBulkMode] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -525,6 +539,10 @@ export default function Planner() {
     
     Object.entries(contentByDay).forEach(([day, contents]) => {
       filtered[day] = contents.filter((content) => {
+        // Filter by archived status first
+        if (filters.archived === "no" && content.is_archived) return false;
+        if (filters.archived === "yes" && !content.is_archived) return false;
+        
         // Filter by type
         if (filters.type !== "all" && content.tipo !== filters.type) return false;
         
@@ -538,6 +556,29 @@ export default function Planner() {
         // Filter by day
         if (filters.day !== "all" && day !== filters.day) return false;
         
+        // Filter by status
+        if (filters.status !== "all" && content.status !== filters.status) return false;
+        
+        // Filter by favorite
+        if (filters.favorite === "yes" && !content.is_favorite) return false;
+        if (filters.favorite === "no" && content.is_favorite) return false;
+        
+        // Filter by search term
+        if (filters.searchTerm) {
+          const searchLower = filters.searchTerm.toLowerCase();
+          const matchesTitle = content.titulo.toLowerCase().includes(searchLower);
+          const matchesCopy = content.copy.toLowerCase().includes(searchLower);
+          const matchesHashtags = content.hashtags.some(h => h.toLowerCase().includes(searchLower));
+          if (!matchesTitle && !matchesCopy && !matchesHashtags) return false;
+        }
+        
+        // Filter by tags
+        if (filters.tags.length > 0) {
+          const contentTags = content.tags || [];
+          const hasMatchingTag = filters.tags.some(tag => contentTags.includes(tag));
+          if (!hasMatchingTag) return false;
+        }
+        
         return true;
       });
     });
@@ -549,6 +590,120 @@ export default function Planner() {
   const totalFilteredResults = useMemo(() => {
     return Object.values(filteredContentByDay).flat().length;
   }, [filteredContentByDay]);
+
+  // Bulk Actions Handlers
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const handleBulkMove = (targetDay: string) => {
+    const updates = { ...contentByDay };
+    
+    selectedIds.forEach(id => {
+      // Find source day
+      let sourceDay = "";
+      for (const [day, contents] of Object.entries(contentByDay)) {
+        if (contents.some(c => c.id === id)) {
+          sourceDay = day;
+          break;
+        }
+      }
+      
+      if (sourceDay && sourceDay !== targetDay) {
+        // Move content
+        const content = updates[sourceDay].find(c => c.id === id);
+        if (content) {
+          updates[sourceDay] = updates[sourceDay].filter(c => c.id !== id);
+          updates[targetDay] = [...(updates[targetDay] || []), content];
+        }
+      }
+    });
+    
+    setContentByDay(updates);
+    savePlanner(updates);
+    setSelectedIds(new Set());
+    
+    toast({
+      title: "✓ Movidos!",
+      description: `${selectedIds.size} item(ns) movido(s) para ${targetDay}`,
+    });
+  };
+
+  const handleBulkDelete = () => {
+    const updates = { ...contentByDay };
+    
+    selectedIds.forEach(id => {
+      for (const day in updates) {
+        updates[day] = updates[day].filter(c => c.id !== id);
+      }
+    });
+    
+    setContentByDay(updates);
+    savePlanner(updates);
+    setSelectedIds(new Set());
+    
+    toast({
+      title: "🗑️ Excluídos!",
+      description: `${selectedIds.size} item(ns) excluído(s)`,
+    });
+  };
+
+  const handleBulkArchive = () => {
+    const updates = { ...contentByDay };
+    
+    selectedIds.forEach(id => {
+      for (const day in updates) {
+        updates[day] = updates[day].map(c => 
+          c.id === id ? { ...c, is_archived: !c.is_archived } : c
+        );
+      }
+    });
+    
+    setContentByDay(updates);
+    savePlanner(updates);
+    setSelectedIds(new Set());
+    
+    toast({
+      title: "📦 Arquivados!",
+      description: `${selectedIds.size} item(ns) arquivado(s)`,
+    });
+  };
+
+  const handleBulkFavorite = () => {
+    const updates = { ...contentByDay };
+    
+    selectedIds.forEach(id => {
+      for (const day in updates) {
+        updates[day] = updates[day].map(c => 
+          c.id === id ? { ...c, is_favorite: !c.is_favorite } : c
+        );
+      }
+    });
+    
+    setContentByDay(updates);
+    savePlanner(updates);
+    setSelectedIds(new Set());
+    
+    toast({
+      title: "⭐ Favoritados!",
+      description: `${selectedIds.size} item(ns) marcado(s) como favorito`,
+    });
+  };
+
+  const handleBulkTag = () => {
+    toast({
+      title: "Em breve!",
+      description: "Adição de tags em massa estará disponível em breve.",
+    });
+  };
 
   if (loading) {
     return (
@@ -728,7 +883,7 @@ export default function Planner() {
             {/* Filters */}
             {viewMode === "week" && (
               <div className="mt-6">
-                <PlannerFilters 
+                <AdvancedFilters 
                   onFilterChange={setFilters} 
                   totalResults={totalFilteredResults}
                 />
@@ -808,12 +963,14 @@ export default function Planner() {
                         }`}
                       >
                         {(filteredContentByDay[day] || []).map((content) => (
-                          <div key={content.id} onClick={() => handlePreviewContent(day, content.id)} className="cursor-pointer">
+                          <div key={content.id} className="cursor-pointer">
                             <ContentCard
                               content={content}
                               onDelete={(id) => handleDelete(day, id)}
                               onUpdate={(id, updates) => handleUpdate(day, id, updates)}
                               isDraggable
+                              isSelected={selectedIds.has(content.id)}
+                              onToggleSelect={() => handleToggleSelect(content.id)}
                             />
                           </div>
                         ))}
@@ -972,6 +1129,18 @@ export default function Planner() {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Bulk Actions Bar */}
+        <BulkActionsBar
+          selectedCount={selectedIds.size}
+          onClearSelection={() => setSelectedIds(new Set())}
+          onBulkMove={handleBulkMove}
+          onBulkDelete={handleBulkDelete}
+          onBulkArchive={handleBulkArchive}
+          onBulkFavorite={handleBulkFavorite}
+          onBulkTag={handleBulkTag}
+          days={daysOfWeek}
+        />
 
         <ContentIdeaModal
           open={modalOpen}

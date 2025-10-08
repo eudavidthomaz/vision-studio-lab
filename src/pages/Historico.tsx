@@ -4,11 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Loader2, Search } from "lucide-react";
+import { ArrowLeft, Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import HistoryCard from "@/components/HistoryCard";
 import DetailModal from "@/components/DetailModal";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function Historico() {
   const [user, setUser] = useState<any>(null);
@@ -19,6 +27,8 @@ export default function Historico() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [modalType, setModalType] = useState<"pack" | "challenge" | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -139,6 +149,53 @@ export default function Historico() {
     });
   };
 
+  const paginateItems = (items: any[]) => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return items.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = (items: any[]) => {
+    return Math.ceil(items.length / itemsPerPage);
+  };
+
+  const renderPagination = (items: any[]) => {
+    const totalPages = getTotalPages(items);
+    if (totalPages <= 1) return null;
+
+    return (
+      <Pagination className="mt-6">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            />
+          </PaginationItem>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                onClick={() => setCurrentPage(page)}
+                isActive={currentPage === page}
+                className="cursor-pointer"
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
@@ -197,17 +254,20 @@ export default function Historico() {
                 <p>Nenhum pacote semanal encontrado.</p>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filterItems(weeklyPacks).map((pack) => (
-                  <HistoryCard
-                    key={pack.id}
-                    item={pack}
-                    type="pack"
-                    onDelete={handleDelete}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {paginateItems(filterItems(weeklyPacks)).map((pack) => (
+                    <HistoryCard
+                      key={pack.id}
+                      item={pack}
+                      type="pack"
+                      onDelete={handleDelete}
+                      onViewDetails={handleViewDetails}
+                    />
+                  ))}
+                </div>
+                {renderPagination(filterItems(weeklyPacks))}
+              </>
             )}
           </TabsContent>
 
@@ -217,17 +277,20 @@ export default function Historico() {
                 <p>Nenhum desafio encontrado.</p>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filterItems(challenges).map((challenge) => (
-                  <HistoryCard
-                    key={challenge.id}
-                    item={challenge}
-                    type="challenge"
-                    onDelete={handleDelete}
-                    onViewDetails={handleViewDetails}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {paginateItems(filterItems(challenges)).map((challenge) => (
+                    <HistoryCard
+                      key={challenge.id}
+                      item={challenge}
+                      type="challenge"
+                      onDelete={handleDelete}
+                      onViewDetails={handleViewDetails}
+                    />
+                  ))}
+                </div>
+                {renderPagination(filterItems(challenges))}
+              </>
             )}
           </TabsContent>
 
@@ -237,17 +300,20 @@ export default function Historico() {
                 <p>Nenhum planner encontrado.</p>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filterItems(planners).map((planner) => (
-                  <HistoryCard
-                    key={planner.id}
-                    item={planner}
-                    type="planner"
-                    onDelete={handleDelete}
-                    onViewDetails={() => {}}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {paginateItems(filterItems(planners)).map((planner) => (
+                    <HistoryCard
+                      key={planner.id}
+                      item={planner}
+                      type="planner"
+                      onDelete={handleDelete}
+                      onViewDetails={() => {}}
+                    />
+                  ))}
+                </div>
+                {renderPagination(filterItems(planners))}
+              </>
             )}
           </TabsContent>
         </Tabs>
