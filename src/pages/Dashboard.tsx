@@ -23,6 +23,7 @@ import { AIPromptModal } from "@/components/AIPromptModal";
 import { RecentContentSection } from "@/components/RecentContentSection";
 import { UsageStatusCard } from "@/components/UsageStatusCard";
 import { WeeklyPackShortcut } from "@/components/WeeklyPackShortcut";
+import { HeroHeader } from "@/components/HeroHeader";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -299,40 +300,11 @@ const Dashboard = () => {
 
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-12 gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Ide.On
-              </h1>
-              <p className="text-sm sm:text-base text-muted-foreground">O que você quer fazer hoje?</p>
-            </div>
-            
-            <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-              <RateLimitIndicator />
-              <QuotaIndicator />
-              
-              <Button
-                variant="outline"
-                onClick={() => navigate('/meus-conteudos')}
-                className="gap-2"
-                data-tour="conteudos-button"
-              >
-                <Library className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden xs:inline">Meus Conteúdos</span>
-                <span className="xs:hidden">✨</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="gap-2"
-              >
-                <span className="hidden xs:inline">Sair</span>
-                <span className="xs:hidden">👤</span>
-              </Button>
-            </div>
-          </div>
+          {/* Hero Header */}
+          <HeroHeader 
+            onNavigateToContent={() => navigate('/meus-conteudos')}
+            onLogout={handleLogout}
+          />
 
           {/* Main Content Area */}
           <div className="space-y-8">
