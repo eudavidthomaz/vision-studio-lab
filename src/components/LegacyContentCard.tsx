@@ -51,7 +51,7 @@ const pilarColors = {
   engajar: "bg-orange-500/20 text-orange-700 dark:text-orange-300",
 };
 
-export function SimpleContentCard({
+export function LegacyContentCard({
   item,
   onView,
   onDelete,

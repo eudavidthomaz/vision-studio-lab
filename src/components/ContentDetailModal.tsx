@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { ContentItem } from "./SimpleContentCard";
+import { ContentItem } from "./LegacyContentCard";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Copy, Download } from "lucide-react";

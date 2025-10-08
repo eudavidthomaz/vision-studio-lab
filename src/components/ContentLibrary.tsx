@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { SimpleContentCard, ContentItem } from "./SimpleContentCard";
+import { LegacyContentCard, ContentItem } from "./LegacyContentCard";
+import { AIContentCard, AIContentItem } from "./AIContentCard";
 import { ContentDetailModal } from "./ContentDetailModal";
+import { AIContentModal } from "./AIContentModal";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
@@ -29,9 +31,10 @@ export function ContentLibrary({
   showPagination = false,
 }: ContentLibraryProps) {
   const [loading, setLoading] = useState(true);
-  const [allContent, setAllContent] = useState<ContentItem[]>([]);
-  const [filteredContent, setFilteredContent] = useState<ContentItem[]>([]);
-  const [selectedItem, setSelectedItem] = useState<ContentItem | null>(null);
+  const [allContent, setAllContent] = useState<(ContentItem | AIContentItem)[]>([]);
+  const [filteredContent, setFilteredContent] = useState<(ContentItem | AIContentItem)[]>([]);
+  const [selectedItem, setSelectedItem] = useState<ContentItem | AIContentItem | null>(null);
+  const [selectedAIItem, setSelectedAIItem] = useState<AIContentItem | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("recent");
@@ -62,7 +65,7 @@ export function ContentLibrary({
         return;
       }
 
-      const content: ContentItem[] = [];
+      const content: (ContentItem | AIContentItem)[] = [];
 
       // Buscar weekly packs
       const { data: packs } = await supabase
@@ -127,7 +130,7 @@ export function ContentLibrary({
         });
       }
 
-      // Buscar content planners
+      // Buscar content planners (AI-generated content)
       const { data: planners } = await supabase
         .from("content_planners")
         .select("*")
@@ -137,7 +140,23 @@ export function ContentLibrary({
       if (planners) {
         planners.forEach((planner) => {
           const plannerData = planner.content as any;
-          if (plannerData && typeof plannerData === "object") {
+          
+          // Detectar se é conteúdo gerado por IA
+          if (plannerData?.tipo === "ai-generated" || plannerData?.prompt_original) {
+            // Conteúdo de IA
+            content.push({
+              id: `ai-${planner.id}`,
+              type: "ai-content",
+              prompt_original: plannerData.prompt_original || "",
+              fundamento_biblico: plannerData.fundamento_biblico,
+              conteudo: plannerData.conteudo,
+              estrutura_visual: plannerData.estrutura_visual,
+              dica_producao: plannerData.dica_producao,
+              createdAt: new Date(planner.created_at),
+              fullData: plannerData,
+            } as AIContentItem);
+          } else if (plannerData && typeof plannerData === "object") {
+            // Conteúdo legacy
             Object.values(plannerData).forEach((dayContent: any) => {
               if (Array.isArray(dayContent)) {
                 dayContent.forEach((item: any, idx: number) => {
@@ -177,17 +196,38 @@ export function ContentLibrary({
     // Filtro de busca
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (item) =>
-          item.title.toLowerCase().includes(search) ||
-          item.copy.toLowerCase().includes(search) ||
-          item.hashtags?.some((tag) => tag.toLowerCase().includes(search))
-      );
+      filtered = filtered.filter((item) => {
+        if (item.type === "ai-content") {
+          const aiItem = item as AIContentItem;
+          return (
+            aiItem.prompt_original?.toLowerCase().includes(search) ||
+            aiItem.fundamento_biblico?.versiculos?.some((v) =>
+              v.toLowerCase().includes(search)
+            ) ||
+            aiItem.conteudo?.legenda?.toLowerCase().includes(search) ||
+            aiItem.dica_producao?.hashtags?.some((h) =>
+              h.toLowerCase().includes(search)
+            )
+          );
+        } else {
+          const legacyItem = item as ContentItem;
+          return (
+            legacyItem.title?.toLowerCase().includes(search) ||
+            legacyItem.copy?.toLowerCase().includes(search) ||
+            legacyItem.hashtags?.some((tag) => tag.toLowerCase().includes(search))
+          );
+        }
+      });
     }
 
     // Filtro de tipo
     if (typeFilter !== "all") {
-      filtered = filtered.filter((item) => item.type === typeFilter);
+      filtered = filtered.filter((item) => {
+        if (typeFilter === "ai") {
+          return item.type === "ai-content";
+        }
+        return item.type === typeFilter;
+      });
     }
 
     // Ordenação
@@ -198,7 +238,14 @@ export function ContentLibrary({
         case "oldest":
           return a.createdAt.getTime() - b.createdAt.getTime();
         case "az":
-          return a.title.localeCompare(b.title);
+          if (a.type === "ai-content" && b.type === "ai-content") {
+            return (a as AIContentItem).prompt_original.localeCompare(
+              (b as AIContentItem).prompt_original
+            );
+          } else if (a.type !== "ai-content" && b.type !== "ai-content") {
+            return (a as ContentItem).title.localeCompare((b as ContentItem).title);
+          }
+          return 0;
         default:
           return 0;
       }
@@ -211,7 +258,9 @@ export function ContentLibrary({
     try {
       const [type, tableId] = id.split("-");
 
-      if (type === "pack") {
+      if (type === "ai") {
+        await supabase.from("content_planners").delete().eq("id", tableId);
+      } else if (type === "pack") {
         await supabase.from("weekly_packs").delete().eq("id", tableId);
       } else if (type === "challenge") {
         await supabase.from("ideon_challenges").delete().eq("id", tableId);
@@ -232,6 +281,16 @@ export function ContentLibrary({
         title: "Erro",
         description: "Erro ao deletar conteúdo",
       });
+    }
+  };
+
+  const handleViewItem = (item: ContentItem | AIContentItem) => {
+    if (item.type === "ai-content") {
+      setSelectedAIItem(item as AIContentItem);
+      setSelectedItem(null);
+    } else {
+      setSelectedItem(item as ContentItem);
+      setSelectedAIItem(null);
     }
   };
 
@@ -270,12 +329,13 @@ export function ContentLibrary({
 
           <div className="flex flex-col gap-3 sm:gap-4">
             <Tabs value={typeFilter} onValueChange={setTypeFilter} className="w-full">
-              <TabsList className="w-full grid grid-cols-5 gap-1">
-                <TabsTrigger value="all" className="text-xs sm:text-sm px-2 sm:px-4">Todos</TabsTrigger>
-                <TabsTrigger value="post" className="text-xs sm:text-sm px-2 sm:px-4">Posts</TabsTrigger>
-                <TabsTrigger value="foto" className="text-xs sm:text-sm px-2 sm:px-4">Fotos</TabsTrigger>
-                <TabsTrigger value="video" className="text-xs sm:text-sm px-2 sm:px-4">Vídeos</TabsTrigger>
-                <TabsTrigger value="pack" className="text-xs sm:text-sm px-2 sm:px-4">Packs</TabsTrigger>
+              <TabsList className="w-full grid grid-cols-6 gap-1">
+                <TabsTrigger value="all" className="text-xs sm:text-sm px-1.5 sm:px-3">Todos</TabsTrigger>
+                <TabsTrigger value="ai" className="text-xs sm:text-sm px-1.5 sm:px-3">✨ IA</TabsTrigger>
+                <TabsTrigger value="post" className="text-xs sm:text-sm px-1.5 sm:px-3">Posts</TabsTrigger>
+                <TabsTrigger value="foto" className="text-xs sm:text-sm px-1.5 sm:px-3">Fotos</TabsTrigger>
+                <TabsTrigger value="video" className="text-xs sm:text-sm px-1.5 sm:px-3">Vídeos</TabsTrigger>
+                <TabsTrigger value="pack" className="text-xs sm:text-sm px-1.5 sm:px-3">Packs</TabsTrigger>
               </TabsList>
             </Tabs>
 
@@ -310,14 +370,23 @@ export function ContentLibrary({
                 : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             }`}
           >
-            {displayedContent.map((item) => (
-              <SimpleContentCard
-                key={item.id}
-                item={item}
-                onView={setSelectedItem}
-                onDelete={handleDelete}
-              />
-            ))}
+            {displayedContent.map((item) =>
+              item.type === "ai-content" ? (
+                <AIContentCard
+                  key={item.id}
+                  item={item as AIContentItem}
+                  onView={handleViewItem}
+                  onDelete={handleDelete}
+                />
+              ) : (
+                <LegacyContentCard
+                  key={item.id}
+                  item={item as ContentItem}
+                  onView={handleViewItem}
+                  onDelete={handleDelete}
+                />
+              )
+            )}
           </div>
 
           {showPagination && totalPages > 1 && (
@@ -347,9 +416,15 @@ export function ContentLibrary({
       )}
 
       <ContentDetailModal
-        item={selectedItem}
+        item={selectedItem as ContentItem}
         open={!!selectedItem}
         onOpenChange={(open) => !open && setSelectedItem(null)}
+      />
+
+      <AIContentModal
+        item={selectedAIItem}
+        open={!!selectedAIItem}
+        onOpenChange={(open) => !open && setSelectedAIItem(null)}
       />
     </div>
   );
