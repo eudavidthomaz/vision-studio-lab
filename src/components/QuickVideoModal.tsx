@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -8,6 +9,7 @@ import { Loader2, Video } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface QuickVideoModalProps {
   open: boolean;
@@ -22,6 +24,7 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const handleGenerate = async () => {
     if (!mensagem.trim()) {
@@ -75,6 +78,74 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
     }
   };
 
+  const modalContent = (
+    <div className="space-y-4 py-4">
+      <div className="space-y-2">
+        <Label htmlFor="mensagem">Qual o ponto central?</Label>
+        <Textarea
+          id="mensagem"
+          placeholder="Ex: Como a fé nos fortalece nas adversidades..."
+          value={mensagem}
+          onChange={(e) => setMensagem(e.target.value)}
+          rows={3}
+          disabled={isGenerating}
+          className="text-base min-h-[100px]"
+          autoFocus={isMobile}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="duracao">Duração do vídeo</Label>
+        <Select value={duracao} onValueChange={(value) => setDuracao(value as Duracao)}>
+          <SelectTrigger id="duracao" className="text-base min-h-[48px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="15s">15 segundos</SelectItem>
+            <SelectItem value="30s">30 segundos</SelectItem>
+            <SelectItem value="60s">60 segundos</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Button 
+        onClick={handleGenerate} 
+        disabled={isGenerating || !mensagem.trim()}
+        className="w-full min-h-[48px] text-base"
+      >
+        {isGenerating ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Gerando...
+          </>
+        ) : (
+          <>
+            <Video className="w-4 h-4 mr-2" />
+            Gerar Roteiro
+          </>
+        )}
+      </Button>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="flex items-center gap-2">
+              <Video className="w-5 h-5 text-primary" />
+              Criar Vídeo Curto
+            </DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4">
+            {modalContent}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -84,52 +155,7 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
             Criar Vídeo Curto
           </DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="mensagem">Qual o ponto central?</Label>
-            <Textarea
-              id="mensagem"
-              placeholder="Ex: Como a fé nos fortalece nas adversidades..."
-              value={mensagem}
-              onChange={(e) => setMensagem(e.target.value)}
-              rows={3}
-              disabled={isGenerating}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="duracao">Duração do vídeo</Label>
-            <Select value={duracao} onValueChange={(value) => setDuracao(value as Duracao)}>
-              <SelectTrigger id="duracao">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="15s">15 segundos</SelectItem>
-                <SelectItem value="30s">30 segundos</SelectItem>
-                <SelectItem value="60s">60 segundos</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button 
-            onClick={handleGenerate} 
-            disabled={isGenerating || !mensagem.trim()}
-            className="w-full"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Gerando...
-              </>
-            ) : (
-              <>
-                <Video className="w-4 h-4 mr-2" />
-                Gerar Roteiro
-              </>
-            )}
-          </Button>
-        </div>
+        {modalContent}
       </DialogContent>
     </Dialog>
   );

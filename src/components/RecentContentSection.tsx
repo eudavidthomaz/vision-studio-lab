@@ -128,7 +128,7 @@ export function RecentContentSection() {
         <Clock className="w-6 h-6" />
         Últimos Conteúdos
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="flex flex-col md:grid gap-4 md:grid-cols-2 md:gap-4">
         {recentItems.map(item => (
           <Card 
             key={item.id} 

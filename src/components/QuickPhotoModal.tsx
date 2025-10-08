@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -8,6 +9,7 @@ import { Loader2, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface QuickPhotoModalProps {
   open: boolean;
@@ -22,6 +24,7 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const handleGenerate = async () => {
     if (!tema.trim()) {
@@ -75,6 +78,75 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
     }
   };
 
+  const modalContent = (
+    <div className="space-y-4 py-4">
+      <div className="space-y-2">
+        <Label htmlFor="tema">Qual mensagem transmitir?</Label>
+        <Textarea
+          id="tema"
+          placeholder="Ex: Esperança em meio às dificuldades..."
+          value={tema}
+          onChange={(e) => setTema(e.target.value)}
+          rows={3}
+          disabled={isGenerating}
+          className="text-base min-h-[100px]"
+          autoFocus={isMobile}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="estilo">Estilo do post</Label>
+        <Select value={estilo} onValueChange={(value) => setEstilo(value as EstiloFoto)}>
+          <SelectTrigger id="estilo" className="text-base min-h-[48px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="inspiracional">Inspiracional</SelectItem>
+            <SelectItem value="versículo">Versículo</SelectItem>
+            <SelectItem value="convite">Convite</SelectItem>
+            <SelectItem value="testemunho">Testemunho</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Button 
+        onClick={handleGenerate} 
+        disabled={isGenerating || !tema.trim()}
+        className="w-full min-h-[48px] text-base"
+      >
+        {isGenerating ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Gerando...
+          </>
+        ) : (
+          <>
+            <Camera className="w-4 h-4 mr-2" />
+            Gerar Ideia
+          </>
+        )}
+      </Button>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="flex items-center gap-2">
+              <Camera className="w-5 h-5 text-primary" />
+              Criar Foto Rápida
+            </DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4">
+            {modalContent}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
@@ -84,53 +156,7 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
             Criar Foto Rápida
           </DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="tema">Qual mensagem transmitir?</Label>
-            <Textarea
-              id="tema"
-              placeholder="Ex: Esperança em meio às dificuldades..."
-              value={tema}
-              onChange={(e) => setTema(e.target.value)}
-              rows={3}
-              disabled={isGenerating}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="estilo">Estilo do post</Label>
-            <Select value={estilo} onValueChange={(value) => setEstilo(value as EstiloFoto)}>
-              <SelectTrigger id="estilo">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="inspiracional">Inspiracional</SelectItem>
-                <SelectItem value="versículo">Versículo</SelectItem>
-                <SelectItem value="convite">Convite</SelectItem>
-                <SelectItem value="testemunho">Testemunho</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button 
-            onClick={handleGenerate} 
-            disabled={isGenerating || !tema.trim()}
-            className="w-full"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Gerando...
-              </>
-            ) : (
-              <>
-                <Camera className="w-4 h-4 mr-2" />
-                Gerar Ideia
-              </>
-            )}
-          </Button>
-        </div>
+        {modalContent}
       </DialogContent>
     </Dialog>
   );

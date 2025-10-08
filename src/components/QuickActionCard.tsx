@@ -28,13 +28,21 @@ const iconColorStyles = {
 };
 
 export const QuickActionCard = ({ icon: Icon, title, description, color, onClick }: QuickActionCardProps) => {
+  const handleClick = () => {
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    onClick();
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       className={cn(
         "group relative flex flex-col items-center justify-center p-8 rounded-xl",
         "bg-gradient-to-br border-2 transition-all duration-300",
-        "hover:scale-105 hover:-translate-y-1 active:scale-100",
+        "hover:scale-105 hover:-translate-y-1 active:scale-95",
         "min-h-[180px] w-full",
         colorStyles[color]
       )}

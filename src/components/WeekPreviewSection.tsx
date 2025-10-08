@@ -126,25 +126,25 @@ export function WeekPreviewSection() {
           </Button>
         </Card>
       ) : (
-        <Card className="p-4">
-          <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
+        <Card className="p-4 md:p-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2 md:gap-3">
             {weekContent.map(day => (
               <div
                 key={day.day}
-                className={`p-3 rounded-lg border transition-colors ${
+                className={`p-2 md:p-3 rounded-lg border transition-colors ${
                   day.itemCount > 0 
                     ? 'bg-primary/5 border-primary/20 hover:bg-primary/10' 
                     : 'bg-muted/50 border-muted'
                 }`}
               >
-                <div className="text-xs font-medium text-muted-foreground mb-1">
+                <div className="text-[10px] md:text-xs font-medium text-muted-foreground mb-1">
                   {day.day.substring(0, 3)}
                 </div>
-                <div className="text-sm font-bold mb-1">
+                <div className="text-sm md:text-base font-bold mb-1">
                   {format(day.date, 'd')}
                 </div>
                 {day.itemCount > 0 ? (
-                  <Badge variant="secondary" className="text-xs px-1 py-0">
+                  <Badge variant="secondary" className="text-[10px] md:text-xs px-1 py-0">
                     {day.itemCount}
                   </Badge>
                 ) : (

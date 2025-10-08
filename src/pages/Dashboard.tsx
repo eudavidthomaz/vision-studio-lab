@@ -19,6 +19,7 @@ import { useQuota } from "@/hooks/useQuota";
 import { RateLimitIndicator } from "@/components/RateLimitIndicator";
 import { QuotaIndicator } from "@/components/QuotaIndicator";
 import { QuickActionCard } from "@/components/QuickActionCard";
+import { MobileCardCarousel } from "@/components/MobileCardCarousel";
 import { QuickPostModal } from "@/components/QuickPostModal";
 import { QuickPhotoModal } from "@/components/QuickPhotoModal";
 import { QuickVideoModal } from "@/components/QuickVideoModal";
@@ -432,7 +433,61 @@ const Dashboard = () => {
               <Zap className="w-6 h-6 text-primary" />
               Ações Rápidas
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* Mobile: Swipeable Carousel */}
+            <MobileCardCarousel>
+              <QuickActionCard
+                icon={Camera}
+                title="Criar Foto Rápida"
+                description="Post com arte sugerida"
+                color="purple"
+                onClick={() => setShowPhotoModal(true)}
+              />
+              <QuickActionCard
+                icon={Video}
+                title="Criar Vídeo Curto"
+                description="Roteiro de Reel/Short"
+                color="blue"
+                onClick={() => setShowVideoModal(true)}
+              />
+              <QuickActionCard
+                icon={Edit}
+                title="Criar Post Rápido"
+                description="Texto completo para feed"
+                color="cyan"
+                onClick={() => setShowPostModal(true)}
+              />
+              <QuickActionCard
+                icon={Mic}
+                title="Gerar Pack Completo"
+                description="Semana inteira de conteúdo"
+                color="green"
+                onClick={() => {
+                  const element = document.getElementById('audio-input-section');
+                  element?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              />
+              <QuickActionCard
+                icon={Calendar}
+                title="Organizar Semana"
+                description="Ver seu planner visual"
+                color="orange"
+                onClick={() => navigate('/planner')}
+              />
+              <QuickActionCard
+                icon={Users}
+                title="Gestão de Equipe"
+                description="Em breve"
+                color="pink"
+                onClick={() => toast({
+                  title: "Em breve!",
+                  description: "Funcionalidade de equipe chegando em breve.",
+                })}
+              />
+            </MobileCardCarousel>
+
+            {/* Desktop: Grid Layout */}
+            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <QuickActionCard
                 icon={Camera}
                 title="Criar Foto Rápida"
