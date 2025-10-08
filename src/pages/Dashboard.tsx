@@ -301,6 +301,7 @@ const Dashboard = () => {
           {/* Hero Header */}
           <HeroHeader 
             onNavigateToContent={() => navigate('/meus-conteudos')}
+            onNavigateToProfile={() => navigate('/profile')}
             onLogout={handleLogout}
           />
 
