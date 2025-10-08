@@ -64,23 +64,23 @@ const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
   return (
     <div className="w-full max-w-4xl mx-auto animate-fade-in">
       <Tabs defaultValue="resumo" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7 gap-2 h-auto bg-gray-800/50">
-          <TabsTrigger value="resumo">Resumo</TabsTrigger>
-          <TabsTrigger value="frases">Frases</TabsTrigger>
-          <TabsTrigger value="stories">Stories</TabsTrigger>
-          <TabsTrigger value="estudo">Estudo</TabsTrigger>
-          <TabsTrigger value="legendas">Legendas</TabsTrigger>
-          <TabsTrigger value="carrosseis">Carrosséis</TabsTrigger>
-          <TabsTrigger value="reels">Reels</TabsTrigger>
+        <TabsList className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-1 sm:gap-2 h-auto bg-gray-800/50 p-1 sm:p-2">
+          <TabsTrigger value="resumo" className="text-xs sm:text-sm px-2 sm:px-3">Resumo</TabsTrigger>
+          <TabsTrigger value="frases" className="text-xs sm:text-sm px-2 sm:px-3">Frases</TabsTrigger>
+          <TabsTrigger value="stories" className="text-xs sm:text-sm px-2 sm:px-3">Stories</TabsTrigger>
+          <TabsTrigger value="estudo" className="text-xs sm:text-sm px-2 sm:px-3">Estudo</TabsTrigger>
+          <TabsTrigger value="legendas" className="text-xs sm:text-sm px-2 sm:px-3">Legendas</TabsTrigger>
+          <TabsTrigger value="carrosseis" className="text-xs sm:text-sm px-2 sm:px-3">Carrosséis</TabsTrigger>
+          <TabsTrigger value="reels" className="text-xs sm:text-sm px-2 sm:px-3">Reels</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="resumo" className="mt-6">
+        <TabsContent value="resumo" className="mt-4 sm:mt-6">
           <Card className="bg-gray-800/50 border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white">Resumo da Pregação</CardTitle>
+              <CardTitle className="text-lg sm:text-xl lg:text-2xl text-white">Resumo da Pregação</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-300 whitespace-pre-wrap">{pack.resumo}</p>
+              <p className="text-sm sm:text-base text-gray-300 whitespace-pre-wrap">{pack.resumo}</p>
               <Button
                 onClick={() => copyToClipboard(pack.resumo || '', 'resumo')}
                 variant="outline"
@@ -97,20 +97,21 @@ const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="frases" className="mt-6 space-y-4">
+        <TabsContent value="frases" className="mt-4 sm:mt-6 space-y-3 sm:space-y-4">
           {pack.frases_impactantes?.map((frase, index) => (
             <Card key={index} className="bg-gray-800/50 border-gray-700 hover:border-primary/50 transition-colors">
-              <CardContent className="pt-6">
-                <p className="text-lg text-gray-300 italic mb-4">"{frase}"</p>
+              <CardContent className="pt-4 sm:pt-6">
+                <p className="text-sm sm:text-base lg:text-lg text-gray-300 italic mb-3 sm:mb-4">"{frase}"</p>
                 <Button
                   onClick={() => copyToClipboard(frase, `frase-${index}`)}
                   variant="outline"
                   size="sm"
+                  className="h-8 sm:h-9"
                 >
                   {copiedIndex === `frase-${index}` ? (
-                    <><Check className="h-4 w-4 mr-2" /> Copiado</>
+                    <><Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">Copiado</span></>
                   ) : (
-                    <><Copy className="h-4 w-4 mr-2" /> Copiar</>
+                    <><Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">Copiar</span></>
                   )}
                 </Button>
               </CardContent>

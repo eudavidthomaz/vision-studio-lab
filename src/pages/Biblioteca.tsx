@@ -48,20 +48,21 @@ const Biblioteca = () => {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-start gap-3 sm:gap-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate("/dashboard")}
+              className="flex-shrink-0 mt-1"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent break-words">
                 📚 Minha Biblioteca
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">
                 Todo o seu conteúdo criado em um só lugar
               </p>
             </div>

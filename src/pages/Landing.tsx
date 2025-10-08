@@ -96,31 +96,31 @@ const Landing = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 md:py-32">
+      <section className="container mx-auto px-4 py-12 sm:py-16 md:py-20 lg:py-32">
         <div className="max-w-5xl mx-auto text-center animate-fade-in">
-          <div className="inline-block mb-4 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full">
-            <span className="text-primary text-sm font-semibold">🚀 Fase de Validação - Uso 100% Gratuito</span>
+          <div className="inline-block mb-3 sm:mb-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary/10 border border-primary/20 rounded-full">
+            <span className="text-primary text-xs sm:text-sm font-semibold">🚀 Fase de Validação - Uso 100% Gratuito</span>
           </div>
           
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 animate-scale-in">
-            Transforme Suas Pregações<br />
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-6 animate-scale-in">
+            Transforme Suas Pregações<br className="hidden sm:block" />
             Em <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
               Semanas de Conteúdo
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
             A primeira plataforma de IA que converte seus sermões em conteúdo profissional para redes sociais em minutos
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12 px-4">
             <Button 
               size="lg" 
               onClick={() => navigate("/auth")}
-              className="text-lg px-8 py-6 bg-primary hover:bg-primary/90 group"
+              className="text-sm sm:text-base lg:text-lg px-6 py-4 sm:px-8 sm:py-6 bg-primary hover:bg-primary/90 group"
             >
               Começar Agora Grátis
-              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
             <Button 
               size="lg" 
@@ -128,25 +128,25 @@ const Landing = () => {
               onClick={() => {
                 document.getElementById('como-funciona')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="text-lg px-8 py-6"
+              className="text-sm sm:text-base lg:text-lg px-6 py-4 sm:px-8 sm:py-6"
             >
-              <Play className="mr-2" />
+              <Play className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
               Ver Como Funciona
             </Button>
           </div>
 
           {/* Social Proof */}
-          <div className="flex flex-wrap justify-center gap-8 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
+          <div className="flex flex-col xs:flex-row flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-sm text-muted-foreground px-4">
+            <div className="flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
               <span>Sem cartão de crédito</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
+            <div className="flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
               <span>Setup em 2 minutos</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-primary" />
+            <div className="flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
               <span>Uso ilimitado</span>
             </div>
           </div>
@@ -219,13 +219,13 @@ const Landing = () => {
             Uma plataforma completa para gestão de conteúdo ministerial
           </p>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {features.map((feature, index) => (
               <Card key={index} className="bg-card/30 backdrop-blur border-border/50 hover:border-primary/50 transition-all">
-                <CardContent className="pt-6">
-                  <feature.icon className="w-10 h-10 text-primary mb-4" />
-                  <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground text-sm">{feature.description}</p>
+                <CardContent className="pt-4 sm:pt-6">
+                  <feature.icon className="w-8 h-8 sm:w-10 sm:h-10 text-primary mb-3 sm:mb-4" />
+                  <h3 className="text-base sm:text-lg font-bold text-white mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-xs sm:text-sm">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -268,20 +268,20 @@ const Landing = () => {
             Igrejas e ministérios que já transformaram sua presença digital
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {testimonials.map((testimonial, index) => (
               <Card key={index} className="bg-card/30 backdrop-blur border-border/50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center text-2xl">
+                <CardContent className="pt-4 sm:pt-6">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/20 rounded-full flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
                       {testimonial.image}
                     </div>
-                    <div>
-                      <p className="text-white font-semibold">{testimonial.name}</p>
-                      <p className="text-muted-foreground text-sm">{testimonial.role}</p>
+                    <div className="min-w-0">
+                      <p className="text-white font-semibold text-sm sm:text-base truncate">{testimonial.name}</p>
+                      <p className="text-muted-foreground text-xs sm:text-sm truncate">{testimonial.role}</p>
                     </div>
                   </div>
-                  <p className="text-muted-foreground italic">"{testimonial.content}"</p>
+                  <p className="text-muted-foreground text-xs sm:text-sm italic">"{testimonial.content}"</p>
                 </CardContent>
               </Card>
             ))}

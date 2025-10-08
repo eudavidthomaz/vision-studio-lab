@@ -172,7 +172,7 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
   ) : (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
-        <Label htmlFor="tema">Qual mensagem transmitir?</Label>
+        <Label htmlFor="tema" className="text-sm sm:text-base">Qual mensagem transmitir?</Label>
         <Textarea
           id="tema"
           placeholder="Ex: Esperança em meio às dificuldades..."
@@ -180,15 +180,15 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
           onChange={(e) => setTema(e.target.value)}
           rows={3}
           disabled={isGenerating}
-          className="text-base min-h-[100px]"
-          autoFocus={isMobile}
+          className="text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
+          autoFocus={!isMobile}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="estilo">Estilo do post</Label>
+        <Label htmlFor="estilo" className="text-sm sm:text-base">Estilo do post</Label>
         <Select value={estilo} onValueChange={(value) => setEstilo(value as EstiloFoto)}>
-          <SelectTrigger id="estilo" className="text-base min-h-[48px]">
+          <SelectTrigger id="estilo" className="text-sm sm:text-base min-h-[44px] sm:min-h-[48px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -203,7 +203,7 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
       <Button 
         onClick={handleGenerate} 
         disabled={isGenerating || !tema.trim()}
-        className="w-full min-h-[48px] text-base"
+        className="w-full min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
       >
         {isGenerating ? (
           <>

@@ -76,21 +76,23 @@ export function ContentDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl lg:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center gap-2 flex-wrap mb-2">
-            <Badge variant="secondary">
-              {typeLabels[item.type]}
-            </Badge>
-            {item.pilar && (
-              <Badge
-                className={pilarColors[item.pilar.toLowerCase() as keyof typeof pilarColors] || "bg-gray-500/20"}
-                variant="secondary"
-              >
-                {item.pilar}
+          <div className="flex items-start justify-between gap-2 flex-wrap mb-2">
+            <div className="flex gap-2 flex-wrap flex-1">
+              <Badge variant="secondary" className="text-xs sm:text-sm">
+                {typeLabels[item.type]}
               </Badge>
-            )}
-            <span className="text-xs text-muted-foreground ml-auto">
+              {item.pilar && (
+                <Badge
+                  className={pilarColors[item.pilar.toLowerCase() as keyof typeof pilarColors] || "bg-gray-500/20"}
+                  variant="secondary"
+                >
+                  {item.pilar}
+                </Badge>
+              )}
+            </div>
+            <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
               {new Date(item.createdAt).toLocaleDateString("pt-BR", {
                 day: "2-digit",
                 month: "short",
@@ -98,27 +100,28 @@ export function ContentDetailModal({
               })}
             </span>
           </div>
-          <DialogTitle className="text-2xl">{item.title}</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl break-words">{item.title}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
           {/* Copy/Conteúdo */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium">Conteúdo</label>
+              <label className="text-xs sm:text-sm font-medium">Conteúdo</label>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleCopySection(editedCopy, "Conteúdo")}
+                className="h-8 sm:h-9"
               >
-                <Copy className="h-4 w-4 mr-1" />
-                Copiar
+                <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                <span className="text-xs sm:text-sm">Copiar</span>
               </Button>
             </div>
             <Textarea
               value={editedCopy}
               onChange={(e) => setEditedCopy(e.target.value)}
-              className="min-h-[200px] text-base"
+              className="min-h-[150px] sm:min-h-[200px] text-sm sm:text-base"
               placeholder="Conteúdo do post..."
             />
           </div>
@@ -190,14 +193,14 @@ export function ContentDetailModal({
           )}
 
           {/* Ações */}
-          <div className="flex gap-2 pt-4 border-t">
-            <Button onClick={handleCopyAll} className="flex-1">
+          <div className="flex flex-col xs:flex-row gap-2 pt-4 border-t">
+            <Button onClick={handleCopyAll} className="w-full xs:flex-1 min-h-[44px]">
               <Copy className="h-4 w-4 mr-2" />
-              Copiar Tudo
+              <span className="text-sm sm:text-base">Copiar Tudo</span>
             </Button>
-            <Button onClick={handleExport} variant="outline" className="flex-1">
+            <Button onClick={handleExport} variant="outline" className="w-full xs:flex-1 min-h-[44px]">
               <Download className="h-4 w-4 mr-2" />
-              Exportar
+              <span className="text-sm sm:text-base">Exportar</span>
             </Button>
           </div>
         </div>

@@ -96,12 +96,12 @@ const Auth = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Ide.On</h1>
-          <p className="text-muted-foreground">Transforme suas pregações em conteúdo</p>
+        <div className="text-center mb-6 sm:mb-8 animate-fade-in">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Ide.On</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Transforme suas pregações em conteúdo</p>
         </div>
 
-        <div className="bg-card backdrop-blur-sm border border-border rounded-lg p-8 shadow-2xl animate-scale-in">
+        <div className="bg-card backdrop-blur-sm border border-border rounded-lg p-6 sm:p-8 shadow-2xl animate-scale-in">
           <div className="flex gap-2 mb-6">
             <Button
               type="button"

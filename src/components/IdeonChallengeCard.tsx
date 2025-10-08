@@ -29,14 +29,14 @@ const IdeonChallengeCard = ({ challenge }: IdeonChallengeProps) => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6 animate-fade-in">
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
       <Card className="bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30">
         <CardHeader>
-          <CardTitle className="text-2xl text-white flex items-center gap-2">
-            <Video className="h-6 w-6" />
+          <CardTitle className="text-xl sm:text-2xl text-white flex items-center gap-2">
+            <Video className="h-5 w-5 sm:h-6 sm:w-6" />
             Desafio Ide.On
           </CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardDescription className="text-sm sm:text-base text-gray-400">
             Um novo desafio criativo para compartilhar sua fé
           </CardDescription>
         </CardHeader>
@@ -44,22 +44,23 @@ const IdeonChallengeCard = ({ challenge }: IdeonChallengeProps) => {
 
       <Card className="bg-gray-800/50 border-gray-700">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" />
+          <CardTitle className="text-base sm:text-lg text-white flex items-center gap-2">
+            <Target className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             Roteiro do Desafio
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-300 whitespace-pre-wrap mb-4">{challenge.roteiro}</p>
+          <p className="text-sm sm:text-base text-gray-300 whitespace-pre-wrap mb-3 sm:mb-4">{challenge.roteiro}</p>
           <Button
             onClick={() => copyToClipboard(challenge.roteiro || '', 'roteiro')}
             variant="outline"
             size="sm"
+            className="h-8 sm:h-9"
           >
             {copiedSection === 'roteiro' ? (
-              <><Check className="h-4 w-4 mr-2" /> Copiado</>
+              <><Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">Copiado</span></>
             ) : (
-              <><Copy className="h-4 w-4 mr-2" /> Copiar Roteiro</>
+              <><Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> <span className="text-xs sm:text-sm">Copiar Roteiro</span></>
             )}
           </Button>
         </CardContent>
@@ -67,17 +68,17 @@ const IdeonChallengeCard = ({ challenge }: IdeonChallengeProps) => {
 
       <Card className="bg-gray-800/50 border-gray-700">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Camera className="h-5 w-5 text-primary" />
+          <CardTitle className="text-base sm:text-lg text-white flex items-center gap-2">
+            <Camera className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             Dicas de Fotografia
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-3">
+          <ul className="space-y-2 sm:space-y-3">
             {challenge.dicas_de_foto?.map((dica, index) => (
-              <li key={index} className="flex items-start gap-3">
-                <span className="text-primary font-bold mt-1">•</span>
-                <span className="text-gray-300">{dica}</span>
+              <li key={index} className="flex items-start gap-2 sm:gap-3">
+                <span className="text-primary font-bold mt-0.5 sm:mt-1 flex-shrink-0">•</span>
+                <span className="text-sm sm:text-base text-gray-300">{dica}</span>
               </li>
             ))}
           </ul>

@@ -40,17 +40,17 @@ export const QuickActionCard = ({ icon: Icon, title, description, color, onClick
     <button
       onClick={handleClick}
       className={cn(
-        "group relative flex flex-col items-center justify-center p-8 rounded-xl",
+        "group relative flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 rounded-xl",
         "bg-gradient-to-br border-2 transition-all duration-300",
         "hover:scale-105 hover:-translate-y-1 active:scale-95",
-        "min-h-[180px] w-full",
+        "min-h-[140px] sm:min-h-[160px] lg:min-h-[180px] w-full",
         colorStyles[color]
       )}
     >
-      <div className="relative mb-4">
+      <div className="relative mb-3 sm:mb-4">
         <Icon 
           className={cn(
-            "w-12 h-12 transition-transform duration-300 group-hover:scale-110",
+            "w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 transition-transform duration-300 group-hover:scale-110",
             iconColorStyles[color]
           )} 
         />
@@ -60,11 +60,11 @@ export const QuickActionCard = ({ icon: Icon, title, description, color, onClick
         )} />
       </div>
       
-      <h3 className="text-xl font-bold text-foreground mb-2 text-center">
+      <h3 className="text-base sm:text-lg lg:text-xl font-bold text-foreground mb-1 sm:mb-2 text-center">
         {title}
       </h3>
       
-      <p className="text-sm text-muted-foreground text-center">
+      <p className="text-xs sm:text-sm text-muted-foreground text-center">
         {description}
       </p>
     </button>

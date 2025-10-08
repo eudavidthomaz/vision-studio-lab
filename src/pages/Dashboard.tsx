@@ -270,15 +270,15 @@ const Dashboard = () => {
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Header */}
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-12 gap-4">
             <div>
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Ide.On
               </h1>
-              <p className="text-muted-foreground">O que você quer fazer hoje?</p>
+              <p className="text-sm sm:text-base text-muted-foreground">O que você quer fazer hoje?</p>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
               <RateLimitIndicator />
               <QuotaIndicator />
               
@@ -288,8 +288,9 @@ const Dashboard = () => {
                 className="gap-2"
                 data-tour="biblioteca-button"
               >
-                <Library className="w-4 h-4" />
-                Biblioteca
+                <Library className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden xs:inline">Biblioteca</span>
+                <span className="xs:hidden">📚</span>
               </Button>
 
               <Button
@@ -297,15 +298,16 @@ const Dashboard = () => {
                 onClick={handleLogout}
                 className="gap-2"
               >
-                Sair
+                <span className="hidden xs:inline">Sair</span>
+                <span className="xs:hidden">👤</span>
               </Button>
             </div>
           </div>
 
           {/* Quick Actions Grid */}
-          <section className="mb-16">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Zap className="w-6 h-6 text-primary" />
+          <section className="mb-12 sm:mb-16">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+              <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               Ações Rápidas
             </h2>
             
@@ -345,7 +347,7 @@ const Dashboard = () => {
             </MobileCardCarousel>
 
             {/* Desktop: Grid Layout */}
-            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
               <QuickActionCard
                 icon={Camera}
                 title="Criar Foto Rápida"
@@ -381,10 +383,10 @@ const Dashboard = () => {
           </section>
 
           {/* Library Preview Section */}
-          <section className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Library className="w-6 h-6 text-primary" />
+          <section className="mb-8 sm:mb-12">
+            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between mb-4 sm:mb-6 gap-3">
+              <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                <Library className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 📚 Minha Biblioteca
               </h2>
               <Button
@@ -404,12 +406,12 @@ const Dashboard = () => {
           </section>
 
           {/* Audio Input Section */}
-          <section id="audio-input-section" className="mb-12">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Mic className="w-6 h-6 text-primary" />
+          <section id="audio-input-section" className="mb-8 sm:mb-12">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+              <Mic className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               Gerar Pacote Completo
             </h2>
-            <div className="bg-card border border-border rounded-xl p-8" data-tour="audio-input">
+            <div className="bg-card border border-border rounded-xl p-4 sm:p-6 lg:p-8" data-tour="audio-input">
               <AudioInput onTranscriptionComplete={handleTranscriptionComplete} />
             </div>
           </section>

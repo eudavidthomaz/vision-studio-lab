@@ -168,7 +168,7 @@ export const QuickPostModal = ({ open, onOpenChange }: QuickPostModalProps) => {
   ) : (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
-        <Label htmlFor="tema">Sobre o que você quer falar?</Label>
+        <Label htmlFor="tema" className="text-sm sm:text-base">Sobre o que você quer falar?</Label>
         <Textarea
           id="tema"
           placeholder="Ex: A importância da oração diária, fé em tempos difíceis..."
@@ -176,15 +176,15 @@ export const QuickPostModal = ({ open, onOpenChange }: QuickPostModalProps) => {
           onChange={(e) => setTema(e.target.value)}
           rows={4}
           disabled={isGenerating}
-          className="text-base min-h-[120px]"
-          autoFocus={isMobile}
+          className="text-sm sm:text-base min-h-[100px] sm:min-h-[120px]"
+          autoFocus={!isMobile}
         />
       </div>
 
       <Button 
         onClick={handleGenerate} 
         disabled={isGenerating || !tema.trim()}
-        className="w-full min-h-[48px] text-base"
+        className="w-full min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
       >
         {isGenerating ? (
           <>

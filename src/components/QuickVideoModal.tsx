@@ -180,7 +180,7 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
   ) : (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
-        <Label htmlFor="mensagem">Qual o ponto central?</Label>
+        <Label htmlFor="mensagem" className="text-sm sm:text-base">Qual o ponto central?</Label>
         <Textarea
           id="mensagem"
           placeholder="Ex: Como a fé nos fortalece nas adversidades..."
@@ -188,15 +188,15 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
           onChange={(e) => setMensagem(e.target.value)}
           rows={3}
           disabled={isGenerating}
-          className="text-base min-h-[100px]"
-          autoFocus={isMobile}
+          className="text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
+          autoFocus={!isMobile}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="duracao">Duração do vídeo</Label>
+        <Label htmlFor="duracao" className="text-sm sm:text-base">Duração do vídeo</Label>
         <Select value={duracao} onValueChange={(value) => setDuracao(value as Duracao)}>
-          <SelectTrigger id="duracao" className="text-base min-h-[48px]">
+          <SelectTrigger id="duracao" className="text-sm sm:text-base min-h-[44px] sm:min-h-[48px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -210,7 +210,7 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
       <Button 
         onClick={handleGenerate} 
         disabled={isGenerating || !mensagem.trim()}
-        className="w-full min-h-[48px] text-base"
+        className="w-full min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
       >
         {isGenerating ? (
           <>

@@ -268,19 +268,19 @@ export function ContentLibrary({
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Tabs value={typeFilter} onValueChange={setTypeFilter} className="flex-1">
-              <TabsList className="w-full">
-                <TabsTrigger value="all" className="flex-1">Todos</TabsTrigger>
-                <TabsTrigger value="post" className="flex-1">Posts</TabsTrigger>
-                <TabsTrigger value="foto" className="flex-1">Fotos</TabsTrigger>
-                <TabsTrigger value="video" className="flex-1">Vídeos</TabsTrigger>
-                <TabsTrigger value="pack" className="flex-1">Packs</TabsTrigger>
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <Tabs value={typeFilter} onValueChange={setTypeFilter} className="w-full">
+              <TabsList className="w-full grid grid-cols-5 gap-1">
+                <TabsTrigger value="all" className="text-xs sm:text-sm px-2 sm:px-4">Todos</TabsTrigger>
+                <TabsTrigger value="post" className="text-xs sm:text-sm px-2 sm:px-4">Posts</TabsTrigger>
+                <TabsTrigger value="foto" className="text-xs sm:text-sm px-2 sm:px-4">Fotos</TabsTrigger>
+                <TabsTrigger value="video" className="text-xs sm:text-sm px-2 sm:px-4">Vídeos</TabsTrigger>
+                <TabsTrigger value="pack" className="text-xs sm:text-sm px-2 sm:px-4">Packs</TabsTrigger>
               </TabsList>
             </Tabs>
 
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full sm:w-auto min-w-[160px] text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -304,10 +304,10 @@ export function ContentLibrary({
       ) : (
         <>
           <div
-            className={`grid gap-4 ${
+            className={`grid gap-3 sm:gap-4 ${
               compact
-                ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             }`}
           >
             {displayedContent.map((item) => (
