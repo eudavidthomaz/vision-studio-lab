@@ -6,7 +6,7 @@ import { Loader2, Sparkles, FileText, Camera, Video, Edit, Mic, Calendar, Users,
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import AudioInput from "@/components/AudioInput";
-import WeeklyPackDisplay from "@/components/WeeklyPackDisplay";
+import { UnifiedContentDisplay } from "@/components/UnifiedContentDisplay";
 import IdeonChallengeCard from "@/components/IdeonChallengeCard";
 import OnboardingTour from "@/components/OnboardingTour";
 import EmptyState from "@/components/EmptyState";
@@ -114,28 +114,20 @@ const Dashboard = () => {
       // Step 2: Analyzing sermon (50%)
       setGenerationProgress(50);
 
-      // Generate weekly pack using secure API
-      const pack = await invokeFunction<any>('generate-week-pack', {
-        transcript: transcriptText
+      // Generate content using NEW unified function with Lovable AI
+      const result = await invokeFunction<any>('generate-content-from-transcript', {
+        transcript: transcriptText,
+        sermon_id: sermonData.id
       });
 
-      if (!pack) {
-        throw new Error('Erro ao gerar pacote semanal');
+      if (!result || !result.content_id) {
+        throw new Error('Erro ao gerar conteúdo');
       }
       
       // Step 3: Content generated (75%)
       setGenerationProgress(75);
       
-      setWeeklyPack(pack);
-
-      // Save weekly pack to database
-      await supabase
-        .from('weekly_packs')
-        .insert({
-          user_id: user.id,
-          sermon_id: sermonData.id,
-          pack: pack
-        });
+      setWeeklyPack(result.content);
 
       // Step 4: Complete (100%)
       setGenerationProgress(100);
@@ -358,8 +350,8 @@ const Dashboard = () => {
           {/* Results */}
           {weeklyPack && !isGeneratingPack && (
             <div className="space-y-8">
-              <WeeklyPackDisplay 
-                pack={weeklyPack}
+              <UnifiedContentDisplay 
+                content={weeklyPack}
               />
               
               {challenge && (

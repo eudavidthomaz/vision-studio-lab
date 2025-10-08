@@ -40,13 +40,13 @@ const formatIcons = {
 const pilarColors = {
   ALCANÇAR: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
   EDIFICAR: "bg-green-500/10 text-green-600 dark:text-green-400",
-  ENVIAR: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-  EXALTAR: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  PERTENCER: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+  SERVIR: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
 };
 
 export function ContentFeedCard({ content, onView, onDelete }: ContentFeedCardProps) {
   const FormatIcon = formatIcons[content.format] || FileText;
-  const SourceIcon = content.source === "ai-creator" ? Sparkles : AudioLines;
+  const SourceIcon = content.source === "ai_prompt" ? Sparkles : AudioLines;
 
   const handleCopy = async () => {
     const text = `${content.title}\n\n${content.verse}\n\n${content.preview}\n\n${content.hashtags.join(" ")}`;
@@ -65,7 +65,7 @@ export function ContentFeedCard({ content, onView, onDelete }: ContentFeedCardPr
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="gap-1">
               <SourceIcon className="h-3 w-3" />
-              {content.source === "ai-creator" ? "IA Criativa" : "Pack Semanal"}
+              {content.source === "ai_prompt" ? "Criação com IA" : "De Pregação"}
             </Badge>
             <Badge variant="outline" className="gap-1">
               <FormatIcon className="h-3 w-3" />
