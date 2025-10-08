@@ -33,6 +33,17 @@ const ImageGenerationModal = ({
   const { invokeFunction } = useSecureApi();
   const { canUse, incrementUsage } = useQuota();
 
+  // Função para normalizar o formato do pilar
+  const normalizePilar = (pilar: string): string => {
+    const pilarMap: Record<string, string> = {
+      'EDIFICAR': 'Edificar',
+      'ALCANÇAR': 'Alcançar',
+      'PERTENCER': 'Pertencer',
+      'SERVIR': 'Servir',
+    };
+    return pilarMap[pilar.toUpperCase()] || pilar;
+  };
+
   const handleGenerate = async () => {
     if (!canUse('images')) {
       toast({
@@ -50,7 +61,7 @@ const ImageGenerationModal = ({
         formato,
         copy: editedCopy,
         estilo,
-        pilar,
+        pilar: normalizePilar(pilar),
       });
 
       if (!data) {
