@@ -146,19 +146,20 @@ const ImageGenerationModal = ({
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="copy">Texto do Post</Label>
-                <Textarea
-                  id="copy"
-                  value={editedCopy}
-                  onChange={(e) => setEditedCopy(e.target.value)}
-                  rows={4}
-                  className="resize-none"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Você pode editar o texto se desejar
-                </p>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="copy">Texto do Post</Label>
+            <Textarea
+              id="copy"
+              value={editedCopy}
+              onChange={(e) => setEditedCopy(e.target.value)}
+              rows={6}
+              className="resize-none"
+              placeholder="Digite o texto do seu post aqui..."
+            />
+            <p className="text-xs text-muted-foreground">
+              Você pode editar o texto se desejar
+            </p>
+          </div>
 
               <div className="flex gap-2 pt-4">
                 <Button
