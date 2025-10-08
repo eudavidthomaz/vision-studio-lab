@@ -1,23 +1,22 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Sparkles, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Sparkles } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
-interface RecentItem {
+interface RecentContent {
   id: string;
-  type: 'pack' | 'challenge';
+  type: "ai" | "pack";
   title: string;
-  preview: string;
-  date: Date;
-  count?: number;
+  createdAt: Date;
 }
 
 export function RecentContentSection() {
-  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
+  const [recentContents, setRecentContents] = useState<RecentContent[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadRecentContent();
@@ -28,137 +27,106 @@ export function RecentContentSection() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get recent weekly packs
-      const { data: packs } = await supabase
-        .from('weekly_packs')
-        .select('id, created_at, pack')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+      const contents: RecentContent[] = [];
+
+      // Buscar últimos 2 conteúdos de IA
+      const { data: aiContent } = await supabase
+        .from("content_planners")
+        .select("id, content, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
         .limit(2);
 
-      // Get recent challenges
-      const { data: challenges } = await supabase
-        .from('ideon_challenges')
-        .select('id, created_at, challenge')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(2);
-
-      const items: RecentItem[] = [];
-
-      // Process packs
-      if (packs) {
-        packs.forEach(pack => {
-          const packData = pack.pack as any;
-          const firstDay = packData.Segunda || packData.Terça || packData.Quarta || {};
-          items.push({
-            id: pack.id,
-            type: 'pack',
-            title: 'Pack Semanal Completo',
-            preview: firstDay.copy?.substring(0, 80) + '...' || 'Pack de conteúdo',
-            date: new Date(pack.created_at),
-            count: Object.keys(packData).length
+      aiContent?.forEach((item) => {
+        const plannerDataArray = item.content as any[];
+        const plannerData = plannerDataArray?.[0];
+        if (plannerData?.prompt_original) {
+          contents.push({
+            id: `ai-${item.id}`,
+            type: "ai",
+            title: plannerData.prompt_original,
+            createdAt: new Date(item.created_at),
           });
-        });
-      }
+        }
+      });
 
-      // Process challenges
-      if (challenges) {
-        challenges.forEach(challenge => {
-          const challengeData = challenge.challenge as any;
-          items.push({
-            id: challenge.id,
-            type: 'challenge',
-            title: challengeData.titulo || 'Desafio Ide.On',
-            preview: challengeData.descricao?.substring(0, 80) + '...' || 'Desafio criado',
-            date: new Date(challenge.created_at)
+      // Buscar último pack semanal
+      const { data: weekPacks } = await supabase
+        .from("weekly_packs")
+        .select("id, pack, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      weekPacks?.forEach((item) => {
+        const packData = item.pack as any;
+        if (packData?.titulo_principal) {
+          contents.push({
+            id: `pack-${item.id}`,
+            type: "pack",
+            title: packData.titulo_principal,
+            createdAt: new Date(item.created_at),
           });
-        });
-      }
+        }
+      });
 
-      // Sort by date and take top 4
-      items.sort((a, b) => b.date.getTime() - a.date.getTime());
-      setRecentItems(items.slice(0, 4));
+      contents.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      setRecentContents(contents.slice(0, 3));
     } catch (error) {
-      console.error('Error loading recent content:', error);
+      console.error("Erro ao carregar conteúdos recentes:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <section className="space-y-4">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Clock className="w-6 h-6" />
-          Últimos Conteúdos
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <Card key={i} className="p-4 animate-pulse">
-              <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-muted rounded w-full"></div>
-            </Card>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (recentItems.length === 0) {
-    return (
-      <section className="space-y-4">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <Clock className="w-6 h-6" />
-          Últimos Conteúdos
-        </h2>
-        <Card className="p-8 text-center">
-          <Sparkles className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">
-            Você ainda não criou nenhum conteúdo. Use os cards acima para começar!
-          </p>
-        </Card>
-      </section>
-    );
-  }
+  if (loading || recentContents.length === 0) return null;
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-2xl font-bold flex items-center gap-2">
-        <Clock className="w-6 h-6" />
-        Últimos Conteúdos
-      </h2>
-      <div className="flex flex-col md:grid gap-4 md:grid-cols-2 md:gap-4">
-        {recentItems.map(item => (
-          <Card 
-            key={item.id} 
-            className="p-4 hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => {
-              if (item.type === 'pack') {
-                window.location.href = '/historico';
-              }
-            }}
-          >
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="font-semibold">{item.title}</h3>
-              <Badge variant={item.type === 'pack' ? 'default' : 'secondary'}>
-                {item.type === 'pack' ? '📦 Pack' : '⚡ Desafio'}
+    <Card className="w-full bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold">Meus Conteúdos</h3>
+            {recentContents.length > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {recentContents.length}
               </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground mb-2">
-              {item.preview}
-            </p>
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>
-                {format(item.date, "dd 'de' MMMM", { locale: ptBR })}
-              </span>
-              {item.count && (
-                <span>{item.count} dias de conteúdo</span>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/meus-conteudos")}
+            className="gap-2"
+          >
+            Ver todos
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="space-y-2">
+          {recentContents.map((content) => (
+            <div
+              key={content.id}
+              className="flex items-center gap-3 p-3 rounded-lg bg-background/50 hover:bg-background/80 transition-colors cursor-pointer"
+              onClick={() => navigate("/meus-conteudos")}
+            >
+              {content.type === "ai" ? (
+                <Sparkles className="h-4 w-4 text-primary flex-shrink-0" />
+              ) : (
+                <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
               )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{content.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {content.type === "ai" ? "IA Creator" : "Pack Semanal"}
+                </p>
+              </div>
             </div>
-          </Card>
-        ))}
-      </div>
-    </section>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

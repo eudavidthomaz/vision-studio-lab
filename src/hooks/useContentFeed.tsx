@@ -57,7 +57,8 @@ export function useContentFeed() {
 
       // Normalizar content_planners (IA)
       aiContent?.forEach((item) => {
-        const plannerData = item.content as any;
+        const plannerDataArray = item.content as any[];
+        const plannerData = plannerDataArray?.[0];
         
         // Detectar se é conteúdo de IA
         if (plannerData?.tipo === "ai-generated" || plannerData?.prompt_original) {

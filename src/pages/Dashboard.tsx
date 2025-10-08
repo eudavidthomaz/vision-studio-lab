@@ -20,6 +20,7 @@ import { RateLimitIndicator } from "@/components/RateLimitIndicator";
 import { QuotaIndicator } from "@/components/QuotaIndicator";
 import { AICreatorCard } from "@/components/AICreatorCard";
 import { AIPromptModal } from "@/components/AIPromptModal";
+import { RecentContentSection } from "@/components/RecentContentSection";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -331,9 +332,10 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* AI Creator Section */}
-          <section className="mb-12 sm:mb-16" data-tour="ai-creator">
+          {/* AI Creator & Recent Content Section */}
+          <section className="mb-12 sm:mb-16 grid grid-cols-1 lg:grid-cols-2 gap-6" data-tour="ai-creator">
             <AICreatorCard onClick={() => setShowAIModal(true)} />
+            <RecentContentSection />
           </section>
 
 
