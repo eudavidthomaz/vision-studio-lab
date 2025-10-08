@@ -30,7 +30,7 @@ const ImageGenerationModal = ({
 }: ImageGenerationModalProps) => {
   const [formato, setFormato] = useState("feed_square");
   const [estilo, setEstilo] = useState("minimalista");
-  const [tema, setTema] = useState("minimalista_gospel");
+  const [tema, setTema] = useState("minimalista");
   const [editedCopy, setEditedCopy] = useState(copy);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -40,10 +40,26 @@ const ImageGenerationModal = ({
   const { canUse, incrementUsage } = useQuota();
 
   const temas = [
-    { value: "minimalista_gospel", label: "Minimalista Gospel", description: "Limpo, elegante, com muito espaço em branco" },
-    { value: "vibrante_jovem", label: "Vibrante Jovem", description: "Colorido, moderno, energético" },
-    { value: "elegante_classico", label: "Elegante Clássico", description: "Sofisticado, atemporal, cores neutras" },
-    { value: "moderno_urbano", label: "Moderno Urbano", description: "Contemporâneo, clean, tipografia forte" }
+    { 
+      value: "minimalista", 
+      label: "Minimalista", 
+      description: "Ultra-minimalista com muito espaço em branco, limpo e elegante"
+    },
+    { 
+      value: "tipografico", 
+      label: "Tipográfico", 
+      description: "Foco em tipografia forte, texto como elemento principal"
+    },
+    { 
+      value: "fotografico", 
+      label: "Fotográfico", 
+      description: "Imagens cinematográficas com iluminação dramática e realista"
+    },
+    { 
+      value: "ilustrativo", 
+      label: "Ilustrativo", 
+      description: "Estilo ilustrado com colagem, texturas e paleta terrosa"
+    }
   ];
 
   // Função para normalizar o formato do pilar com mapeamento inteligente
@@ -91,7 +107,7 @@ const ImageGenerationModal = ({
           const data = await invokeFunction<{ image_url: string }>('generate-post-image', {
             formato: 'feed_square',
             copy: slides[i].texto,
-            estilo: tema.split('_')[0], // usa primeira palavra do tema
+            estilo: tema,
             pilar: normalizePilar(pilar),
           });
 
@@ -110,7 +126,7 @@ const ImageGenerationModal = ({
         const data = await invokeFunction<{ image_url: string }>('generate-post-image', {
           formato,
           copy: editedCopy,
-          estilo: tema.split('_')[0],
+          estilo: tema,
           pilar: normalizePilar(pilar),
         });
 
@@ -164,7 +180,7 @@ const ImageGenerationModal = ({
     setEditedCopy(copy);
     setFormato("feed_square");
     setEstilo("minimalista");
-    setTema("minimalista_gospel");
+    setTema("minimalista");
     onOpenChange(false);
   };
 

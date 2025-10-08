@@ -76,6 +76,7 @@ interface UnifiedContentDisplayProps {
 }
 
 export const UnifiedContentDisplay = ({ content }: UnifiedContentDisplayProps) => {
+  const [activeTab, setActiveTab] = useState("fundamento");
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<{ 
     copy: string; 
@@ -102,15 +103,37 @@ export const UnifiedContentDisplay = ({ content }: UnifiedContentDisplayProps) =
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="fundamento" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
-          <TabsTrigger value="fundamento">📖 Base</TabsTrigger>
-          <TabsTrigger value="conteudo">✍️ Conteúdo</TabsTrigger>
-          <TabsTrigger value="posts">🎨 Posts</TabsTrigger>
-          <TabsTrigger value="stories">📱 Stories</TabsTrigger>
-          <TabsTrigger value="carrosseis">🎞️ Carrosséis</TabsTrigger>
-          <TabsTrigger value="reels">🎬 Reels</TabsTrigger>
-          <TabsTrigger value="estudo">📚 Estudo</TabsTrigger>
+      <Tabs 
+        value={activeTab} 
+        onValueChange={(value) => {
+          setActiveTab(value);
+          setSelectedContent(null);
+          setImageModalOpen(false);
+        }}
+        className="w-full"
+      >
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-1 h-auto">
+          <TabsTrigger value="fundamento" className="text-xs sm:text-sm py-2">
+            📖 <span className="hidden sm:inline">Base</span>
+          </TabsTrigger>
+          <TabsTrigger value="conteudo" className="text-xs sm:text-sm py-2">
+            ✍️ <span className="hidden sm:inline">Conteúdo</span>
+          </TabsTrigger>
+          <TabsTrigger value="posts" className="text-xs sm:text-sm py-2">
+            🎨 <span className="hidden sm:inline">Posts</span>
+          </TabsTrigger>
+          <TabsTrigger value="stories" className="text-xs sm:text-sm py-2">
+            📱 <span className="hidden sm:inline">Stories</span>
+          </TabsTrigger>
+          <TabsTrigger value="carrosseis" className="text-xs sm:text-sm py-2">
+            🎞️ <span className="hidden sm:inline">Carrosséis</span>
+          </TabsTrigger>
+          <TabsTrigger value="reels" className="text-xs sm:text-sm py-2">
+            🎬 <span className="hidden sm:inline">Reels</span>
+          </TabsTrigger>
+          <TabsTrigger value="estudo" className="text-xs sm:text-sm py-2">
+            📚 <span className="hidden sm:inline">Estudo</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Fundamento Bíblico */}
@@ -124,7 +147,8 @@ export const UnifiedContentDisplay = ({ content }: UnifiedContentDisplayProps) =
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
-                {content.fundamento_biblico.versiculos.map((versiculo, idx) => (
+                {content.fundamento_biblico?.versiculos?.length > 0 ? (
+                  content.fundamento_biblico.versiculos.map((versiculo, idx) => (
                   <div key={idx} className="p-4 bg-muted/50 rounded-lg border-l-4 border-primary">
                     <p className="text-sm leading-relaxed italic">{versiculo}</p>
                     <Button
@@ -137,7 +161,14 @@ export const UnifiedContentDisplay = ({ content }: UnifiedContentDisplayProps) =
                       Copiar
                     </Button>
                   </div>
-                ))}
+                ))
+              ) : (
+                <div className="p-4 bg-muted/30 rounded-lg border-l-4 border-muted">
+                  <p className="text-sm text-muted-foreground italic">
+                    Este conteúdo não possui versículos bíblicos associados.
+                  </p>
+                </div>
+              )}
               </div>
               
               <Separator />
@@ -145,14 +176,14 @@ export const UnifiedContentDisplay = ({ content }: UnifiedContentDisplayProps) =
               <div>
                 <h4 className="font-semibold text-sm mb-2">Contexto Histórico</h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {content.fundamento_biblico.contexto}
+                  {content.fundamento_biblico?.contexto || 'Contexto não disponível para este conteúdo.'}
                 </p>
               </div>
-              
+
               <div>
                 <h4 className="font-semibold text-sm mb-2">Princípio Atemporal</h4>
                 <p className="text-sm font-medium text-primary">
-                  {content.fundamento_biblico.principio}
+                  {content.fundamento_biblico?.principio || 'Princípio não disponível para este conteúdo.'}
                 </p>
               </div>
             </CardContent>
@@ -512,27 +543,35 @@ export const UnifiedContentDisplay = ({ content }: UnifiedContentDisplayProps) =
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-semibold mb-2">Versículos Principais</h4>
-                    <div className="space-y-2">
-                      {content.dica_producao.estudo_biblico_detalhado.versiculos_principais.map((v, i) => (
-                        <div key={i} className="p-3 bg-muted/50 rounded-lg text-sm">{v}</div>
-                      ))}
-                    </div>
+                    {content.dica_producao.estudo_biblico_detalhado.versiculos_principais?.length > 0 ? (
+                      <div className="space-y-2">
+                        {content.dica_producao.estudo_biblico_detalhado.versiculos_principais.map((v, i) => (
+                          <div key={i} className="p-3 bg-muted/50 rounded-lg text-sm">{v}</div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Nenhum versículo disponível.</p>
+                    )}
                   </div>
 
                   <Separator />
 
                   <div>
                     <h4 className="font-semibold mb-2">Perguntas para Reflexão</h4>
-                    <ol className="space-y-2 list-decimal list-inside">
-                      {content.dica_producao.estudo_biblico_detalhado.perguntas_reflexao.map((p, i) => (
-                        <li key={i} className="text-sm text-muted-foreground">{p}</li>
-                      ))}
-                    </ol>
+                    {content.dica_producao.estudo_biblico_detalhado.perguntas_reflexao?.length > 0 ? (
+                      <ol className="space-y-2 list-decimal list-inside">
+                        {content.dica_producao.estudo_biblico_detalhado.perguntas_reflexao.map((p, i) => (
+                          <li key={i} className="text-sm text-muted-foreground">{p}</li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Nenhuma pergunta disponível.</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
 
-              {content.dica_producao.estudo_biblico_detalhado.plano_devocional && (
+              {content.dica_producao.estudo_biblico_detalhado.plano_devocional?.dias?.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -558,7 +597,7 @@ export const UnifiedContentDisplay = ({ content }: UnifiedContentDisplayProps) =
                 </Card>
               )}
 
-              {content.dica_producao.estudo_biblico_detalhado.livros_recomendados && (
+              {content.dica_producao.estudo_biblico_detalhado.livros_recomendados?.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle>📚 Livros Recomendados</CardTitle>

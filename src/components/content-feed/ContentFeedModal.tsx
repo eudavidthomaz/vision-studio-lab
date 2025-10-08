@@ -26,7 +26,7 @@ export function ContentFeedModal({ content, open, onOpenChange }: ContentFeedMod
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] sm:max-w-4xl lg:max-w-5xl max-h-[90vh] overflow-hidden p-0">
-        <div className="overflow-y-auto max-h-[90vh] p-6">
+        <div className="overflow-y-auto max-h-[90vh] p-3 sm:p-6 lg:p-8">
           <UnifiedContentDisplay content={content.rawData} />
         </div>
       </DialogContent>
