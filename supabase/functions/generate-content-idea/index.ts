@@ -83,65 +83,36 @@ serve(async (req) => {
 
     const sanitizedTema = sanitizeText(tema, 200);
     const sanitizedContexto = contexto_adicional ? sanitizeText(contexto_adicional, 1000) : '';
-    
-    console.log('Generating content idea:', { tipo_conteudo, tema, tom, pilar });
+
+    console.log('Generating content idea...');
 
     const CORE_PRINCIPLES = `
-MISSÃO: Guiar pessoas a Jesus, fortalecer discípulos e servir a cidade com conteúdo fiel à Bíblia, pastoralmente sensível e culturalmente inteligente.
-
-PRINCÍPIOS:
-1. Cristocentrismo: Jesus no centro; doutrina antes de opinião
-2. Fidelidade bíblica: texto influencia pauta, não o contrário
-3. Linguagem simples (nível 8º/9º ano), acessível a todos
-4. Vulnerabilidade com dignidade: nada de exposição humilhante
-5. CTAs específicos e factíveis
-
-MÉTODO:
-1. Identificar versículo base (1-10 versos)
-2. Extrair princípio atemporal (1 frase)
-3. Aplicação prática: "o que isso muda na segunda-feira?"
-4. Adaptar para formato (Reel/Carrossel/Story)
-
-PILARES:
-- Edificar: Devocional + aplicação prática
-- Alcançar: Alto impacto, transformação, testemunhos
-- Pertencer: Comunidade, conexão, grupos
-- Servir: Voluntariado, causas, ação
-
-IMPORTANTE:
-- Sempre indicar versículos bíblicos relacionados (livro/cap/verso)
-- Se o tema envolver sensibilidade (luto, doença), adicionar nota em "consideracoes_pastor"
-- CTA específico (ex: "Envie CÉLULA no DM")
+Você é um especialista em comunicação cristã nas redes sociais.
+Crie conteúdo autêntico, relevante e engajador para igrejas.
 `;
 
     const systemPrompt = `${CORE_PRINCIPLES}
 
-Você gera IDEIAS INDIVIDUAIS de conteúdo para Instagram de igrejas.
+Você é um especialista em criar ideias de conteúdo para redes sociais de igrejas.
+Baseado nos parâmetros fornecidos, crie uma ideia completa e acionável.
 
-IMPORTANTE: Responda APENAS com JSON válido, sem texto adicional:
+IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional. O JSON deve conter:
 
 {
-  "titulo": "Nome curto e chamativo da ideia",
-  "tipo": "${tipo_conteudo}",
-  "pilar": "${pilar}",
-  "dia_sugerido": "Segunda" | "Terça" | "Quarta" | "Quinta" | "Sexta" | "Sábado" | "Domingo",
-  "copy": "Texto completo do post (3-5 parágrafos, linguagem simples)",
-  "hook": "Primeira frase de impacto (8-12 palavras)",
-  "cta": "Call-to-action específico (ex: Envie CÉLULA no DM)",
-  "hashtags": ["array", "de", "hashtags", "relevantes"],
-  "sugestao_visual": "Descrição detalhada da arte/vídeo sugerido",
-  "versiculos_relacionados": ["Salmos 23:1", "João 3:16"],
-  "consideracoes_pastor": "Avisos para revisão pastoral (ou null se não houver)"
+  "titulo": "Título atrativo do conteúdo",
+  "copy": "Texto completo do post/story/reel",
+  "cta": "Call-to-action específico",
+  "hashtags": ["array", "de", "hashtags"],
+  "sugestao_visual": "Descrição da imagem ou vídeo sugerido"
 }`;
 
-    const userPrompt = `Crie uma ideia de conteúdo:
+    const userPrompt = `
+Gerar ideia de conteúdo:
 - Tipo: ${tipo_conteudo}
-- Tema: ${tema}
+- Tema: ${sanitizedTema}
 - Tom: ${tom}
 - Pilar: ${pilar}
-${contexto_adicional ? `- Contexto: ${contexto_adicional}` : ''}
-
-Lembre-se: linguagem simples, versículos bíblicos, CTA claro.`;
+${sanitizedContexto ? `- Contexto adicional: ${sanitizedContexto}` : ''}`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -155,7 +126,7 @@ Lembre-se: linguagem simples, versículos bíblicos, CTA claro.`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        max_tokens: 1000,
+        max_completion_tokens: 800,
         response_format: { type: 'json_object' }
       }),
     });
@@ -163,13 +134,19 @@ Lembre-se: linguagem simples, versículos bíblicos, CTA claro.`;
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errorMsg = `OpenAI API error: ${response.status}`;
+      await logSecurityEvent(supabaseClient, userId, 'content_idea_failed', 'generate-content-idea', false, errorMsg);
+      throw new Error(errorMsg);
     }
 
     const result = await response.json();
     const idea = JSON.parse(result.choices[0]?.message?.content || '{}');
-    
-    console.log('Content idea generated successfully');
+
+    // Log success
+    await logSecurityEvent(supabaseClient, userId, 'content_idea_success', 'generate-content-idea', true);
+
+    const duration = Date.now() - startTime;
+    console.log(`Content idea generated in ${duration}ms`);
 
     return new Response(
       JSON.stringify(idea),
@@ -181,6 +158,39 @@ Lembre-se: linguagem simples, versículos bíblicos, CTA claro.`;
 
   } catch (error) {
     console.error('Error in generate-content-idea:', error);
+
+    // Log error
+    if (supabaseClient && userId) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      await logSecurityEvent(supabaseClient, userId, 'content_idea_error', 'generate-content-idea', false, errorMsg);
+    }
+
+    // Handle specific error types
+    if (error instanceof ValidationError) {
+      return new Response(
+        JSON.stringify({ error: error.message, type: 'validation_error' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (error instanceof RateLimitError) {
+      return new Response(
+        JSON.stringify({ 
+          error: error.message, 
+          type: 'rate_limit_error',
+          retry_after: error.retryAfter 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(Math.ceil(error.retryAfter))
+          }
+        }
+      );
+    }
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
