@@ -11,6 +11,7 @@ import Biblioteca from "./pages/Biblioteca";
 import Metrics from "./pages/Metrics";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
+import ContentResult from "./pages/ContentResult";
 import { lazy } from "react";
 
 const UsageDashboard = lazy(() => import("./pages/UsageDashboard"));
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/security" element={<SecurityDashboard />} />
           <Route path="/usage" element={<UsageDashboard />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/conteudo/:id" element={<ContentResult />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

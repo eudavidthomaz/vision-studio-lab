@@ -18,12 +18,9 @@ import { useSecureApi } from "@/hooks/useSecureApi";
 import { useQuota } from "@/hooks/useQuota";
 import { RateLimitIndicator } from "@/components/RateLimitIndicator";
 import { QuotaIndicator } from "@/components/QuotaIndicator";
-import { QuickActionCard } from "@/components/QuickActionCard";
-import { MobileCardCarousel } from "@/components/MobileCardCarousel";
-import { QuickPostModal } from "@/components/QuickPostModal";
-import { QuickPhotoModal } from "@/components/QuickPhotoModal";
-import { QuickVideoModal } from "@/components/QuickVideoModal";
 import { ContentLibrary } from "@/components/ContentLibrary";
+import { AICreatorCard } from "@/components/AICreatorCard";
+import { AIPromptModal } from "@/components/AIPromptModal";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -38,9 +35,8 @@ const Dashboard = () => {
   const [generationProgress, setGenerationProgress] = useState(0);
   const [isFirstGeneration, setIsFirstGeneration] = useState(true);
   const [showNPSModal, setShowNPSModal] = useState(false);
-  const [showPostModal, setShowPostModal] = useState(false);
-  const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -239,6 +235,38 @@ const Dashboard = () => {
     }
   };
 
+  const handleGenerateAIContent = async (prompt: string) => {
+    setIsGeneratingAI(true);
+    try {
+      const result = await invokeFunction<any>('generate-ai-content', { prompt });
+      
+      if (!result || !result.content_id) {
+        throw new Error('Erro ao gerar conteúdo');
+      }
+
+      // Track AI content generation
+      await trackEvent('ai_content_generated', { prompt: prompt.substring(0, 50) });
+
+      toast({
+        title: "Conteúdo criado! 🎉",
+        description: "Seu conteúdo foi gerado com sucesso!",
+      });
+
+      // Navigate to result page
+      setShowAIModal(false);
+      navigate(`/conteudo/${result.content_id}`);
+    } catch (error) {
+      console.error('Error generating AI content:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o conteúdo. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
@@ -304,82 +332,9 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Quick Actions Grid */}
-          <section className="mb-12 sm:mb-16">
-            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
-              <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-              Ações Rápidas
-            </h2>
-            
-            {/* Mobile: Swipeable Carousel */}
-            <MobileCardCarousel>
-              <QuickActionCard
-                icon={Camera}
-                title="Criar Foto Rápida"
-                description="Post com arte sugerida"
-                color="purple"
-                onClick={() => setShowPhotoModal(true)}
-              />
-              <QuickActionCard
-                icon={Video}
-                title="Criar Vídeo Curto"
-                description="Roteiro de Reel/Short"
-                color="blue"
-                onClick={() => setShowVideoModal(true)}
-              />
-              <QuickActionCard
-                icon={Edit}
-                title="Criar Post Rápido"
-                description="Texto completo para feed"
-                color="cyan"
-                onClick={() => setShowPostModal(true)}
-              />
-              <QuickActionCard
-                icon={Mic}
-                title="Gerar Pack Completo"
-                description="Semana inteira de conteúdo"
-                color="green"
-                onClick={() => {
-                  const element = document.getElementById('audio-input-section');
-                  element?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              />
-            </MobileCardCarousel>
-
-            {/* Desktop: Grid Layout */}
-            <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
-              <QuickActionCard
-                icon={Camera}
-                title="Criar Foto Rápida"
-                description="Post com arte sugerida"
-                color="purple"
-                onClick={() => setShowPhotoModal(true)}
-              />
-              <QuickActionCard
-                icon={Video}
-                title="Criar Vídeo Curto"
-                description="Roteiro de Reel/Short"
-                color="blue"
-                onClick={() => setShowVideoModal(true)}
-              />
-              <QuickActionCard
-                icon={Edit}
-                title="Criar Post Rápido"
-                description="Texto completo para feed"
-                color="cyan"
-                onClick={() => setShowPostModal(true)}
-              />
-              <QuickActionCard
-                icon={Mic}
-                title="Gerar Pack Completo"
-                description="Semana inteira de conteúdo"
-                color="green"
-                onClick={() => {
-                  const element = document.getElementById('audio-input-section');
-                  element?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              />
-            </div>
+          {/* AI Creator Section */}
+          <section className="mb-12 sm:mb-16" data-tour="ai-creator">
+            <AICreatorCard onClick={() => setShowAIModal(true)} />
           </section>
 
           {/* Library Preview Section */}
@@ -479,10 +434,13 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Modals */}
-        <QuickPostModal open={showPostModal} onOpenChange={setShowPostModal} />
-        <QuickPhotoModal open={showPhotoModal} onOpenChange={setShowPhotoModal} />
-        <QuickVideoModal open={showVideoModal} onOpenChange={setShowVideoModal} />
+        {/* AI Modal */}
+        <AIPromptModal 
+          open={showAIModal} 
+          onOpenChange={setShowAIModal}
+          onGenerate={handleGenerateAIContent}
+          isLoading={isGeneratingAI}
+        />
       </div>
     </>
   );
