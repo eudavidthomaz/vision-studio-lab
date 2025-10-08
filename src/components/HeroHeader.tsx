@@ -13,44 +13,48 @@ export const HeroHeader = ({ onNavigateToContent, onLogout }: HeroHeaderProps) =
       {/* Background Gradient Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-background rounded-3xl blur-3xl -z-10" />
       
-      <div className="relative bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 sm:p-8 lg:p-12">
-        {/* Top Bar - Logo and Actions */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <div className="flex items-center gap-3 animate-fade-in">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-lg sm:text-xl">I.O</span>
+      {/* Layer 1 - Navigation Bar */}
+      <div className="relative bg-card/80 backdrop-blur-sm border border-border/50 rounded-t-2xl px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-center justify-between gap-3">
+          {/* Logo */}
+          <div className="flex items-center gap-2 sm:gap-3 animate-fade-in">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+              <span className="text-white font-bold text-sm sm:text-lg">I.O</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-[gradient_8s_ease_infinite] bg-[length:200%_auto]">
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-[gradient_8s_ease_infinite] bg-[length:200%_auto]">
               Ide.On
             </h1>
           </div>
           
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          {/* Actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
             <RateLimitIndicator />
             
             <Button
               variant="outline"
+              size="sm"
               onClick={onNavigateToContent}
               className="gap-2 hover:bg-primary/10 hover:border-primary/50 transition-all"
               data-tour="conteudos-button"
             >
-              <Library className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline">Meus Conteúdos</span>
-              <span className="xs:hidden">✨</span>
+              <Library className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Meus Conteúdos</span>
             </Button>
 
             <Button
               variant="outline"
+              size="sm"
               onClick={onLogout}
-              className="gap-2 hover:bg-destructive/10 hover:border-destructive/50 transition-all"
+              className="hover:bg-destructive/10 hover:border-destructive/50 transition-all"
             >
-              <span className="hidden xs:inline">Sair</span>
-              <span className="xs:hidden">👤</span>
+              <span>Sair</span>
             </Button>
           </div>
         </div>
+      </div>
 
-        {/* Hero Message */}
+      {/* Layer 2 - Hero Message */}
+      <div className="relative bg-card/50 backdrop-blur-sm border border-t-0 border-border/50 rounded-b-2xl px-6 sm:px-8 lg:px-12 py-8 sm:py-12 lg:py-16">
         <div className="text-center space-y-4 animate-fade-in animation-delay-200">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight">
             <span className="inline-block animate-fade-in bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient_6s_ease_infinite]">
