@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Video } from "lucide-react";
+import { Loader2, Video, Copy, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Badge } from "@/components/ui/badge";
 
 interface QuickVideoModalProps {
   open: boolean;
@@ -22,6 +23,8 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
   const [mensagem, setMensagem] = useState("");
   const [duracao, setDuracao] = useState<Duracao>('30s');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedScript, setGeneratedScript] = useState<any>(null);
+  const [showPreview, setShowPreview] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -57,14 +60,12 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
       if (error) throw error;
 
       if (data) {
+        setGeneratedScript(data);
+        setShowPreview(true);
         toast({
-          title: "Roteiro criado com sucesso!",
-          description: "Redirecionando para o planner...",
+          title: "Roteiro gerado!",
+          description: "Revise e copie ou salve.",
         });
-        
-        onOpenChange(false);
-        setMensagem("");
-        navigate('/planner');
       }
     } catch (error: any) {
       console.error('Error generating video:', error);
@@ -78,7 +79,105 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
     }
   };
 
-  const modalContent = (
+  const handleCopyAndSave = async () => {
+    if (!generatedScript) return;
+
+    const textToCopy = `HOOK: ${generatedScript.hook}\n\nROTEIRO:\n${generatedScript.roteiro}\n\nCTA: ${generatedScript.cta || ""}`;
+    await navigator.clipboard.writeText(textToCopy);
+
+    await saveToLibrary();
+
+    toast({
+      title: "📋 Copiado e salvo!",
+      description: "Roteiro copiado e salvo na biblioteca.",
+    });
+
+    handleClose();
+  };
+
+  const saveToLibrary = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const today = new Date().toISOString().split('T')[0];
+      
+      await supabase.from('content_planners').insert({
+        user_id: user.id,
+        week_start_date: today,
+        content: {
+          [today]: [{
+            id: crypto.randomUUID(),
+            tipo: 'video',
+            hook: generatedScript.hook,
+            roteiro: generatedScript.roteiro,
+            cta: generatedScript.cta,
+            duracao: duracao,
+          }]
+        }
+      });
+    } catch (error) {
+      console.error('Error saving to library:', error);
+    }
+  };
+
+  const handleRegenerate = () => {
+    setGeneratedScript(null);
+    setShowPreview(false);
+    handleGenerate();
+  };
+
+  const handleClose = () => {
+    setMensagem("");
+    setGeneratedScript(null);
+    setShowPreview(false);
+    onOpenChange(false);
+  };
+
+  const modalContent = showPreview && generatedScript ? (
+    <div className="space-y-4 py-4">
+      <div className="p-4 bg-muted rounded-lg space-y-3">
+        <Badge variant="secondary" className="mb-2">
+          {duracao}
+        </Badge>
+        
+        <div>
+          <p className="text-xs text-muted-foreground mb-1 font-semibold">Hook:</p>
+          <p className="text-sm">{generatedScript.hook}</p>
+        </div>
+        
+        <div className="pt-2 border-t">
+          <p className="text-xs text-muted-foreground mb-1 font-semibold">Roteiro:</p>
+          <p className="text-sm whitespace-pre-wrap">{generatedScript.roteiro}</p>
+        </div>
+        
+        {generatedScript.cta && (
+          <div className="pt-2 border-t">
+            <p className="text-xs text-muted-foreground mb-1 font-semibold">CTA:</p>
+            <p className="text-sm">{generatedScript.cta}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-2">
+        <Button 
+          onClick={handleCopyAndSave}
+          className="flex-1 min-h-[48px]"
+        >
+          <Copy className="w-4 h-4 mr-2" />
+          Copiar e Salvar
+        </Button>
+        <Button 
+          onClick={handleRegenerate}
+          variant="outline"
+          disabled={isGenerating}
+          className="min-h-[48px]"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  ) : (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
         <Label htmlFor="mensagem">Qual o ponto central?</Label>
@@ -130,12 +229,12 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
+      <Drawer open={open} onOpenChange={handleClose}>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle className="flex items-center gap-2">
               <Video className="w-5 h-5 text-primary" />
-              Criar Vídeo Curto
+              {showPreview ? "Preview do Roteiro" : "Criar Vídeo Curto"}
             </DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4">
@@ -147,12 +246,12 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Video className="w-5 h-5 text-primary" />
-            Criar Vídeo Curto
+            {showPreview ? "Preview do Roteiro" : "Criar Vídeo Curto"}
           </DialogTitle>
         </DialogHeader>
         {modalContent}
