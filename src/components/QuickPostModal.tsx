@@ -55,8 +55,8 @@ export const QuickPostModal = ({ open, onOpenChange }: QuickPostModalProps) => {
 
       if (error) throw error;
 
-      if (data) {
-        setGeneratedPost(data);
+      if (data?.content) {
+        setGeneratedPost(data.content);
         setShowPreview(true);
         toast({
           title: "Post gerado!",

@@ -59,8 +59,8 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
 
       if (error) throw error;
 
-      if (data) {
-        setGeneratedScript(data);
+      if (data?.content) {
+        setGeneratedScript(data.content);
         setShowPreview(true);
         toast({
           title: "Roteiro gerado!",

@@ -59,8 +59,8 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
 
       if (error) throw error;
 
-      if (data) {
-        setGeneratedIdea(data);
+      if (data?.content) {
+        setGeneratedIdea(data.content);
         setShowPreview(true);
         toast({
           title: "Ideia gerada!",
