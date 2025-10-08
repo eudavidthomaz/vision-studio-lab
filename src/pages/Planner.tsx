@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp, Download, Undo2, Redo2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp, Download, Undo2, Redo2, ChevronLeft, ChevronRight, Sparkles, BarChart3, Eye, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import ContentIdeaModal from "@/components/ContentIdeaModal";
@@ -12,6 +12,11 @@ import EditContentDrawer from "@/components/EditContentDrawer";
 import MoveToDrawer from "@/components/MoveToDrawer";
 import PillarLegend from "@/components/PillarLegend";
 import ExportPlannerModal from "@/components/ExportPlannerModal";
+import TemplateGallery from "@/components/TemplateGallery";
+import PlannerFilters, { FilterState } from "@/components/PlannerFilters";
+import MonthlyCalendar from "@/components/MonthlyCalendar";
+import PillarStats from "@/components/PillarStats";
+import PostPreviewModal from "@/components/PostPreviewModal";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,6 +73,16 @@ export default function Planner() {
   const [moveDrawerOpen, setMoveDrawerOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<any>(null);
   const [movingContent, setMovingContent] = useState<any>(null);
+  const [templateGalleryOpen, setTemplateGalleryOpen] = useState(false);
+  const [previewContent, setPreviewContent] = useState<ContentItem | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"week" | "month" | "stats">("week");
+  const [filters, setFilters] = useState<FilterState>({
+    type: "all",
+    pillar: "all",
+    hasImage: "all",
+    day: "all",
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -242,6 +257,41 @@ export default function Planner() {
 
     setContentByDay(updatedContent);
     savePlanner(updatedContent);
+  };
+
+  const handleApplyTemplate = (templateData: any) => {
+    const day = templateData.dia_sugerido || selectedDay;
+    const newContent = {
+      ...templateData,
+      id: crypto.randomUUID()
+    };
+
+    const updatedContent = {
+      ...contentByDay,
+      [day]: [...(contentByDay[day] || []), newContent]
+    };
+
+    setContentByDay(updatedContent);
+    savePlanner(updatedContent);
+  };
+
+  const handlePreviewContent = (day: string, contentId: string) => {
+    const content = (contentByDay[day] || []).find(c => c.id === contentId);
+    if (content) {
+      setPreviewContent(content);
+      setPreviewOpen(true);
+    }
+  };
+
+  const handlePreviewSave = (updates: Partial<ContentItem>) => {
+    if (previewContent) {
+      const day = Object.keys(contentByDay).find(d => 
+        contentByDay[d].some(c => c.id === previewContent.id)
+      );
+      if (day) {
+        handleUpdate(day, previewContent.id, updates);
+      }
+    }
   };
 
   const handleDelete = (day: string, contentId: string) => {
@@ -467,6 +517,37 @@ export default function Planner() {
     return { color: "bg-green-500", label: "Completo", icon: "🟢" };
   };
 
+  // Apply filters to content
+  const filteredContentByDay = useMemo(() => {
+    const filtered: Record<string, ContentItem[]> = {};
+    
+    Object.entries(contentByDay).forEach(([day, contents]) => {
+      filtered[day] = contents.filter((content) => {
+        // Filter by type
+        if (filters.type !== "all" && content.tipo !== filters.type) return false;
+        
+        // Filter by pillar
+        if (filters.pillar !== "all" && content.pilar !== filters.pillar) return false;
+        
+        // Filter by image status
+        if (filters.hasImage === "with" && !content.imagem_url) return false;
+        if (filters.hasImage === "without" && content.imagem_url) return false;
+        
+        // Filter by day
+        if (filters.day !== "all" && day !== filters.day) return false;
+        
+        return true;
+      });
+    });
+    
+    return filtered;
+  }, [contentByDay, filters]);
+
+  // Count total filtered results
+  const totalFilteredResults = useMemo(() => {
+    return Object.values(filteredContentByDay).flat().length;
+  }, [filteredContentByDay]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
@@ -540,12 +621,20 @@ export default function Planner() {
                 <Button 
                   variant="outline" 
                   size="sm"
+                  onClick={() => setTemplateGalleryOpen(true)}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Templates
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
                   onClick={() => setExportModalOpen(true)}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Exportar
                 </Button>
-                <Button variant="outline" onClick={() => navigate("/historico")}>
+                <Button variant="outline" size="sm" onClick={() => navigate("/historico")}>
                   Histórico
                 </Button>
               </div>
@@ -613,93 +702,123 @@ export default function Planner() {
             </div>
           </div>
 
-          <div className="mb-8">
-            <PillarLegend />
-          </div>
+          {/* View Mode Tabs */}
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="mb-6">
+            <TabsList className="grid w-full max-w-md grid-cols-3">
+              <TabsTrigger value="week" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Semana
+              </TabsTrigger>
+              <TabsTrigger value="month" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Mês
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Estatísticas
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Desktop: 7-column grid */}
-          <div className="hidden lg:grid lg:grid-cols-7 gap-4">
-            {daysOfWeek.map(({ day, pilar }) => (
-              <SortableContext
-                key={day}
-                id={day}
-                items={(contentByDay[day] || []).map(c => c.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-3">
-                  <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-3">
-                    {/* Day Header with Status */}
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground text-sm">{day}</h3>
-                          <span className="text-base">{getDayStatus(day).icon}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{pilar}</p>
-                      </div>
-                    </div>
+            {/* Filters */}
+            {viewMode === "week" && (
+              <div className="mt-6">
+                <PlannerFilters 
+                  onFilterChange={setFilters} 
+                  totalResults={totalFilteredResults}
+                />
+              </div>
+            )}
 
-                    {/* Daily Stats */}
-                    <div className="space-y-1 mb-3 py-2 border-y border-border/30">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground flex items-center gap-1">
-                          <FileText className="h-3 w-3" />
-                          Posts
-                        </span>
-                        <span className="font-medium text-foreground">
-                          {(contentByDay[day] || []).length}/3
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground flex items-center gap-1">
-                          <ImageIcon className="h-3 w-3" />
-                          Imagens
-                        </span>
-                        <span className="font-medium text-foreground">
-                          {(contentByDay[day] || []).filter(c => c.imagem_url).length}/{(contentByDay[day] || []).length}
-                        </span>
-                      </div>
-                    </div>
+            {/* Week View */}
+            <TabsContent value="week" className="mt-6">
+              <div className="mb-8">
+                <PillarLegend />
+              </div>
 
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => {
-                        setSelectedDay(day);
-                        setModalOpen(true);
-                      }}
-                    >
-                      <Plus className="h-3 w-3 mr-1" />
-                      Nova Ideia
-                    </Button>
-                  </div>
-                  
-                  <div
+              {/* Desktop: 7-column grid */}
+              <div className="hidden lg:grid lg:grid-cols-7 gap-4">
+                {daysOfWeek.map(({ day, pilar }) => (
+                  <SortableContext
+                    key={day}
                     id={day}
-                    className={`space-y-3 min-h-[200px] p-2 rounded-lg transition-all duration-200 ${
-                      dragOverDay === day 
-                        ? 'bg-primary/20 border-2 border-primary border-dashed scale-105' 
-                        : 'border-2 border-transparent'
-                    }`}
+                    items={(filteredContentByDay[day] || []).map(c => c.id)}
+                    strategy={verticalListSortingStrategy}
                   >
-                    {(contentByDay[day] || []).map((content) => (
-                      <ContentCard
-                        key={content.id}
-                        content={content}
-                        onDelete={(id) => handleDelete(day, id)}
-                        onUpdate={(id, updates) => handleUpdate(day, id, updates)}
-                        isDraggable
-                      />
-                    ))}
-                  </div>
-                </div>
-              </SortableContext>
-            ))}
-          </div>
+                    <div className="space-y-3">
+                      <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-3">
+                        {/* Day Header with Status */}
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-foreground text-sm">{day}</h3>
+                              <span className="text-base">{getDayStatus(day).icon}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{pilar}</p>
+                          </div>
+                        </div>
 
-          {/* Mobile: Tabs Navigation */}
-          <div className="lg:hidden" {...pullHandlers}>
+                        {/* Daily Stats */}
+                        <div className="space-y-1 mb-3 py-2 border-y border-border/30">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground flex items-center gap-1">
+                              <FileText className="h-3 w-3" />
+                              Posts
+                            </span>
+                            <span className="font-medium text-foreground">
+                              {(filteredContentByDay[day] || []).length}/{(contentByDay[day] || []).length}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground flex items-center gap-1">
+                              <ImageIcon className="h-3 w-3" />
+                              Imagens
+                            </span>
+                            <span className="font-medium text-foreground">
+                              {(filteredContentByDay[day] || []).filter(c => c.imagem_url).length}/{(filteredContentByDay[day] || []).length}
+                            </span>
+                          </div>
+                        </div>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => {
+                            setSelectedDay(day);
+                            setModalOpen(true);
+                          }}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Nova Ideia
+                        </Button>
+                      </div>
+                      
+                      <div
+                        id={day}
+                        className={`space-y-3 min-h-[200px] p-2 rounded-lg transition-all duration-200 ${
+                          dragOverDay === day 
+                            ? 'bg-primary/20 border-2 border-primary border-dashed scale-105' 
+                            : 'border-2 border-transparent'
+                        }`}
+                      >
+                        {(filteredContentByDay[day] || []).map((content) => (
+                          <div key={content.id} onClick={() => handlePreviewContent(day, content.id)} className="cursor-pointer">
+                            <ContentCard
+                              content={content}
+                              onDelete={(id) => handleDelete(day, id)}
+                              onUpdate={(id, updates) => handleUpdate(day, id, updates)}
+                              isDraggable
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </SortableContext>
+                ))}
+              </div>
+
+              {/* Mobile: Tabs Navigation */}
+              <div className="lg:hidden" {...pullHandlers}>
             {/* Pull to Refresh Indicator */}
             {(pullDistance > 0 || isRefreshing) && (
               <div 
@@ -794,11 +913,12 @@ export default function Planner() {
               {daysOfWeek.map(({ day }, dayIndex) => (
                 <TabsContent key={day} value={day} className="mt-0">
                   <div className="space-y-4">
-                    {(contentByDay[day] || []).map((content, index) => (
+                    {(filteredContentByDay[day] || []).map((content, index) => (
                       <div 
                         key={content.id}
                         className="animate-slide-in"
                         style={{ animationDelay: `${index * 50}ms` }}
+                        onClick={() => handlePreviewContent(day, content.id)}
                       >
                         <MobileContentCard
                           content={content}
@@ -810,11 +930,11 @@ export default function Planner() {
                       </div>
                     ))}
                     
-                    {(!contentByDay[day] || contentByDay[day].length === 0) && (
+                    {(!filteredContentByDay[day] || filteredContentByDay[day].length === 0) && (
                       <div className="bg-card/30 backdrop-blur-sm border border-border/50 border-dashed rounded-lg p-12 text-center">
                         <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
                         <p className="text-muted-foreground mb-4">
-                          Nenhum conteúdo planejado para {day}
+                          {contentByDay[day]?.length > 0 ? "Nenhum conteúdo corresponde aos filtros" : `Nenhum conteúdo planejado para ${day}`}
                         </p>
                         <Button onClick={() => setModalOpen(true)} size="lg">
                           <Plus className="h-5 w-5 mr-2" />
@@ -826,7 +946,25 @@ export default function Planner() {
                 </TabsContent>
               ))}
             </Tabs>
-          </div>
+              </div>
+            </TabsContent>
+
+            {/* Month View */}
+            <TabsContent value="month" className="mt-6">
+              <MonthlyCalendar 
+                contentByDay={contentByDay}
+                onDayClick={(day) => {
+                  setSelectedDay(day);
+                  setViewMode("week");
+                }}
+              />
+            </TabsContent>
+
+            {/* Stats View */}
+            <TabsContent value="stats" className="mt-6">
+              <PillarStats contentByDay={contentByDay} />
+            </TabsContent>
+          </Tabs>
         </div>
 
         <ContentIdeaModal
@@ -856,6 +994,31 @@ export default function Planner() {
           currentDay={movingContent?.day || ""}
           contentTitle={movingContent?.titulo || ""}
           onMove={handleMoveConfirm}
+        />
+
+        <TemplateGallery
+          open={templateGalleryOpen}
+          onOpenChange={setTemplateGalleryOpen}
+          onApplyTemplate={handleApplyTemplate}
+          selectedDay={selectedDay}
+        />
+
+        <PostPreviewModal
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+          content={previewContent}
+          onEdit={() => {
+            if (previewContent) {
+              const day = Object.keys(contentByDay).find(d => 
+                contentByDay[d].some(c => c.id === previewContent.id)
+              );
+              if (day) {
+                openEditDrawer(day, previewContent.id);
+              }
+            }
+            setPreviewOpen(false);
+          }}
+          onSave={handlePreviewSave}
         />
 
         <DragOverlay>

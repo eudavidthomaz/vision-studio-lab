@@ -41,6 +41,48 @@ export type Database = {
         }
         Relationships: []
       }
+      content_templates: {
+        Row: {
+          content_type: string
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          name: string
+          pillar: string
+          template_data: Json
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name: string
+          pillar: string
+          template_data?: Json
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          name?: string
+          pillar?: string
+          template_data?: Json
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ideon_challenges: {
         Row: {
           challenge: Json | null
