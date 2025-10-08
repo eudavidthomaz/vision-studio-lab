@@ -18,7 +18,6 @@ const corsHeaders = {
 
 const ALLOWED_FORMATOS = ['feed_square', 'feed_portrait', 'story', 'reel_cover'];
 const ALLOWED_ESTILOS = ['minimalista', 'tipografico', 'fotografico', 'ilustrativo'];
-const ALLOWED_PILARES = ['Edificar', 'Alcançar', 'Pertencer', 'Servir'];
 
 serve(async (req) => {
   const startTime = Date.now();
@@ -72,7 +71,6 @@ serve(async (req) => {
       value: pilar,
       type: 'string',
       required: true,
-      allowedValues: ALLOWED_PILARES,
     });
 
     validateInput('contexto_adicional', {
