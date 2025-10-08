@@ -140,6 +140,20 @@ const Landing = () => {
             </Button>
           </div>
 
+          {/* Vídeo Trailer - YouTube Embed */}
+          <div className="w-full max-w-4xl mx-auto px-4 mb-8 sm:mb-12 animate-fade-in">
+            <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10">
+              <iframe
+                src="https://www.youtube.com/embed/SGRIma5ElbY?rel=0&modestbranding=1"
+                title="Ide.On - Do Altar ao Feed"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
           {/* Social Proof - Inline mobile */}
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground px-4">
             <span className="flex items-center gap-1.5">
