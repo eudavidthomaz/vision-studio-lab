@@ -2,17 +2,22 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp, Download, Undo2, Redo2 } from "lucide-react";
+import { Plus, ArrowLeft, Loader2, Image as ImageIcon, FileText, TrendingUp, Download, Undo2, Redo2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import ContentIdeaModal from "@/components/ContentIdeaModal";
 import ContentCard from "@/components/ContentCard";
+import MobileContentCard from "@/components/MobileContentCard";
+import EditContentDrawer from "@/components/EditContentDrawer";
+import MoveToDrawer from "@/components/MoveToDrawer";
 import PillarLegend from "@/components/PillarLegend";
 import ExportPlannerModal from "@/components/ExportPlannerModal";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHistory } from "@/hooks/useHistory";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DndContext,
   DragEndEvent,
@@ -58,9 +63,14 @@ export default function Planner() {
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [weekStartDate, setWeekStartDate] = useState<string>("");
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+  const [editDrawerOpen, setEditDrawerOpen] = useState(false);
+  const [moveDrawerOpen, setMoveDrawerOpen] = useState(false);
+  const [editingContent, setEditingContent] = useState<any>(null);
+  const [movingContent, setMovingContent] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
+  const isMobile = useIsMobile();
 
   // History management
   const {
@@ -248,6 +258,75 @@ export default function Planner() {
     };
     setContentByDay(updatedContent);
     savePlanner(updatedContent);
+  };
+
+  const handleMove = (sourceDay: string, contentId: string, targetDay: string) => {
+    if (sourceDay === targetDay) return;
+
+    const content = (contentByDay[sourceDay] || []).find(c => c.id === contentId);
+    if (!content) return;
+
+    const updatedContent = {
+      ...contentByDay,
+      [sourceDay]: (contentByDay[sourceDay] || []).filter(c => c.id !== contentId),
+      [targetDay]: [...(contentByDay[targetDay] || []), content]
+    };
+    
+    setContentByDay(updatedContent);
+    savePlanner(updatedContent);
+    
+    toast({
+      title: "📦 Movido!",
+      description: `"${content.titulo}" → ${targetDay}`,
+      duration: 3000,
+    });
+  };
+
+  const openEditDrawer = (day: string, contentId: string) => {
+    const content = (contentByDay[day] || []).find(c => c.id === contentId);
+    if (content) {
+      setEditingContent({ ...content, day });
+      setEditDrawerOpen(true);
+    }
+  };
+
+  const openMoveDrawer = (day: string, contentId: string) => {
+    const content = (contentByDay[day] || []).find(c => c.id === contentId);
+    if (content) {
+      setMovingContent({ ...content, day });
+      setMoveDrawerOpen(true);
+    }
+  };
+
+  const handleSaveEdit = (updates: any) => {
+    if (editingContent) {
+      handleUpdate(editingContent.day, editingContent.id, updates);
+    }
+  };
+
+  const handleMoveConfirm = (targetDay: string) => {
+    if (movingContent) {
+      handleMove(movingContent.day, movingContent.id, targetDay);
+      setSelectedDay(targetDay);
+    }
+  };
+
+  const getCurrentDayIndex = () => {
+    return daysOfWeek.findIndex(d => d.day === selectedDay);
+  };
+
+  const goToPreviousDay = () => {
+    const currentIndex = getCurrentDayIndex();
+    if (currentIndex > 0) {
+      setSelectedDay(daysOfWeek[currentIndex - 1].day);
+    }
+  };
+
+  const goToNextDay = () => {
+    const currentIndex = getCurrentDayIndex();
+    if (currentIndex < daysOfWeek.length - 1) {
+      setSelectedDay(daysOfWeek[currentIndex + 1].day);
+    }
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -602,65 +681,110 @@ export default function Planner() {
             ))}
           </div>
 
-          {/* Mobile: Single column with tabs/sections */}
-          <div className="lg:hidden space-y-6">
-            {daysOfWeek.map(({ day, pilar }) => (
-              <SortableContext
-                key={day}
-                id={day}
-                items={(contentByDay[day] || []).map(c => c.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="space-y-3">
-                  <div className="bg-card/30 backdrop-blur-sm border border-border/50 rounded-lg p-4">
-                    {/* Mobile Day Header with Status */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground">{day}</h3>
-                          <span className="text-lg">{getDayStatus(day).icon}</span>
-                          <Badge 
-                            variant="outline" 
-                            className="text-xs"
-                          >
-                            {(contentByDay[day] || []).length}/3
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{pilar}</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setSelectedDay(day);
-                          setModalOpen(true);
-                        }}
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Nova
-                      </Button>
-                    </div>
-                    
-                    <div className="space-y-3">
-                      {(contentByDay[day] || []).map((content) => (
-                        <ContentCard
-                          key={content.id}
-                          content={content}
-                          onDelete={(id) => handleDelete(day, id)}
-                          onUpdate={(id, updates) => handleUpdate(day, id, updates)}
-                          isDraggable
-                        />
-                      ))}
-                      
-                      {(!contentByDay[day] || contentByDay[day].length === 0) && (
-                        <p className="text-sm text-muted-foreground text-center py-4">
-                          Nenhum conteúdo planejado
-                        </p>
-                      )}
-                    </div>
-                  </div>
+          {/* Mobile: Tabs Navigation */}
+          <div className="lg:hidden">
+            <Tabs value={selectedDay} onValueChange={setSelectedDay}>
+              {/* Tabs Navigation with Scroll */}
+              <div className="sticky top-[73px] z-20 bg-gradient-to-br from-gray-900 via-gray-800 to-black pb-4 -mx-4 px-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={goToPreviousDay}
+                    disabled={getCurrentDayIndex() === 0}
+                    className="shrink-0"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  
+                  <TabsList className="w-full justify-start overflow-x-auto flex-nowrap bg-card/30 backdrop-blur-sm h-auto p-1">
+                    {daysOfWeek.map(({ day, pilar }) => {
+                      const status = getDayStatus(day);
+                      const count = (contentByDay[day] || []).length;
+                      return (
+                        <TabsTrigger
+                          key={day}
+                          value={day}
+                          className="flex-col items-start h-auto py-2 px-3 min-w-[90px] data-[state=active]:bg-primary/20"
+                        >
+                          <div className="flex items-center gap-1 w-full">
+                            <span className="font-semibold text-sm">{day.slice(0, 3)}</span>
+                            <span className="text-xs">{status.icon}</span>
+                          </div>
+                          <div className="flex items-center gap-1 w-full">
+                            <span className="text-[10px] text-muted-foreground">{pilar}</span>
+                            <Badge variant="outline" className="text-[10px] h-4 px-1">
+                              {count}
+                            </Badge>
+                          </div>
+                        </TabsTrigger>
+                      );
+                    })}
+                  </TabsList>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={goToNextDay}
+                    disabled={getCurrentDayIndex() === daysOfWeek.length - 1}
+                    className="shrink-0"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
                 </div>
-              </SortableContext>
-            ))}
+
+                {/* Current Day Info */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">
+                      {selectedDay}
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      {daysOfWeek.find(d => d.day === selectedDay)?.pilar}
+                    </p>
+                  </div>
+                  <Button
+                    size="lg"
+                    onClick={() => setModalOpen(true)}
+                    className="h-12 px-6"
+                  >
+                    <Plus className="h-5 w-5 mr-2" />
+                    Nova Ideia
+                  </Button>
+                </div>
+              </div>
+
+              {/* Tab Content for Each Day */}
+              {daysOfWeek.map(({ day }) => (
+                <TabsContent key={day} value={day} className="mt-0">
+                  <div className="space-y-4">
+                    {(contentByDay[day] || []).map((content) => (
+                      <MobileContentCard
+                        key={content.id}
+                        content={content}
+                        onDelete={(id) => handleDelete(day, id)}
+                        onUpdate={(id, updates) => handleUpdate(day, id, updates)}
+                        onMove={(id) => openMoveDrawer(day, id)}
+                        onEdit={() => openEditDrawer(day, content.id)}
+                      />
+                    ))}
+                    
+                    {(!contentByDay[day] || contentByDay[day].length === 0) && (
+                      <div className="bg-card/30 backdrop-blur-sm border border-border/50 border-dashed rounded-lg p-12 text-center">
+                        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+                        <p className="text-muted-foreground mb-4">
+                          Nenhum conteúdo planejado para {day}
+                        </p>
+                        <Button onClick={() => setModalOpen(true)} size="lg">
+                          <Plus className="h-5 w-5 mr-2" />
+                          Adicionar Primeira Ideia
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
           </div>
         </div>
 
@@ -676,6 +800,21 @@ export default function Planner() {
           onOpenChange={setExportModalOpen}
           contentByDay={contentByDay}
           weekStartDate={weekStartDate}
+        />
+
+        <EditContentDrawer
+          open={editDrawerOpen}
+          onOpenChange={setEditDrawerOpen}
+          content={editingContent}
+          onSave={handleSaveEdit}
+        />
+
+        <MoveToDrawer
+          open={moveDrawerOpen}
+          onOpenChange={setMoveDrawerOpen}
+          currentDay={movingContent?.day || ""}
+          contentTitle={movingContent?.titulo || ""}
+          onMove={handleMoveConfirm}
         />
 
         <DragOverlay>
