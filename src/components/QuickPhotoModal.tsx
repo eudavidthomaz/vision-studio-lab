@@ -134,19 +134,19 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
   };
 
   const modalContent = showPreview && generatedIdea ? (
-    <div className="space-y-4 py-4">
-      <div className="p-4 bg-muted rounded-lg space-y-3">
-        <Badge variant="secondary" className="mb-2">
+    <div className="space-y-3">
+      <div className="p-3 bg-muted rounded-lg space-y-2 max-h-[40vh] overflow-y-auto">
+        <Badge variant="secondary" className="mb-1">
           {estilo}
         </Badge>
         <div>
           <p className="text-xs text-muted-foreground mb-1">Texto:</p>
-          <p className="text-sm whitespace-pre-wrap">{generatedIdea.copy}</p>
+          <p className="text-sm whitespace-pre-wrap break-words">{generatedIdea.copy}</p>
         </div>
         {generatedIdea.sugestao_visual && (
           <div className="pt-2 border-t">
             <p className="text-xs text-muted-foreground mb-1">Sugestão Visual:</p>
-            <p className="text-sm italic">{generatedIdea.sugestao_visual}</p>
+            <p className="text-sm italic break-words">{generatedIdea.sugestao_visual}</p>
           </div>
         )}
       </div>
@@ -154,7 +154,7 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
       <div className="flex gap-2">
         <Button 
           onClick={handleCopyAndSave}
-          className="flex-1 min-h-[48px]"
+          className="flex-1 h-11 text-sm"
         >
           <Copy className="w-4 h-4 mr-2" />
           Copiar e Salvar
@@ -163,16 +163,16 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
           onClick={handleRegenerate}
           variant="outline"
           disabled={isGenerating}
-          className="min-h-[48px]"
+          className="h-11 w-11 p-0"
         >
           <RotateCcw className="w-4 h-4" />
         </Button>
       </div>
     </div>
   ) : (
-    <div className="space-y-4 py-4">
-      <div className="space-y-2">
-        <Label htmlFor="tema" className="text-sm sm:text-base">Qual mensagem transmitir?</Label>
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <Label htmlFor="tema" className="text-sm">Qual mensagem transmitir?</Label>
         <Textarea
           id="tema"
           placeholder="Ex: Esperança em meio às dificuldades..."
@@ -180,15 +180,15 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
           onChange={(e) => setTema(e.target.value)}
           rows={3}
           disabled={isGenerating}
-          className="text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
+          className="text-sm max-h-[120px] resize-none"
           autoFocus={!isMobile}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="estilo" className="text-sm sm:text-base">Estilo do post</Label>
+      <div className="space-y-1.5">
+        <Label htmlFor="estilo" className="text-sm">Estilo do post</Label>
         <Select value={estilo} onValueChange={(value) => setEstilo(value as EstiloFoto)}>
-          <SelectTrigger id="estilo" className="text-sm sm:text-base min-h-[44px] sm:min-h-[48px]">
+          <SelectTrigger id="estilo" className="text-sm h-10">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -203,7 +203,7 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
       <Button 
         onClick={handleGenerate} 
         disabled={isGenerating || !tema.trim()}
-        className="w-full min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
+        className="w-full h-11 text-sm"
       >
         {isGenerating ? (
           <>
@@ -223,14 +223,14 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={handleClose}>
-        <DrawerContent>
-          <DrawerHeader>
+        <DrawerContent className="max-h-[85vh] flex flex-col">
+          <DrawerHeader className="flex-shrink-0">
             <DrawerTitle className="flex items-center gap-2">
               <Camera className="w-5 h-5 text-primary" />
               {showPreview ? "Preview da Ideia" : "Criar Foto Rápida"}
             </DrawerTitle>
           </DrawerHeader>
-          <div className="px-4 pb-4">
+          <div className="px-4 pb-safe overflow-y-auto flex-1">
             {modalContent}
           </div>
         </DrawerContent>
@@ -240,14 +240,16 @@ export const QuickPhotoModal = ({ open, onOpenChange }: QuickPhotoModalProps) =>
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Camera className="w-5 h-5 text-primary" />
             {showPreview ? "Preview da Ideia" : "Criar Foto Rápida"}
           </DialogTitle>
         </DialogHeader>
-        {modalContent}
+        <div className="overflow-y-auto flex-1 -mx-6 px-6">
+          {modalContent}
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -130,14 +130,14 @@ export const QuickPostModal = ({ open, onOpenChange }: QuickPostModalProps) => {
   };
 
   const modalContent = showPreview && generatedPost ? (
-    <div className="space-y-4 py-4">
-      <div className="p-4 bg-muted rounded-lg space-y-3">
+    <div className="space-y-3">
+      <div className="p-3 bg-muted rounded-lg space-y-2 max-h-[40vh] overflow-y-auto">
         {generatedPost.pilar && (
-          <Badge variant="secondary" className="mb-2">
+          <Badge variant="secondary" className="mb-1">
             {generatedPost.pilar}
           </Badge>
         )}
-        <p className="text-sm whitespace-pre-wrap">{generatedPost.copy}</p>
+        <p className="text-sm whitespace-pre-wrap break-words">{generatedPost.copy}</p>
         {generatedPost.hashtags && (
           <div className="flex gap-1 flex-wrap pt-2 border-t">
             {generatedPost.hashtags.map((tag: string, idx: number) => (
@@ -150,7 +150,7 @@ export const QuickPostModal = ({ open, onOpenChange }: QuickPostModalProps) => {
       <div className="flex gap-2">
         <Button 
           onClick={handleCopyAndSave}
-          className="flex-1 min-h-[48px]"
+          className="flex-1 h-11 text-sm"
         >
           <Copy className="w-4 h-4 mr-2" />
           Copiar e Salvar
@@ -159,24 +159,24 @@ export const QuickPostModal = ({ open, onOpenChange }: QuickPostModalProps) => {
           onClick={handleRegenerate}
           variant="outline"
           disabled={isGenerating}
-          className="min-h-[48px]"
+          className="h-11 w-11 p-0"
         >
           <RotateCcw className="w-4 h-4" />
         </Button>
       </div>
     </div>
   ) : (
-    <div className="space-y-4 py-4">
-      <div className="space-y-2">
-        <Label htmlFor="tema" className="text-sm sm:text-base">Sobre o que você quer falar?</Label>
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <Label htmlFor="tema" className="text-sm">Sobre o que você quer falar?</Label>
         <Textarea
           id="tema"
           placeholder="Ex: A importância da oração diária, fé em tempos difíceis..."
           value={tema}
           onChange={(e) => setTema(e.target.value)}
-          rows={4}
+          rows={3}
           disabled={isGenerating}
-          className="text-sm sm:text-base min-h-[100px] sm:min-h-[120px]"
+          className="text-sm max-h-[120px] resize-none"
           autoFocus={!isMobile}
         />
       </div>
@@ -184,7 +184,7 @@ export const QuickPostModal = ({ open, onOpenChange }: QuickPostModalProps) => {
       <Button 
         onClick={handleGenerate} 
         disabled={isGenerating || !tema.trim()}
-        className="w-full min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
+        className="w-full h-11 text-sm"
       >
         {isGenerating ? (
           <>
@@ -204,14 +204,14 @@ export const QuickPostModal = ({ open, onOpenChange }: QuickPostModalProps) => {
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={handleClose}>
-        <DrawerContent>
-          <DrawerHeader>
+        <DrawerContent className="max-h-[85vh] flex flex-col">
+          <DrawerHeader className="flex-shrink-0">
             <DrawerTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-primary" />
               {showPreview ? "Preview do Post" : "Criar Post Rápido"}
             </DrawerTitle>
           </DrawerHeader>
-          <div className="px-4 pb-4">
+          <div className="px-4 pb-safe overflow-y-auto flex-1">
             {modalContent}
           </div>
         </DrawerContent>
@@ -221,14 +221,16 @@ export const QuickPostModal = ({ open, onOpenChange }: QuickPostModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
             {showPreview ? "Preview do Post" : "Criar Post Rápido"}
           </DialogTitle>
         </DialogHeader>
-        {modalContent}
+        <div className="overflow-y-auto flex-1 -mx-6 px-6">
+          {modalContent}
+        </div>
       </DialogContent>
     </Dialog>
   );

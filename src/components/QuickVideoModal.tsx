@@ -135,26 +135,26 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
   };
 
   const modalContent = showPreview && generatedScript ? (
-    <div className="space-y-4 py-4">
-      <div className="p-4 bg-muted rounded-lg space-y-3">
-        <Badge variant="secondary" className="mb-2">
+    <div className="space-y-3">
+      <div className="p-3 bg-muted rounded-lg space-y-2 max-h-[40vh] overflow-y-auto">
+        <Badge variant="secondary" className="mb-1">
           {duracao}
         </Badge>
         
         <div>
           <p className="text-xs text-muted-foreground mb-1 font-semibold">Hook:</p>
-          <p className="text-sm">{generatedScript.hook}</p>
+          <p className="text-sm break-words">{generatedScript.hook}</p>
         </div>
         
         <div className="pt-2 border-t">
           <p className="text-xs text-muted-foreground mb-1 font-semibold">Roteiro:</p>
-          <p className="text-sm whitespace-pre-wrap">{generatedScript.roteiro}</p>
+          <p className="text-sm whitespace-pre-wrap break-words">{generatedScript.roteiro}</p>
         </div>
         
         {generatedScript.cta && (
           <div className="pt-2 border-t">
             <p className="text-xs text-muted-foreground mb-1 font-semibold">CTA:</p>
-            <p className="text-sm">{generatedScript.cta}</p>
+            <p className="text-sm break-words">{generatedScript.cta}</p>
           </div>
         )}
       </div>
@@ -162,7 +162,7 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
       <div className="flex gap-2">
         <Button 
           onClick={handleCopyAndSave}
-          className="flex-1 min-h-[48px]"
+          className="flex-1 h-11 text-sm"
         >
           <Copy className="w-4 h-4 mr-2" />
           Copiar e Salvar
@@ -171,16 +171,16 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
           onClick={handleRegenerate}
           variant="outline"
           disabled={isGenerating}
-          className="min-h-[48px]"
+          className="h-11 w-11 p-0"
         >
           <RotateCcw className="w-4 h-4" />
         </Button>
       </div>
     </div>
   ) : (
-    <div className="space-y-4 py-4">
-      <div className="space-y-2">
-        <Label htmlFor="mensagem" className="text-sm sm:text-base">Qual o ponto central?</Label>
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <Label htmlFor="mensagem" className="text-sm">Qual o ponto central?</Label>
         <Textarea
           id="mensagem"
           placeholder="Ex: Como a fé nos fortalece nas adversidades..."
@@ -188,15 +188,15 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
           onChange={(e) => setMensagem(e.target.value)}
           rows={3}
           disabled={isGenerating}
-          className="text-sm sm:text-base min-h-[80px] sm:min-h-[100px]"
+          className="text-sm max-h-[120px] resize-none"
           autoFocus={!isMobile}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="duracao" className="text-sm sm:text-base">Duração do vídeo</Label>
+      <div className="space-y-1.5">
+        <Label htmlFor="duracao" className="text-sm">Duração do vídeo</Label>
         <Select value={duracao} onValueChange={(value) => setDuracao(value as Duracao)}>
-          <SelectTrigger id="duracao" className="text-sm sm:text-base min-h-[44px] sm:min-h-[48px]">
+          <SelectTrigger id="duracao" className="text-sm h-10">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -210,7 +210,7 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
       <Button 
         onClick={handleGenerate} 
         disabled={isGenerating || !mensagem.trim()}
-        className="w-full min-h-[44px] sm:min-h-[48px] text-sm sm:text-base"
+        className="w-full h-11 text-sm"
       >
         {isGenerating ? (
           <>
@@ -230,14 +230,14 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={handleClose}>
-        <DrawerContent>
-          <DrawerHeader>
+        <DrawerContent className="max-h-[85vh] flex flex-col">
+          <DrawerHeader className="flex-shrink-0">
             <DrawerTitle className="flex items-center gap-2">
               <Video className="w-5 h-5 text-primary" />
               {showPreview ? "Preview do Roteiro" : "Criar Vídeo Curto"}
             </DrawerTitle>
           </DrawerHeader>
-          <div className="px-4 pb-4">
+          <div className="px-4 pb-safe overflow-y-auto flex-1">
             {modalContent}
           </div>
         </DrawerContent>
@@ -247,14 +247,16 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <Video className="w-5 h-5 text-primary" />
             {showPreview ? "Preview do Roteiro" : "Criar Vídeo Curto"}
           </DialogTitle>
         </DialogHeader>
-        {modalContent}
+        <div className="overflow-y-auto flex-1 -mx-6 px-6">
+          {modalContent}
+        </div>
       </DialogContent>
     </Dialog>
   );
