@@ -134,4 +134,21 @@ All colors MUST be HSL.
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Prevenir zoom no iOS em inputs menores que 16px */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}
+
+/* Melhorar scroll em iOS */
+.overscroll-contain {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }

@@ -186,10 +186,16 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
           placeholder="Ex: Como a fé nos fortalece nas adversidades..."
           value={mensagem}
           onChange={(e) => setMensagem(e.target.value)}
+          onFocus={(e) => {
+            setTimeout(() => {
+              e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+          }}
           rows={3}
           disabled={isGenerating}
-          className="text-sm max-h-[120px] resize-none"
+          className="text-base max-h-[120px] resize-none"
           autoFocus={!isMobile}
+          inputMode="text"
         />
       </div>
 
@@ -230,14 +236,14 @@ export const QuickVideoModal = ({ open, onOpenChange }: QuickVideoModalProps) =>
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={handleClose}>
-        <DrawerContent className="max-h-[85vh] flex flex-col">
+        <DrawerContent className="max-h-[85dvh] flex flex-col touch-manipulation">
           <DrawerHeader className="flex-shrink-0">
             <DrawerTitle className="flex items-center gap-2">
               <Video className="w-5 h-5 text-primary" />
               {showPreview ? "Preview do Roteiro" : "Criar Vídeo Curto"}
             </DrawerTitle>
           </DrawerHeader>
-          <div className="px-4 pb-safe overflow-y-auto flex-1">
+          <div className="px-4 pb-safe overflow-y-auto flex-1 overscroll-contain">
             {modalContent}
           </div>
         </DrawerContent>
