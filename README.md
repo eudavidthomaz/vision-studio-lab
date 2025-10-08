@@ -1,4 +1,45 @@
-# Welcome to your Lovable project
+# Ide.On Vision Studio 🎬
+
+Plataforma de IA para criar conteúdo evangelístico impactante para redes sociais, baseado em pregações.
+
+## ✨ Features Principais
+
+### 🎤 Transcrição de Áudio
+- Grave pregações ao vivo ou faça upload de arquivos
+- Transcrição automática com OpenAI Whisper
+- Suporte a múltiplos formatos (MP3, WAV, M4A, WEBM)
+
+### 📦 Geração de Conteúdo
+- **Pack Semanal Completo**: posts, stories, reels, carrosséis
+- **Desafios Ide.On**: roteiros para vídeos evangelísticos
+- **Ideias Personalizadas**: conteúdo sob demanda
+- **Geração de Imagens**: arte profissional para posts
+
+### 📅 Planner Visual
+- Organize conteúdo por dia da semana
+- Drag & drop intuitivo
+- Edição inline de conteúdo
+- Export para PDF/imagem
+
+### 📊 Analytics & Métricas
+- Dashboard de uso
+- Histórico completo
+- Métricas de engajamento
+
+## 🔒 Segurança
+
+Sistema robusto de segurança implementado:
+
+✅ Row Level Security (RLS) em todas as tabelas  
+✅ Rate Limiting por endpoint (10-50 req/hora)  
+✅ Validação de entrada robusta  
+✅ Sanitização anti-XSS  
+✅ Audit logs completos  
+✅ Tratamento de erros padronizado  
+
+Ver [SECURITY.md](./SECURITY.md) para detalhes completos.
+
+---
 
 ## Project info
 

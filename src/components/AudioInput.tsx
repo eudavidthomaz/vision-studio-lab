@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Podcast, Square, Loader2, Upload, File } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSecureApi } from "@/hooks/useSecureApi";
 
 interface AudioInputProps {
   onTranscriptionComplete: (transcript: string) => void;
@@ -17,6 +18,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
   const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { invokeFunction } = useSecureApi();
 
   const startRecording = async () => {
     try {
@@ -136,38 +138,25 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
         });
 
         try {
-          const response = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-sermon`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-              },
-              body: JSON.stringify({ audio_base64: base64Audio }),
-            }
-          );
+          const result = await invokeFunction<{ transcript: string }>('transcribe-sermon', {
+            audio_base64: base64Audio
+          });
 
-          if (!response.ok) {
-            throw new Error('Erro na transcrição');
+          if (!result) {
+            // Error already handled by useSecureApi
+            setIsProcessing(false);
+            return;
           }
-
-          const { transcript } = await response.json();
           
           toast({
             title: "Sucesso!",
             description: "Pregação transcrita com sucesso.",
           });
 
-          onTranscriptionComplete(transcript);
+          onTranscriptionComplete(result.transcript);
           setSelectedFile(null);
         } catch (error) {
-          console.error('Error transcribing:', error);
-          toast({
-            title: "Erro",
-            description: "Não foi possível transcrever o áudio. Tente novamente.",
-            variant: "destructive",
-          });
+          console.error('Unexpected error:', error);
         } finally {
           setIsProcessing(false);
         }
