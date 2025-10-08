@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles, FileText, Camera, Video, Edit, Mic, Calendar, Users, Zap } from "lucide-react";
+import { Loader2, Sparkles, FileText, Camera, Video, Edit, Mic, Calendar, Users, Zap, Library } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import AudioInput from "@/components/AudioInput";
@@ -23,8 +23,7 @@ import { MobileCardCarousel } from "@/components/MobileCardCarousel";
 import { QuickPostModal } from "@/components/QuickPostModal";
 import { QuickPhotoModal } from "@/components/QuickPhotoModal";
 import { QuickVideoModal } from "@/components/QuickVideoModal";
-import { RecentContentSection } from "@/components/RecentContentSection";
-import { WeekPreviewSection } from "@/components/WeekPreviewSection";
+import { ContentLibrary } from "@/components/ContentLibrary";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -539,14 +538,27 @@ const Dashboard = () => {
             </div>
           </section>
 
-          {/* Recent Content Section */}
+          {/* Library Preview Section */}
           <section className="mb-12">
-            <RecentContentSection />
-          </section>
-
-          {/* Week Preview Section */}
-          <section className="mb-12">
-            <WeekPreviewSection />
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Library className="w-6 h-6 text-primary" />
+                📚 Minha Biblioteca
+              </h2>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/biblioteca')}
+                className="gap-2"
+              >
+                Ver Todos
+              </Button>
+            </div>
+            <ContentLibrary 
+              limit={6}
+              showSearch={false}
+              compact={true}
+              showPagination={false}
+            />
           </section>
 
           {/* Audio Input Section */}
