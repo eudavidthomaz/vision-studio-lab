@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { Mic, Sparkles, Calendar, Zap, Target, CheckCircle2, ArrowRight, Play, BookOpen, Users, Layout, BookMarked } from "lucide-react";
@@ -76,25 +77,16 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      {/* Header */}
+      {/* Header - CTA único */}
       <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-white">Ide.On</h1>
-          <div className="flex gap-2">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate("/auth")}
-              className="text-white"
-            >
-              Entrar
-            </Button>
-            <Button 
-              onClick={() => navigate("/auth")}
-              className="bg-primary hover:bg-primary/90"
-            >
-              Começar Grátis
-            </Button>
-          </div>
+          <Button 
+            onClick={() => navigate("/auth")}
+            className="bg-primary hover:bg-primary/90"
+          >
+            Começar Grátis
+          </Button>
         </div>
       </header>
 
@@ -105,14 +97,14 @@ const Landing = () => {
             <span className="text-primary text-xs sm:text-sm font-semibold">Beta Aberto · Uso 100% Gratuito</span>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-6 animate-scale-in">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 animate-scale-in leading-tight">
             Do Altar à Timeline:<br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
               sua pregação vira uma semana de conteúdo.
             </span>
           </h1>
-          {/* Headline alternativa para A/B test:
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-4 sm:mb-6 animate-scale-in">
+          {/* Headline alternativa V2 para A/B test:
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 animate-scale-in leading-tight">
             Prega no domingo.<br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
               Posta a semana inteira. Sem sofrimento.
@@ -120,7 +112,7 @@ const Landing = () => {
           </h1>
           */}
           
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-2 line-clamp-3 md:line-clamp-none">
             O Ide.On usa IA com base bíblica validada para transformar a mensagem do culto em posts, carrosséis, reels e legends que falam a língua da internet — sem perder a fidelidade ao Evangelho.
           </p>
 
@@ -146,44 +138,46 @@ const Landing = () => {
             </Button>
           </div>
 
-          {/* Social Proof */}
-          <div className="flex flex-col xs:flex-row flex-wrap justify-center gap-4 sm:gap-6 lg:gap-8 text-xs sm:text-sm text-muted-foreground px-4">
-            <div className="flex items-center justify-center gap-2">
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
-              <span>Sem cartão de crédito</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
-              <span>Setup em 2 minutos</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
-              <span>Uso liberado no Beta</span>
-            </div>
+          {/* Social Proof - Inline mobile */}
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground px-4">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
+              Sem cartão
+            </span>
+            <span className="hidden sm:inline">•</span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
+              2 min setup
+            </span>
+            <span className="hidden sm:inline">•</span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
+              Beta grátis
+            </span>
           </div>
         </div>
       </section>
 
-      {/* Como Funciona */}
-      <section id="como-funciona" className="container mx-auto px-4 py-20 bg-card/5">
-        <div className="max-w-4xl mx-auto">
+      {/* Como Funciona - Mobile optimized */}
+      <section id="como-funciona" className="container mx-auto px-4 py-12 md:py-20 bg-card/5">
+        <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
             Como Funciona?
           </h2>
-          <p className="text-muted-foreground text-center mb-12 text-lg">
-            Transforme sua pregação em uma semana completa de conteúdo em 3 passos simples
+          <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
+            3 passos simples para transformar sua pregação em conteúdo estratégico
           </p>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             <Card className="bg-card/50 backdrop-blur border-border/50 relative overflow-hidden group hover:border-primary/50 transition-all">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
-              <CardContent className="pt-8 relative z-10">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-                  <Mic className="w-8 h-8 text-primary" />
+              <CardContent className="pt-6 md:pt-8 relative z-10">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+                  <Mic className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                 </div>
                 <div className="text-primary font-bold text-sm mb-2">PASSO 1</div>
-                <h3 className="text-xl font-bold text-white mb-3">Grave ou Envie o Áudio</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-lg md:text-xl font-bold text-white mb-3">Grave ou Envie o Áudio</h3>
+                <p className="text-muted-foreground text-sm md:text-base line-clamp-4 md:line-clamp-none">
                   Grave ao vivo no Ide.On ou faça upload do arquivo. A IA transcreve e identifica versículos, temas, ênfases e chamadas da sua pregação.
                 </p>
               </CardContent>
@@ -191,13 +185,13 @@ const Landing = () => {
 
             <Card className="bg-card/50 backdrop-blur border-border/50 relative overflow-hidden group hover:border-primary/50 transition-all">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
-              <CardContent className="pt-8 relative z-10">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-                  <Sparkles className="w-8 h-8 text-primary" />
+              <CardContent className="pt-6 md:pt-8 relative z-10">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+                  <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                 </div>
                 <div className="text-primary font-bold text-sm mb-2">PASSO 2</div>
-                <h3 className="text-xl font-bold text-white mb-3">Gere o Pack da Semana</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-lg md:text-xl font-bold text-white mb-3">Gere o Pack da Semana</h3>
+                <p className="text-muted-foreground text-sm md:text-base line-clamp-4 md:line-clamp-none">
                   Em minutos, você recebe estudo bíblico, resumo, frases de impacto, carrossel, roteiros de reels/shorts, legendas e hashtags — tudo coerente com a doutrina cristã histórica.
                 </p>
               </CardContent>
@@ -205,13 +199,13 @@ const Landing = () => {
 
             <Card className="bg-card/50 backdrop-blur border-border/50 relative overflow-hidden group hover:border-primary/50 transition-all">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
-              <CardContent className="pt-8 relative z-10">
-                <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-                  <Calendar className="w-8 h-8 text-primary" />
+              <CardContent className="pt-6 md:pt-8 relative z-10">
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+                  <Calendar className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                 </div>
                 <div className="text-primary font-bold text-sm mb-2">PASSO 3</div>
-                <h3 className="text-xl font-bold text-white mb-3">Organize e Publique</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-lg md:text-xl font-bold text-white mb-3">Organize e Publique</h3>
+                <p className="text-muted-foreground text-sm md:text-base line-clamp-4 md:line-clamp-none">
                   Use o planner visual para ajustar o tom, escolher os dias e exportar em PDF/Imagem ou direto para seus fluxos (Canva/CapCut/agenda de posts).
                 </p>
               </CardContent>
@@ -220,79 +214,78 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Features */}
-      <section className="container mx-auto px-4 py-20">
+      {/* Consolidated: Resources + Deliverables with Tabs */}
+      <section className="container mx-auto px-4 py-12 md:py-20">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
-            Por que o Ide.On?
+            Tudo que você precisa
           </h2>
-          <p className="text-muted-foreground text-center mb-12 text-lg">
-            Tecnologia com propósito e teologia sólida
+          <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
+            Recursos poderosos e entregáveis prontos para usar
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {features.map((feature, index) => (
-              <Card key={index} className="bg-card/30 backdrop-blur border-border/50 hover:border-primary/50 transition-all">
-                <CardContent className="pt-4 sm:pt-6">
-                  <feature.icon className="w-8 h-8 sm:w-10 sm:h-10 text-primary mb-3 sm:mb-4" />
-                  <h3 className="text-base sm:text-lg font-bold text-white mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground text-xs sm:text-sm">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* O Que Você Recebe */}
-      <section className="container mx-auto px-4 py-20 bg-card/5">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
-            O Que Você Recebe
-          </h2>
-          <p className="text-muted-foreground text-center mb-12 text-lg">
-            Cada pregação gera um pacote completo de conteúdo
-          </p>
-
-          <Card className="bg-card/50 backdrop-blur border-border/50">
-            <CardContent className="pt-8">
-              <div className="grid md:grid-cols-2 gap-4">
-                {benefits.map((benefit, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-white">{benefit}</span>
-                  </div>
+          <Tabs defaultValue="recursos" className="w-full">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
+              <TabsTrigger value="recursos">Recursos</TabsTrigger>
+              <TabsTrigger value="entregaveis">Entregáveis</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="recursos" className="mt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+                {features.map((feature, index) => (
+                  <Card key={index} className="bg-card/30 backdrop-blur border-border/50 hover:border-primary/50 transition-all">
+                    <CardContent className="pt-4 md:pt-6">
+                      <feature.icon className="w-8 h-8 md:w-10 md:h-10 text-primary mb-3 md:mb-4" />
+                      <h3 className="text-base md:text-lg font-bold text-white mb-2">{feature.title}</h3>
+                      <p className="text-muted-foreground text-xs md:text-sm line-clamp-3 md:line-clamp-none">{feature.description}</p>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </TabsContent>
+            
+            <TabsContent value="entregaveis" className="mt-0">
+              <Card className="bg-card/50 backdrop-blur border-border/50 max-w-4xl mx-auto">
+                <CardContent className="pt-6 md:pt-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                    {benefits.map((benefit, index) => (
+                      <div key={index} className="flex items-start gap-2 md:gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                        <span className="text-white text-sm md:text-base">{benefit}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="container mx-auto px-4 py-20">
+      {/* Testimonials - Mobile optimized */}
+      <section className="container mx-auto px-4 py-12 md:py-20 bg-card/5">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
             O Que Dizem Nossos Usuários
           </h2>
-          <p className="text-muted-foreground text-center mb-12 text-lg">
-            Igrejas e ministérios que já transformaram sua presença digital
+          <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
+            Líderes de todo o Brasil já estão transformando suas pregações em impacto digital
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
             {testimonials.map((testimonial, index) => (
               <Card key={index} className="bg-card/30 backdrop-blur border-border/50">
-                <CardContent className="pt-4 sm:pt-6">
-                  <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/20 rounded-full flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
+                <CardContent className="pt-4 md:pt-6">
+                  <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/20 rounded-full flex items-center justify-center text-xl md:text-2xl flex-shrink-0">
                       {testimonial.image}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-white font-semibold text-sm sm:text-base truncate">{testimonial.name}</p>
-                      <p className="text-muted-foreground text-xs sm:text-sm truncate">{testimonial.role}</p>
+                      <p className="text-white font-semibold text-sm md:text-base truncate">{testimonial.name}</p>
+                      <p className="text-muted-foreground text-xs md:text-sm line-clamp-1">{testimonial.role}</p>
                     </div>
                   </div>
-                  <p className="text-muted-foreground text-xs sm:text-sm italic">"{testimonial.content}"</p>
+                  <p className="text-muted-foreground text-xs md:text-sm italic line-clamp-4 md:line-clamp-none">"{testimonial.content}"</p>
                 </CardContent>
               </Card>
             ))}
@@ -300,88 +293,76 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* CTA Final */}
-      <section className="container mx-auto px-4 py-20">
+      {/* CTA Final - Simplified */}
+      <section className="container mx-auto px-4 py-12 md:py-20">
         <div className="max-w-4xl mx-auto">
           <Card className="bg-gradient-to-br from-primary/20 to-cyan-400/20 backdrop-blur border-primary/50">
-            <CardContent className="pt-12 pb-12 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <CardContent className="pt-8 pb-8 md:pt-12 md:pb-12 text-center">
+              <h2 className="text-2xl md:text-4xl font-bold text-white mb-4">
                 Pronto para transformar suas pregações em impacto digital?
               </h2>
-              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              <p className="text-base md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto">
                 Domingo você prega. Na segunda a mídia já tem tudo pronto.
               </p>
               <Button 
                 size="lg"
                 onClick={() => navigate("/auth")}
-                className="text-lg px-12 py-6 bg-primary hover:bg-primary/90 group"
+                className="text-base md:text-lg px-8 py-5 md:px-12 md:py-6 bg-primary hover:bg-primary/90 group"
               >
                 Começar Agora Grátis
                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <p className="text-sm text-muted-foreground mt-4">
-                Sem cartão • Setup em 2 minutos • Beta com uso liberado
+              <p className="text-xs md:text-sm text-muted-foreground mt-4">
+                Beta com uso liberado
               </p>
             </CardContent>
           </Card>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="container mx-auto px-4 py-20 bg-card/5">
-        <div className="max-w-4xl mx-auto">
+      {/* FAQ Section - Reduced to 3 questions, mobile optimized */}
+      <section className="container mx-auto px-4 py-12 md:py-20 bg-card/5">
+        <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
             Perguntas Frequentes
           </h2>
-          <p className="text-muted-foreground text-center mb-12 text-lg">
-            Respostas rápidas sobre como o Ide.On funciona
+          <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
+            Tudo que você precisa saber
           </p>
 
           <Accordion type="single" collapsible className="space-y-4">
             <AccordionItem 
               value="item-1"
-              className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-6"
+              className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-4 md:px-6"
             >
-              <AccordionTrigger className="text-left font-semibold text-white hover:text-primary">
+              <AccordionTrigger className="text-left font-semibold text-white hover:text-primary text-sm md:text-base py-4">
                 A IA inventa versículos?
               </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
+              <AccordionContent className="text-muted-foreground text-sm md:text-base">
                 Não. O Ide.On exige referência e exibe a versão bíblica usada. Você revisa antes de publicar.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem 
               value="item-2"
-              className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-6"
+              className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-4 md:px-6"
             >
-              <AccordionTrigger className="text-left font-semibold text-white hover:text-primary">
-                Funciona sem gravar ao vivo?
-              </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
-                Sim. É só fazer upload do áudio que já tem.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem 
-              value="item-3"
-              className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-6"
-            >
-              <AccordionTrigger className="text-left font-semibold text-white hover:text-primary">
+              <AccordionTrigger className="text-left font-semibold text-white hover:text-primary text-sm md:text-base py-4">
                 Posso definir o estilo teológico?
               </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
+              <AccordionContent className="text-muted-foreground text-sm md:text-base">
                 Sim. Presets de tom e guard-rails doutrinários para manter fidelidade.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem 
-              value="item-4"
-              className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-6"
+              value="item-3"
+              className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-4 md:px-6"
             >
-              <AccordionTrigger className="text-left font-semibold text-white hover:text-primary">
+              <AccordionTrigger className="text-left font-semibold text-white hover:text-primary text-sm md:text-base py-4">
                 Quanto custa no Beta?
               </AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">
+              <AccordionContent className="text-muted-foreground text-sm md:text-base">
                 Grátis durante a validação. Depois, planos acessíveis para igrejas de todos os tamanhos.
               </AccordionContent>
             </AccordionItem>
@@ -389,20 +370,16 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Footer - Mobile optimized */}
       <footer className="border-t border-gray-800 bg-gray-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-              <h3 className="text-xl font-bold text-white mb-2">Ide.On</h3>
-              <p className="text-muted-foreground text-sm">
-                Transformando pregações em conteúdo poderoso
-              </p>
-            </div>
-            <div className="text-muted-foreground text-sm text-center md:text-right">
-              <p>© 2025 Ide.On. Todos os direitos reservados.</p>
-              <p className="mt-1">Feito com ❤️ para igrejas e ministérios</p>
-            </div>
+        <div className="container mx-auto px-4 py-8 md:py-12">
+          <div className="text-center text-muted-foreground">
+            <p className="text-xs md:text-sm">
+              © 2024 Ide.On. Todos os direitos reservados.
+            </p>
+            <p className="text-xs mt-2">
+              Transformando pregações em impacto digital
+            </p>
           </div>
         </div>
       </footer>
