@@ -53,10 +53,12 @@ export default function PlannerFilters({ onFilterChange, totalResults }: Planner
     <div className="bg-card border rounded-lg p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4" />
+          <Filter className="h-4 w-4 text-primary" />
           <h3 className="font-semibold">Filtros</h3>
-          {totalResults > 0 && (
-            <Badge variant="secondary">{totalResults} resultados</Badge>
+          {hasActiveFilters && totalResults >= 0 && (
+            <Badge variant="secondary" className="animate-in fade-in">
+              {totalResults} {totalResults === 1 ? "resultado" : "resultados"}
+            </Badge>
           )}
         </div>
         <div className="flex items-center gap-2">

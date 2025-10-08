@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Instagram, Facebook, Edit, Heart, MessageCircle, Send, Bookmark } from "lucide-react";
+import { Instagram, Facebook, Edit, Heart, MessageCircle, Send, Bookmark, Eye } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -57,9 +57,12 @@ export default function PostPreviewModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Preview do Post</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5 text-primary" />
+            Preview do Post
+          </DialogTitle>
           <DialogDescription>
-            Veja como seu post ficará nas redes sociais
+            Veja como seu post ficará nas redes sociais e edite o texto diretamente
           </DialogDescription>
         </DialogHeader>
 

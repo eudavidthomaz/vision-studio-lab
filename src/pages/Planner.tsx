@@ -17,6 +17,7 @@ import PlannerFilters, { FilterState } from "@/components/PlannerFilters";
 import MonthlyCalendar from "@/components/MonthlyCalendar";
 import PillarStats from "@/components/PillarStats";
 import PostPreviewModal from "@/components/PostPreviewModal";
+import PlannerTourButton from "@/components/PlannerTourButton";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -618,6 +619,7 @@ export default function Planner() {
                 </div>
               </div>
               <div className="flex gap-2">
+                <PlannerTourButton />
                 <Button 
                   variant="outline" 
                   size="sm"

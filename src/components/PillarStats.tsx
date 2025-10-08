@@ -151,7 +151,12 @@ export default function PillarStats({ contentByDay }: PillarStatsProps) {
             <>
               {/* Bar Chart */}
               <div>
-                <p className="text-sm font-medium mb-3">Quantidade por Pilar</p>
+                <p className="text-sm font-medium mb-3 flex items-center gap-2">
+                  Quantidade por Pilar
+                  <Badge variant="outline" className="text-xs">
+                    {stats.totalPosts} posts
+                  </Badge>
+                </p>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={stats.chartData}>
                     <XAxis 

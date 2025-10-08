@@ -133,9 +133,19 @@ export default function TemplateGallery({ open, onOpenChange, onApplyTemplate, s
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filteredTemplates.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>Nenhum template disponível ainda.</p>
-            <p className="text-sm mt-2">Crie seus próprios templates para reutilizá-los!</p>
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Nenhum template encontrado</h3>
+            <p className="text-muted-foreground mb-4">
+              {selectedType === "all" 
+                ? "Ainda não há templates disponíveis. Crie conteúdo incrível e salve como template!"
+                : `Nenhum template de ${selectedType} disponível no momento.`}
+            </p>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Criar Novo Conteúdo
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

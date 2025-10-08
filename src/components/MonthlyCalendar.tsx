@@ -147,25 +147,27 @@ export default function MonthlyCalendar({ contentByDay, onDayClick }: MonthlyCal
       </Card>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-sm">
-        <span className="text-muted-foreground">Densidade:</span>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-muted border" />
-          <span>0</span>
+      <Card className="p-4">
+        <div className="flex flex-wrap items-center gap-4 text-sm">
+          <span className="text-muted-foreground font-medium">Legenda de Densidade:</span>
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded bg-muted border" />
+            <span>Vazio (0)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded bg-yellow-500/20 border border-yellow-500/30" />
+            <span>Baixo (1-2)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded bg-green-500/20 border border-green-500/30" />
+            <span>Médio (3-4)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded bg-blue-500/20 border border-blue-500/30" />
+            <span>Alto (5+)</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-yellow-500/20 border border-yellow-500/30" />
-          <span>1-2</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-green-500/20 border border-green-500/30" />
-          <span>3-4</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-blue-500/20 border border-blue-500/30" />
-          <span>5+</span>
-        </div>
-      </div>
+      </Card>
     </div>
   );
 }
