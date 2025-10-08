@@ -18,7 +18,6 @@ import { useSecureApi } from "@/hooks/useSecureApi";
 import { useQuota } from "@/hooks/useQuota";
 import { RateLimitIndicator } from "@/components/RateLimitIndicator";
 import { QuotaIndicator } from "@/components/QuotaIndicator";
-import { ContentLibrary } from "@/components/ContentLibrary";
 import { AICreatorCard } from "@/components/AICreatorCard";
 import { AIPromptModal } from "@/components/AIPromptModal";
 
@@ -312,13 +311,13 @@ const Dashboard = () => {
               
               <Button
                 variant="outline"
-                onClick={() => navigate('/biblioteca')}
+                onClick={() => navigate('/meus-conteudos')}
                 className="gap-2"
-                data-tour="biblioteca-button"
+                data-tour="conteudos-button"
               >
                 <Library className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden xs:inline">Biblioteca</span>
-                <span className="xs:hidden">📚</span>
+                <span className="hidden xs:inline">Meus Conteúdos</span>
+                <span className="xs:hidden">✨</span>
               </Button>
 
               <Button
@@ -337,28 +336,6 @@ const Dashboard = () => {
             <AICreatorCard onClick={() => setShowAIModal(true)} />
           </section>
 
-          {/* Library Preview Section */}
-          <section className="mb-8 sm:mb-12">
-            <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between mb-4 sm:mb-6 gap-3">
-              <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                <Library className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                📚 Minha Biblioteca
-              </h2>
-              <Button
-                variant="outline"
-                onClick={() => navigate('/biblioteca')}
-                className="gap-2"
-              >
-                Ver Todos
-              </Button>
-            </div>
-            <ContentLibrary 
-              limit={6}
-              showSearch={false}
-              compact={true}
-              showPagination={false}
-            />
-          </section>
 
           {/* Audio Input Section */}
           <section id="audio-input-section" className="mb-8 sm:mb-12">
