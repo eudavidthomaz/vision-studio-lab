@@ -97,8 +97,10 @@ const Landing = () => {
             <span className="text-primary text-xs sm:text-sm font-semibold">Beta Aberto · Uso 100% Gratuito</span>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 animate-scale-in leading-tight">
-            A câmera desliga.<br className="hidden sm:block" />
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2 animate-scale-in leading-tight">
+            A câmera desliga.
+          </h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 sm:mb-8 animate-scale-in leading-tight">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
               A missão continua.
             </span>
@@ -112,36 +114,14 @@ const Landing = () => {
           </h1>
           */}
           
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-3xl mx-auto px-2">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-3xl mx-auto px-2">
             Do altar ao feed: o Ide.On transforma sua pregação em uma semana de conteúdo. 
             Carrosséis, roteiros de reels e legendas, tudo com fundamento bíblico, 
             citações visíveis e linguagem que fala com a cidade.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-8 sm:mb-12 px-4">
-            <Button 
-              size="lg" 
-              onClick={() => navigate("/auth")}
-              className="text-sm sm:text-base lg:text-lg px-6 py-4 sm:px-8 sm:py-6 bg-primary hover:bg-primary/90 group"
-            >
-              Começar Grátis
-              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform w-4 h-4 sm:w-5 sm:h-5" />
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              onClick={() => {
-                document.getElementById('como-funciona')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="text-sm sm:text-base lg:text-lg px-6 py-4 sm:px-8 sm:py-6"
-            >
-              <Play className="mr-2 w-4 h-4 sm:w-5 sm:h-5" />
-              Ver como funciona
-            </Button>
-          </div>
-
           {/* Vídeo Trailer - YouTube Embed */}
-          <div className="w-full max-w-4xl mx-auto px-4 mb-8 sm:mb-12 animate-fade-in">
+          <div className="w-full max-w-4xl mx-auto px-4 mb-8 sm:mb-10 animate-fade-in">
             <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10">
               <iframe
                 src="https://www.youtube.com/embed/SGRIma5ElbY?rel=0&modestbranding=1"
@@ -152,6 +132,18 @@ const Landing = () => {
                 loading="lazy"
               />
             </div>
+          </div>
+
+          {/* CTA Único */}
+          <div className="flex justify-center mb-12 sm:mb-16 px-4">
+            <Button 
+              size="lg" 
+              onClick={() => navigate("/auth")}
+              className="text-base sm:text-lg lg:text-xl px-8 py-5 sm:px-12 sm:py-7 bg-primary hover:bg-primary/90 group w-full sm:w-auto"
+            >
+              Começar Grátis
+              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform w-5 h-5 sm:w-6 sm:h-6" />
+            </Button>
           </div>
 
           {/* Social Proof - Inline mobile */}
