@@ -1,18 +1,88 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { 
+  validateInput, 
+  checkRateLimit, 
+  logSecurityEvent,
+  sanitizeText,
+  createAuthenticatedClient,
+  ValidationError,
+  RateLimitError
+} from "../_shared/security.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const ALLOWED_TIPOS = ['post', 'story', 'reel', 'carrossel'];
+const ALLOWED_TONS = ['inspirador', 'reflexivo', 'convite', 'celebrativo', 'educativo'];
+const ALLOWED_PILARES = ['comunidade', 'ensino', 'adoracao', 'missao'];
+
 serve(async (req) => {
+  const startTime = Date.now();
+  let userId: string | null = null;
+  let supabaseClient: any = null;
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { tipo_conteudo, tema, tom, pilar, contexto_adicional } = await req.json();
+    // Create authenticated client
+    const auth = createAuthenticatedClient(req);
+    supabaseClient = auth.client;
+    userId = auth.userId;
+
+    if (!userId) {
+      throw new ValidationError('Authentication required');
+    }
+
+    // Check rate limit
+    await checkRateLimit(supabaseClient, userId, 'generate-content-idea');
+
+    // Parse and validate input
+    const body = await req.json();
+    const { tipo_conteudo, tema, tom, pilar, contexto_adicional } = body;
+
+    validateInput('tipo_conteudo', {
+      value: tipo_conteudo,
+      type: 'string',
+      required: true,
+      allowedValues: ALLOWED_TIPOS,
+    });
+
+    validateInput('tema', {
+      value: tema,
+      type: 'string',
+      required: true,
+      minLength: 3,
+      maxLength: 200,
+    });
+
+    validateInput('tom', {
+      value: tom,
+      type: 'string',
+      required: true,
+      allowedValues: ALLOWED_TONS,
+    });
+
+    validateInput('pilar', {
+      value: pilar,
+      type: 'string',
+      required: true,
+      allowedValues: ALLOWED_PILARES,
+    });
+
+    validateInput('contexto_adicional', {
+      value: contexto_adicional,
+      type: 'string',
+      required: false,
+      maxLength: 1000,
+    });
+
+    const sanitizedTema = sanitizeText(tema, 200);
+    const sanitizedContexto = contexto_adicional ? sanitizeText(contexto_adicional, 1000) : '';
     
     console.log('Generating content idea:', { tipo_conteudo, tema, tom, pilar });
 

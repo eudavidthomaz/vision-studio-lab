@@ -1,6 +1,15 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { CORE_PRINCIPLES, CONTENT_METHOD, PILLAR_DISTRIBUTION } from '../_shared/prompt-principles.ts';
+import { 
+  validateInput, 
+  checkRateLimit, 
+  logSecurityEvent,
+  sanitizeText,
+  createAuthenticatedClient,
+  ValidationError,
+  RateLimitError
+} from "../_shared/security.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,16 +17,40 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  const startTime = Date.now();
+  let userId: string | null = null;
+  let supabaseClient: any = null;
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { transcript } = await req.json();
-    
-    if (!transcript) {
-      throw new Error('No transcript provided');
+    // Create authenticated client
+    const auth = createAuthenticatedClient(req);
+    supabaseClient = auth.client;
+    userId = auth.userId;
+
+    if (!userId) {
+      throw new ValidationError('Authentication required');
     }
+
+    // Check rate limit
+    await checkRateLimit(supabaseClient, userId, 'generate-week-pack');
+
+    // Parse and validate input
+    const body = await req.json();
+    const { transcript } = body;
+
+    validateInput('transcript', {
+      value: transcript,
+      type: 'string',
+      required: true,
+      minLength: 50,
+      maxLength: 100000,
+    });
+
+    const sanitizedTranscript = sanitizeText(transcript, 100000);
 
     console.log('Generating weekly pack...');
 
@@ -84,7 +117,7 @@ IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional antes ou de
         model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Transcrição da pregação:\n\n${transcript}` }
+          { role: 'user', content: `Transcrição da pregação:\n\n${sanitizedTranscript}` }
         ],
         max_completion_tokens: 2000,
         response_format: { type: 'json_object' }
@@ -94,13 +127,19 @@ IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional antes ou de
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errorMsg = `OpenAI API error: ${response.status}`;
+      await logSecurityEvent(supabaseClient, userId, 'weekpack_failed', 'generate-week-pack', false, errorMsg);
+      throw new Error(errorMsg);
     }
 
     const result = await response.json();
     const pack = JSON.parse(result.choices[0]?.message?.content || '{}');
-    
-    console.log('Weekly pack generated successfully');
+
+    // Log success
+    await logSecurityEvent(supabaseClient, userId, 'weekpack_success', 'generate-week-pack', true);
+
+    const duration = Date.now() - startTime;
+    console.log(`Week pack generated in ${duration}ms`);
 
     return new Response(
       JSON.stringify(pack),
@@ -112,6 +151,39 @@ IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional antes ou de
 
   } catch (error) {
     console.error('Error in generate-week-pack:', error);
+
+    // Log error
+    if (supabaseClient && userId) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      await logSecurityEvent(supabaseClient, userId, 'weekpack_error', 'generate-week-pack', false, errorMsg);
+    }
+
+    // Handle specific error types
+    if (error instanceof ValidationError) {
+      return new Response(
+        JSON.stringify({ error: error.message, type: 'validation_error' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (error instanceof RateLimitError) {
+      return new Response(
+        JSON.stringify({ 
+          error: error.message, 
+          type: 'rate_limit_error',
+          retry_after: error.retryAfter 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(Math.ceil(error.retryAfter))
+          }
+        }
+      );
+    }
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),

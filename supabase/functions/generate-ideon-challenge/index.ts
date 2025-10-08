@@ -1,6 +1,13 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { CORE_PRINCIPLES } from '../_shared/prompt-principles.ts';
+import { 
+  checkRateLimit, 
+  logSecurityEvent,
+  createAuthenticatedClient,
+  ValidationError,
+  RateLimitError
+} from "../_shared/security.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,11 +15,27 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  const startTime = Date.now();
+  let userId: string | null = null;
+  let supabaseClient: any = null;
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Create authenticated client
+    const auth = createAuthenticatedClient(req);
+    supabaseClient = auth.client;
+    userId = auth.userId;
+
+    if (!userId) {
+      throw new ValidationError('Authentication required');
+    }
+
+    // Check rate limit
+    await checkRateLimit(supabaseClient, userId, 'generate-ideon-challenge');
+
     console.log('Generating Ide.On challenge...');
 
     const systemPrompt = `${CORE_PRINCIPLES}
@@ -56,13 +79,19 @@ IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional. O JSON dev
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      const errorMsg = `OpenAI API error: ${response.status}`;
+      await logSecurityEvent(supabaseClient, userId, 'challenge_failed', 'generate-ideon-challenge', false, errorMsg);
+      throw new Error(errorMsg);
     }
 
     const result = await response.json();
     const challenge = JSON.parse(result.choices[0]?.message?.content || '{}');
-    
-    console.log('Ide.On challenge generated successfully');
+
+    // Log success
+    await logSecurityEvent(supabaseClient, userId, 'challenge_success', 'generate-ideon-challenge', true);
+
+    const duration = Date.now() - startTime;
+    console.log(`Ide.On challenge generated in ${duration}ms`);
 
     return new Response(
       JSON.stringify(challenge),
@@ -74,6 +103,39 @@ IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional. O JSON dev
 
   } catch (error) {
     console.error('Error in generate-ideon-challenge:', error);
+
+    // Log error
+    if (supabaseClient && userId) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      await logSecurityEvent(supabaseClient, userId, 'challenge_error', 'generate-ideon-challenge', false, errorMsg);
+    }
+
+    // Handle specific error types
+    if (error instanceof ValidationError) {
+      return new Response(
+        JSON.stringify({ error: error.message, type: 'validation_error' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (error instanceof RateLimitError) {
+      return new Response(
+        JSON.stringify({ 
+          error: error.message, 
+          type: 'rate_limit_error',
+          retry_after: error.retryAfter 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(Math.ceil(error.retryAfter))
+          }
+        }
+      );
+    }
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),

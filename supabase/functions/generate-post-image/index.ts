@@ -1,20 +1,90 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { 
+  validateInput, 
+  checkRateLimit, 
+  logSecurityEvent,
+  sanitizeText,
+  createAuthenticatedClient,
+  ValidationError,
+  RateLimitError
+} from "../_shared/security.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const ALLOWED_FORMATOS = ['feed_square', 'feed_portrait', 'story', 'reel_cover'];
+const ALLOWED_ESTILOS = ['minimalista', 'tipografico', 'fotografico', 'ilustrativo'];
+const ALLOWED_PILARES = ['Edificar', 'Alcançar', 'Pertencer', 'Servir'];
+
 serve(async (req) => {
+  const startTime = Date.now();
+  let userId: string | null = null;
+  let supabaseClient: any = null;
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { formato, copy, estilo, pilar, contexto_adicional } = await req.json();
-    
+    // Create authenticated client
+    const auth = createAuthenticatedClient(req);
+    supabaseClient = auth.client;
+    userId = auth.userId;
+
+    if (!userId) {
+      throw new ValidationError('Authentication required');
+    }
+
+    // Check rate limit
+    await checkRateLimit(supabaseClient, userId, 'generate-post-image');
+
+    // Parse and validate input
+    const body = await req.json();
+    const { formato, copy, estilo, pilar, contexto_adicional } = body;
+
+    validateInput('formato', {
+      value: formato,
+      type: 'string',
+      required: true,
+      allowedValues: ALLOWED_FORMATOS,
+    });
+
+    validateInput('copy', {
+      value: copy,
+      type: 'string',
+      required: true,
+      minLength: 3,
+      maxLength: 500,
+    });
+
+    validateInput('estilo', {
+      value: estilo,
+      type: 'string',
+      required: true,
+      allowedValues: ALLOWED_ESTILOS,
+    });
+
+    validateInput('pilar', {
+      value: pilar,
+      type: 'string',
+      required: true,
+      allowedValues: ALLOWED_PILARES,
+    });
+
+    validateInput('contexto_adicional', {
+      value: contexto_adicional,
+      type: 'string',
+      required: false,
+      maxLength: 500,
+    });
+
+    const sanitizedCopy = sanitizeText(copy, 500);
+    const sanitizedContexto = contexto_adicional ? sanitizeText(contexto_adicional, 500) : '';
+
     console.log('Generating image with params:', { formato, estilo, pilar });
 
     // Define dimensions based on format
@@ -45,18 +115,18 @@ serve(async (req) => {
     const estiloDesc = estiloDescriptions[estilo as keyof typeof estiloDescriptions] || estiloDescriptions['minimalista'];
 
     // Truncate copy if too long
-    const truncatedCopy = copy.length > 200 ? copy.substring(0, 200) + '...' : copy;
+    const truncatedCopy = sanitizedCopy.length > 200 ? sanitizedCopy.substring(0, 200) + '...' : sanitizedCopy;
 
     const prompt = `Create a professional Instagram post image for a church social media.
 Style: ${estiloDesc}
 Visual theme: ${pilarStyle}
 Text content to feature: "${truncatedCopy}"
-${contexto_adicional ? `Additional context: ${contexto_adicional}` : ''}
+${sanitizedContexto ? `Additional context: ${sanitizedContexto}` : ''}
 The image should be suitable for Christian content, inspiring, and visually appealing.
 Aspect ratio: ${dimensoes.width}x${dimensoes.height}px
 High quality, professional design.`;
 
-    console.log('Calling Lovable AI with prompt:', prompt.substring(0, 100) + '...');
+    console.log('Calling Lovable AI...');
 
     // Call Lovable AI - Gemini 2.5 Flash Image Preview
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -81,26 +151,21 @@ High quality, professional design.`;
       const errorText = await response.text();
       console.error('Lovable AI error:', response.status, errorText);
       
+      const errorMsg = `Image generation failed: ${response.status}`;
+      await logSecurityEvent(supabaseClient, userId, 'image_gen_failed', 'generate-post-image', false, errorMsg);
+      
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Limite de taxa excedido. Por favor, tente novamente mais tarde.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        throw new RateLimitError('Limite de taxa excedido. Tente novamente mais tarde.', 60);
       }
       
       if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Créditos insuficientes. Por favor, adicione créditos ao seu workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        throw new ValidationError('Créditos insuficientes. Adicione créditos ao seu workspace.');
       }
 
-      throw new Error(`Lovable AI API error: ${response.status}`);
+      throw new Error(errorMsg);
     }
 
     const data = await response.json();
-    console.log('Received response from Lovable AI');
-
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
     if (!imageUrl) {
@@ -110,16 +175,7 @@ High quality, professional design.`;
     // Upload image to Supabase Storage
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Get auth header to extract user_id
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data: { user } } = await supabase.auth.getUser(token);
-    
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
+    const storageClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // Convert base64 to blob
     const base64Data = imageUrl.split(',')[1];
@@ -132,12 +188,12 @@ High quality, professional design.`;
 
     // Generate unique filename
     const timestamp = Date.now();
-    const filename = `${user.id}/${timestamp}_${formato}_${estilo}.png`;
+    const filename = `${userId}/${timestamp}_${formato}_${estilo}.png`;
 
     console.log('Uploading to storage:', filename);
 
     // Upload to storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await storageClient.storage
       .from('post-images')
       .upload(filename, blob, {
         contentType: 'image/png',
@@ -146,6 +202,7 @@ High quality, professional design.`;
 
     if (uploadError) {
       console.error('Storage upload error:', uploadError);
+      await logSecurityEvent(supabaseClient, userId, 'image_upload_failed', 'generate-post-image', false, uploadError.message);
       // Fallback to returning base64 if storage fails
       return new Response(
         JSON.stringify({ 
@@ -159,11 +216,15 @@ High quality, professional design.`;
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = storageClient.storage
       .from('post-images')
       .getPublicUrl(filename);
 
-    console.log('Image uploaded successfully:', publicUrl);
+    // Log success
+    await logSecurityEvent(supabaseClient, userId, 'image_gen_success', 'generate-post-image', true);
+
+    const duration = Date.now() - startTime;
+    console.log(`Image generated and uploaded in ${duration}ms`);
 
     return new Response(
       JSON.stringify({ 
@@ -176,6 +237,39 @@ High quality, professional design.`;
 
   } catch (error) {
     console.error('Error in generate-post-image:', error);
+
+    // Log error
+    if (supabaseClient && userId) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      await logSecurityEvent(supabaseClient, userId, 'image_gen_error', 'generate-post-image', false, errorMsg);
+    }
+
+    // Handle specific error types
+    if (error instanceof ValidationError) {
+      return new Response(
+        JSON.stringify({ error: error.message, type: 'validation_error' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (error instanceof RateLimitError) {
+      return new Response(
+        JSON.stringify({ 
+          error: error.message, 
+          type: 'rate_limit_error',
+          retry_after: error.retryAfter 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(Math.ceil(error.retryAfter))
+          }
+        }
+      );
+    }
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
