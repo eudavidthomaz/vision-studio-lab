@@ -12,6 +12,10 @@ import Historico from "./pages/Historico";
 import Metrics from "./pages/Metrics";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
+import { lazy } from "react";
+
+const UsageDashboard = lazy(() => import("./pages/UsageDashboard"));
+const Analytics = lazy(() => import("./pages/Analytics"));
 
 const queryClient = new QueryClient();
 
@@ -30,6 +34,8 @@ const App = () => (
           <Route path="/historico" element={<Historico />} />
           <Route path="/metrics" element={<Metrics />} />
           <Route path="/security" element={<SecurityDashboard />} />
+          <Route path="/usage" element={<UsageDashboard />} />
+          <Route path="/analytics" element={<Analytics />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

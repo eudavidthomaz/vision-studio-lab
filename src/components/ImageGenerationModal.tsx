@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Download, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSecureApi } from "@/hooks/useSecureApi";
+import { useQuota } from "@/hooks/useQuota";
 
 interface ImageGenerationModalProps {
   open: boolean;
@@ -30,8 +31,18 @@ const ImageGenerationModal = ({
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const { toast } = useToast();
   const { invokeFunction } = useSecureApi();
+  const { canUse, incrementUsage } = useQuota();
 
   const handleGenerate = async () => {
+    if (!canUse('images')) {
+      toast({
+        title: 'Limite atingido',
+        description: 'Você atingiu o limite mensal de imagens geradas.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
@@ -48,6 +59,9 @@ const ImageGenerationModal = ({
       }
 
       setGeneratedImage(data.image_url);
+      
+      // Increment quota usage
+      incrementUsage('images');
       
       if (onImageGenerated) {
         onImageGenerated(data.image_url);

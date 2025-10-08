@@ -15,7 +15,9 @@ import FeedbackButton from "@/components/FeedbackButton";
 import NPSModal from "@/components/NPSModal";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useSecureApi } from "@/hooks/useSecureApi";
+import { useQuota } from "@/hooks/useQuota";
 import { RateLimitIndicator } from "@/components/RateLimitIndicator";
+import { QuotaIndicator } from "@/components/QuotaIndicator";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -35,6 +37,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
   const { invokeFunction } = useSecureApi();
+  const { canUse, incrementUsage } = useQuota();
 
   useEffect(() => {
     // Check for existing session first
@@ -73,6 +76,15 @@ const Dashboard = () => {
   }, [loading, user, navigate]);
 
   const handleTranscriptionComplete = async (transcriptText: string) => {
+    if (!canUse('weekly_packs')) {
+      toast({
+        title: 'Limite atingido',
+        description: 'Você atingiu o limite mensal de packs semanais.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setTranscript(transcriptText);
     setIsGeneratingPack(true);
     setGenerationProgress(0);
@@ -124,6 +136,9 @@ const Dashboard = () => {
 
       // Step 4: Complete (100%)
       setGenerationProgress(100);
+
+      // Increment quota usage
+      incrementUsage('weekly_packs');
 
       // Track successful pack generation
       await trackEvent('pack_generated');
@@ -280,6 +295,15 @@ const Dashboard = () => {
   };
 
   const handleGenerateChallenge = async () => {
+    if (!canUse('challenges')) {
+      toast({
+        title: 'Limite atingido',
+        description: 'Você atingiu o limite mensal de desafios Ide.On.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsGeneratingChallenge(true);
 
     try {
@@ -298,6 +322,9 @@ const Dashboard = () => {
           user_id: user.id,
           challenge: challengeData
         });
+
+      // Increment quota usage
+      incrementUsage('challenges');
 
       // Track challenge generation
       await trackEvent('challenge_generated');
@@ -372,15 +399,28 @@ const Dashboard = () => {
               >
                 Métricas
               </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/usage")}
+              >
+                Uso
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/analytics")}
+              >
+                Analytics
+              </Button>
               <Button variant="outline" onClick={handleLogout}>
                 Sair
               </Button>
             </div>
           </div>
           
-          {/* Rate Limit Indicator */}
-          <div className="max-w-sm">
+          {/* Indicators */}
+          <div className="grid gap-4 md:grid-cols-2">
             <RateLimitIndicator />
+            <QuotaIndicator />
           </div>
         </div>
       </header>

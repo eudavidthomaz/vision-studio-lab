@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { OnboardingFlow } from "@/components/OnboardingFlow";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mic, Sparkles, Calendar, ArrowRight } from "lucide-react";
 import confetti from "canvas-confetti";
@@ -9,6 +10,7 @@ import { useAnalytics } from "@/hooks/useAnalytics";
 const Welcome = () => {
   const navigate = useNavigate();
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { trackEvent } = useAnalytics();
 
   useEffect(() => {
@@ -27,6 +29,12 @@ const Welcome = () => {
       spread: 70,
       origin: { y: 0.6 }
     });
+
+    // Check if should show onboarding
+    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    if (!hasSeenOnboarding) {
+      setTimeout(() => setShowOnboarding(true), 1500);
+    }
   }, [navigate, trackEvent]);
 
   const handleStart = () => {
@@ -35,8 +43,15 @@ const Welcome = () => {
     navigate("/dashboard");
   };
 
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('hasSeenOnboarding', 'true');
+    setShowOnboarding(false);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
+    <>
+      <OnboardingFlow open={showOnboarding} onComplete={handleOnboardingComplete} />
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
       <div className="max-w-4xl w-full animate-fade-in">
         {/* Header */}
         <div className="text-center mb-12">
@@ -144,7 +159,8 @@ const Welcome = () => {
           </Button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
