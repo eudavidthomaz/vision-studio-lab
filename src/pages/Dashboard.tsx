@@ -21,7 +21,6 @@ import { QuotaIndicator } from "@/components/QuotaIndicator";
 import { AICreatorCard } from "@/components/AICreatorCard";
 import { AIPromptModal } from "@/components/AIPromptModal";
 import { RecentContentSection } from "@/components/RecentContentSection";
-import { WeeklyPackShortcut } from "@/components/WeeklyPackShortcut";
 import { HeroHeader } from "@/components/HeroHeader";
 
 const Dashboard = () => {
@@ -312,15 +311,9 @@ const Dashboard = () => {
               <AICreatorCard onClick={() => setShowAIModal(true)} />
             </section>
             
-            {/* Secondary Actions Grid */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Recent Content */}
+            <section>
               <RecentContentSection />
-              <WeeklyPackShortcut 
-                onClick={() => {
-                  const audioSection = document.getElementById('audio-input-section');
-                  audioSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }}
-              />
             </section>
 
             {/* Audio Input Section */}
