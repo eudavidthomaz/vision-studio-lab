@@ -22,6 +22,8 @@ import { QuickActionCard } from "@/components/QuickActionCard";
 import { QuickPostModal } from "@/components/QuickPostModal";
 import { QuickPhotoModal } from "@/components/QuickPhotoModal";
 import { QuickVideoModal } from "@/components/QuickVideoModal";
+import { RecentContentSection } from "@/components/RecentContentSection";
+import { WeekPreviewSection } from "@/components/WeekPreviewSection";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -480,6 +482,16 @@ const Dashboard = () => {
                 })}
               />
             </div>
+          </section>
+
+          {/* Recent Content Section */}
+          <section className="mb-12">
+            <RecentContentSection />
+          </section>
+
+          {/* Week Preview Section */}
+          <section className="mb-12">
+            <WeekPreviewSection />
           </section>
 
           {/* Audio Input Section */}
