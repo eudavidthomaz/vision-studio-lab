@@ -18,6 +18,7 @@ import MonthlyCalendar from "@/components/MonthlyCalendar";
 import PillarStats from "@/components/PillarStats";
 import PostPreviewModal from "@/components/PostPreviewModal";
 import PlannerTourButton from "@/components/PlannerTourButton";
+import KeyboardShortcutsHelper from "@/components/KeyboardShortcutsHelper";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -589,6 +590,7 @@ export default function Planner() {
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate("/")}
+                  aria-label="Voltar para o início"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
@@ -602,7 +604,8 @@ export default function Planner() {
                     onClick={undo}
                     disabled={!canUndo}
                     title="Desfazer (Ctrl+Z)"
-                    className="transition-transform hover:scale-110"
+                    aria-label="Desfazer última ação"
+                    className="transition-transform hover:scale-110 disabled:opacity-50"
                   >
                     <Undo2 className="h-4 w-4" />
                   </Button>
@@ -612,7 +615,8 @@ export default function Planner() {
                     onClick={redo}
                     disabled={!canRedo}
                     title="Refazer (Ctrl+Y)"
-                    className="transition-transform hover:scale-110"
+                    aria-label="Refazer ação desfeita"
+                    className="transition-transform hover:scale-110 disabled:opacity-50"
                   >
                     <Redo2 className="h-4 w-4" />
                   </Button>
@@ -706,20 +710,20 @@ export default function Planner() {
 
           {/* View Mode Tabs */}
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="mb-6">
-            <TabsList className="grid w-full max-w-md grid-cols-3">
-              <TabsTrigger value="week" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Semana
-              </TabsTrigger>
-              <TabsTrigger value="month" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Mês
-              </TabsTrigger>
-              <TabsTrigger value="stats" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Estatísticas
-              </TabsTrigger>
-            </TabsList>
+          <TabsList className="grid w-full max-w-md grid-cols-3">
+            <TabsTrigger value="week" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Semana</span>
+            </TabsTrigger>
+            <TabsTrigger value="month" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Mês</span>
+            </TabsTrigger>
+            <TabsTrigger value="stats" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span className="hidden sm:inline">Estatísticas</span>
+            </TabsTrigger>
+          </TabsList>
 
             {/* Filters */}
             {viewMode === "week" && (
@@ -1022,6 +1026,8 @@ export default function Planner() {
           }}
           onSave={handlePreviewSave}
         />
+
+        <KeyboardShortcutsHelper />
 
         <DragOverlay>
           {activeId ? (
