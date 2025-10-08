@@ -14,6 +14,8 @@ import ProgressSteps from "@/components/ProgressSteps";
 import FeedbackButton from "@/components/FeedbackButton";
 import NPSModal from "@/components/NPSModal";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useSecureApi } from "@/hooks/useSecureApi";
+import { RateLimitIndicator } from "@/components/RateLimitIndicator";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -32,6 +34,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
+  const { invokeFunction } = useSecureApi();
 
   useEffect(() => {
     // Check for existing session first
@@ -96,24 +99,14 @@ const Dashboard = () => {
       // Step 2: Analyzing sermon (50%)
       setGenerationProgress(50);
 
-      // Generate weekly pack
-      const packResponse = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-week-pack`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ transcript: transcriptText }),
-        }
-      );
+      // Generate weekly pack using secure API
+      const pack = await invokeFunction<any>('generate-week-pack', {
+        transcript: transcriptText
+      });
 
-      if (!packResponse.ok) {
+      if (!pack) {
         throw new Error('Erro ao gerar pacote semanal');
       }
-
-      const pack = await packResponse.json();
       
       // Step 3: Content generated (75%)
       setGenerationProgress(75);
@@ -290,22 +283,12 @@ const Dashboard = () => {
     setIsGeneratingChallenge(true);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ideon-challenge`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-        }
-      );
+      // Generate challenge using secure API
+      const challengeData = await invokeFunction<any>('generate-ideon-challenge', {});
 
-      if (!response.ok) {
+      if (!challengeData) {
         throw new Error('Erro ao gerar desafio');
       }
-
-      const challengeData = await response.json();
       setChallenge(challengeData);
 
       // Save challenge to database
@@ -365,26 +348,39 @@ const Dashboard = () => {
 
       {/* Header */}
       <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-white">Ide.On</h1>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate("/historico")}
-              data-tour="history-button"
-            >
-              Histórico
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate("/planner")}
-              data-tour="planner-button"
-            >
-              Planner Visual
-            </Button>
-            <Button variant="outline" onClick={handleLogout}>
-              Sair
-            </Button>
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center mb-4">
+            <h1 className="text-2xl font-bold text-white">Ide.On</h1>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/historico")}
+                data-tour="history-button"
+              >
+                Histórico
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/planner")}
+                data-tour="planner-button"
+              >
+                Planner Visual
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/metrics")}
+              >
+                Métricas
+              </Button>
+              <Button variant="outline" onClick={handleLogout}>
+                Sair
+              </Button>
+            </div>
+          </div>
+          
+          {/* Rate Limit Indicator */}
+          <div className="max-w-sm">
+            <RateLimitIndicator />
           </div>
         </div>
       </header>

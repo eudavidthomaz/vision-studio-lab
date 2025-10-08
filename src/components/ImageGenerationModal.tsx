@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Download, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSecureApi } from "@/hooks/useSecureApi";
 
 interface ImageGenerationModalProps {
   open: boolean;
@@ -28,39 +29,24 @@ const ImageGenerationModal = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const { toast } = useToast();
+  const { invokeFunction } = useSecureApi();
 
   const handleGenerate = async () => {
     setIsGenerating(true);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-post-image`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            formato,
-            copy: editedCopy,
-            estilo,
-            pilar,
-          }),
-        }
-      );
+      const data = await invokeFunction<{ image_url: string }>('generate-post-image', {
+        formato,
+        copy: editedCopy,
+        estilo,
+        pilar,
+      });
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error('Limite de taxa excedido. Por favor, tente novamente mais tarde.');
-        }
-        if (response.status === 402) {
-          throw new Error('Créditos insuficientes. Por favor, adicione créditos ao seu workspace.');
-        }
-        throw new Error('Erro ao gerar imagem');
+      if (!data) {
+        // Error already handled by useSecureApi
+        return;
       }
 
-      const data = await response.json();
       setGeneratedImage(data.image_url);
       
       if (onImageGenerated) {
@@ -72,12 +58,7 @@ const ImageGenerationModal = ({
         description: "Sua imagem foi criada com sucesso.",
       });
     } catch (error) {
-      console.error('Error generating image:', error);
-      toast({
-        title: "Erro",
-        description: error instanceof Error ? error.message : "Não foi possível gerar a imagem. Tente novamente.",
-        variant: "destructive",
-      });
+      console.error('Unexpected error:', error);
     } finally {
       setIsGenerating(false);
     }

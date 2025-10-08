@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSecureApi } from "@/hooks/useSecureApi";
 
 interface ContentIdeaModalProps {
   open: boolean;
@@ -28,6 +29,7 @@ export default function ContentIdeaModal({
   const [pilar, setPilar] = useState(defaultPilar);
   const [contexto, setContexto] = useState("");
   const { toast } = useToast();
+  const { invokeFunction } = useSecureApi();
 
   const handleGenerate = async () => {
     if (!tema.trim()) {
@@ -42,29 +44,19 @@ export default function ContentIdeaModal({
     setIsGenerating(true);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-content-idea`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            tipo_conteudo: tipo,
-            tema,
-            tom,
-            pilar,
-            contexto_adicional: contexto
-          }),
-        }
-      );
+      const idea = await invokeFunction<any>('generate-content-idea', {
+        tipo_conteudo: tipo,
+        tema,
+        tom,
+        pilar,
+        contexto_adicional: contexto
+      });
 
-      if (!response.ok) {
-        throw new Error('Erro ao gerar ideia');
+      if (!idea) {
+        // Error already handled by useSecureApi
+        return;
       }
 
-      const idea = await response.json();
       onIdeaGenerated(idea);
       onOpenChange(false);
       
@@ -77,12 +69,7 @@ export default function ContentIdeaModal({
         description: "Nova ideia de conteúdo criada com sucesso.",
       });
     } catch (error) {
-      console.error('Error generating idea:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível gerar a ideia. Tente novamente.",
-        variant: "destructive",
-      });
+      console.error('Unexpected error:', error);
     } finally {
       setIsGenerating(false);
     }
