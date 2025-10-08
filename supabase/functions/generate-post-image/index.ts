@@ -115,31 +115,37 @@ serve(async (req) => {
     // Truncate copy if too long
     const truncatedCopy = sanitizedCopy.length > 200 ? sanitizedCopy.substring(0, 200) + '...' : sanitizedCopy;
 
-    const prompt = `Create a premium, professional Instagram post image for church social media content.
+    // Adaptar descrições de estilo ao novo prompt
+    const estiloAdaptacoes = {
+      'minimalista': 'fundo liso ou leve gradiente escuro; foco total no título grande; poucos elementos gráficos; subtítulo pequeno "handwritten" sutil.',
+      'tipografico': 'sem foto. Fundo sólido/texturizado (papel). Título branco em grotesk bold/condensed; use um realce de caneta (sublinhar ou oval) em 1–2 palavras-chave; assinatura manuscrita no cantinho.',
+      'fotografico': 'cena cinematográfica com luz dramática (culto contemporâneo, campo de trigo, milharal, deserto ao entardecer). Profundidade de campo realista; grade tipo Kodak Portra; texto ocupando terço esquerdo/baixo com fundo limpo.',
+      'ilustrativo': 'colagem/estêncil sobre papel texturizado; paleta terrosa/retrô; bordas orgânicas; ruído fino. Evitar cartoon infantil.'
+    };
 
-STYLE SPECIFICATIONS:
-- Design Style: ${estiloDesc}
-- Visual Theme: ${pilarStyle}
-- Quality: Ultra-high definition, 300 DPI equivalent, professional print quality
-- Composition: Rule of thirds, balanced layout, professional graphic design standards
+    const estiloAdaptacao = estiloAdaptacoes[estilo as keyof typeof estiloAdaptacoes] || estiloAdaptacoes['minimalista'];
 
-VISUAL REQUIREMENTS:
-- Typography: Professional, legible, hierarchy clear, church-appropriate fonts
-- Color Palette: Harmonious, professional color grading, balanced contrast
-- Graphics: Sharp, crisp, no pixelation, smooth gradients
-- Layout: Spacious, breathing room, professional margins, Instagram-optimized
+    const prompt = `Tarefa: Gerar um pôster para redes sociais no formato ${dimensoes.width}x${dimensoes.height}px (respeite a proporção e margens de segurança), com estética editorial cristã/cinemática e acabamento profissional.
 
-TEXT CONTENT TO FEATURE:
-"${truncatedCopy}"
+Texto a renderizar (exato, em PT-BR, sem traduzir ou reescrever):
+* Título: primeira linha do texto "${truncatedCopy}" (aplique visualmente CAIXA-ALTA, grotesk bold/condensed, alinhado à esquerda, tracking levemente negativo, linhas compactas).
+* Subtítulo/assinatura (opcional): linhas seguintes do texto (estilo handwritten/brush fino, podendo ter sublinhado discreto ou setas desenhadas à mão).
 
-${sanitizedContexto ? `ADDITIONAL CONTEXT: ${sanitizedContexto}` : ''}
+Diretrizes comuns (sempre):
+* Composição: layout limpo, forte hierarquia, espaço negativo para respiro; grid 12 col / 24pt baseline; margens mín. 6% do lado menor.
+* Legibilidade: alto contraste texto/fundo; não distorcer letras; evitar fundo poluído atrás do título.
+* Tratamento de imagem: granulação de filme 6–8%, matte finish, halation suave nas altas luzes; nitidez profissional sem oversharpen.
+* Cores sugeridas: paleta quente (âmbar/ocre/sépia) ou neutros elegantes (preto carvão, off-white), com possibilidade de destaque laranja #F2552B.
+* Respeito: retratar pessoas de forma digna, natural, sem caricatura.
 
-TECHNICAL SPECS:
-- Resolution: ${dimensoes.width}x${dimensoes.height}px
-- Output: Clean, polished, publication-ready
-- Style: Modern Christian content, inspiring, engaging, professional
+Adapte ao ESTILO "${estilo}":
+${estiloAdaptacao}
 
-IMPORTANT: Create a visually stunning, magazine-quality image that would stand out in a professional church's Instagram feed. Focus on clean design, professional aesthetics, and visual impact.`;
+${sanitizedContexto ? `Contexto adicional: ${sanitizedContexto}` : ''}
+
+NUNCA fazer: baixa resolução, clip-art, 3D/cartoon, neon, bevel/emboss, sombras duras, textos errados/omitidos, deformações de mão/rosto, marcas d'água, molduras, excesso de elementos.
+
+Entrega: imagem final pronta para social no formato ${dimensoes.width}x${dimensoes.height}px, texto nítido e legível, sem bordas.`;
 
     console.log('Calling Lovable AI...');
 
