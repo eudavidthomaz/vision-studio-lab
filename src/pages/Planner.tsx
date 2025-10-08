@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHistory } from "@/hooks/useHistory";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DndContext,
@@ -90,6 +91,22 @@ export default function Planner() {
       },
     })
   );
+
+  const handleRefresh = async () => {
+    if (user) {
+      await loadPlanner(user.id);
+      toast({
+        title: "✓ Atualizado",
+        description: "Planner atualizado com sucesso",
+        duration: 2000,
+      });
+    }
+  };
+
+  const { handlers: pullHandlers, pullDistance, isRefreshing } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+  });
 
   // Keyboard shortcuts for undo/redo
   useEffect(() => {
@@ -682,7 +699,26 @@ export default function Planner() {
           </div>
 
           {/* Mobile: Tabs Navigation */}
-          <div className="lg:hidden">
+          <div className="lg:hidden" {...pullHandlers}>
+            {/* Pull to Refresh Indicator */}
+            {(pullDistance > 0 || isRefreshing) && (
+              <div 
+                className="flex justify-center items-center py-2 transition-all duration-300"
+                style={{
+                  transform: `translateY(${Math.min(pullDistance, 80)}px)`,
+                  opacity: Math.min(pullDistance / 80, 1),
+                }}
+              >
+                {isRefreshing ? (
+                  <Loader2 className="h-6 w-6 animate-pull-refresh text-primary" />
+                ) : (
+                  <div className="text-sm text-muted-foreground">
+                    {pullDistance >= 80 ? "Solte para atualizar" : "Puxe para atualizar"}
+                  </div>
+                )}
+              </div>
+            )}
+            
             <Tabs value={selectedDay} onValueChange={setSelectedDay}>
               {/* Tabs Navigation with Scroll */}
               <div className="sticky top-[73px] z-20 bg-gradient-to-br from-gray-900 via-gray-800 to-black pb-4 -mx-4 px-4">
@@ -755,18 +791,23 @@ export default function Planner() {
               </div>
 
               {/* Tab Content for Each Day */}
-              {daysOfWeek.map(({ day }) => (
+              {daysOfWeek.map(({ day }, dayIndex) => (
                 <TabsContent key={day} value={day} className="mt-0">
                   <div className="space-y-4">
-                    {(contentByDay[day] || []).map((content) => (
-                      <MobileContentCard
+                    {(contentByDay[day] || []).map((content, index) => (
+                      <div 
                         key={content.id}
-                        content={content}
-                        onDelete={(id) => handleDelete(day, id)}
-                        onUpdate={(id, updates) => handleUpdate(day, id, updates)}
-                        onMove={(id) => openMoveDrawer(day, id)}
-                        onEdit={() => openEditDrawer(day, content.id)}
-                      />
+                        className="animate-slide-in"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <MobileContentCard
+                          content={content}
+                          onDelete={(id) => handleDelete(day, id)}
+                          onUpdate={(id, updates) => handleUpdate(day, id, updates)}
+                          onMove={(id) => openMoveDrawer(day, id)}
+                          onEdit={() => openEditDrawer(day, content.id)}
+                        />
+                      </div>
                     ))}
                     
                     {(!contentByDay[day] || contentByDay[day].length === 0) && (

@@ -80,10 +80,64 @@ export default {
             height: "0",
           },
         },
+        "fade-in": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(10px)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)",
+          },
+        },
+        "slide-in": {
+          "0%": {
+            transform: "translateX(-100%)",
+            opacity: "0",
+          },
+          "100%": {
+            transform: "translateX(0)",
+            opacity: "1",
+          },
+        },
+        "swipe-delete": {
+          "0%": {
+            transform: "translateX(0)",
+            opacity: "1",
+          },
+          "100%": {
+            transform: "translateX(-100%)",
+            opacity: "0",
+          },
+        },
+        "swipe-copy": {
+          "0%": {
+            opacity: "1",
+          },
+          "50%": {
+            opacity: "0.5",
+          },
+          "100%": {
+            opacity: "1",
+          },
+        },
+        "pull-refresh": {
+          "0%": {
+            transform: "rotate(0deg)",
+          },
+          "100%": {
+            transform: "rotate(360deg)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.3s ease-out",
+        "slide-in": "slide-in 0.3s ease-out",
+        "swipe-delete": "swipe-delete 0.3s ease-out forwards",
+        "swipe-copy": "swipe-copy 0.3s ease-out",
+        "pull-refresh": "pull-refresh 1s linear infinite",
       },
     },
   },

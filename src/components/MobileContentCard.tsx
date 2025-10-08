@@ -5,6 +5,7 @@ import { Copy, Image as ImageIcon, MoreVertical, Move } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import ImageGenerationModal from "./ImageGenerationModal";
+import { useSwipeGesture } from "@/hooks/useSwipeGesture";
 import {
   Sheet,
   SheetContent,
@@ -51,6 +52,24 @@ export default function MobileContentCard({
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const { handlers, swipeOffset } = useSwipeGesture({
+    onSwipeLeft: () => {
+      setIsDeleting(true);
+      setTimeout(() => {
+        onDelete(content.id);
+        toast({
+          title: "Conteúdo removido",
+          description: "Item deletado com sucesso",
+        });
+      }, 300);
+    },
+    onSwipeRight: () => {
+      copyAll();
+    },
+    threshold: 100,
+  });
 
   const handleImageGenerated = (imageUrl: string) => {
     onUpdate(content.id, { imagem_url: imageUrl });
@@ -83,7 +102,14 @@ export default function MobileContentCard({
   return (
     <>
       <Card 
-        className="bg-card/50 backdrop-blur-sm border-border/50 active:scale-[0.98] transition-transform"
+        className={`bg-card/50 backdrop-blur-sm border-border/50 active:scale-[0.98] transition-all duration-300 ${
+          isDeleting ? 'animate-swipe-delete' : ''
+        }`}
+        style={{
+          transform: `translateX(${swipeOffset}px)`,
+          transition: swipeOffset === 0 ? 'transform 0.3s ease-out' : 'none',
+        }}
+        {...handlers}
       >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
@@ -181,6 +207,7 @@ export default function MobileContentCard({
                 src={content.imagem_url}
                 alt={content.titulo}
                 className="w-full h-40 object-cover"
+                loading="lazy"
               />
             </div>
           )}
