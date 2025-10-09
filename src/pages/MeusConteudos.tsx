@@ -39,7 +39,13 @@ const MeusConteudos = () => {
   };
 
   const handleShare = (content: NormalizedContent) => {
-    setContentToShare(content);
+    // Remove prefixo (ai-, pack-, challenge-) do ID para obter UUID puro
+    const cleanId = content.id.replace(/^(ai|pack|challenge)-/, '');
+    
+    setContentToShare({
+      ...content,
+      id: cleanId
+    });
     setShareDialogOpen(true);
   };
 
