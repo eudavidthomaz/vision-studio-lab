@@ -46,20 +46,58 @@ serve(async (req) => {
       });
     }
 
+    // Detectar se é uma transcrição longa (provável áudio de pregação)
+    const isLongTranscript = prompt.length > 5000;
+    console.log(`Processing prompt (${prompt.length} chars), isLongTranscript: ${isLongTranscript}`);
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const systemPrompt = `${CORE_PRINCIPLES}
-
-${CONTENT_METHOD}
-
-${PILLAR_DISTRIBUTION}
-
-Você é um assistente especializado em criar conteúdo cristão para redes sociais.
-Analise o pedido do usuário e gere um conteúdo COMPLETO em formato JSON com a seguinte estrutura EXATA:
-
+    // Estrutura expandida para transcrições de pregação
+    const expandedStructure = isLongTranscript ? `
+{
+  "fundamento_biblico": {
+    "versiculos": ["Versículo 1 completo com referência", "Versículo 2..."],
+    "contexto": "Contexto histórico e literário em 2-3 linhas",
+    "principio": "O princípio atemporal em uma frase clara"
+  },
+  "resumo_pregacao": "Resumo pastoral da mensagem em 2-3 parágrafos (APENAS para transcrições)",
+  "frases_impactantes": ["Frase marcante 1 da pregação", "Frase marcante 2", "...5-7 frases"],
+  "stories": [
+    { "dia": "Segunda", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
+    { "dia": "Terça", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
+    { "dia": "Quarta", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
+    { "dia": "Quinta", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
+    { "dia": "Sexta", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
+    { "dia": "Sábado", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
+    { "dia": "Domingo", "texto": "Ideia de story", "versiculo": "Referência bíblica" }
+  ],
+  "conteudo": {
+    "tipo": "carrossel | reel | post",
+    "legenda": "Legenda completa, emocional, pastoral, com quebras de linha e emojis contextuais",
+    "pilar": "ALCANÇAR | EDIFICAR | PERTENCER | SERVIR"
+  },
+  "estrutura_visual": {
+    "cards": [
+      { "titulo": "Título do card 1", "texto": "Texto do card 1" },
+      { "titulo": "Título do card 2", "texto": "Texto do card 2" }
+    ],
+    "roteiro": "Se for vídeo/reel, o roteiro completo com timing"
+  },
+  "estudo_biblico": {
+    "tema": "Tema principal do estudo",
+    "versiculos": ["Versículo 1 com referência", "Versículo 2..."],
+    "perguntas": ["Pergunta reflexiva 1", "Pergunta 2", "...5-7 perguntas para células"]
+  },
+  "dica_producao": {
+    "formato": "Ex: Carrossel 1080x1350px, 5 slides",
+    "estilo": "Ex: Minimalista com tipografia destacada e cores suaves",
+    "horario": "Ex: Manhã (7-9h) para devocionais",
+    "hashtags": ["#hashtag1", "#hashtag2", "...8-12 hashtags estratégicas"]
+  }
+}` : `
 {
   "fundamento_biblico": {
     "versiculos": ["Versículo 1 completo com referência", "Versículo 2..."],
@@ -73,30 +111,41 @@ Analise o pedido do usuário e gere um conteúdo COMPLETO em formato JSON com a 
   },
   "estrutura_visual": {
     "cards": [
-      {
-        "titulo": "Título do card 1",
-        "texto": "Texto do card 1"
-      }
+      { "titulo": "Título do card 1", "texto": "Texto do card 1" }
     ],
     "roteiro": "Se for vídeo/reel, o roteiro completo"
   },
   "dica_producao": {
     "formato": "Ex: Carrossel 1080x1350px, 5 slides",
     "estilo": "Ex: Minimalista com tipografia destacada e cores suaves",
-    "horario": "Ex: Manhã (7-9h) para devocionais | Tarde (15-17h) para reflexões",
+    "horario": "Ex: Manhã (7-9h) para devocionais",
     "hashtags": ["#hashtag1", "#hashtag2", "...8-12 hashtags estratégicas"]
   }
-}
+}`;
+
+    const systemPrompt = `${CORE_PRINCIPLES}
+
+${CONTENT_METHOD}
+
+${PILLAR_DISTRIBUTION}
+
+Você é um assistente especializado em criar conteúdo cristão para redes sociais.
+Analise o pedido do usuário e gere um conteúdo COMPLETO em formato JSON.
+
+${isLongTranscript ? 'VOCÊ RECEBEU UMA TRANSCRIÇÃO DE PREGAÇÃO. Use a estrutura EXPANDIDA abaixo:' : 'Use a estrutura padrão abaixo:'}
+
+${expandedStructure}
 
 REGRAS IMPORTANTES:
 1. SEMPRE inclua versículos bíblicos completos e relevantes
-2. O contexto deve ser breve mas informativo
+2. ${isLongTranscript ? 'Para transcrições: inclua resumo_pregacao, frases_impactantes, stories (7 dias) e estudo_biblico' : 'O contexto deve ser breve mas informativo'}
 3. A legenda deve ser pastoral, calorosa e prática
 4. Se for carrossel, inclua 3-7 cards
 5. Se for vídeo/reel, inclua roteiro com timing
 6. Hashtags devem ser relevantes para público cristão brasileiro
 7. Escolha o pilar mais adequado ao tema
-8. Retorne APENAS o JSON, sem texto adicional`;
+8. ${isLongTranscript ? 'Extraia as frases MAIS IMPACTANTES da pregação original' : 'Crie conteúdo relevante e envolvente'}
+9. Retorne APENAS o JSON, sem texto adicional`;
 
     console.log('Calling Lovable AI with prompt:', prompt.substring(0, 100));
 

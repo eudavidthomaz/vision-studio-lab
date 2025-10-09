@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSecureApi } from "@/hooks/useSecureApi";
 
 interface AudioInputProps {
-  onTranscriptionComplete: (transcript: string) => void;
+  onTranscriptionComplete: (transcript: string, sermonId?: string) => void;
 }
 
 const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
@@ -138,7 +138,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
         });
 
         try {
-          const result = await invokeFunction<{ transcript: string }>('transcribe-sermon', {
+          const result = await invokeFunction<{ transcript: string; sermon_id?: string }>('transcribe-sermon', {
             audio_base64: base64Audio
           });
 
@@ -153,7 +153,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
             description: "Sua pregação está pronta para impactar vidas através de cada plataforma.",
           });
 
-          onTranscriptionComplete(result.transcript);
+          onTranscriptionComplete(result.transcript, result.sermon_id);
           setSelectedFile(null);
         } catch (error) {
           console.error('Unexpected error:', error);

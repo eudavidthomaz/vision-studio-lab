@@ -90,11 +90,30 @@ serve(async (req) => {
     // Log success
     await logSecurityEvent(supabaseClient, userId, 'transcribe_success', 'transcribe-sermon', true);
 
+    // Save transcript to database
+    const { data: sermon, error: saveError } = await supabaseClient
+      .from('sermons')
+      .insert({
+        user_id: userId,
+        transcript: sanitizedText,
+        status: 'completed'
+      })
+      .select()
+      .single();
+
+    if (saveError) {
+      console.error('Error saving sermon:', saveError);
+      await logSecurityEvent(supabaseClient, userId, 'sermon_save_failed', 'transcribe-sermon', false, saveError.message);
+    }
+
     const duration = Date.now() - startTime;
-    console.log(`Transcription completed in ${duration}ms`);
+    console.log(`Transcription completed in ${duration}ms, sermon_id: ${sermon?.id}`);
 
     return new Response(
-      JSON.stringify({ transcript: sanitizedText }),
+      JSON.stringify({ 
+        transcript: sanitizedText,
+        sermon_id: sermon?.id 
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
