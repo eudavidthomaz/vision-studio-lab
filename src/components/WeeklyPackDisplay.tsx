@@ -31,7 +31,7 @@ interface WeeklyPackProps {
     carrosseis?: Array<{
       titulo?: string;
       pilar_estrategico?: string;
-      slides?: Array<{
+      slides?: Array<string | {
         dia?: number;
         texto?: string;
         versiculo?: string;
@@ -254,17 +254,26 @@ const WeeklyPackDisplay = ({ pack, packId }: WeeklyPackProps) => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {carrossel.slides?.map((slide, slideIndex) => (
-                    <div key={slideIndex} className="p-4 bg-gray-900/50 rounded-lg border border-gray-600">
-                      <p className="text-sm text-gray-400 mb-2">Slide {slideIndex + 1} {slide.dia && `- Dia ${slide.dia}`}</p>
-                      <p className="text-gray-300 mb-2">{slide.texto}</p>
-                      {slide.versiculo && (
-                        <p className="text-xs text-gray-500 italic border-l-2 border-primary/30 pl-2 mt-2">
-                          {slide.versiculo}
+                  {carrossel.slides?.map((slide, slideIndex) => {
+                    // Normalizar slides: aceitar tanto string quanto objeto
+                    const normalizedSlide = typeof slide === 'string' 
+                      ? { texto: slide }
+                      : slide;
+                    
+                    return (
+                      <div key={slideIndex} className="p-4 bg-gray-900/50 rounded-lg border border-gray-600">
+                        <p className="text-sm text-gray-400 mb-2">
+                          Slide {slideIndex + 1} {normalizedSlide.dia && `- Dia ${normalizedSlide.dia}`}
                         </p>
-                      )}
-                    </div>
-                  ))}
+                        <p className="text-gray-300 mb-2">{normalizedSlide.texto}</p>
+                        {normalizedSlide.versiculo && (
+                          <p className="text-xs text-gray-500 italic border-l-2 border-primary/30 pl-2 mt-2">
+                            {normalizedSlide.versiculo}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
