@@ -11,7 +11,12 @@ interface WeeklyPackProps {
   pack: {
     resumo?: string;
     frases_impactantes?: string[];
-    stories?: string[];
+    stories?: Array<{
+      dia: number;
+      tipo: string;
+      texto: string;
+      versiculo?: string;
+    }>;
     estudo_biblico?: {
       tema?: string;
       versiculos?: string[];
@@ -27,8 +32,9 @@ interface WeeklyPackProps {
       titulo?: string;
       pilar_estrategico?: string;
       slides?: Array<{
+        dia?: number;
         texto?: string;
-        sugestao_imagem?: string;
+        versiculo?: string;
       }>;
     }>;
     reels?: Array<{
@@ -141,14 +147,23 @@ const WeeklyPackDisplay = ({ pack, packId }: WeeklyPackProps) => {
           {pack.stories?.map((story, index) => (
             <Card key={index} className="bg-gray-800/50 border-gray-700">
               <CardHeader>
-                <CardTitle className="text-white text-lg">Story #{index + 1}</CardTitle>
+                <CardTitle className="text-white text-lg">Story #{index + 1} - Dia {story.dia}</CardTitle>
+                <CardDescription className="text-gray-400">{story.tipo}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-300 mb-4">{story}</p>
+                <div className="space-y-2">
+                  <p className="text-gray-300 mb-4">{story.texto}</p>
+                  {story.versiculo && (
+                    <p className="text-sm text-gray-400 italic border-l-2 border-primary/30 pl-3">
+                      {story.versiculo}
+                    </p>
+                  )}
+                </div>
                 <Button
-                  onClick={() => copyToClipboard(story, `story-${index}`)}
+                  onClick={() => copyToClipboard(story.texto, `story-${index}`)}
                   variant="outline"
                   size="sm"
+                  className="mt-4"
                 >
                   {copiedIndex === `story-${index}` ? (
                     <><Check className="h-4 w-4 mr-2" /> Copiado</>
@@ -233,14 +248,21 @@ const WeeklyPackDisplay = ({ pack, packId }: WeeklyPackProps) => {
             <Card key={index} className="bg-gray-800/50 border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white">{carrossel.titulo}</CardTitle>
+                {carrossel.pilar_estrategico && (
+                  <CardDescription className="text-gray-400">{carrossel.pilar_estrategico}</CardDescription>
+                )}
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {carrossel.slides?.map((slide, slideIndex) => (
                     <div key={slideIndex} className="p-4 bg-gray-900/50 rounded-lg border border-gray-600">
-                      <p className="text-sm text-gray-400 mb-2">Slide {slideIndex + 1}</p>
+                      <p className="text-sm text-gray-400 mb-2">Slide {slideIndex + 1} {slide.dia && `- Dia ${slide.dia}`}</p>
                       <p className="text-gray-300 mb-2">{slide.texto}</p>
-                      <p className="text-xs text-gray-500 italic">Imagem: {slide.sugestao_imagem}</p>
+                      {slide.versiculo && (
+                        <p className="text-xs text-gray-500 italic border-l-2 border-primary/30 pl-2 mt-2">
+                          {slide.versiculo}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
