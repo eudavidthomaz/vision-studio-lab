@@ -56,10 +56,8 @@ const MeusConteudos = () => {
   };
 
   // Mapear contentType para o ShareContentDialog
-  const getContentTypeForShare = (source: string): 'pack' | 'challenge' | 'planner' => {
-    if (source === 'weekly-pack') return 'pack';
-    if (source === 'ideon-challenge') return 'challenge';
-    return 'planner';
+  const getContentTypeForShare = (source: string): 'pack' | 'challenge' | 'planner' | 'generated' => {
+    return 'generated';
   };
 
   if (loading) {

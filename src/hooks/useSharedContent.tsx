@@ -15,7 +15,7 @@ export const useSharedContent = () => {
    */
   const createPublicShare = async (
     contentId: string,
-    contentType: 'pack' | 'challenge' | 'planner'
+    contentType: 'pack' | 'challenge' | 'planner' | 'generated'
   ): Promise<SharedContent | null> => {
     setIsLoading(true);
     try {
@@ -63,7 +63,7 @@ export const useSharedContent = () => {
    */
   const createApprovalShare = async (
     contentId: string,
-    contentType: 'pack' | 'challenge' | 'planner'
+    contentType: 'pack' | 'challenge' | 'planner' | 'generated'
   ): Promise<SharedContent | null> => {
     setIsLoading(true);
     try {

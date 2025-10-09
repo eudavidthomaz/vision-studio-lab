@@ -127,24 +127,16 @@ REGRAS IMPORTANTES:
 
     const generatedContent = JSON.parse(aiData.choices[0].message.content);
 
-    // Salvar na tabela content_planners
-    const today = new Date();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - today.getDay());
-
+    // Salvar no banco de conteúdos gerados
     const { data: savedContent, error: saveError } = await supabase
-      .from('content_planners')
+      .from('generated_contents')
       .insert({
         user_id: user.id,
-        week_start_date: weekStart.toISOString().split('T')[0],
-        content: [
-          {
-            ...generatedContent,
-            prompt_original: prompt,
-            created_at: new Date().toISOString(),
-            tipo: 'ai-generated'
-          }
-        ]
+        source_type: 'ai-creator',
+        content: generatedContent,
+        content_format: generatedContent.conteudo?.tipo || 'post',
+        pilar: generatedContent.conteudo?.pilar || 'ALCANÇAR',
+        prompt_original: prompt
       })
       .select()
       .single();

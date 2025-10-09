@@ -4,10 +4,10 @@ import { useSharedContent } from '@/hooks/useSharedContent';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, AlertCircle, Home } from 'lucide-react';
 import WeeklyPackDisplay from '@/components/WeeklyPackDisplay';
 import IdeonChallengeCard from '@/components/IdeonChallengeCard';
-import ContentPlannerDisplay from '@/components/ContentPlannerDisplay';
 
 export default function SharedContentView() {
   const { contentType, shareToken } = useParams<{ contentType: string; shareToken: string }>();
@@ -41,6 +41,15 @@ export default function SharedContentView() {
         // Buscar conteúdo original baseado no tipo
         let contentData;
         switch (share.content_type) {
+          case 'generated':
+            const { data: generated } = await supabase
+              .from('generated_contents')
+              .select('*')
+              .eq('id', share.content_id)
+              .single();
+            contentData = generated;
+            break;
+
           case 'pack':
             const { data: pack } = await supabase
               .from('weekly_packs')
@@ -158,6 +167,25 @@ export default function SharedContentView() {
 
       {/* Conteúdo */}
       <main className="container mx-auto px-4 py-8 max-w-6xl">
+        {shareData?.content_type === 'generated' && content && (
+          <>
+            {content.source_type === 'audio-pack' ? (
+              <WeeklyPackDisplay pack={content.content} />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Conteúdo Gerado por IA</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <pre className="whitespace-pre-wrap text-sm">
+                    {JSON.stringify(content.content, null, 2)}
+                  </pre>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
+
         {shareData?.content_type === 'pack' && content && (
           <WeeklyPackDisplay pack={content.pack} />
         )}
@@ -167,7 +195,16 @@ export default function SharedContentView() {
         )}
         
         {shareData?.content_type === 'planner' && content && (
-          <ContentPlannerDisplay content={content.content} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Conteúdo do Planner</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <pre className="whitespace-pre-wrap text-sm">
+                {JSON.stringify(content.content, null, 2)}
+              </pre>
+            </CardContent>
+          </Card>
         )}
 
         {/* Comentário do revisor (se houver) */}

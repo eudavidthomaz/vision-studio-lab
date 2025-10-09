@@ -15,7 +15,7 @@ interface ShareContentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   content: any;
-  contentType: 'pack' | 'challenge' | 'planner';
+  contentType: 'pack' | 'challenge' | 'planner' | 'generated';
 }
 
 export const ShareContentDialog = ({ open, onOpenChange, content, contentType }: ShareContentDialogProps) => {

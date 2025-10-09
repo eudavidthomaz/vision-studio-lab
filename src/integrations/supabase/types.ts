@@ -83,6 +83,42 @@ export type Database = {
         }
         Relationships: []
       }
+      generated_contents: {
+        Row: {
+          content: Json
+          content_format: string | null
+          created_at: string | null
+          id: string
+          pilar: string | null
+          prompt_original: string | null
+          source_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content?: Json
+          content_format?: string | null
+          created_at?: string | null
+          id?: string
+          pilar?: string | null
+          prompt_original?: string | null
+          source_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          content_format?: string | null
+          created_at?: string | null
+          id?: string
+          pilar?: string | null
+          prompt_original?: string | null
+          source_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ideon_challenges: {
         Row: {
           challenge: Json | null

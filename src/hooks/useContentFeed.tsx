@@ -39,42 +39,21 @@ export function useContentFeed() {
         throw new Error('Unauthorized');
       }
 
-      // Buscar content_planners (IA)
-      const { data: aiContent, error: aiError } = await supabase
-        .from("content_planners")
+      // Buscar todos os conteúdos gerados
+      const { data: contents, error } = await supabase
+        .from("generated_contents")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (aiError) throw aiError;
+      if (error) throw error;
 
       // SECURITY: Validate all data belongs to user
-      if (aiContent?.some(item => item.user_id !== user.id)) {
+      if (contents?.some(item => item.user_id !== user.id)) {
         await supabase.from('security_audit_log').insert({
           user_id: user.id,
           event_type: 'data_integrity_violation',
-          endpoint: 'content_planners',
-          success: false,
-          error_message: 'Query returned data from other users'
-        });
-        throw new Error('Data integrity violation detected');
-      }
-
-      // Buscar weekly_packs
-      const { data: weekPacks, error: packError } = await supabase
-        .from("weekly_packs")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (packError) throw packError;
-
-      // SECURITY: Validate all data belongs to user
-      if (weekPacks?.some(item => item.user_id !== user.id)) {
-        await supabase.from('security_audit_log').insert({
-          user_id: user.id,
-          event_type: 'data_integrity_violation',
-          endpoint: 'weekly_packs',
+          endpoint: 'generated_contents',
           success: false,
           error_message: 'Query returned data from other users'
         });
@@ -83,51 +62,38 @@ export function useContentFeed() {
 
       const normalized: NormalizedContent[] = [];
 
-      // Normalizar content_planners (IA)
-      aiContent?.forEach((item) => {
-        const plannerDataArray = item.content as any[];
-        const plannerData = plannerDataArray?.[0];
+      // Normalizar conteúdos
+      contents?.forEach((item) => {
+        const isAudioPack = item.source_type === 'audio-pack';
+        const content = item.content as any;
         
-        // Detectar se é conteúdo de IA
-        if (plannerData?.tipo === "ai-generated" || plannerData?.prompt_original) {
-          const verses = plannerData.fundamento_biblico?.versiculos || [];
-          const firstVerse = verses[0] ? `${verses[0].versiculo} - ${verses[0].referencia}` : "";
-          
-          normalized.push({
-            id: `ai-${item.id}`,
-            source: "ai-creator",
-            format: (plannerData.conteudo?.tipo || "post") as ContentFormat,
-            pilar: (plannerData.conteudo?.pilar || "ALCANÇAR") as ContentPilar,
-            title: plannerData.prompt_original || "Conteúdo IA",
-            verse: firstVerse,
-            preview: plannerData.conteudo?.legenda || plannerData.conteudo?.roteiro || "",
-            hashtags: plannerData.dica_producao?.hashtags || [],
-            createdAt: new Date(item.created_at || Date.now()),
-            rawData: plannerData,
-          });
-        }
-      });
-
-      // Normalizar weekly_packs
-      weekPacks?.forEach((item) => {
-        const packData = item.pack as any;
+        let verse = "";
+        let hashtags: string[] = [];
+        let preview = "";
         
-        if (packData) {
-          const verse = packData.versiculo_principal || "";
-          
-          normalized.push({
-            id: `pack-${item.id}`,
-            source: "week-pack",
-            format: "carrossel",
-            pilar: "EXALTAR" as ContentPilar,
-            title: packData.titulo_principal || "Pack Semanal",
-            verse: verse,
-            preview: packData.resumo_pregacao || "",
-            hashtags: packData.hashtags_sugeridas || [],
-            createdAt: new Date(item.created_at || Date.now()),
-            rawData: packData,
-          });
+        if (isAudioPack) {
+          verse = content.versiculo_principal || "";
+          hashtags = content.hashtags_sugeridas || [];
+          preview = content.resumo_pregacao || content.resumo || "";
+        } else {
+          const verses = content.fundamento_biblico?.versiculos || [];
+          verse = verses[0] || "";
+          hashtags = content.dica_producao?.hashtags || [];
+          preview = content.conteudo?.legenda || content.conteudo?.texto || "";
         }
+        
+        normalized.push({
+          id: item.id,
+          source: isAudioPack ? "week-pack" : "ai-creator",
+          format: (item.content_format || "post") as ContentFormat,
+          pilar: (item.pilar || "ALCANÇAR") as ContentPilar,
+          title: isAudioPack ? "Pack Semanal" : (item.prompt_original || "Conteúdo IA"),
+          verse,
+          preview,
+          hashtags,
+          createdAt: new Date(item.created_at || Date.now()),
+          rawData: content,
+        });
       });
 
       setContents(normalized);
@@ -194,15 +160,12 @@ export function useContentFeed() {
       if (authError || !user?.id) {
         throw new Error('Unauthorized');
       }
-
-      const [type, uuid] = id.split("-");
-      const table = type === "ai" ? "content_planners" : "weekly_packs";
       
       // SECURITY: Verify ownership BEFORE deleting
       const { data: existing } = await supabase
-        .from(table)
+        .from("generated_contents")
         .select("user_id")
-        .eq("id", uuid)
+        .eq("id", id)
         .single();
 
       if (!existing || existing.user_id !== user.id) {
@@ -210,30 +173,22 @@ export function useContentFeed() {
         await supabase.from('security_audit_log').insert({
           user_id: user.id,
           event_type: 'unauthorized_delete_attempt',
-          endpoint: table,
+          endpoint: 'generated_contents',
           success: false,
-          metadata: { attempted_id: uuid }
+          metadata: { attempted_id: id }
         });
         
         throw new Error('Unauthorized: You do not own this content');
       }
 
       // Delete with double-check
-      if (type === "ai") {
-        const { error } = await supabase
-          .from("content_planners")
-          .delete()
-          .eq("id", uuid)
-          .eq("user_id", user.id);
-        if (error) throw error;
-      } else if (type === "pack") {
-        const { error } = await supabase
-          .from("weekly_packs")
-          .delete()
-          .eq("id", uuid)
-          .eq("user_id", user.id);
-        if (error) throw error;
-      }
+      const { error } = await supabase
+        .from("generated_contents")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
+      
+      if (error) throw error;
 
       toast({
         title: "✅ Conteúdo excluído",

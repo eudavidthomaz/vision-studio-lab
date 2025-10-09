@@ -98,44 +98,23 @@ const Dashboard = () => {
     try {
       // Step 1: Transcription complete (25%)
       setGenerationProgress(25);
-      // Save sermon to database
-      const { data: sermonData, error: sermonError } = await supabase
-        .from('sermons')
-        .insert({
-          user_id: user.id,
-          transcript: transcriptText,
-          status: 'completed'
-        })
-        .select()
-        .single();
-
-      if (sermonError) throw sermonError;
 
       // Step 2: Analyzing sermon (50%)
       setGenerationProgress(50);
 
-      // Generate weekly pack using secure API
-      const pack = await invokeFunction<any>('generate-week-pack', {
+      // Generate audio pack using secure API
+      const result = await invokeFunction<any>('generate-audio-pack', {
         transcript: transcriptText
       });
 
-      if (!pack) {
+      if (!result?.content) {
         throw new Error('Erro ao gerar pacote semanal');
       }
       
       // Step 3: Content generated (75%)
       setGenerationProgress(75);
       
-      setWeeklyPack(pack);
-
-      // Save weekly pack to database
-      await supabase
-        .from('weekly_packs')
-        .insert({
-          user_id: user.id,
-          sermon_id: sermonData.id,
-          pack: pack
-        });
+      setWeeklyPack(result.content.content);
 
       // Step 4: Complete (100%)
       setGenerationProgress(100);
