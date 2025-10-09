@@ -15,6 +15,8 @@ import ContentResult from "./pages/ContentResult";
 import Profile from "./pages/Profile";
 import { lazy } from "react";
 import { PrivateRoute } from "./components/PrivateRoute";
+import SharedContentView from "./pages/SharedContentView";
+import ContentReviewPanel from "./pages/ContentReviewPanel";
 
 const UsageDashboard = lazy(() => import("./pages/UsageDashboard"));
 const Analytics = lazy(() => import("./pages/Analytics"));
@@ -30,6 +32,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
+          
+          {/* Public Routes */}
+          <Route path="/shared/:contentType/:shareToken" element={<SharedContentView />} />
+          <Route path="/review/:reviewToken" element={<ContentReviewPanel />} />
           
           {/* Protected Routes */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
