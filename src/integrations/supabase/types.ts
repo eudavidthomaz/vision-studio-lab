@@ -104,6 +104,39 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          church: string | null
+          city: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string
+          instagram: string | null
+          phone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          church?: string | null
+          city?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          instagram?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          church?: string | null
+          city?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          instagram?: string | null
+          phone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       rate_limits: {
         Row: {
           created_at: string

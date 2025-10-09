@@ -1,9 +1,11 @@
-import { Book, Edit3, Palette, Lightbulb, Copy, Save, RotateCw } from "lucide-react";
+import { useState } from "react";
+import { Book, Edit3, Palette, Lightbulb, Copy, Save, RotateCw, Image } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Separator } from "./ui/separator";
 import { Badge } from "./ui/badge";
 import { toast } from "sonner";
+import ImageGenerationModal from "./ImageGenerationModal";
 
 interface ContentResultProps {
   content: {
@@ -34,9 +36,17 @@ interface ContentResultProps {
 }
 
 export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }: ContentResultProps) => {
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<{ copy: string; pilar: string } | null>(null);
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
+  };
+
+  const openImageModal = (copy: string) => {
+    setSelectedContent({ copy, pilar: content.conteudo.pilar });
+    setImageModalOpen(true);
   };
 
   const copyAll = () => {
@@ -145,15 +155,24 @@ Hashtags: ${content.dica_producao.hashtags.join(' ')}
               {content.conteudo.legenda}
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-3"
-            onClick={() => copyToClipboard(content.conteudo.legenda, "Legenda")}
-          >
-            <Copy className="w-4 h-4 mr-2" />
-            Copiar Legenda
-          </Button>
+          <div className="flex gap-2 mt-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => copyToClipboard(content.conteudo.legenda, "Legenda")}
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Copiar Legenda
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openImageModal(content.conteudo.legenda)}
+            >
+              <Image className="w-4 h-4 mr-2" />
+              Gerar Imagem
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -171,8 +190,16 @@ Hashtags: ${content.dica_producao.hashtags.join(' ')}
               <div className="space-y-3">
                 {content.estrutura_visual.cards.map((card, idx) => (
                   <div key={idx} className="p-4 bg-muted/50 rounded-lg border">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center justify-between mb-2">
                       <Badge variant="outline">Card {idx + 1}</Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openImageModal(`${card.titulo}\n\n${card.texto}`)}
+                      >
+                        <Image className="w-3 h-3 mr-1" />
+                        Gerar
+                      </Button>
                     </div>
                     <h4 className="font-semibold mb-2">{card.titulo}</h4>
                     <p className="text-sm text-muted-foreground">{card.texto}</p>
@@ -268,6 +295,16 @@ Hashtags: ${content.dica_producao.hashtags.join(' ')}
           Regenerar
         </Button>
       </div>
+
+      {/* Image Generation Modal */}
+      {selectedContent && (
+        <ImageGenerationModal
+          open={imageModalOpen}
+          onOpenChange={setImageModalOpen}
+          copy={selectedContent.copy}
+          pilar={selectedContent.pilar}
+        />
+      )}
     </div>
   );
 };
