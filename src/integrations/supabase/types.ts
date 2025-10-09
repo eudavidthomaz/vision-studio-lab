@@ -104,6 +104,42 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          related_content_id: string | null
+          related_content_type: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          related_content_id?: string | null
+          related_content_type?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          related_content_id?: string | null
+          related_content_type?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           church: string | null
@@ -224,6 +260,60 @@ export type Database = {
           status?: string | null
           transcript?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      shared_content: {
+        Row: {
+          approval_status: string
+          content_id: string
+          content_type: string
+          created_at: string
+          expires_at: string
+          id: string
+          is_public: boolean
+          requires_approval: boolean
+          review_token: string | null
+          reviewed_at: string | null
+          reviewer_comment: string | null
+          share_token: string | null
+          updated_at: string
+          user_id: string
+          views_count: number
+        }
+        Insert: {
+          approval_status?: string
+          content_id: string
+          content_type: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_public?: boolean
+          requires_approval?: boolean
+          review_token?: string | null
+          reviewed_at?: string | null
+          reviewer_comment?: string | null
+          share_token?: string | null
+          updated_at?: string
+          user_id: string
+          views_count?: number
+        }
+        Update: {
+          approval_status?: string
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_public?: boolean
+          requires_approval?: boolean
+          review_token?: string | null
+          reviewed_at?: string | null
+          reviewer_comment?: string | null
+          share_token?: string | null
+          updated_at?: string
+          user_id?: string
+          views_count?: number
         }
         Relationships: []
       }
@@ -428,6 +518,10 @@ export type Database = {
           _window_minutes: number
         }
         Returns: Json
+      }
+      generate_random_token: {
+        Args: { length: number }
+        Returns: string
       }
       get_user_role: {
         Args: { _user_id: string }
