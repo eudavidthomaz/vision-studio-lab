@@ -49,6 +49,13 @@ serve(async (req) => {
     // Detectar se é uma transcrição longa (provável áudio de pregação)
     const isLongTranscript = prompt.length > 5000;
     console.log(`Processing prompt (${prompt.length} chars), isLongTranscript: ${isLongTranscript}`);
+    
+    // Truncar prompts muito longos para evitar erros
+    let processedPrompt = prompt;
+    if (isLongTranscript && prompt.length > 20000) {
+      console.log('Prompt too long, truncating to 20000 chars');
+      processedPrompt = prompt.substring(0, 20000) + '\n\n[Transcrição truncada por exceder limite]';
+    }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -159,9 +166,11 @@ REGRAS IMPORTANTES:
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: prompt }
+          { role: 'user', content: processedPrompt }
         ],
-        response_format: { type: 'json_object' }
+        response_format: { type: 'json_object' },
+        max_tokens: 4000,
+        temperature: 0.7
       }),
     });
 
@@ -174,7 +183,39 @@ REGRAS IMPORTANTES:
     const aiData = await aiResponse.json();
     console.log('AI response received');
 
-    const generatedContent = JSON.parse(aiData.choices[0].message.content);
+    let generatedContent;
+    try {
+      const rawContent = aiData.choices[0].message.content;
+      console.log('Raw AI response (first 500 chars):', rawContent.substring(0, 500));
+      console.log('Response length:', rawContent.length);
+      
+      // Extrair apenas o JSON (regex pega primeiro objeto JSON encontrado)
+      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error('Full raw response:', rawContent);
+        throw new Error('Nenhum JSON válido encontrado na resposta da IA');
+      }
+      
+      generatedContent = JSON.parse(jsonMatch[0]);
+      
+      // Validação básica de estrutura
+      if (!generatedContent.conteudo || !generatedContent.fundamento_biblico) {
+        console.error('Invalid structure:', generatedContent);
+        throw new Error('IA retornou estrutura incompleta');
+      }
+      
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Raw AI response:', aiData.choices[0].message.content);
+      
+      return new Response(JSON.stringify({ 
+        error: 'A IA retornou uma resposta inválida. Tente novamente com um prompt mais específico ou curto.',
+        debug: parseError instanceof Error ? parseError.message : 'Unknown error'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     // Salvar na tabela content_planners
     const today = new Date();

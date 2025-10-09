@@ -258,11 +258,15 @@ Inclua:
       // Navigate to result page
       setShowAIModal(false);
       navigate(`/conteudo/${result.content_id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating AI content:', error);
+      
+      const errorMessage = error?.message || 
+        'Não foi possível gerar o conteúdo. Tente novamente com um prompt mais específico.';
+      
       toast({
-        title: "Erro",
-        description: "Não foi possível gerar o conteúdo. Tente novamente.",
+        title: "Erro na geração",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
