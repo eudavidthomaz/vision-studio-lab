@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, AlertCircle, Home } from 'lucide-react';
 import WeeklyPackDisplay from '@/components/WeeklyPackDisplay';
 import IdeonChallengeCard from '@/components/IdeonChallengeCard';
+import ContentPlannerDisplay from '@/components/ContentPlannerDisplay';
 
 export default function SharedContentView() {
   const { contentType, shareToken } = useParams<{ contentType: string; shareToken: string }>();
@@ -166,12 +167,7 @@ export default function SharedContentView() {
         )}
         
         {shareData?.content_type === 'planner' && content && (
-          <div className="bg-card rounded-lg border p-6">
-            <h2 className="text-2xl font-bold mb-4">Planejamento de Conteúdo</h2>
-            <pre className="whitespace-pre-wrap text-sm">
-              {JSON.stringify(content.content, null, 2)}
-            </pre>
-          </div>
+          <ContentPlannerDisplay content={content.content} />
         )}
 
         {/* Comentário do revisor (se houver) */}
