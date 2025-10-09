@@ -90,14 +90,28 @@ const MeusConteudos = () => {
                 Todo o conteúdo criado com IA e packs semanais em um só lugar
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={refreshContents}
-              className="flex-shrink-0 mt-1"
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-2 flex-shrink-0 mt-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  // Forçar limpeza do cache
+                  window.location.reload();
+                }}
+                className="gap-2"
+                title="Limpar cache e recarregar"
+              >
+                🔄 Cache
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={refreshContents}
+                title="Atualizar conteúdos"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Filtros */}

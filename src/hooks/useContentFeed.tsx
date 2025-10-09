@@ -36,8 +36,11 @@ export function useContentFeed() {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user?.id) {
+        console.error('❌ Unauthorized access attempt');
         throw new Error('Unauthorized');
       }
+
+      console.log('🔍 Loading contents for user:', user.id);
 
       // Buscar todos os conteúdos gerados
       const { data: contents, error } = await supabase
@@ -47,6 +50,8 @@ export function useContentFeed() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+
+      console.log(`✅ Loaded ${contents?.length || 0} contents for user ${user.id}`);
 
       // SECURITY: Validate all data belongs to user
       if (contents?.some(item => item.user_id !== user.id)) {
