@@ -1,14 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Library, User } from "lucide-react";
-import { NotificationCenter } from "@/components/NotificationCenter";
+import { Library } from "lucide-react";
 
 interface HeroHeaderProps {
   onNavigateToContent: () => void;
-  onNavigateToProfile: () => void;
   onLogout: () => void;
 }
 
-export const HeroHeader = ({ onNavigateToContent, onNavigateToProfile, onLogout }: HeroHeaderProps) => {
+export const HeroHeader = ({ onNavigateToContent, onLogout }: HeroHeaderProps) => {
   return (
     <header className="relative overflow-hidden mb-12 sm:mb-16">
       {/* Background Gradient Effect */}
@@ -29,18 +27,6 @@ export const HeroHeader = ({ onNavigateToContent, onNavigateToProfile, onLogout 
           
           {/* Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <NotificationCenter />
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onNavigateToProfile}
-              className="gap-2 hover:bg-primary/10 hover:border-primary/50 transition-all"
-            >
-              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Perfil</span>
-            </Button>
-
             <Button
               variant="outline"
               size="sm"

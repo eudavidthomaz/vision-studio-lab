@@ -2,21 +2,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Check, Image, Download, Share2 } from "lucide-react";
+import { Copy, Check, Image, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageGenerationModal from "./ImageGenerationModal";
-import { ShareContentDialog } from "./ShareContentDialog";
 
 interface WeeklyPackProps {
   pack: {
     resumo?: string;
     frases_impactantes?: string[];
-    stories?: Array<{
-      dia: number;
-      tipo: string;
-      texto: string;
-      versiculo?: string;
-    }>;
+    stories?: string[];
     estudo_biblico?: {
       tema?: string;
       versiculos?: string[];
@@ -31,10 +25,9 @@ interface WeeklyPackProps {
     carrosseis?: Array<{
       titulo?: string;
       pilar_estrategico?: string;
-      slides?: Array<string | {
-        dia?: number;
+      slides?: Array<{
         texto?: string;
-        versiculo?: string;
+        sugestao_imagem?: string;
       }>;
     }>;
     reels?: Array<{
@@ -45,13 +38,11 @@ interface WeeklyPackProps {
       hook?: string;
     }>;
   };
-  packId?: string;
 }
 
-const WeeklyPackDisplay = ({ pack, packId }: WeeklyPackProps) => {
+const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<{ copy: string; pilar: string } | null>(null);
   const { toast } = useToast();
 
@@ -72,21 +63,6 @@ const WeeklyPackDisplay = ({ pack, packId }: WeeklyPackProps) => {
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-fade-in">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold">Pacote Semanal</h2>
-        {packId && (
-          <Button 
-            onClick={() => setShareDialogOpen(true)}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <Share2 className="h-4 w-4" />
-            Compartilhar
-          </Button>
-        )}
-      </div>
-      
       <Tabs defaultValue="resumo" className="w-full">
         <TabsList className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-1 sm:gap-2 h-auto bg-gray-800/50 p-1 sm:p-2">
           <TabsTrigger value="resumo" className="text-xs sm:text-sm px-2 sm:px-3">Resumo</TabsTrigger>
@@ -147,23 +123,14 @@ const WeeklyPackDisplay = ({ pack, packId }: WeeklyPackProps) => {
           {pack.stories?.map((story, index) => (
             <Card key={index} className="bg-gray-800/50 border-gray-700">
               <CardHeader>
-                <CardTitle className="text-white text-lg">Story #{index + 1} - Dia {story.dia}</CardTitle>
-                <CardDescription className="text-gray-400">{story.tipo}</CardDescription>
+                <CardTitle className="text-white text-lg">Story #{index + 1}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <p className="text-gray-300 mb-4">{story.texto}</p>
-                  {story.versiculo && (
-                    <p className="text-sm text-gray-400 italic border-l-2 border-primary/30 pl-3">
-                      {story.versiculo}
-                    </p>
-                  )}
-                </div>
+                <p className="text-gray-300 mb-4">{story}</p>
                 <Button
-                  onClick={() => copyToClipboard(story.texto, `story-${index}`)}
+                  onClick={() => copyToClipboard(story, `story-${index}`)}
                   variant="outline"
                   size="sm"
-                  className="mt-4"
                 >
                   {copiedIndex === `story-${index}` ? (
                     <><Check className="h-4 w-4 mr-2" /> Copiado</>
@@ -248,32 +215,16 @@ const WeeklyPackDisplay = ({ pack, packId }: WeeklyPackProps) => {
             <Card key={index} className="bg-gray-800/50 border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white">{carrossel.titulo}</CardTitle>
-                {carrossel.pilar_estrategico && (
-                  <CardDescription className="text-gray-400">{carrossel.pilar_estrategico}</CardDescription>
-                )}
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {carrossel.slides?.map((slide, slideIndex) => {
-                    // Normalizar slides: aceitar tanto string quanto objeto
-                    const normalizedSlide = typeof slide === 'string' 
-                      ? { texto: slide }
-                      : slide;
-                    
-                    return (
-                      <div key={slideIndex} className="p-4 bg-gray-900/50 rounded-lg border border-gray-600">
-                        <p className="text-sm text-gray-400 mb-2">
-                          Slide {slideIndex + 1} {normalizedSlide.dia && `- Dia ${normalizedSlide.dia}`}
-                        </p>
-                        <p className="text-gray-300 mb-2">{normalizedSlide.texto}</p>
-                        {normalizedSlide.versiculo && (
-                          <p className="text-xs text-gray-500 italic border-l-2 border-primary/30 pl-2 mt-2">
-                            {normalizedSlide.versiculo}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
+                  {carrossel.slides?.map((slide, slideIndex) => (
+                    <div key={slideIndex} className="p-4 bg-gray-900/50 rounded-lg border border-gray-600">
+                      <p className="text-sm text-gray-400 mb-2">Slide {slideIndex + 1}</p>
+                      <p className="text-gray-300 mb-2">{slide.texto}</p>
+                      <p className="text-xs text-gray-500 italic">Imagem: {slide.sugestao_imagem}</p>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -326,15 +277,6 @@ const WeeklyPackDisplay = ({ pack, packId }: WeeklyPackProps) => {
           ))}
         </TabsContent>
       </Tabs>
-
-      {packId && (
-        <ShareContentDialog 
-          open={shareDialogOpen}
-          onOpenChange={setShareDialogOpen}
-          content={{ id: packId }}
-          contentType="pack"
-        />
-      )}
 
       {selectedContent && (
         <ImageGenerationModal

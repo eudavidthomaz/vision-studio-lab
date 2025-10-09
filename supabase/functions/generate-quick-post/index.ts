@@ -91,16 +91,18 @@ Diretrizes:
 
     const parsedContent = JSON.parse(jsonMatch[0]);
 
-    // Salvar no banco de conteúdos gerados
+    // Salvar no banco
     const { error: insertError } = await supabaseClient
-      .from('generated_contents')
+      .from('content_planners')
       .insert({
         user_id: userId,
-        source_type: 'quick-post',
-        content: parsedContent,
-        content_format: tipo,
-        pilar: parsedContent.pilar || 'ALCANÇAR',
-        prompt_original: tema,
+        tipo_conteudo: tipo,
+        titulo: parsedContent.titulo,
+        conteudo: parsedContent.conteudo,
+        hashtags: parsedContent.hashtags,
+        pilar: parsedContent.pilar,
+        status: 'draft',
+        scheduled_date: new Date().toISOString(),
       });
 
     if (insertError) {

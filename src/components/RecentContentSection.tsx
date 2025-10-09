@@ -26,35 +26,23 @@ export const RecentContentSection = () => {
 
   const loadRecentContent = async () => {
     try {
-      // SECURITY: Validate user before any query
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user?.id) {
-        throw new Error('Unauthorized');
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
       const [aiContentResponse, weeklyPackResponse] = await Promise.all([
         supabase
           .from("content_planners")
-          .select("id, content, created_at, user_id")
+          .select("id, content, created_at")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(2),
         supabase
           .from("weekly_packs")
-          .select("id, pack, created_at, user_id")
+          .select("id, pack, created_at")
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(1),
       ]);
-
-      // SECURITY: Validate all data belongs to user
-      if (aiContentResponse.data?.some(item => item.user_id !== user.id)) {
-        throw new Error('Data integrity violation detected');
-      }
-      if (weeklyPackResponse.data?.some(item => item.user_id !== user.id)) {
-        throw new Error('Data integrity violation detected');
-      }
 
       const contents: RecentContent[] = [];
 

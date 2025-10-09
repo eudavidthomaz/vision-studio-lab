@@ -12,11 +12,7 @@ import Metrics from "./pages/Metrics";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
 import ContentResult from "./pages/ContentResult";
-import Profile from "./pages/Profile";
 import { lazy } from "react";
-import { PrivateRoute } from "./components/PrivateRoute";
-import SharedContentView from "./pages/SharedContentView";
-import ContentReviewPanel from "./pages/ContentReviewPanel";
 
 const UsageDashboard = lazy(() => import("./pages/UsageDashboard"));
 const Analytics = lazy(() => import("./pages/Analytics"));
@@ -31,23 +27,15 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/auth" element={<Auth />} />
-          
-          {/* Public Routes */}
-          <Route path="/shared/:contentType/:shareToken" element={<SharedContentView />} />
-          <Route path="/review/:reviewToken" element={<ContentReviewPanel />} />
-          
-          {/* Protected Routes */}
-          <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/welcome" element={<PrivateRoute><Welcome /></PrivateRoute>} />
-          <Route path="/meus-conteudos" element={<PrivateRoute><MeusConteudos /></PrivateRoute>} />
-          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-          <Route path="/conteudo/:id" element={<PrivateRoute><ContentResult /></PrivateRoute>} />
-          <Route path="/security" element={<PrivateRoute><SecurityDashboard /></PrivateRoute>} />
-          <Route path="/usage" element={<PrivateRoute><UsageDashboard /></PrivateRoute>} />
-          <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
-          <Route path="/metrics" element={<PrivateRoute><Metrics /></PrivateRoute>} />
-          
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/meus-conteudos" element={<MeusConteudos />} />
+          <Route path="/metrics" element={<Metrics />} />
+          <Route path="/security" element={<SecurityDashboard />} />
+          <Route path="/usage" element={<UsageDashboard />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/conteudo/:id" element={<ContentResult />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

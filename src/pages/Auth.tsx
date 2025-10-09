@@ -7,16 +7,12 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showResetPassword, setShowResetPassword] = useState(false);
-  const [resetEmail, setResetEmail] = useState('');
-  const [isResetting, setIsResetting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -46,38 +42,6 @@ const Auth = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
-
-  const handleResetPassword = async () => {
-    if (!resetEmail) {
-      toast({ 
-        title: 'Email obrigatório', 
-        description: 'Digite seu email para continuar',
-        variant: 'destructive' 
-      });
-      return;
-    }
-
-    setIsResetting(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/auth?reset=true`,
-    });
-    setIsResetting(false);
-
-    if (error) {
-      toast({ 
-        title: 'Erro', 
-        description: error.message, 
-        variant: 'destructive' 
-      });
-    } else {
-      toast({ 
-        title: 'Email enviado!', 
-        description: 'Verifique sua caixa de entrada para redefinir sua senha.' 
-      });
-      setShowResetPassword(false);
-      setResetEmail('');
-    }
-  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,59 +164,8 @@ const Auth = () => {
               )}
             </Button>
           </form>
-
-          {isLogin && (
-            <div className="text-center mt-4">
-              <Button
-                type="button"
-                variant="link"
-                className="text-sm text-muted-foreground hover:text-foreground"
-                onClick={() => setShowResetPassword(true)}
-              >
-                Esqueci minha senha
-              </Button>
-            </div>
-          )}
         </div>
       </div>
-
-      {/* Dialog de Reset de Senha */}
-      <Dialog open={showResetPassword} onOpenChange={setShowResetPassword}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Redefinir Senha</DialogTitle>
-            <DialogDescription>
-              Digite seu email para receber instruções de redefinição
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="reset-email">Email</Label>
-              <Input
-                id="reset-email"
-                type="email"
-                placeholder="seu@email.com"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-              />
-            </div>
-            <Button 
-              onClick={handleResetPassword} 
-              className="w-full"
-              disabled={isResetting}
-            >
-              {isResetting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                'Enviar Email'
-              )}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

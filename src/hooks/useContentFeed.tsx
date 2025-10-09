@@ -32,83 +32,74 @@ export function useContentFeed() {
   const loadContents = async () => {
     setLoading(true);
     try {
-      // SECURITY: Validate user before any query
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user?.id) {
-        console.error('❌ Unauthorized access attempt');
-        throw new Error('Unauthorized');
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-      console.log('🔍 Loading contents for user:', user.id);
-
-      // Buscar todos os conteúdos gerados
-      const { data: contents, error } = await supabase
-        .from("generated_contents")
+      // Buscar content_planners (IA)
+      const { data: aiContent, error: aiError } = await supabase
+        .from("content_planners")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (aiError) throw aiError;
 
-      console.log(`✅ Loaded ${contents?.length || 0} contents for user ${user.id}`);
+      // Buscar weekly_packs
+      const { data: weekPacks, error: packError } = await supabase
+        .from("weekly_packs")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-      // SECURITY: Validate all data belongs to user
-      if (contents?.some(item => item.user_id !== user.id)) {
-        console.error('🚨 SECURITY VIOLATION: Query returned data from other users');
-        await supabase.from('security_audit_log').insert({
-          user_id: user.id,
-          event_type: 'data_integrity_violation',
-          endpoint: 'generated_contents',
-          success: false,
-          error_message: 'Query returned data from other users'
-        });
-        throw new Error('Data integrity violation detected');
-      }
-
-      // EXTRA VALIDATION: Filter out any invalid content
-      const validContents = contents?.filter(item => {
-        if (item.user_id !== user.id) {
-          console.error(`⚠️ Conteúdo de outro usuário detectado e removido: ${item.id}`);
-          return false;
-        }
-        return true;
-      });
+      if (packError) throw packError;
 
       const normalized: NormalizedContent[] = [];
 
-      // Normalizar conteúdos
-      validContents?.forEach((item) => {
-        const isAudioPack = item.source_type === 'audio-pack';
-        const content = item.content as any;
+      // Normalizar content_planners (IA)
+      aiContent?.forEach((item) => {
+        const plannerDataArray = item.content as any[];
+        const plannerData = plannerDataArray?.[0];
         
-        let verse = "";
-        let hashtags: string[] = [];
-        let preview = "";
-        
-        if (isAudioPack) {
-          verse = content.versiculos_base?.[0] || "";
-          hashtags = [];
-          preview = content.resumo || "";
-        } else {
-          const verses = content.fundamento_biblico?.versiculos || [];
-          verse = verses[0] || "";
-          hashtags = content.dica_producao?.hashtags || [];
-          preview = content.conteudo?.legenda || content.conteudo?.texto || "";
+        // Detectar se é conteúdo de IA
+        if (plannerData?.tipo === "ai-generated" || plannerData?.prompt_original) {
+          const verses = plannerData.fundamento_biblico?.versiculos || [];
+          const firstVerse = verses[0] ? `${verses[0].versiculo} - ${verses[0].referencia}` : "";
+          
+          normalized.push({
+            id: `ai-${item.id}`,
+            source: "ai-creator",
+            format: (plannerData.conteudo?.tipo || "post") as ContentFormat,
+            pilar: (plannerData.conteudo?.pilar || "ALCANÇAR") as ContentPilar,
+            title: plannerData.prompt_original || "Conteúdo IA",
+            verse: firstVerse,
+            preview: plannerData.conteudo?.legenda || plannerData.conteudo?.roteiro || "",
+            hashtags: plannerData.dica_producao?.hashtags || [],
+            createdAt: new Date(item.created_at || Date.now()),
+            rawData: plannerData,
+          });
         }
+      });
+
+      // Normalizar weekly_packs
+      weekPacks?.forEach((item) => {
+        const packData = item.pack as any;
         
-        normalized.push({
-          id: item.id,
-          source: isAudioPack ? "week-pack" : "ai-creator",
-          format: (item.content_format || "post") as ContentFormat,
-          pilar: (item.pilar || "ALCANÇAR") as ContentPilar,
-          title: isAudioPack ? "Pack Semanal" : (item.prompt_original || "Conteúdo IA"),
-          verse,
-          preview,
-          hashtags,
-          createdAt: new Date(item.created_at || Date.now()),
-          rawData: content,
-        });
+        if (packData) {
+          const verse = packData.versiculo_principal || "";
+          
+          normalized.push({
+            id: `pack-${item.id}`,
+            source: "week-pack",
+            format: "carrossel",
+            pilar: "EXALTAR" as ContentPilar,
+            title: packData.titulo_principal || "Pack Semanal",
+            verse: verse,
+            preview: packData.resumo_pregacao || "",
+            hashtags: packData.hashtags_sugeridas || [],
+            createdAt: new Date(item.created_at || Date.now()),
+            rawData: packData,
+          });
+        }
       });
 
       setContents(normalized);
@@ -170,40 +161,21 @@ export function useContentFeed() {
 
   const deleteContent = async (id: string) => {
     try {
-      // SECURITY: Validate authentication
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user?.id) {
-        throw new Error('Unauthorized');
-      }
+      const [type, uuid] = id.split("-");
       
-      // SECURITY: Verify ownership BEFORE deleting
-      const { data: existing } = await supabase
-        .from("generated_contents")
-        .select("user_id")
-        .eq("id", id)
-        .single();
-
-      if (!existing || existing.user_id !== user.id) {
-        // Log unauthorized deletion attempt
-        await supabase.from('security_audit_log').insert({
-          user_id: user.id,
-          event_type: 'unauthorized_delete_attempt',
-          endpoint: 'generated_contents',
-          success: false,
-          metadata: { attempted_id: id }
-        });
-        
-        throw new Error('Unauthorized: You do not own this content');
+      if (type === "ai") {
+        const { error } = await supabase
+          .from("content_planners")
+          .delete()
+          .eq("id", uuid);
+        if (error) throw error;
+      } else if (type === "pack") {
+        const { error } = await supabase
+          .from("weekly_packs")
+          .delete()
+          .eq("id", uuid);
+        if (error) throw error;
       }
-
-      // Delete with double-check
-      const { error } = await supabase
-        .from("generated_contents")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", user.id);
-      
-      if (error) throw error;
 
       toast({
         title: "✅ Conteúdo excluído",

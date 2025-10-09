@@ -1,9 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Check, Camera, Lightbulb, Target, Video, Share2 } from "lucide-react";
+import { Copy, Check, Camera, Lightbulb, Target, Video } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { ShareContentDialog } from "./ShareContentDialog";
 
 interface IdeonChallengeProps {
   challenge: {
@@ -13,12 +12,10 @@ interface IdeonChallengeProps {
     como_captar?: string[];
     proposito?: string;
   };
-  challengeId?: string;
 }
 
-const IdeonChallengeCard = ({ challenge, challengeId }: IdeonChallengeProps) => {
+const IdeonChallengeCard = ({ challenge }: IdeonChallengeProps) => {
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const copyToClipboard = (text: string, section: string) => {
@@ -137,30 +134,6 @@ const IdeonChallengeCard = ({ challenge, challengeId }: IdeonChallengeProps) => 
           <p className="text-gray-300 whitespace-pre-wrap">{challenge.proposito}</p>
         </CardContent>
       </Card>
-
-      {challengeId && (
-        <Card className="bg-gray-800/50 border-gray-700">
-          <CardContent className="pt-6">
-            <Button 
-              onClick={() => setShareDialogOpen(true)}
-              variant="outline"
-              className="w-full gap-2"
-            >
-              <Share2 className="h-4 w-4" />
-              Compartilhar Desafio
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {challengeId && (
-        <ShareContentDialog 
-          open={shareDialogOpen}
-          onOpenChange={setShareDialogOpen}
-          content={{ id: challengeId }}
-          contentType="challenge"
-        />
-      )}
     </div>
   );
 };

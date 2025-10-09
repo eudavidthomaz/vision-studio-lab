@@ -98,23 +98,44 @@ const Dashboard = () => {
     try {
       // Step 1: Transcription complete (25%)
       setGenerationProgress(25);
+      // Save sermon to database
+      const { data: sermonData, error: sermonError } = await supabase
+        .from('sermons')
+        .insert({
+          user_id: user.id,
+          transcript: transcriptText,
+          status: 'completed'
+        })
+        .select()
+        .single();
+
+      if (sermonError) throw sermonError;
 
       // Step 2: Analyzing sermon (50%)
       setGenerationProgress(50);
 
-      // Generate audio pack using secure API
-      const result = await invokeFunction<any>('generate-audio-pack', {
+      // Generate weekly pack using secure API
+      const pack = await invokeFunction<any>('generate-week-pack', {
         transcript: transcriptText
       });
 
-      if (!result?.content) {
+      if (!pack) {
         throw new Error('Erro ao gerar pacote semanal');
       }
       
       // Step 3: Content generated (75%)
       setGenerationProgress(75);
       
-      setWeeklyPack(result.content.content);
+      setWeeklyPack(pack);
+
+      // Save weekly pack to database
+      await supabase
+        .from('weekly_packs')
+        .insert({
+          user_id: user.id,
+          sermon_id: sermonData.id,
+          pack: pack
+        });
 
       // Step 4: Complete (100%)
       setGenerationProgress(100);
@@ -216,12 +237,6 @@ const Dashboard = () => {
   };
 
   const handleGenerateAIContent = async (prompt: string) => {
-    // Prevenir múltiplas chamadas simultâneas
-    if (isGeneratingAI) {
-      console.warn('⚠️ Geração já em andamento, ignorando nova chamada');
-      return;
-    }
-
     setIsGeneratingAI(true);
     try {
       const result = await invokeFunction<any>('generate-ai-content', { prompt });
@@ -286,7 +301,6 @@ const Dashboard = () => {
           {/* Hero Header */}
           <HeroHeader 
             onNavigateToContent={() => navigate('/meus-conteudos')}
-            onNavigateToProfile={() => navigate('/profile')}
             onLogout={handleLogout}
           />
 
