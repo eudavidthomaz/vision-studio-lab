@@ -6,6 +6,9 @@ verify_jwt = true
 [functions.generate-week-pack]
 verify_jwt = true
 
+[functions.generate-audio-pack]
+verify_jwt = true
+
 [functions.generate-ideon-challenge]
 verify_jwt = true
 
