@@ -216,6 +216,12 @@ const Dashboard = () => {
   };
 
   const handleGenerateAIContent = async (prompt: string) => {
+    // Prevenir múltiplas chamadas simultâneas
+    if (isGeneratingAI) {
+      console.warn('⚠️ Geração já em andamento, ignorando nova chamada');
+      return;
+    }
+
     setIsGeneratingAI(true);
     try {
       const result = await invokeFunction<any>('generate-ai-content', { prompt });

@@ -55,6 +55,7 @@ export function useContentFeed() {
 
       // SECURITY: Validate all data belongs to user
       if (contents?.some(item => item.user_id !== user.id)) {
+        console.error('🚨 SECURITY VIOLATION: Query returned data from other users');
         await supabase.from('security_audit_log').insert({
           user_id: user.id,
           event_type: 'data_integrity_violation',
@@ -65,10 +66,19 @@ export function useContentFeed() {
         throw new Error('Data integrity violation detected');
       }
 
+      // EXTRA VALIDATION: Filter out any invalid content
+      const validContents = contents?.filter(item => {
+        if (item.user_id !== user.id) {
+          console.error(`⚠️ Conteúdo de outro usuário detectado e removido: ${item.id}`);
+          return false;
+        }
+        return true;
+      });
+
       const normalized: NormalizedContent[] = [];
 
       // Normalizar conteúdos
-      contents?.forEach((item) => {
+      validContents?.forEach((item) => {
         const isAudioPack = item.source_type === 'audio-pack';
         const content = item.content as any;
         
