@@ -72,9 +72,9 @@ export function useContentFeed() {
         let preview = "";
         
         if (isAudioPack) {
-          verse = content.versiculo_principal || "";
-          hashtags = content.hashtags_sugeridas || [];
-          preview = content.resumo_pregacao || content.resumo || "";
+          verse = content.versiculos_base?.[0] || "";
+          hashtags = [];
+          preview = content.resumo || "";
         } else {
           const verses = content.fundamento_biblico?.versiculos || [];
           verse = verses[0] || "";
