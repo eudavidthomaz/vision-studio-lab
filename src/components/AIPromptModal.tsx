@@ -33,6 +33,7 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading }: AIP
 
   // Função para detectar tipo de conteúdo
   const detectContentType = (text: string): string => {
+    if (/ideia|viral|campanha|estratégia|plano de conteúdo|série/i.test(text)) return 'ideia_estrategica';
     if (/estudo|estudo bíblico|análise bíblica|exegese/i.test(text)) return 'estudo';
     if (/resumo|resumir|sintetize|principais pontos|síntese/i.test(text)) return 'resumo';
     if (/carrossel|slides|cards/i.test(text)) return 'carrossel';

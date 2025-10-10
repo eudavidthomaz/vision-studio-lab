@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import ImageGenerationModal from "./ImageGenerationModal";
 import { EstudoBiblicoView } from "./content-views/EstudoBiblicoView";
 import { ResumoPregacaoView } from "./content-views/ResumoPregacaoView";
+import { IdeiaEstrategicaView } from "./content-views/IdeiaEstrategicaView";
 
 interface ContentResultProps {
   content: any; // Tipo dinâmico baseado no content_type
@@ -22,7 +23,8 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
 
   // Detectar tipo de conteúdo
   const contentType = content.content_type || 
-    (content.estudo_biblico ? 'estudo' :
+    (content.ideia_estrategica ? 'ideia_estrategica' :
+     content.estudo_biblico ? 'estudo' :
      content.resumo_pregacao ? 'resumo' :
      content.perguntas_celula ? 'perguntas' :
      content.devocional ? 'devocional' :
@@ -39,6 +41,54 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   };
 
   // Renderizar view específica para tipos não-padrão
+  if (contentType === 'ideia_estrategica' && content.ideia_estrategica) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Book className="h-5 w-5" />
+              Fundamento Bíblico
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
+              <ul className="space-y-2">
+                {content.fundamento_biblico.versiculos.map((v: string, i: number) => (
+                  <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
+                    {v}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2 text-sm">Contexto:</h4>
+              <p className="text-sm text-muted-foreground">{content.fundamento_biblico.contexto}</p>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2 text-sm">Princípio Atemporal:</h4>
+              <p className="text-sm text-muted-foreground">{content.fundamento_biblico.principio_atemporal}</p>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <IdeiaEstrategicaView data={content.ideia_estrategica} />
+        
+        <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t p-4 -mx-4 md:mx-0 md:border md:rounded-lg flex flex-col sm:flex-row gap-3">
+          <Button onClick={onSave} disabled={isSaving} className="flex-1">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" className="flex-1">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
   if (contentType === 'estudo') {
     return (
       <div className="space-y-6">

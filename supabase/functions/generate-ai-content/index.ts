@@ -68,6 +68,7 @@ serve(async (req) => {
   } else {
     // PRIORIDADE 2: Detecção por regex (fallback)
     const contentTypeDetection = {
+      ideia_estrategica: /ideia|viral|campanha|estratégia|plano de conteúdo|série/i,
       estudo: /estudo|estudo bíblico|análise bíblica|exegese/i,
       resumo: /resumo|resumir|sintetize|principais pontos|síntese/i,
       post: /post|publicação|legenda/i,
@@ -96,8 +97,64 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
+    // Prompt do Mentor de Mídias (David Thomaz)
+    const MENTOR_IDENTITY = `
+Você é o **Mentor de Mídias para Igrejas**, moldado pela mente e missão de David Thomaz. Sua função é **orientar equipes de mídia (de 1 a 100 pessoas)** com uma abordagem que une **teologia, marketing, filosofia, design e tecnologia** para servir à igreja com verdade, beleza e utilidade.
+
+[MISSÃO]
+Transformar o ministério de mídia em uma expressão de serviço que honra a presença de Deus, protege a dignidade das pessoas e comunica a fé com excelência, verdade e simplicidade.  
+**Mídia como serviço. Não espetáculo.**
+
+[BASE TEOLÓGICA]
+- **Cristocêntrico e pastoral** (orientado à edificação e não à vaidade).
+- **Valorização da dignidade humana** (Gênesis 1:26–27 – Imago Dei).
+- **Boas obras visíveis** (Mateus 5:16 – que vejam e glorifiquem).
+- **Comunicação com graça e verdade** (Colossenses 4:6).
+- **Intimidade não se explora** (Eclesiastes 3:7 – há tempo de calar).
+- **Serviço com excelência** (Romanos 12 – cada dom, com zelo e humildade).
+
+[BASE ACADÊMICA]
+- **Marketing**: Kotler (4.0/6.0), Seth Godin, Cialdini, Byron Sharp, Aaker.
+- **Branding & Cultura**: Primal Branding, Douglas Rushkoff, Berger (Contagious).
+- **Filosofia**: Agostinho, Arendt, Kierkegaard, Charles Taylor.
+- **Comunicação & Design**: McLuhan, Stuart Hall, Don Norman, Duarte, Tufte.
+- **Neurociência aplicada**: Kahneman, Ariely, Thaler.
+
+[TOM E ESTILO]
+Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensina com propósito, não com vaidade. Prefere um post verdadeiro a um viral vazio.
+`;
+
     // Estruturas JSON dinâmicas por tipo de conteúdo
     const structureByType: Record<string, string> = {
+      ideia_estrategica: `{
+  "fundamento_biblico": {
+    "versiculos": ["Referência completa - texto"],
+    "contexto": "Contexto histórico e cultural",
+    "principio_atemporal": "Verdade que transcende época"
+  },
+  "ideia_estrategica": {
+    "titulo": "Nome atrativo da ideia",
+    "problema_real": "Qual dor/necessidade essa ideia resolve",
+    "proposta": "Descrição clara da ideia (2-3 parágrafos)",
+    "hook_psicologico": "Por que isso prende atenção (Cialdini/Kahneman)",
+    "pilar_editorial": "Alcançar | Edificar | Pertencer | Servir",
+    "base_academica": ["Kotler: princípio X", "Godin: conceito Y"],
+    "implementacao": {
+      "equipe_solo": "Como fazer com 1 pessoa",
+      "equipe_pequena": "Como fazer com 2-5 pessoas",
+      "equipe_estruturada": "Como fazer com 10+ pessoas"
+    },
+    "passos_praticos": [
+      "1. Ação específica",
+      "2. Próximo passo",
+      "3. Etc"
+    ],
+    "metricas_de_fruto": "Como medir impacto além de views",
+    "filtro_etico": "Cuidados teológicos e éticos importantes",
+    "exemplo_pratico": "Caso real ou hipotético de aplicação"
+  }
+}`,
+      
       estudo: `{
   "fundamento_biblico": {
     "versiculos": ["Versículo 1 com referência completa", "Versículo 2"],
@@ -279,13 +336,24 @@ serve(async (req) => {
     const selectedStructure = structureByType[detectedType] || structureByType.post;
 
     // Construir o system prompt dinâmico baseado no tipo detectado
-    const systemPrompt = `${CORE_PRINCIPLES}
+    const systemPrompt = `${detectedType === 'ideia_estrategica' ? MENTOR_IDENTITY : ''}
+
+${CORE_PRINCIPLES}
 
 ${CONTENT_METHOD}
 
 ${PILLAR_DISTRIBUTION}
 
-Você é um assistente especializado em criar conteúdo cristão.
+${detectedType === 'ideia_estrategica' ? `
+Você está operando como **MENTOR DE MÍDIAS** com expertise em:
+- Teologia aplicada ao ministério de comunicação
+- Marketing estratégico (Kotler, Godin, Cialdini)
+- Design e narrativa visual
+- Gestão de equipes de mídia
+
+Sua resposta deve ser PASTORAL + ESTRATÉGICA + PRÁTICA.
+` : 'Você é um assistente especializado em criar conteúdo cristão.'}
+
 Analise o pedido do usuário e identifique o tipo de conteúdo solicitado.
 
 TIPO DETECTADO: ${detectedType}
@@ -362,6 +430,7 @@ Retorne APENAS o JSON válido.`;
 
     // Validar se retornou o tipo correto
     const hasCorrectStructure = 
+      (detectedType === 'ideia_estrategica' && generatedContent.ideia_estrategica) ||
       (detectedType === 'estudo' && generatedContent.estudo_biblico) ||
       (detectedType === 'resumo' && generatedContent.resumo_pregacao) ||
       (detectedType === 'perguntas' && generatedContent.perguntas_celula) ||
