@@ -33,18 +33,28 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading }: AIP
 
   // Função para detectar tipo de conteúdo (formatos específicos primeiro)
   const detectContentType = (text: string): string => {
-    // PRIORIDADE 1: Formatos específicos de conteúdo
-    if (/carrossel|slides|cards/i.test(text)) return 'carrossel';
-    if (/reel|vídeo|roteiro|script/i.test(text)) return 'reel';
-    if (/stories|story|storys/i.test(text)) return 'stories';
+    // FORMATOS ORGANIZACIONAIS (prioridade alta)
+    if (/calendário|cronograma|planejamento|plano editorial|grade de posts/i.test(text)) return 'calendario';
+    if (/aviso|comunicado|lembrete|atenção/i.test(text)) return 'aviso';
+    if (/guia|manual|passo a passo|tutorial/i.test(text)) return 'guia';
+    if (/esboço|outline|tópicos|estrutura/i.test(text)) return 'esboco';
+    if (/versículos citados|referências bíblicas|passagens mencionadas/i.test(text)) return 'versiculos_citados';
+    if (/trilha de oração|roteiro de oração|guia de intercessão/i.test(text)) return 'trilha_oracao';
+    if (/perguntas e respostas|q&a|dúvidas frequentes|faq/i.test(text)) return 'qa_estruturado';
+    if (/convite para grupo|chamado para célula|junte-se ao|entre no grupo/i.test(text)) return 'convite_grupos';
+    if (/discipulado|mentoria|acompanhamento espiritual/i.test(text)) return 'discipulado';
+    if (/convite|convidar|chamado para|venha para/i.test(text)) return 'convite';
+    
+    // FORMATOS BÍBLICOS/CRIATIVOS
     if (/desafio|challenge|compromisso semanal|missão|jornada/i.test(text)) return 'desafio_semanal';
     if (/estudo|estudo bíblico|análise bíblica|exegese/i.test(text)) return 'estudo';
     if (/resumo|resumir|sintetize|principais pontos|síntese/i.test(text)) return 'resumo';
     if (/devocional|meditação|reflexão diária/i.test(text)) return 'devocional';
+    if (/carrossel|slides|cards/i.test(text)) return 'carrossel';
+    if (/reel|vídeo|roteiro|script/i.test(text)) return 'reel';
+    if (/stories|story|storys/i.test(text)) return 'stories';
     if (/perguntas|questões|discussão|célula/i.test(text)) return 'perguntas';
     if (/post|publicação|legenda/i.test(text)) return 'post';
-    
-    // PRIORIDADE 2: Ideia estratégica (apenas se nenhum formato específico foi detectado)
     if (/ideia|viral|campanha|estratégia|plano de conteúdo|série/i.test(text)) return 'ideia_estrategica';
     
     return 'post';

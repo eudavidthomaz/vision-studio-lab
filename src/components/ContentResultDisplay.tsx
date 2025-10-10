@@ -10,6 +10,16 @@ import { EstudoBiblicoView } from "./content-views/EstudoBiblicoView";
 import { ResumoPregacaoView } from "./content-views/ResumoPregacaoView";
 import { IdeiaEstrategicaView } from "./content-views/IdeiaEstrategicaView";
 import { DesafioSemanalView } from "./content-views/DesafioSemanalView";
+import { CalendarioView } from "./content-views/CalendarioView";
+import { ConviteView } from "./content-views/ConviteView";
+import { AvisoView } from "./content-views/AvisoView";
+import { GuiaView } from "./content-views/GuiaView";
+import { EsbocoView } from "./content-views/EsbocoView";
+import { VersiculosCitadosView } from "./content-views/VersiculosCitadosView";
+import { TrilhaOracaoView } from "./content-views/TrilhaOracaoView";
+import { QAEstruturadoView } from "./content-views/QAEstruturadoView";
+import { ConviteGruposView } from "./content-views/ConviteGruposView";
+import { DiscipuladoView } from "./content-views/DiscipuladoView";
 
 interface ContentResultProps {
   content: any; // Tipo dinâmico baseado no content_type
@@ -23,14 +33,22 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   const [selectedContent, setSelectedContent] = useState<{ copy: string; pilar: string } | null>(null);
 
   // Detectar tipo de conteúdo
-  const contentType = content.content_type || 
-    (content.ideia_estrategica ? 'ideia_estrategica' :
-     content.desafio_semanal ? 'desafio_semanal' :
-     content.estudo_biblico ? 'estudo' :
-     content.resumo_pregacao ? 'resumo' :
-     content.perguntas_celula ? 'perguntas' :
-     content.devocional ? 'devocional' :
-     content.stories ? 'stories' : 'post');
+  const parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
+  const contentType = parsedContent.calendario_editorial ? 'calendario'
+    : parsedContent.convite ? 'convite'
+    : parsedContent.aviso ? 'aviso'
+    : parsedContent.guia ? 'guia'
+    : parsedContent.esboco ? 'esboco'
+    : parsedContent.versiculos_citados ? 'versiculos_citados'
+    : parsedContent.trilha_oracao ? 'trilha_oracao'
+    : parsedContent.perguntas_respostas ? 'qa_estruturado'
+    : parsedContent.convite_grupos ? 'convite_grupos'
+    : parsedContent.plano_discipulado ? 'discipulado'
+    : parsedContent.ideia_estrategica ? 'ideia_estrategica'
+    : parsedContent.desafio_semanal ? 'desafio_semanal'
+    : parsedContent.estudo_biblico ? 'estudo'
+    : parsedContent.resumo_pregacao ? 'resumo'
+    : 'default';
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -38,12 +56,25 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   };
 
   const openImageModal = (copy: string) => {
-    setSelectedContent({ copy, pilar: content.conteudo?.pilar || 'EDIFICAR' });
+    setSelectedContent({ copy, pilar: parsedContent.conteudo?.pilar || 'EDIFICAR' });
     setImageModalOpen(true);
   };
 
-  // Renderizar view específica para tipos não-padrão
-  if (contentType === 'ideia_estrategica' && content.ideia_estrategica) {
+  // Organizational formats (no fundamento_biblico)
+  if (contentType === 'calendario') return <CalendarioView calendario={parsedContent.calendario_editorial} />;
+  if (contentType === 'convite') return <ConviteView convite={parsedContent.convite} />;
+  if (contentType === 'aviso') return <AvisoView aviso={parsedContent.aviso} />;
+  if (contentType === 'guia') return <GuiaView guia={parsedContent.guia} />;
+  if (contentType === 'convite_grupos') return <ConviteGruposView convite={parsedContent.convite_grupos} />;
+  if (contentType === 'versiculos_citados') return <VersiculosCitadosView versiculos={parsedContent.versiculos_citados} />;
+
+  // Biblical formats (with fundamento_biblico)
+  if (contentType === 'esboco') return <EsbocoView esboco={parsedContent.esboco} />;
+  if (contentType === 'trilha_oracao') return <TrilhaOracaoView trilha={parsedContent.trilha_oracao} />;
+  if (contentType === 'qa_estruturado') return <QAEstruturadoView qa={parsedContent.perguntas_respostas} />;
+  if (contentType === 'discipulado') return <DiscipuladoView plano={parsedContent.plano_discipulado} />;
+
+  if (contentType === 'ideia_estrategica' && parsedContent.ideia_estrategica) {
     return (
       <div className="space-y-6">
         <Card>

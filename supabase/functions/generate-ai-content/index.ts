@@ -68,18 +68,27 @@ serve(async (req) => {
   } else {
     // PRIORIDADE 2: Detecção por regex (formatos específicos primeiro)
     const contentTypeDetection = {
-      // PRIORIDADE 1: Formatos específicos
-      carrossel: /carrossel|slides|cards/i,
-      reel: /reel|vídeo|roteiro|script/i,
-      stories: /stories|story|storys/i,
+      // Organizational formats (highest priority)
+      calendario: /calendário|cronograma|planejamento|plano editorial|grade de posts/i,
+      aviso: /aviso|comunicado|lembrete|atenção/i,
+      guia: /guia|manual|passo a passo|tutorial/i,
+      esboco: /esboço|outline|tópicos|estrutura/i,
+      versiculos_citados: /versículos citados|referências bíblicas|passagens mencionadas/i,
+      trilha_oracao: /trilha de oração|roteiro de oração|guia de intercessão/i,
+      qa_estruturado: /perguntas e respostas|q&a|dúvidas frequentes|faq/i,
+      convite_grupos: /convite para grupo|chamado para célula|junte-se ao|entre no grupo/i,
+      discipulado: /discipulado|mentoria|acompanhamento espiritual/i,
+      convite: /convite|convidar|chamado para|venha para/i,
+      // Biblical/creative formats
       desafio_semanal: /desafio|challenge|compromisso semanal|missão|jornada/i,
       estudo: /estudo|estudo bíblico|análise bíblica|exegese/i,
       resumo: /resumo|resumir|sintetize|principais pontos|síntese/i,
       devocional: /devocional|meditação|reflexão diária/i,
+      carrossel: /carrossel|slides|cards/i,
+      reel: /reel|vídeo|roteiro|script/i,
+      stories: /stories|story|storys/i,
       perguntas: /perguntas|questões|discussão|célula/i,
       post: /post|publicação|legenda/i,
-      
-      // PRIORIDADE 2: Ideia estratégica (apenas se nenhum formato foi detectado)
       ideia_estrategica: /ideia|viral|campanha|estratégia|plano de conteúdo|série/i
     };
 
