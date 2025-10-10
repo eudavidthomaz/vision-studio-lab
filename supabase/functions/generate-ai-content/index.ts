@@ -57,102 +57,246 @@ serve(async (req) => {
       processedPrompt = prompt.substring(0, 20000) + '\n\n[Transcrição truncada por exceder limite]';
     }
 
+    // Detectar tipo de conteúdo solicitado
+    const contentTypeDetection = {
+      estudo: /estudo|estudo bíblico|análise bíblica|exegese/i,
+      resumo: /resumo|resumir|sintetize|principais pontos|síntese/i,
+      post: /post|publicação|legenda/i,
+      carrossel: /carrossel|slides|cards/i,
+      reel: /reel|vídeo|roteiro|script/i,
+      stories: /stories|story|storys/i,
+      devocional: /devocional|meditação|reflexão diária/i,
+      perguntas: /perguntas|questões|discussão|célula/i
+    };
+
+    let detectedType = 'post'; // default
+    for (const [type, regex] of Object.entries(contentTypeDetection)) {
+      if (regex.test(processedPrompt)) {
+        detectedType = type;
+        break;
+      }
+    }
+
+    console.log(`Detected content type: ${detectedType}`);
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Estrutura expandida para transcrições de pregação
-    const expandedStructure = isLongTranscript ? `
-{
+    // Estruturas JSON dinâmicas por tipo de conteúdo
+    const structureByType: Record<string, string> = {
+      estudo: `{
   "fundamento_biblico": {
-    "versiculos": ["Versículo 1 completo com referência", "Versículo 2..."],
-    "contexto": "Contexto histórico e literário em 2-3 linhas",
-    "principio": "O princípio atemporal em uma frase clara"
-  },
-  "resumo_pregacao": "Resumo pastoral da mensagem em 2-3 parágrafos (APENAS para transcrições)",
-  "frases_impactantes": ["Frase marcante 1 da pregação", "Frase marcante 2", "...5-7 frases"],
-  "stories": [
-    { "dia": "Segunda", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
-    { "dia": "Terça", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
-    { "dia": "Quarta", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
-    { "dia": "Quinta", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
-    { "dia": "Sexta", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
-    { "dia": "Sábado", "texto": "Ideia de story", "versiculo": "Referência bíblica" },
-    { "dia": "Domingo", "texto": "Ideia de story", "versiculo": "Referência bíblica" }
-  ],
-  "conteudo": {
-    "tipo": "carrossel | reel | post",
-    "legenda": "Legenda completa, emocional, pastoral, com quebras de linha e emojis contextuais",
-    "pilar": "ALCANÇAR | EDIFICAR | PERTENCER | SERVIR"
-  },
-  "estrutura_visual": {
-    "cards": [
-      { "titulo": "Título do card 1", "texto": "Texto do card 1" },
-      { "titulo": "Título do card 2", "texto": "Texto do card 2" }
-    ],
-    "roteiro": "Se for vídeo/reel, o roteiro completo com timing"
+    "versiculos": ["Versículo 1 com referência completa", "Versículo 2"],
+    "contexto": "Contexto histórico, cultural e teológico detalhado",
+    "principio": "Princípio atemporal extraído"
   },
   "estudo_biblico": {
-    "tema": "Tema principal do estudo",
-    "versiculos": ["Versículo 1 com referência", "Versículo 2..."],
-    "perguntas": ["Pergunta reflexiva 1", "Pergunta 2", "...5-7 perguntas para células"]
-  },
-  "dica_producao": {
-    "formato": "Ex: Carrossel 1080x1350px, 5 slides",
-    "estilo": "Ex: Minimalista com tipografia destacada e cores suaves",
-    "horario": "Ex: Manhã (7-9h) para devocionais",
-    "hashtags": ["#hashtag1", "#hashtag2", "...8-12 hashtags estratégicas"]
+    "tema": "Tema central do estudo",
+    "introducao": "Introdução contextual em 2-3 parágrafos",
+    "desenvolvimento": [
+      {
+        "ponto": "Ponto de ensino 1",
+        "explicacao": "Explicação detalhada com base bíblica",
+        "aplicacao": "Como aplicar esse ponto na vida prática"
+      }
+    ],
+    "perguntas": [
+      "Pergunta reflexiva 1",
+      "Pergunta reflexiva 2"
+    ],
+    "conclusao": "Conclusão prática e inspiradora",
+    "desafio": "Desafio semanal para aplicação"
   }
-}` : `
-{
+}`,
+      
+      resumo: `{
   "fundamento_biblico": {
-    "versiculos": ["Versículo 1 completo com referência", "Versículo 2..."],
-    "contexto": "Contexto histórico e literário em 2-3 linhas",
-    "principio": "O princípio atemporal em uma frase clara"
+    "versiculos": ["Versículo principal 1", "Versículo principal 2"],
+    "contexto": "Contexto da pregação",
+    "principio": "Princípio central ensinado"
+  },
+  "resumo_pregacao": {
+    "titulo": "Título da mensagem",
+    "introducao": "Como a pregação começou e contexto inicial",
+    "pontos_principais": [
+      {
+        "numero": 1,
+        "titulo": "Título do ponto",
+        "conteudo": "Resumo do que foi ensinado neste ponto"
+      }
+    ],
+    "ilustracoes": ["Ilustração ou história marcante 1"],
+    "conclusao": "Conclusão e chamado final da pregação",
+    "aplicacao_pratica": "Como aplicar os ensinamentos no dia a dia"
+  },
+  "frases_impactantes": ["Frase marcante 1", "Frase marcante 2"]
+}`,
+
+      perguntas: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículo base 1", "Versículo base 2"],
+    "contexto": "Contexto bíblico",
+    "principio": "Princípio para discussão"
+  },
+  "perguntas_celula": {
+    "tema": "Tema da reunião de célula",
+    "quebra_gelo": "Pergunta inicial leve para iniciar",
+    "perguntas_reflexao": [
+      {
+        "numero": 1,
+        "pergunta": "Pergunta profunda para discussão",
+        "objetivo": "O que essa pergunta busca explorar"
+      }
+    ],
+    "aplicacao_pratica": "Como aplicar essa semana",
+    "momento_oracao": "Direcionamento para encerrar em oração"
+  }
+}`,
+
+      devocional: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículo do dia"],
+    "contexto": "Contexto do versículo",
+    "principio": "Princípio para meditar"
+  },
+  "devocional": {
+    "titulo": "Título do devocional",
+    "reflexao": "Texto reflexivo em 3-4 parágrafos conectando a Palavra com a vida",
+    "perguntas_pessoais": [
+      "Como isso se aplica à minha vida hoje?",
+      "O que Deus está me ensinando?"
+    ],
+    "oracao": "Oração sugerida relacionada ao tema",
+    "desafio_do_dia": "Desafio prático para colocar em prática hoje"
+  }
+}`,
+
+      post: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículo 1", "Versículo 2"],
+    "contexto": "Contexto histórico e cultural",
+    "principio": "Princípio atemporal"
   },
   "conteudo": {
-    "tipo": "carrossel | reel | post | story",
-    "legenda": "Legenda completa, emocional, pastoral, com quebras de linha e emojis contextuais",
+    "tipo": "post",
+    "legenda": "Legenda completa do post com quebras e emojis",
+    "pilar": "ALCANÇAR | EDIFICAR | PERTENCER | SERVIR"
+  },
+  "dica_producao": {
+    "formato": "1080x1080px",
+    "estilo": "Estilo visual recomendado",
+    "horario": "Melhor horário",
+    "hashtags": ["#hashtag1", "#hashtag2"]
+  }
+}`,
+
+      carrossel: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículo 1", "Versículo 2"],
+    "contexto": "Contexto da passagem",
+    "principio": "Princípio ensinado"
+  },
+  "conteudo": {
+    "tipo": "carrossel",
+    "legenda": "Legenda completa",
     "pilar": "ALCANÇAR | EDIFICAR | PERTENCER | SERVIR"
   },
   "estrutura_visual": {
     "cards": [
-      { "titulo": "Título do card 1", "texto": "Texto do card 1" }
-    ],
-    "roteiro": "Se for vídeo/reel, o roteiro completo"
+      {"titulo": "Card 1", "texto": "Texto do card 1"},
+      {"titulo": "Card 2", "texto": "Texto do card 2"}
+    ]
   },
   "dica_producao": {
-    "formato": "Ex: Carrossel 1080x1350px, 5 slides",
-    "estilo": "Ex: Minimalista com tipografia destacada e cores suaves",
-    "horario": "Ex: Manhã (7-9h) para devocionais",
-    "hashtags": ["#hashtag1", "#hashtag2", "...8-12 hashtags estratégicas"]
+    "formato": "1080x1080px",
+    "estilo": "Minimalista e clean",
+    "horario": "18h-20h",
+    "hashtags": ["#fe", "#biblia"]
   }
-}`;
+}`,
 
+      reel: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículo principal"],
+    "contexto": "Contexto",
+    "principio": "Princípio para o vídeo"
+  },
+  "conteudo": {
+    "tipo": "reel",
+    "legenda": "Legenda do reel",
+    "pilar": "ALCANÇAR | EDIFICAR | PERTENCER | SERVIR"
+  },
+  "estrutura_visual": {
+    "roteiro": "0-3s: Abertura impactante\n3-8s: Desenvolvimento\n8-15s: Conclusão e call to action",
+    "duracao_total": "15-30s",
+    "audio_sugerido": "Tipo de áudio recomendado"
+  },
+  "dica_producao": {
+    "formato": "1080x1920px vertical",
+    "estilo": "Dinâmico com cortes rápidos",
+    "horario": "19h-21h",
+    "hashtags": ["#reels", "#fe"]
+  }
+}`,
+
+      stories: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículo tema"],
+    "contexto": "Contexto semanal",
+    "principio": "Princípio da semana"
+  },
+  "stories": [
+    {
+      "dia": "Segunda",
+      "texto": "Mensagem inspiradora curta",
+      "versiculo": "Versículo do dia",
+      "call_to_action": "O que fazer hoje"
+    }
+  ],
+  "dica_producao": {
+    "formato": "1080x1920px",
+    "estilo": "Clean e legível",
+    "horario": "Manhã (7h-9h) ou noite (20h-22h)",
+    "hashtags": []
+  }
+}`
+    };
+
+    const selectedStructure = structureByType[detectedType] || structureByType.post;
+
+    // Construir o system prompt dinâmico baseado no tipo detectado
     const systemPrompt = `${CORE_PRINCIPLES}
 
 ${CONTENT_METHOD}
 
 ${PILLAR_DISTRIBUTION}
 
-Você é um assistente especializado em criar conteúdo cristão para redes sociais.
-Analise o pedido do usuário e gere um conteúdo COMPLETO em formato JSON.
+Você é um assistente especializado em criar conteúdo cristão.
+Analise o pedido do usuário e identifique o tipo de conteúdo solicitado.
 
-${isLongTranscript ? 'VOCÊ RECEBEU UMA TRANSCRIÇÃO DE PREGAÇÃO. Use a estrutura EXPANDIDA abaixo:' : 'Use a estrutura padrão abaixo:'}
-
-${expandedStructure}
+TIPO DETECTADO: ${detectedType}
 
 REGRAS IMPORTANTES:
-1. SEMPRE inclua versículos bíblicos completos e relevantes
-2. ${isLongTranscript ? 'Para transcrições: inclua resumo_pregacao, frases_impactantes, stories (7 dias) e estudo_biblico' : 'O contexto deve ser breve mas informativo'}
-3. A legenda deve ser pastoral, calorosa e prática
-4. Se for carrossel, inclua 3-7 cards
-5. Se for vídeo/reel, inclua roteiro com timing
-6. Hashtags devem ser relevantes para público cristão brasileiro
-7. Escolha o pilar mais adequado ao tema
-8. ${isLongTranscript ? 'Extraia as frases MAIS IMPACTANTES da pregação original' : 'Crie conteúdo relevante e envolvente'}
-9. Retorne APENAS o JSON, sem texto adicional`;
+1. SEMPRE inclua fundamento_biblico (versículos com referências completas, contexto histórico/cultural, princípio atemporal)
+2. Retorne APENAS os campos necessários para o tipo de conteúdo solicitado
+3. NÃO inclua campos desnecessários (ex: se é um estudo, não gere hashtags ou legendas para redes sociais)
+4. Seja pastoral, prático e biblicamente fundamentado
+5. Retorne APENAS JSON válido, sem texto adicional antes ou depois
+
+Use esta estrutura JSON como guia:
+
+${selectedStructure}
+
+${isLongTranscript ? `
+ATENÇÃO: Esta é uma transcrição longa de pregação. 
+- Identifique os principais pontos teológicos
+- Extraia versículos-chave mencionados
+- Seja completo e detalhado na análise
+` : ''}
+
+Retorne APENAS o JSON válido.`;
 
     console.log('Calling Lovable AI with prompt:', prompt.substring(0, 100));
 
@@ -198,11 +342,14 @@ REGRAS IMPORTANTES:
       
       generatedContent = JSON.parse(jsonMatch[0]);
       
-      // Validação básica de estrutura
-      if (!generatedContent.conteudo || !generatedContent.fundamento_biblico) {
+      // Validação básica de estrutura - fundamento_biblico é obrigatório sempre
+      if (!generatedContent.fundamento_biblico) {
         console.error('Invalid structure:', generatedContent);
-        throw new Error('IA retornou estrutura incompleta');
+        throw new Error('IA retornou estrutura incompleta - falta fundamento_biblico');
       }
+      
+      // Adicionar tipo detectado ao conteúdo para o frontend saber como renderizar
+      generatedContent.content_type = detectedType;
       
     } catch (parseError) {
       console.error('JSON parse error:', parseError);

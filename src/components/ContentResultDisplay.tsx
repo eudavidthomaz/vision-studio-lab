@@ -6,30 +6,11 @@ import { Separator } from "./ui/separator";
 import { Badge } from "./ui/badge";
 import { toast } from "sonner";
 import ImageGenerationModal from "./ImageGenerationModal";
+import { EstudoBiblicoView } from "./content-views/EstudoBiblicoView";
+import { ResumoPregacaoView } from "./content-views/ResumoPregacaoView";
 
 interface ContentResultProps {
-  content: {
-    fundamento_biblico: {
-      versiculos: string[];
-      contexto: string;
-      principio: string;
-    };
-    conteudo: {
-      tipo: string;
-      legenda: string;
-      pilar: string;
-    };
-    estrutura_visual?: {
-      cards?: Array<{ titulo: string; texto: string }>;
-      roteiro?: string;
-    };
-    dica_producao: {
-      formato: string;
-      estilo: string;
-      horario: string;
-      hashtags: string[];
-    };
-  };
+  content: any; // Tipo dinâmico baseado no content_type
   onSave: () => void;
   onRegenerate: () => void;
   isSaving: boolean;
@@ -39,15 +20,73 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<{ copy: string; pilar: string } | null>(null);
 
+  // Detectar tipo de conteúdo
+  const contentType = content.content_type || 
+    (content.estudo_biblico ? 'estudo' :
+     content.resumo_pregacao ? 'resumo' :
+     content.perguntas_celula ? 'perguntas' :
+     content.devocional ? 'devocional' :
+     content.stories ? 'stories' : 'post');
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
   };
 
   const openImageModal = (copy: string) => {
-    setSelectedContent({ copy, pilar: content.conteudo.pilar });
+    setSelectedContent({ copy, pilar: content.conteudo?.pilar || 'EDIFICAR' });
     setImageModalOpen(true);
   };
+
+  // Renderizar view específica para tipos não-padrão
+  if (contentType === 'estudo') {
+    return (
+      <div className="space-y-6">
+        <EstudoBiblicoView data={content} />
+        <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t p-4 -mx-4 md:mx-0 md:border md:rounded-lg flex flex-col sm:flex-row gap-3">
+          <Button onClick={onSave} disabled={isSaving} className="flex-1">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" className="flex-1">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (contentType === 'resumo') {
+    return (
+      <div className="space-y-6">
+        <ResumoPregacaoView data={content} />
+        <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t p-4 -mx-4 md:mx-0 md:border md:rounded-lg flex flex-col sm:flex-row gap-3">
+          <Button onClick={onSave} disabled={isSaving} className="flex-1">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" className="flex-1">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Validação para formato de redes sociais
+  if (!content.conteudo) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <p className="text-center text-muted-foreground">
+            Formato de conteúdo não reconhecido. Tente gerar novamente.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const copyAll = () => {
     const allText = `
