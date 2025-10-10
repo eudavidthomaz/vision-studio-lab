@@ -255,7 +255,173 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
   }
 }`,
 
-      desafio_semanal: `{
+    calendario: `{
+  "calendario_editorial": {
+    "periodo": "Semana de DD/MM a DD/MM ou Mês de MMM/AAAA",
+    "objetivo": "Objetivo estratégico deste período",
+    "postagens": [
+      {
+        "dia": "Segunda-feira DD/MM",
+        "horario_sugerido": "19h",
+        "formato": "Carrossel | Post | Reel | Stories",
+        "tema": "Tema do post",
+        "pilar": "ALCANÇAR | EDIFICAR | PERTENCER | SERVIR",
+        "versiculo_base": "Referência bíblica (opcional)",
+        "objetivo_do_post": "O que queremos comunicar"
+      }
+    ],
+    "observacoes": "Dicas estratégicas para o período"
+  }
+}`,
+    convite: `{
+  "convite": {
+    "titulo_evento": "Nome do evento",
+    "data": "DD/MM/AAAA",
+    "horario": "HH:MM",
+    "local": "Nome do local ou link online",
+    "descricao": "Descrição atrativa do evento (2-3 parágrafos)",
+    "publico_alvo": "Para quem é este evento",
+    "como_participar": "Instruções de inscrição/presença",
+    "contato": "WhatsApp ou email para dúvidas",
+    "chamado_acao": "Frase final motivadora"
+  }
+}`,
+    aviso: `{
+  "aviso": {
+    "tipo": "Urgente | Importante | Informativo",
+    "titulo": "Título do aviso",
+    "mensagem": "Texto completo do aviso (claro e direto)",
+    "data_vigencia": "Até quando vale este aviso",
+    "responsavel": "Quem procurar para mais informações",
+    "chamado_acao": "O que a pessoa deve fazer"
+  }
+}`,
+    guia: `{
+  "guia": {
+    "titulo": "Nome do guia",
+    "introducao": "Para que serve este guia",
+    "passos": [
+      {
+        "numero": 1,
+        "titulo": "Título do passo",
+        "descricao": "Explicação detalhada",
+        "dica": "Dica prática opcional"
+      }
+    ],
+    "recursos_necessarios": ["Item 1", "Item 2"],
+    "conclusao": "Encorajamento final"
+  }
+}`,
+    esboco: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículo 1 com referência completa"],
+    "contexto": "Contexto histórico e cultural",
+    "principio_atemporal": "Princípio aplicável hoje"
+  },
+  "esboco": {
+    "titulo": "Título do esboço/sermão",
+    "introducao": "Contexto e gancho inicial",
+    "topicos": [
+      {
+        "numero": "I",
+        "titulo": "Título do tópico principal",
+        "subtopicos": ["A. Subtópico 1", "B. Subtópico 2"],
+        "versiculo_base": "Referência bíblica"
+      }
+    ],
+    "conclusao": "Conclusão e aplicação prática"
+  }
+}`,
+    versiculos_citados: `{
+  "versiculos_citados": {
+    "origem": "Pregação/Estudo de DD/MM/AAAA",
+    "versiculos": [
+      {
+        "referencia": "João 3:16",
+        "texto_completo": "Porque Deus amou o mundo de tal maneira...",
+        "contexto_uso": "Como foi usado na mensagem"
+      }
+    ]
+  }
+}`,
+    trilha_oracao: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículos sobre oração"],
+    "contexto": "Contexto bíblico da oração",
+    "principio_atemporal": "Princípios de intercessão"
+  },
+  "trilha_oracao": {
+    "titulo": "Nome da trilha de oração",
+    "duracao_estimada": "15-30 minutos",
+    "introducao": "Como começar este momento de oração",
+    "etapas": [
+      {
+        "numero": 1,
+        "nome": "Adoração | Confissão | Súplica | Intercessão | Gratidão",
+        "orientacao": "O que fazer nesta etapa",
+        "versiculo_guia": "Referência - texto completo",
+        "tempo_sugerido": "5 minutos"
+      }
+    ],
+    "encerramento": "Como encerrar a oração"
+  }
+}`,
+    qa_estruturado: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículos relacionados ao tema"],
+    "contexto": "Contexto das perguntas",
+    "principio_atemporal": "Princípio bíblico central"
+  },
+  "perguntas_respostas": {
+    "tema": "Tema do Q&A",
+    "introducao": "Contexto geral das perguntas",
+    "questoes": [
+      {
+        "numero": 1,
+        "pergunta": "Pergunta completa",
+        "resposta": "Resposta detalhada e pastoral",
+        "versiculo_relacionado": "Referência bíblica"
+      }
+    ]
+  }
+}`,
+    convite_grupos: `{
+  "convite_grupos": {
+    "tipo_grupo": "Célula | Discipulado | Grupo de Estudo | Ministério",
+    "nome_grupo": "Nome do grupo",
+    "descricao": "O que fazemos no grupo (2-3 parágrafos)",
+    "publico": "Para quem é este grupo",
+    "quando": "Dia e horário dos encontros",
+    "onde": "Local físico ou link online",
+    "como_entrar": "Instruções para participar",
+    "contato": "Nome e contato do líder",
+    "chamado_acao": "Frase motivadora final"
+  }
+}`,
+    discipulado: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículos sobre discipulado"],
+    "contexto": "Base bíblica do discipulado",
+    "principio_atemporal": "Princípios de crescimento espiritual"
+  },
+  "plano_discipulado": {
+    "titulo": "Nome do plano de discipulado",
+    "objetivo": "O que se espera alcançar espiritualmente",
+    "duracao": "Quantidade de semanas/meses",
+    "encontros": [
+      {
+        "numero": 1,
+        "tema": "Tema do encontro",
+        "objetivos": ["Objetivo 1", "Objetivo 2"],
+        "versiculo_base": "Referência e texto",
+        "atividades": ["Atividade 1", "Atividade 2"],
+        "tarefa_casa": "O que fazer até o próximo encontro"
+      }
+    ],
+    "recursos": ["Livro recomendado", "Material de apoio"]
+  }
+}`,
+    desafio_semanal: `{
   "fundamento_biblico": {
     "versiculos": ["Versículo 1 com referência completa", "Versículo 2"],
     "contexto": "Contexto bíblico e teológico do desafio",
@@ -422,6 +588,22 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
 
     const selectedStructure = structureByType[detectedType] || structureByType.post;
 
+    // Define which types require biblical foundation
+    const requiresBiblicalFoundation = [
+      'post', 'carrossel', 'reel', 'stories',
+      'estudo', 'resumo', 'devocional', 'desafio_semanal',
+      'perguntas', 'esboco', 'trilha_oracao', 'qa_estruturado', 'discipulado'
+    ];
+    
+    // Define which types are for social media (need production tips)
+    const socialMediaTypes = ['post', 'carrossel', 'reel', 'stories'];
+    
+    // Define operational types (no biblical foundation)
+    const operationalTypes = [
+      'calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 
+      'ideia_estrategica', 'versiculos_citados'
+    ];
+
     // Construir o system prompt dinâmico baseado no tipo detectado
     const systemPrompt = `${detectedType === 'ideia_estrategica' ? MENTOR_IDENTITY : ''}
 
@@ -431,42 +613,47 @@ ${CONTENT_METHOD}
 
 ${PILLAR_DISTRIBUTION}
 
-${detectedType === 'ideia_estrategica' ? `
-Você está operando como **MENTOR DE MÍDIAS** com expertise em:
-- Teologia aplicada ao ministério de comunicação
-- Marketing estratégico (Kotler, Godin, Cialdini)
-- Design e narrativa visual
-- Gestão de equipes de mídia
-
-Sua resposta deve ser PASTORAL + ESTRATÉGICA + PRÁTICA.
-` : detectedType === 'desafio_semanal' ? `
-Você está criando um **DESAFIO SEMANAL TRANSFORMADOR** para engajamento comunitário.
-
-INSTRUÇÕES CRÍTICAS:
-- SEMPRE crie EXATAMENTE 7 dias (um para cada dia da semana)
-- Cada ação deve ser ESPECÍFICA, MENSURÁVEL e REALISTA (algo que qualquer pessoa consiga fazer)
-- Versículos devem PROGREDIR EM PROFUNDIDADE ao longo da semana
-- Dia 1: Introdução suave e motivação inicial
-- Dia 4: PONTO DE VIRADA - desafio mais profundo que testa compromisso
-- Dia 7: Conclusão inspiradora + compromisso de continuidade
-- Use linguagem PASTORAL mas EMPOLGANTE (como um técnico motivando time)
-- Pense em algo que funcione para JOVENS, ADULTOS E IDOSOS simultaneamente
-- Cada exemplo prático deve ser algo que a pessoa pode fazer HOJE
-` : 'Você é um assistente especializado em criar conteúdo cristão.'}
-
-Analise o pedido do usuário e identifique o tipo de conteúdo solicitado.
-
 TIPO DETECTADO: ${detectedType}
 
-REGRAS IMPORTANTES:
-1. SEMPRE inclua fundamento_biblico (versículos com referências completas, contexto histórico/cultural, princípio atemporal)
+REGRAS IMPORTANTES PARA TIPO "${detectedType}":
+1. ${requiresBiblicalFoundation.includes(detectedType)
+    ? 'SEMPRE inclua fundamento_biblico completo (versículos com referências, contexto histórico/cultural, princípio atemporal)'
+    : 'NÃO inclua fundamento_biblico (este é um formato operacional/estratégico)'}
+
 2. Retorne APENAS os campos necessários para o tipo de conteúdo solicitado
-3. NÃO inclua campos desnecessários (ex: se é um estudo, não gere hashtags ou legendas para redes sociais)
-4. Seja pastoral, prático e biblicamente fundamentado
+
+3. ${socialMediaTypes.includes(detectedType)
+    ? 'Inclua dica_producao com formato, estilo, horário e hashtags apropriadas'
+    : 'NÃO inclua dica_producao, hashtags ou orientações de redes sociais'}
+
+4. Seja ${operationalTypes.includes(detectedType) 
+    ? 'prático, direto e focado na organização/comunicação' 
+    : 'pastoral, prático e biblicamente fundamentado'}
+
 5. Retorne APENAS JSON válido, sem texto adicional antes ou depois
 
-Use esta estrutura JSON como guia:
+${detectedType === 'desafio_semanal' ? `
+INSTRUÇÕES ESPECÍFICAS PARA DESAFIO SEMANAL:
+- Crie EXATAMENTE 7 dias (Segunda a Domingo)
+- Cada ação deve ser específica, mensurável e realista (15-30 minutos máximo)
+- Versículos devem progredir em profundidade ao longo da semana
+- Dia 1: Introdução leve e motivadora
+- Dia 4: Ponto de virada - desafio mais profundo
+- Dia 7: Conclusão poderosa com compromisso futuro
+- Use linguagem pastoral mas empolgante
+- Pense em algo que funcione para todas as idades
+` : ''}
 
+${detectedType === 'calendario' ? `
+INSTRUÇÕES ESPECÍFICAS PARA CALENDÁRIO:
+- Distribua posts ao longo da semana/mês de forma estratégica
+- Varie os formatos (carrossel, reel, stories, post)
+- Balance os 4 pilares: ALCANÇAR, EDIFICAR, PERTENCER, SERVIR
+- Sugira horários baseados em engajamento típico
+- Seja específico nos temas, não genérico
+` : ''}
+
+ESTRUTURA JSON OBRIGATÓRIA para tipo "${detectedType}":
 ${selectedStructure}
 
 ${isLongTranscript ? `
@@ -522,14 +709,29 @@ Retorne APENAS o JSON válido.`;
       
       generatedContent = JSON.parse(jsonMatch[0]);
       
-    // Validação básica de estrutura - fundamento_biblico é obrigatório sempre
-    if (!generatedContent.fundamento_biblico) {
+    // Validate structure based on content type
+    const operationalTypes = ['calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 'versiculos_citados', 'ideia_estrategica'];
+    const requiresBiblicalFoundation = !operationalTypes.includes(detectedType);
+    
+    // Only require fundamento_biblico for biblical/spiritual content
+    if (requiresBiblicalFoundation && !generatedContent.fundamento_biblico) {
       console.error('Invalid structure:', generatedContent);
       throw new Error('IA retornou estrutura incompleta - falta fundamento_biblico');
     }
 
-    // Validar se retornou o tipo correto
+    // Validate structure based on type
     const hasCorrectStructure = 
+      (detectedType === 'calendario' && generatedContent.calendario_editorial) ||
+      (detectedType === 'convite' && generatedContent.convite) ||
+      (detectedType === 'aviso' && generatedContent.aviso) ||
+      (detectedType === 'guia' && generatedContent.guia) ||
+      (detectedType === 'convite_grupos' && generatedContent.convite_grupos) ||
+      (detectedType === 'versiculos_citados' && generatedContent.versiculos_citados) ||
+      (detectedType === 'esboco' && generatedContent.fundamento_biblico && generatedContent.esboco) ||
+      (detectedType === 'trilha_oracao' && generatedContent.fundamento_biblico && generatedContent.trilha_oracao) ||
+      (detectedType === 'qa_estruturado' && generatedContent.fundamento_biblico && generatedContent.perguntas_respostas) ||
+      (detectedType === 'discipulado' && generatedContent.fundamento_biblico && generatedContent.plano_discipulado) ||
+      (detectedType === 'desafio_semanal' && generatedContent.fundamento_biblico && generatedContent.desafio_semanal?.dias?.length === 7) ||
       (detectedType === 'ideia_estrategica' && generatedContent.ideia_estrategica) ||
       (detectedType === 'estudo' && generatedContent.estudo_biblico) ||
       (detectedType === 'resumo' && generatedContent.resumo_pregacao) ||

@@ -61,18 +61,186 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   };
 
   // Organizational formats (no fundamento_biblico)
-  if (contentType === 'calendario') return <CalendarioView calendario={parsedContent.calendario_editorial} />;
-  if (contentType === 'convite') return <ConviteView convite={parsedContent.convite} />;
-  if (contentType === 'aviso') return <AvisoView aviso={parsedContent.aviso} />;
-  if (contentType === 'guia') return <GuiaView guia={parsedContent.guia} />;
-  if (contentType === 'convite_grupos') return <ConviteGruposView convite={parsedContent.convite_grupos} />;
-  if (contentType === 'versiculos_citados') return <VersiculosCitadosView versiculos={parsedContent.versiculos_citados} />;
+  if (contentType === 'calendario') {
+    return (
+      <>
+        <CalendarioView calendario={parsedContent.calendario_editorial} />
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
+
+  if (contentType === 'convite') {
+    return (
+      <>
+        <ConviteView convite={parsedContent.convite} />
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
+
+  if (contentType === 'aviso') {
+    return (
+      <>
+        <AvisoView aviso={parsedContent.aviso} />
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
+
+  if (contentType === 'guia') {
+    return (
+      <>
+        <GuiaView guia={parsedContent.guia} />
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
+
+  if (contentType === 'convite_grupos') {
+    return (
+      <>
+        <ConviteGruposView convite={parsedContent.convite_grupos} />
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
+
+  if (contentType === 'versiculos_citados') {
+    return (
+      <>
+        <VersiculosCitadosView versiculos={parsedContent.versiculos_citados} />
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
 
   // Biblical formats (with fundamento_biblico)
-  if (contentType === 'esboco') return <EsbocoView esboco={parsedContent.esboco} />;
-  if (contentType === 'trilha_oracao') return <TrilhaOracaoView trilha={parsedContent.trilha_oracao} />;
-  if (contentType === 'qa_estruturado') return <QAEstruturadoView qa={parsedContent.perguntas_respostas} />;
-  if (contentType === 'discipulado') return <DiscipuladoView plano={parsedContent.plano_discipulado} />;
+  if (contentType === 'esboco') {
+    return (
+      <>
+        <EsbocoView esboco={parsedContent.esboco} />
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
+
+  if (contentType === 'trilha_oracao') {
+    return (
+      <>
+        <TrilhaOracaoView trilha={parsedContent.trilha_oracao} />
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
+
+  if (contentType === 'qa_estruturado') {
+    return (
+      <>
+        <QAEstruturadoView qa={parsedContent.perguntas_respostas} />
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
+
+  if (contentType === 'discipulado') {
+    return (
+      <>
+        <DiscipuladoView plano={parsedContent.plano_discipulado} />
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
 
   if (contentType === 'ideia_estrategica' && parsedContent.ideia_estrategica) {
     return (
