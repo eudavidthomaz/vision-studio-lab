@@ -72,6 +72,7 @@ serve(async (req) => {
       carrossel: /carrossel|slides|cards/i,
       reel: /reel|vídeo|roteiro|script/i,
       stories: /stories|story|storys/i,
+      desafio_semanal: /desafio|challenge|compromisso semanal|missão|jornada/i,
       estudo: /estudo|estudo bíblico|análise bíblica|exegese/i,
       resumo: /resumo|resumir|sintetize|principais pontos|síntese/i,
       devocional: /devocional|meditação|reflexão diária/i,
@@ -245,6 +246,80 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
   }
 }`,
 
+      desafio_semanal: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículo 1 com referência completa", "Versículo 2"],
+    "contexto": "Contexto bíblico e teológico do desafio",
+    "principio_atemporal": "Princípio que fundamenta o desafio"
+  },
+  "desafio_semanal": {
+    "titulo": "Nome impactante do desafio (ex: #7DiasDeGratidão)",
+    "objetivo_espiritual": "Transformação espiritual esperada ao completar o desafio",
+    "objetivo_pratico": "Resultado tangível e mensurável na vida da pessoa",
+    "como_funciona": "Explicação clara em 2-3 frases de como participar",
+    "dias": [
+      {
+        "dia": 1,
+        "acao": "Ação específica e mensurável para fazer hoje",
+        "versiculo_do_dia": "Referência completa - texto do versículo",
+        "reflexao": "Pergunta ou frase curta para meditar durante o dia",
+        "exemplo_pratico": "Exemplo concreto de como aplicar isso no cotidiano"
+      },
+      {
+        "dia": 2,
+        "acao": "Segunda ação progressiva",
+        "versiculo_do_dia": "Referência - texto",
+        "reflexao": "Reflexão do dia 2",
+        "exemplo_pratico": "Exemplo prático do dia 2"
+      },
+      {
+        "dia": 3,
+        "acao": "Terceira ação",
+        "versiculo_do_dia": "Referência - texto",
+        "reflexao": "Reflexão do dia 3",
+        "exemplo_pratico": "Exemplo prático do dia 3"
+      },
+      {
+        "dia": 4,
+        "acao": "Ponto de virada - desafio mais profundo",
+        "versiculo_do_dia": "Referência - texto",
+        "reflexao": "Reflexão desafiadora",
+        "exemplo_pratico": "Exemplo que exige mais comprometimento"
+      },
+      {
+        "dia": 5,
+        "acao": "Quinta ação",
+        "versiculo_do_dia": "Referência - texto",
+        "reflexao": "Reflexão do dia 5",
+        "exemplo_pratico": "Exemplo prático do dia 5"
+      },
+      {
+        "dia": 6,
+        "acao": "Sexta ação",
+        "versiculo_do_dia": "Referência - texto",
+        "reflexao": "Reflexão do dia 6",
+        "exemplo_pratico": "Exemplo prático do dia 6"
+      },
+      {
+        "dia": 7,
+        "acao": "Conclusão - ação de compromisso futuro",
+        "versiculo_do_dia": "Referência - texto inspirador",
+        "reflexao": "O que você vai levar daqui pra frente?",
+        "exemplo_pratico": "Como continuar praticando após o desafio"
+      }
+    ],
+    "como_compartilhar": {
+      "sugestao_post": "Texto curto para a pessoa postar o progresso diário",
+      "hashtag": "#NomeDoDesafio",
+      "formato": "stories, feed ou grupo de WhatsApp"
+    },
+    "metricas_de_impacto": {
+      "individual": "Como a pessoa mede o próprio progresso (ex: marcar dias no papel)",
+      "comunitario": "Como a igreja acompanha participação (ex: contador de stories com a hashtag)"
+    }
+  }
+}`,
+
       post: `{
   "fundamento_biblico": {
     "versiculos": ["Versículo 1", "Versículo 2"],
@@ -355,6 +430,19 @@ Você está operando como **MENTOR DE MÍDIAS** com expertise em:
 - Gestão de equipes de mídia
 
 Sua resposta deve ser PASTORAL + ESTRATÉGICA + PRÁTICA.
+` : detectedType === 'desafio_semanal' ? `
+Você está criando um **DESAFIO SEMANAL TRANSFORMADOR** para engajamento comunitário.
+
+INSTRUÇÕES CRÍTICAS:
+- SEMPRE crie EXATAMENTE 7 dias (um para cada dia da semana)
+- Cada ação deve ser ESPECÍFICA, MENSURÁVEL e REALISTA (algo que qualquer pessoa consiga fazer)
+- Versículos devem PROGREDIR EM PROFUNDIDADE ao longo da semana
+- Dia 1: Introdução suave e motivação inicial
+- Dia 4: PONTO DE VIRADA - desafio mais profundo que testa compromisso
+- Dia 7: Conclusão inspiradora + compromisso de continuidade
+- Use linguagem PASTORAL mas EMPOLGANTE (como um técnico motivando time)
+- Pense em algo que funcione para JOVENS, ADULTOS E IDOSOS simultaneamente
+- Cada exemplo prático deve ser algo que a pessoa pode fazer HOJE
 ` : 'Você é um assistente especializado em criar conteúdo cristão.'}
 
 Analise o pedido do usuário e identifique o tipo de conteúdo solicitado.

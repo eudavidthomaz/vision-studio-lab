@@ -9,6 +9,7 @@ import ImageGenerationModal from "./ImageGenerationModal";
 import { EstudoBiblicoView } from "./content-views/EstudoBiblicoView";
 import { ResumoPregacaoView } from "./content-views/ResumoPregacaoView";
 import { IdeiaEstrategicaView } from "./content-views/IdeiaEstrategicaView";
+import { DesafioSemanalView } from "./content-views/DesafioSemanalView";
 
 interface ContentResultProps {
   content: any; // Tipo dinâmico baseado no content_type
@@ -24,6 +25,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   // Detectar tipo de conteúdo
   const contentType = content.content_type || 
     (content.ideia_estrategica ? 'ideia_estrategica' :
+     content.desafio_semanal ? 'desafio_semanal' :
      content.estudo_biblico ? 'estudo' :
      content.resumo_pregacao ? 'resumo' :
      content.perguntas_celula ? 'perguntas' :
@@ -123,6 +125,10 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
         </div>
       </div>
     );
+  }
+
+  if (contentType === 'desafio_semanal' && content.desafio_semanal) {
+    return <DesafioSemanalView data={content} onSave={onSave} onRegenerate={onRegenerate} isSaving={isSaving} />;
   }
 
   // Validação para formato de redes sociais

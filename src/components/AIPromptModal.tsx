@@ -37,6 +37,7 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading }: AIP
     if (/carrossel|slides|cards/i.test(text)) return 'carrossel';
     if (/reel|vídeo|roteiro|script/i.test(text)) return 'reel';
     if (/stories|story|storys/i.test(text)) return 'stories';
+    if (/desafio|challenge|compromisso semanal|missão|jornada/i.test(text)) return 'desafio_semanal';
     if (/estudo|estudo bíblico|análise bíblica|exegese/i.test(text)) return 'estudo';
     if (/resumo|resumir|sintetize|principais pontos|síntese/i.test(text)) return 'resumo';
     if (/devocional|meditação|reflexão diária/i.test(text)) return 'devocional';
