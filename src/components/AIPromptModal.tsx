@@ -31,16 +31,21 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading }: AIP
     }
   }, [open]);
 
-  // Função para detectar tipo de conteúdo
+  // Função para detectar tipo de conteúdo (formatos específicos primeiro)
   const detectContentType = (text: string): string => {
-    if (/ideia|viral|campanha|estratégia|plano de conteúdo|série/i.test(text)) return 'ideia_estrategica';
-    if (/estudo|estudo bíblico|análise bíblica|exegese/i.test(text)) return 'estudo';
-    if (/resumo|resumir|sintetize|principais pontos|síntese/i.test(text)) return 'resumo';
+    // PRIORIDADE 1: Formatos específicos de conteúdo
     if (/carrossel|slides|cards/i.test(text)) return 'carrossel';
     if (/reel|vídeo|roteiro|script/i.test(text)) return 'reel';
     if (/stories|story|storys/i.test(text)) return 'stories';
+    if (/estudo|estudo bíblico|análise bíblica|exegese/i.test(text)) return 'estudo';
+    if (/resumo|resumir|sintetize|principais pontos|síntese/i.test(text)) return 'resumo';
     if (/devocional|meditação|reflexão diária/i.test(text)) return 'devocional';
     if (/perguntas|questões|discussão|célula/i.test(text)) return 'perguntas';
+    if (/post|publicação|legenda/i.test(text)) return 'post';
+    
+    // PRIORIDADE 2: Ideia estratégica (apenas se nenhum formato específico foi detectado)
+    if (/ideia|viral|campanha|estratégia|plano de conteúdo|série/i.test(text)) return 'ideia_estrategica';
+    
     return 'post';
   };
 

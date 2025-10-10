@@ -66,17 +66,20 @@ serve(async (req) => {
     detectedType = explicitTypeMatch[1].toLowerCase();
     console.log(`Explicit type detected: ${detectedType}`);
   } else {
-    // PRIORIDADE 2: Detecção por regex (fallback)
+    // PRIORIDADE 2: Detecção por regex (formatos específicos primeiro)
     const contentTypeDetection = {
-      ideia_estrategica: /ideia|viral|campanha|estratégia|plano de conteúdo|série/i,
-      estudo: /estudo|estudo bíblico|análise bíblica|exegese/i,
-      resumo: /resumo|resumir|sintetize|principais pontos|síntese/i,
-      post: /post|publicação|legenda/i,
+      // PRIORIDADE 1: Formatos específicos
       carrossel: /carrossel|slides|cards/i,
       reel: /reel|vídeo|roteiro|script/i,
       stories: /stories|story|storys/i,
+      estudo: /estudo|estudo bíblico|análise bíblica|exegese/i,
+      resumo: /resumo|resumir|sintetize|principais pontos|síntese/i,
       devocional: /devocional|meditação|reflexão diária/i,
-      perguntas: /perguntas|questões|discussão|célula/i
+      perguntas: /perguntas|questões|discussão|célula/i,
+      post: /post|publicação|legenda/i,
+      
+      // PRIORIDADE 2: Ideia estratégica (apenas se nenhum formato foi detectado)
+      ideia_estrategica: /ideia|viral|campanha|estratégia|plano de conteúdo|série/i
     };
 
     // Apenas analisar os primeiros 2000 caracteres para evitar falsos positivos
