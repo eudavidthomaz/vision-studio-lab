@@ -57,7 +57,16 @@ serve(async (req) => {
       processedPrompt = prompt.substring(0, 20000) + '\n\n[Transcrição truncada por exceder limite]';
     }
 
-    // Detectar tipo de conteúdo solicitado
+  // Detectar tipo de conteúdo solicitado
+  let detectedType = 'post'; // default
+
+  // PRIORIDADE 1: Verificar se há marcador explícito
+  const explicitTypeMatch = processedPrompt.match(/^TIPO_SOLICITADO:\s*(\w+)/i);
+  if (explicitTypeMatch) {
+    detectedType = explicitTypeMatch[1].toLowerCase();
+    console.log(`Explicit type detected: ${detectedType}`);
+  } else {
+    // PRIORIDADE 2: Detecção por regex (fallback)
     const contentTypeDetection = {
       estudo: /estudo|estudo bíblico|análise bíblica|exegese/i,
       resumo: /resumo|resumir|sintetize|principais pontos|síntese/i,
@@ -69,15 +78,18 @@ serve(async (req) => {
       perguntas: /perguntas|questões|discussão|célula/i
     };
 
-    let detectedType = 'post'; // default
+    // Apenas analisar os primeiros 2000 caracteres para evitar falsos positivos
+    const promptStart = processedPrompt.substring(0, 2000);
+    
     for (const [type, regex] of Object.entries(contentTypeDetection)) {
-      if (regex.test(processedPrompt)) {
+      if (regex.test(promptStart)) {
         detectedType = type;
         break;
       }
     }
+  }
 
-    console.log(`Detected content type: ${detectedType}`);
+  console.log(`Final detected content type: ${detectedType}`);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -342,14 +354,28 @@ Retorne APENAS o JSON válido.`;
       
       generatedContent = JSON.parse(jsonMatch[0]);
       
-      // Validação básica de estrutura - fundamento_biblico é obrigatório sempre
-      if (!generatedContent.fundamento_biblico) {
-        console.error('Invalid structure:', generatedContent);
-        throw new Error('IA retornou estrutura incompleta - falta fundamento_biblico');
-      }
-      
-      // Adicionar tipo detectado ao conteúdo para o frontend saber como renderizar
-      generatedContent.content_type = detectedType;
+    // Validação básica de estrutura - fundamento_biblico é obrigatório sempre
+    if (!generatedContent.fundamento_biblico) {
+      console.error('Invalid structure:', generatedContent);
+      throw new Error('IA retornou estrutura incompleta - falta fundamento_biblico');
+    }
+
+    // Validar se retornou o tipo correto
+    const hasCorrectStructure = 
+      (detectedType === 'estudo' && generatedContent.estudo_biblico) ||
+      (detectedType === 'resumo' && generatedContent.resumo_pregacao) ||
+      (detectedType === 'perguntas' && generatedContent.perguntas_celula) ||
+      (detectedType === 'devocional' && generatedContent.devocional) ||
+      (detectedType === 'stories' && generatedContent.stories) ||
+      (['post', 'carrossel', 'reel'].includes(detectedType) && generatedContent.conteudo);
+
+    if (!hasCorrectStructure) {
+      console.error(`Expected ${detectedType} structure, got:`, Object.keys(generatedContent));
+      throw new Error(`IA retornou estrutura errada - esperava ${detectedType}`);
+    }
+    
+    // Adicionar tipo detectado ao conteúdo para o frontend saber como renderizar
+    generatedContent.content_type = detectedType;
       
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
