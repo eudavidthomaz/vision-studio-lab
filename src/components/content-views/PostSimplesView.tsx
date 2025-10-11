@@ -13,9 +13,15 @@ interface PostSimplesViewProps {
     descricao?: string;
     elementos?: string[];
   };
+  // Suporte para ContentViewer
+  data?: any;
+  contentType?: string;
 }
 
-export function PostSimplesView({ conteudo, imagem }: PostSimplesViewProps) {
+export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSimplesViewProps) {
+  // Extrair valores com fallback para ContentViewer
+  const actualConteudo = conteudo || data?.conteudo;
+  const actualImagem = imagem || data?.imagem;
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
@@ -24,7 +30,7 @@ export function PostSimplesView({ conteudo, imagem }: PostSimplesViewProps) {
   return (
     <div className="space-y-6">
       {/* Texto do Post */}
-      {conteudo?.texto && (
+      {actualConteudo?.texto && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -49,7 +55,7 @@ export function PostSimplesView({ conteudo, imagem }: PostSimplesViewProps) {
       )}
 
       {/* Legenda */}
-      {conteudo?.legenda && (
+      {actualConteudo?.legenda && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -71,7 +77,7 @@ export function PostSimplesView({ conteudo, imagem }: PostSimplesViewProps) {
       )}
 
       {/* Sugestão de Imagem */}
-      {imagem?.descricao && (
+      {actualImagem?.descricao && (
         <Card>
           <CardHeader>
             <CardTitle>Sugestão de Imagem</CardTitle>
@@ -93,7 +99,7 @@ export function PostSimplesView({ conteudo, imagem }: PostSimplesViewProps) {
       )}
 
       {/* Hashtags */}
-      {conteudo?.hashtags && conteudo.hashtags.length > 0 && (
+      {actualConteudo?.hashtags && actualConteudo.hashtags.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -110,7 +116,7 @@ export function PostSimplesView({ conteudo, imagem }: PostSimplesViewProps) {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {conteudo.hashtags.map((tag, i) => (
+              {actualConteudo.hashtags.map((tag, i) => (
                 <span key={i} className="text-sm text-primary">
                   {tag}
                 </span>

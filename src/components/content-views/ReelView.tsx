@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 interface ReelViewProps {
   roteiro?: {
-    cenas?: Array<{
+    cenas: Array<{
       numero: number;
       duracao: string;
       visual: string;
@@ -16,9 +16,15 @@ interface ReelViewProps {
     legenda?: string;
     hashtags?: string[];
   };
+  // Suporte para ContentViewer
+  data?: any;
+  contentType?: string;
 }
 
-export function ReelView({ roteiro, conteudo }: ReelViewProps) {
+export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps) {
+  // Extrair valores com fallback para ContentViewer
+  const actualRoteiro = roteiro || data?.roteiro || data?.roteiro_video;
+  const actualConteudo = conteudo || data?.conteudo;
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
@@ -94,7 +100,7 @@ export function ReelView({ roteiro, conteudo }: ReelViewProps) {
       )}
 
       {/* Hashtags */}
-      {conteudo?.hashtags && conteudo.hashtags.length > 0 && (
+      {actualConteudo?.hashtags && actualConteudo.hashtags.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -111,7 +117,7 @@ export function ReelView({ roteiro, conteudo }: ReelViewProps) {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {conteudo.hashtags.map((tag, i) => (
+              {actualConteudo.hashtags.map((tag, i) => (
                 <span key={i} className="text-sm text-primary">
                   {tag}
                 </span>

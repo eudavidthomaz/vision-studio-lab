@@ -5,19 +5,25 @@ import { toast } from "sonner";
 
 interface StoriesViewProps {
   estrutura?: {
-    slides?: Array<{
+    slides: Array<{
       numero: number;
       titulo: string;
       texto: string;
-      visual?: string;
+      sugestao_visual?: string;
     }>;
   };
   conteudo?: {
     cta?: string;
   };
+  // Suporte para ContentViewer
+  data?: any;
+  contentType?: string;
 }
 
-export function StoriesView({ estrutura, conteudo }: StoriesViewProps) {
+export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesViewProps) {
+  // Extrair valores com fallback para ContentViewer
+  const actualEstrutura = estrutura || data?.estrutura;
+  const actualConteudo = conteudo || data?.conteudo;
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
