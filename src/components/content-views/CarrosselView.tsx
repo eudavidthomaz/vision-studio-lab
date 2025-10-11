@@ -119,8 +119,8 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                   return (
                     <CarouselItem key={index}>
                       <Card className="border-2" data-card={index + 1}>
-                        <CardHeader className="bg-primary/5">
-                          <CardTitle className="text-sm sm:text-base md:text-lg">
+                        <CardHeader className="bg-primary/5 p-3 sm:p-4 md:p-6">
+                          <CardTitle className="text-xs sm:text-sm md:text-base leading-tight">
                             Card {index + 1}: {titulo}
                           </CardTitle>
                           <div className="flex flex-col sm:flex-row gap-2 pt-2">
@@ -133,7 +133,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                                 texto 
                               })}
                               disabled={loadingCard === index + 1}
-                              className="w-full sm:w-auto"
+                              className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm"
                             >
                               <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                               {loadingCard === index + 1 ? "Gerando..." : generatedImages[index + 1] ? "Regerar" : "Gerar Imagem"}
@@ -146,14 +146,14 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                                 `Card ${index + 1}`,
                                 index + 1
                               )}
-                              className="w-full sm:w-auto"
+                              className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm"
                             >
                               <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                               Copiar
                             </Button>
                           </div>
                         </CardHeader>
-                        <CardContent className="pt-4 sm:pt-6 space-y-4">
+                        <CardContent className="pt-3 sm:pt-4 md:pt-6 space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
                           {generatedImages[index + 1] && (
                             <div className="rounded-lg overflow-hidden bg-muted">
                               <img 
@@ -163,17 +163,17 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                               />
                             </div>
                           )}
-                          <p className="text-xs sm:text-sm whitespace-pre-line">{texto}</p>
+                          <p className="text-xs sm:text-sm whitespace-pre-line leading-relaxed">{texto}</p>
                           {imagemSugerida && (
-                            <div className="p-3 bg-muted rounded-md">
-                              <strong className="text-xs">Sugestão de Imagem:</strong>
-                              <p className="text-xs text-muted-foreground mt-1">{imagemSugerida}</p>
+                            <div className="p-2 sm:p-3 bg-muted rounded-md">
+                              <strong className="text-xs sm:text-sm">Sugestão de Imagem:</strong>
+                              <p className="text-xs sm:text-sm text-muted-foreground mt-1">{imagemSugerida}</p>
                             </div>
                           )}
                           {cta && (
-                            <div className="p-3 bg-primary/5 rounded-md border-l-4 border-primary">
-                              <strong className="text-xs">CTA:</strong>
-                              <p className="text-xs mt-1">{cta}</p>
+                            <div className="p-2 sm:p-3 bg-primary/5 rounded-md border-l-4 border-primary">
+                              <strong className="text-xs sm:text-sm">CTA:</strong>
+                              <p className="text-xs sm:text-sm mt-1">{cta}</p>
                             </div>
                           )}
                         </CardContent>

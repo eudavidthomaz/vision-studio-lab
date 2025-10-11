@@ -34,30 +34,30 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
   return (
     <div className="space-y-6">
       <Card className="border-primary/20">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">{convite.titulo_evento}</CardTitle>
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
-            <Badge variant="outline" className="gap-2">
-              <Calendar className="h-4 w-4" />
+        <CardHeader className="text-center p-3 sm:p-4 md:p-6">
+          <CardTitle className="text-lg sm:text-xl md:text-2xl leading-tight">{convite.titulo_evento}</CardTitle>
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-4 mt-3 sm:mt-4">
+            <Badge variant="outline" className="gap-1.5 sm:gap-2 text-xs sm:text-sm">
+              <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
               {convite.data}
             </Badge>
-            <Badge variant="outline" className="gap-2">
-              <Clock className="h-4 w-4" />
+            <Badge variant="outline" className="gap-1.5 sm:gap-2 text-xs sm:text-sm">
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
               {convite.horario}
             </Badge>
-            <Badge variant="outline" className="gap-2">
-              <MapPin className="h-4 w-4" />
+            <Badge variant="outline" className="gap-1.5 sm:gap-2 text-xs sm:text-sm">
+              <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
               {convite.local}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 sm:space-y-5 md:space-y-6 p-3 sm:p-4 md:p-6">
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
               variant={generatedImage ? "outline" : "default"}
               onClick={handleGenerateImage}
               disabled={isGenerating}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto h-10 sm:h-11 text-xs sm:text-sm"
             >
               <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
               {isGenerating ? "Gerando..." : generatedImage ? "Regerar Arte" : "Gerar Arte do Convite"}
@@ -75,7 +75,7 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
           )}
 
           <div>
-            <p className="text-sm sm:text-base text-muted-foreground whitespace-pre-wrap">{convite.descricao}</p>
+            <p className="text-xs sm:text-sm md:text-base text-muted-foreground whitespace-pre-wrap leading-relaxed">{convite.descricao}</p>
           </div>
 
           <Card className="bg-primary/5 border-primary/20">

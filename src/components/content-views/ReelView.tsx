@@ -46,11 +46,11 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-4 md:space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+        <CardHeader className="p-3 sm:p-4 md:p-6">
+          <CardTitle className="flex items-center gap-2 text-xs sm:text-sm md:text-base">
+            <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 flex-shrink-0" />
             Capa do Reel
           </CardTitle>
           <div className="flex flex-col sm:flex-row gap-2 pt-2">
@@ -59,7 +59,7 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
               size="sm"
               onClick={handleGenerateCover}
               disabled={isGenerating}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto h-9 sm:h-10 text-xs sm:text-sm"
             >
               <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
               {isGenerating ? "Gerando..." : generatedCoverImage ? "Regerar Capa" : "Gerar Capa do Reel"}
@@ -67,7 +67,7 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
           </div>
         </CardHeader>
         {generatedCoverImage && (
-          <CardContent>
+          <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
             <div id="generated-reel-cover" className="rounded-lg overflow-hidden bg-muted">
               <img 
                 src={generatedCoverImage} 
@@ -82,18 +82,18 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
       {/* Roteiro de Vídeo */}
       {roteiro?.cenas && roteiro.cenas.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Video className="h-5 w-5" />
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg">
+              <Video className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
               Roteiro do Reel - {roteiro.cenas.length} Cenas
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6 pt-0">
             {roteiro.cenas.map((cena) => (
               <Card key={cena.numero} className="border">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">
+                <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-xs sm:text-sm md:text-base leading-tight">
                       Cena {cena.numero} ({cena.duracao})
                     </CardTitle>
                     <Button
@@ -103,19 +103,20 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
                         `Cena ${cena.numero}\nDuração: ${cena.duracao}\n\nVisual: ${cena.visual}\n\nÁudio: ${cena.audio}`,
                         `Cena ${cena.numero}`
                       )}
+                      className="h-8 w-8 p-0 flex-shrink-0"
                     >
-                      <Copy className="h-4 w-4" />
+                      <Copy className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2 text-sm">
+                <CardContent className="space-y-2 text-xs sm:text-sm p-3 sm:p-4 pt-0">
                   <div>
                     <strong>Visual:</strong>
-                    <p className="text-muted-foreground">{cena.visual}</p>
+                    <p className="text-muted-foreground leading-relaxed">{cena.visual}</p>
                   </div>
                   <div>
                     <strong>Áudio/Texto:</strong>
-                    <p className="text-muted-foreground">{cena.audio}</p>
+                    <p className="text-muted-foreground leading-relaxed">{cena.audio}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -127,21 +128,22 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
       {/* Legenda */}
       {conteudo?.legenda && (
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Legenda para Instagram</CardTitle>
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm sm:text-base md:text-lg">Legenda para Instagram</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => copyToClipboard(conteudo.legenda!, "Legenda")}
+                className="h-8 sm:h-9 text-xs sm:text-sm flex-shrink-0"
               >
-                <Copy className="h-4 w-4 mr-2" />
+                <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Copiar
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
-            <p className="whitespace-pre-line text-sm">{conteudo.legenda}</p>
+          <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+            <p className="whitespace-pre-line text-xs sm:text-sm leading-relaxed">{conteudo.legenda}</p>
           </CardContent>
         </Card>
       )}
@@ -149,23 +151,24 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
       {/* Hashtags */}
       {actualConteudo?.hashtags && actualConteudo.hashtags.length > 0 && (
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Hashtags</CardTitle>
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm sm:text-base md:text-lg">Hashtags</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => copyToClipboard(conteudo.hashtags!.join(" "), "Hashtags")}
+                className="h-8 sm:h-9 text-xs sm:text-sm flex-shrink-0"
               >
-                <Copy className="h-4 w-4 mr-2" />
+                <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 Copiar
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
+          <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {actualConteudo.hashtags.map((tag, i) => (
-                <span key={i} className="text-sm text-primary">
+                <span key={i} className="text-xs sm:text-sm text-primary">
                   {tag}
                 </span>
               ))}

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Layers, Image } from "lucide-react";
+import { Copy, Layers, Image, Check, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
 
@@ -11,29 +12,24 @@ interface StoriesViewProps {
       numero: number;
       titulo: string;
       texto: string;
+      timing?: string;
       sugestao_visual?: string;
     }>;
   };
   conteudo?: {
-    cta?: string;
+    legenda?: string;
+    hashtags?: string[];
   };
-  // Suporte para ContentViewer
   data?: any;
   contentType?: string;
 }
 
 export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesViewProps) {
-  // Extrair valores com fallback para ContentViewer
   const actualEstrutura = estrutura || data?.estrutura;
   const actualConteudo = conteudo || data?.conteudo;
   
-  // Estado para controlar modal e imagens geradas
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [selectedSlide, setSelectedSlide] = useState<{
-    numero: number;
-    titulo: string;
-    texto: string;
-  } | null>(null);
+  const [selectedSlide, setSelectedSlide] = useState<any>(null);
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
   const [loadingSlide, setLoadingSlide] = useState<number | null>(null);
   const [copiedSlide, setCopiedSlide] = useState<number | null>(null);
@@ -52,116 +48,102 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
   };
 
   return (
-    <div className="space-y-6">
-      {/* Slides dos Stories */}
-      {actualEstrutura?.slides && actualEstrutura.slides.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-              <Layers className="h-4 w-4 sm:h-5 sm:w-5" />
-              Sequência de Stories - {actualEstrutura.slides.length} Slides
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {actualEstrutura.slides.map((slide) => (
-              <Card key={slide.numero} className="border" data-slide={slide.numero}>
-                <CardHeader className="pb-3 space-y-3">
-                  <CardTitle className="text-sm sm:text-base">
-                    Slide {slide.numero}: {slide.titulo}
-                  </CardTitle>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                    {slide.texto}
-                  </p>
+    <div className="space-y-3 sm:space-y-4 md:space-y-6">
+      {actualEstrutura?.slides && actualEstrutura.slides.map((slide) => {
+        const slideNum = slide.numero;
+        const hasImage = generatedImages[slideNum];
+        const isLoadingImage = loadingSlide === slideNum;
 
-                  <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                    <Button
-                      variant={generatedImages[slide.numero] ? "outline" : "default"}
-                      size="sm"
-                      onClick={() => handleGenerateImage(slide)}
-                      disabled={loadingSlide === slide.numero}
-                      className="w-full sm:w-auto"
-                    >
-                      <Image className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                      {loadingSlide === slide.numero ? "Gerando..." : generatedImages[slide.numero] ? "Regerar" : "Gerar Imagem"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyToClipboard(
-                        `${slide.titulo}\n\n${slide.texto}`,
-                        `Slide ${slide.numero}`,
-                        slide.numero
-                      )}
-                      className="w-full sm:w-auto"
-                    >
-                      <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                      Copiar
-                    </Button>
-                  </div>
-                </CardHeader>
-                {generatedImages[slide.numero] && (
-                  <CardContent className="pt-0">
-                    <div className="rounded-lg overflow-hidden bg-muted">
-                      <img 
-                        src={generatedImages[slide.numero]} 
-                        alt={`Slide ${slide.numero}`}
-                        className="w-full h-auto"
-                      />
-                    </div>
-                  </CardContent>
-                )}
-              </Card>
-            ))}
+        return (
+          <Card key={slideNum} data-slide={slideNum}>
+            <CardHeader className="p-3 sm:p-4 md:p-6">
+              <CardTitle className="text-xs sm:text-sm md:text-base flex items-center justify-between gap-2">
+                <span className="leading-tight">Story {slideNum}: {slide.titulo}</span>
+                {slide.timing && <Badge variant="secondary" className="text-xs flex-shrink-0">{slide.timing}</Badge>}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-3 sm:pt-4 md:pt-6 space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                {slide.texto}
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleGenerateImage(slide)}
+                  disabled={isLoadingImage}
+                  className="flex items-center gap-2 h-9 sm:h-10 text-xs sm:text-sm"
+                >
+                  {isLoadingImage ? (
+                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                  ) : (
+                    <Image className="h-3 w-3 sm:h-4 sm:w-4" />
+                  )}
+                  {isLoadingImage ? "Gerando..." : hasImage ? "Regerar Imagem" : "Gerar Imagem"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(slide.texto, `Story ${slideNum}`, slideNum)}
+                  className="flex items-center gap-2 h-9 sm:h-10 text-xs sm:text-sm"
+                >
+                  {copiedSlide === slideNum ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Copy className="h-3 w-3 sm:h-4 sm:w-4" />}
+                  Copiar
+                </Button>
+              </div>
+
+              {hasImage && (
+                <div className="mt-3 sm:mt-4">
+                  <img src={generatedImages[slideNum]} alt={`Story ${slideNum}`} className="w-full rounded-lg shadow-md" />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      {actualConteudo && (
+        <Card>
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-sm sm:text-base md:text-lg">Call to Action</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6 pt-0">
+            {actualConteudo.legenda && (
+              <div>
+                <h3 className="font-semibold text-xs sm:text-sm mb-1.5 sm:mb-2">Legenda</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{actualConteudo.legenda}</p>
+              </div>
+            )}
+            {actualConteudo.hashtags && (
+              <div>
+                <h3 className="font-semibold text-xs sm:text-sm mb-1.5 sm:mb-2">Hashtags</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">{actualConteudo.hashtags}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
 
-      {/* CTA */}
-      {actualConteudo?.cta && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Call to Action</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => copyToClipboard(actualConteudo.cta!, "CTA", 0)}
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{actualConteudo.cta}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Modal de Geração de Imagem */}
-      {selectedSlide && (
-        <ImageGenerationModal
-          open={imageModalOpen}
-          onOpenChange={setImageModalOpen}
-        copy={`${selectedSlide.titulo}\n\n${selectedSlide.texto}`}
-        pilar={data?.pilar || "Edificar"}
+      <ImageGenerationModal
+        open={imageModalOpen}
+        onOpenChange={setImageModalOpen}
+        copy={selectedSlide ? `${selectedSlide.titulo}\n\n${selectedSlide.texto}` : ""}
+        pilar="Alcançar"
         isStoryMode={true}
         onImageGenerated={(imageUrl) => {
-            setGeneratedImages(prev => ({
-              ...prev,
-              [selectedSlide.numero]: imageUrl
-            }));
+          if (selectedSlide) {
+            setGeneratedImages(prev => ({ ...prev, [selectedSlide.numero]: imageUrl }));
             setLoadingSlide(null);
-            toast.success(`Imagem do Slide ${selectedSlide.numero} gerada com sucesso!`);
-            
-            // Scroll suave até a imagem
+            toast.success("Imagem gerada!");
             setTimeout(() => {
               const element = document.querySelector(`[data-slide="${selectedSlide.numero}"]`);
               element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 100);
-          }}
-        />
-      )}
+          }
+        }}
+      />
     </div>
   );
 }
