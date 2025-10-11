@@ -15,6 +15,17 @@ interface UnifiedContentModalProps {
 export function UnifiedContentModal({ content, open, onClose }: UnifiedContentModalProps) {
   if (!content) return null;
 
+  // FILTRAR CAMPOS TÉCNICOS (não mostrar para o usuário)
+  const technicalFields = [
+    'sermon_hash',
+    'transcription_time_ms',
+    'error_message',
+    'search_vector',
+    'audio_description', // ❌ NUNCA mostrar descrição de áudio
+    'metadata',
+    'raw_transcript'
+  ];
+
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR });
@@ -29,11 +40,24 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
       'reel': '🎬 Reels',
       'stories': '📱 Stories',
       'post': '📝 Post',
+      'foto_post': '📸 Foto Post',
       'devocional': '📖 Devocional',
       'estudo': '📚 Estudo Bíblico',
       'esboco': '📋 Esboço',
       'desafio_semanal': '💪 Desafio Semanal',
-      'roteiro_video': '🎥 Roteiro de Vídeo'
+      'roteiro_video': '🎥 Roteiro de Vídeo',
+      'convite': '🎉 Convite',
+      'aviso': '📢 Aviso',
+      'resumo': '📄 Resumo',
+      'resumo_breve': '📝 Resumo Breve',
+      'guia': '📖 Guia',
+      'calendario': '📅 Calendário',
+      'perguntas': '❓ Perguntas',
+      'treino_voluntario': '🎓 Treino',
+      'campanha_tematica': '📣 Campanha',
+      'manual_etica': '🛡️ Manual de Ética',
+      'estrategia_social': '📊 Estratégia Social',
+      'kit_basico': '📦 Kit Básico',
     };
     return labels[type] || type;
   };
@@ -91,12 +115,14 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
               </div>
             )}
 
-            {/* Prompt Original */}
-            {content.prompt_original && (
-              <div className="p-3 bg-muted/50 rounded-lg border">
-                <p className="text-xs text-muted-foreground mb-1">Prompt original:</p>
-                <p className="text-sm italic">{content.prompt_original}</p>
-              </div>
+            {/* Prompt Original (só se existir E não for muito longo) */}
+            {content.prompt_original && content.prompt_original.length < 500 && (
+              <details className="p-3 bg-muted/30 rounded-lg border">
+                <summary className="text-xs text-muted-foreground cursor-pointer">
+                  Ver prompt original
+                </summary>
+                <p className="text-sm mt-2">{content.prompt_original}</p>
+              </details>
             )}
           </div>
         </DialogHeader>

@@ -1,0 +1,151 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { GraduationCap, Target, CheckCircle2 } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
+interface TreinoVoluntarioViewProps {
+  data: {
+    titulo: string;
+    area_ministerio: string;
+    nivel: string;
+    duracao_estimada: string;
+    modulos: Array<{
+      numero: number;
+      titulo: string;
+      objetivos: string[];
+      conteudo_teorico: string;
+      exercicio_pratico: string;
+    }>;
+    checklist_competencias: string[];
+  };
+}
+
+export const TreinoVoluntarioView = ({ data }: TreinoVoluntarioViewProps) => {
+  const getNivelColor = (nivel: string) => {
+    const colors: Record<string, string> = {
+      'Iniciante': 'bg-green-100 text-green-700 dark:bg-green-950/20 dark:text-green-400',
+      'Intermediário': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/20 dark:text-yellow-400',
+      'Avançado': 'bg-red-100 text-red-700 dark:bg-red-950/20 dark:text-red-400',
+    };
+    return colors[nivel] || 'bg-gray-100 text-gray-700';
+  };
+  
+  return (
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 max-w-4xl mx-auto">
+      
+      {/* Header */}
+      <Card className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-200 dark:border-purple-800">
+        <CardHeader>
+          <div className="flex items-start gap-3">
+            <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-xl sm:text-2xl md:text-3xl break-words">
+                {data.titulo}
+              </CardTitle>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <Badge variant="secondary" className="text-xs">
+                  📋 {data.area_ministerio}
+                </Badge>
+                <Badge className={getNivelColor(data.nivel)}>
+                  {data.nivel}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  ⏱️ {data.duracao_estimada}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+      
+      {/* Módulos */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base sm:text-lg">Módulos de Treinamento</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            {data.modulos?.map((modulo, index) => (
+              <AccordionItem key={index} value={`modulo-${index}`}>
+                <AccordionTrigger className="text-left">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="shrink-0">
+                      Módulo {modulo.numero}
+                    </Badge>
+                    <span className="text-sm sm:text-base">{modulo.titulo}</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="space-y-4 pt-4">
+                  
+                  {/* Objetivos */}
+                  {modulo.objetivos && modulo.objetivos.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                        <Target className="w-4 h-4" />
+                        Objetivos
+                      </h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        {modulo.objetivos.map((obj, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                            <span>{obj}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {/* Conteúdo Teórico */}
+                  {modulo.conteudo_teorico && (
+                    <div className="p-4 bg-muted/50 rounded-lg">
+                      <h4 className="font-semibold text-sm mb-2">📚 Conteúdo Teórico</h4>
+                      <p className="text-sm text-muted-foreground whitespace-pre-line">
+                        {modulo.conteudo_teorico}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Exercício Prático */}
+                  {modulo.exercicio_pratico && (
+                    <div className="p-4 bg-amber-50 dark:bg-amber-950/20 rounded-lg border-l-4 border-amber-500">
+                      <h4 className="font-semibold text-sm mb-2">💪 Exercício Prático</h4>
+                      <p className="text-sm text-muted-foreground whitespace-pre-line">
+                        {modulo.exercicio_pratico}
+                      </p>
+                    </div>
+                  )}
+                  
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
+      
+      {/* Checklist de Competências */}
+      {data.checklist_competencias && data.checklist_competencias.length > 0 && (
+        <Card className="bg-green-500/5 border-green-500/20">
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg text-green-700 dark:text-green-400">
+              ✅ Checklist de Competências
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-4">
+              Ao final do treinamento, você deve ser capaz de:
+            </p>
+            <div className="space-y-2">
+              {data.checklist_competencias.map((competencia, i) => (
+                <div key={i} className="flex items-start gap-2 p-2 rounded hover:bg-muted/50 transition-colors">
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 shrink-0 mt-0.5" />
+                  <span className="text-sm">{competencia}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+    </div>
+  );
+};

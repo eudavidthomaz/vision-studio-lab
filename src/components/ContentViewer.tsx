@@ -1,14 +1,49 @@
 import { ContentLibraryItem } from "@/hooks/useContentLibrary";
+
+// IMPORTS ORGANIZADOS POR CATEGORIA
+
+// 1. CONTEÚDO SOCIAL
 import { CarrosselView } from "./content-views/CarrosselView";
-import { ConviteView } from "./content-views/ConviteView";
 import { ReelView } from "./content-views/ReelView";
 import { StoriesView } from "./content-views/StoriesView";
 import { PostSimplesView } from "./content-views/PostSimplesView";
-import { DevocionalView } from "./content-views/DevocionalView";
+import { FotoPostView } from "./content-views/FotoPostView";
+import { ConviteView } from "./content-views/ConviteView";
+
+// 2. CONTEÚDO BÍBLICO
 import { EstudoBiblicoView } from "./content-views/EstudoBiblicoView";
+import { DevocionalView } from "./content-views/DevocionalView";
 import { EsbocoView } from "./content-views/EsbocoView";
+import { ResumoPregacaoView } from "./content-views/ResumoPregacaoView";
+import { ResumoBrevView } from "./content-views/ResumoBrevView";
+import { TrilhaOracaoView } from "./content-views/TrilhaOracaoView";
+import { VersiculosCitadosView } from "./content-views/VersiculosCitadosView";
+
+// 3. CONTEÚDO EDUCATIVO/ESTRATÉGICO
+import { GuiaView } from "./content-views/GuiaView";
+import { IdeiaEstrategicaView } from "./content-views/IdeiaEstrategicaView";
+import { CalendarioView } from "./content-views/CalendarioView";
+import { TreinoVoluntarioView } from "./content-views/TreinoVoluntarioView";
+import { CampanhaTematicaView } from "./content-views/CampanhaTematicaView";
+import { ManualEticaView } from "./content-views/ManualEticaView";
+import { EstrategiaSocialView } from "./content-views/EstrategiaSocialView";
+import { KitBasicoView } from "./content-views/KitBasicoView";
+
+// 4. CONTEÚDO OPERACIONAL
+import { AvisoView } from "./content-views/AvisoView";
+import { ConviteGruposView } from "./content-views/ConviteGruposView";
+
+// 5. CONTEÚDO INTERATIVO
 import { DesafioSemanalView } from "./content-views/DesafioSemanalView";
+import { QAEstruturadoView } from "./content-views/QAEstruturadoView";
+import { PerguntasView } from "./content-views/PerguntasView";
+import { DiscipuladoView } from "./content-views/DiscipuladoView";
+
+// 6. OUTROS
 import { RoteiroVideoView } from "./content-views/RoteiroVideoView";
+import { RoteiroReelsView } from "./content-views/RoteiroReelsView";
+import { ChecklistCultoView } from "./content-views/ChecklistCultoView";
+
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { AlertCircle } from "lucide-react";
 
@@ -16,49 +51,92 @@ interface ContentViewerProps {
   content: ContentLibraryItem;
 }
 
-// Mapeamento de tipos de conteúdo para componentes de visualização
+// MAPEAMENTO COMPLETO: 34 TIPOS
 const CONTENT_VIEWS: Record<string, any> = {
+  // Social (6 tipos)
   'carrossel': CarrosselView,
   'reel': ReelView,
   'stories': StoriesView,
   'post': PostSimplesView,
-  'devocional': DevocionalView,
-  'estudo': EstudoBiblicoView,
-  'esboco': EsbocoView,
-  'desafio_semanal': DesafioSemanalView,
-  'roteiro_video': RoteiroVideoView,
+  'foto_post': FotoPostView,
   'convite': ConviteView,
+  
+  // Bíblico (7 tipos)
+  'estudo': EstudoBiblicoView,
+  'devocional': DevocionalView,
+  'esboco': EsbocoView,
+  'resumo': ResumoPregacaoView,
+  'resumo_breve': ResumoBrevView,
+  'trilha_oracao': TrilhaOracaoView,
+  'versiculos_citados': VersiculosCitadosView,
+  
+  // Educativo/Estratégico (7 tipos)
+  'guia': GuiaView,
+  'ideia_estrategica': IdeiaEstrategicaView,
+  'calendario': CalendarioView,
+  'treino_voluntario': TreinoVoluntarioView,
+  'campanha_tematica': CampanhaTematicaView,
+  'manual_etica': ManualEticaView,
+  'estrategia_social': EstrategiaSocialView,
+  'kit_basico': KitBasicoView,
+  
+  // Operacional (2 tipos)
+  'aviso': AvisoView,
+  'convite_grupos': ConviteGruposView,
+  
+  // Interativo (4 tipos)
+  'desafio_semanal': DesafioSemanalView,
+  'qa_estruturado': QAEstruturadoView,
+  'perguntas': PerguntasView,
+  'discipulado': DiscipuladoView,
+  
+  // Outros (3 tipos)
+  'roteiro_video': RoteiroVideoView,
+  'roteiro_reels': RoteiroReelsView,
+  'checklist_culto': ChecklistCultoView,
 };
 
-// View padrão para tipos não mapeados
-function DefaultView({ data }: { data: any }) {
+// View de fallback melhorada
+function DefaultView({ data, type }: { data: any; type: string }) {
   return (
-    <Card>
+    <Card className="border-yellow-500/50">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-yellow-500" />
-          Visualização Genérica
+        <CardTitle className="flex items-center gap-2 text-yellow-600">
+          <AlertCircle className="h-5 w-5" />
+          View em Desenvolvimento
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <pre className="bg-muted p-4 rounded-lg overflow-auto max-h-[600px] text-xs">
-          {JSON.stringify(data, null, 2)}
-        </pre>
+        <p className="text-sm text-muted-foreground mb-4">
+          A visualização específica para <strong>{type}</strong> ainda está sendo criada. 
+          Por enquanto, aqui está o conteúdo:
+        </p>
+        <details className="bg-muted p-4 rounded-lg">
+          <summary className="cursor-pointer font-medium text-sm mb-2">
+            Ver conteúdo JSON
+          </summary>
+          <pre className="overflow-auto max-h-[600px] text-xs mt-2">
+            {JSON.stringify(data, null, 2)}
+          </pre>
+        </details>
       </CardContent>
     </Card>
   );
 }
 
 export function ContentViewer({ content }: ContentViewerProps) {
-  // Selecionar o componente de visualização apropriado
-  const ViewComponent = CONTENT_VIEWS[content.content_type] || DefaultView;
-
+  const ViewComponent = CONTENT_VIEWS[content.content_type];
+  
+  if (!ViewComponent) {
+    console.warn(`No view found for content_type: ${content.content_type}`);
+    return <DefaultView data={content.content} type={content.content_type} />;
+  }
+  
   return (
     <div className="space-y-6">
-      {/* Renderizar o componente específico do tipo de conteúdo */}
       <ViewComponent 
-        {...content.content}
         data={content.content}
+        contentType={content.content_type}
       />
     </div>
   );
