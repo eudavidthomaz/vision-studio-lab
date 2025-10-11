@@ -26,18 +26,23 @@ interface ReelViewProps {
 export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps) {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [generatedCoverImage, setGeneratedCoverImage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   // Extrair valores com fallback para ContentViewer
   const actualRoteiro = roteiro || data?.roteiro || data?.roteiro_video;
   const actualConteudo = conteudo || data?.conteudo;
   
   const handleGenerateCover = () => {
+    setIsGenerating(true);
     setImageModalOpen(true);
   };
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
+    setIsCopied(true);
     toast.success(`${label} copiado!`);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   return (
@@ -53,16 +58,17 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
               variant={generatedCoverImage ? "outline" : "default"}
               size="sm"
               onClick={handleGenerateCover}
+              disabled={isGenerating}
               className="w-full sm:w-auto"
             >
               <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-              {generatedCoverImage ? "Regerar Capa" : "Gerar Capa do Reel"}
+              {isGenerating ? "Gerando..." : generatedCoverImage ? "Regerar Capa" : "Gerar Capa do Reel"}
             </Button>
           </div>
         </CardHeader>
         {generatedCoverImage && (
           <CardContent>
-            <div className="rounded-lg overflow-hidden bg-muted">
+            <div id="generated-reel-cover" className="rounded-lg overflow-hidden bg-muted">
               <img 
                 src={generatedCoverImage} 
                 alt="Capa do reel"
@@ -176,7 +182,14 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
         defaultFormat="reel_cover"
         onImageGenerated={(imageUrl) => {
           setGeneratedCoverImage(imageUrl);
+          setIsGenerating(false);
           toast.success("Capa do reel gerada!");
+          
+          // Scroll suave até a imagem
+          setTimeout(() => {
+            const element = document.getElementById('generated-reel-cover');
+            element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 100);
         }}
       />
     </div>

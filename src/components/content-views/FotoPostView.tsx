@@ -22,8 +22,11 @@ interface FotoPostViewProps {
 export const FotoPostView = ({ conteudo_criativo, dica_producao }: FotoPostViewProps) => {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleGenerateImage = () => {
+    setIsGenerating(true);
     setImageModalOpen(true);
   };
 
@@ -40,16 +43,17 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao }: FotoPostViewP
               variant={generatedImage ? "outline" : "default"}
               size="sm"
               onClick={handleGenerateImage}
+              disabled={isGenerating}
               className="w-full sm:w-auto"
             >
               <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-              {generatedImage ? "Regerar Imagem" : "Gerar Imagem"}
+              {isGenerating ? "Gerando..." : generatedImage ? "Regerar Imagem" : "Gerar Imagem"}
             </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {generatedImage && (
-            <div className="rounded-lg overflow-hidden bg-muted">
+            <div id="generated-photo-image" className="rounded-lg overflow-hidden bg-muted">
               <img 
                 src={generatedImage} 
                 alt="Imagem gerada"
@@ -133,7 +137,14 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao }: FotoPostViewP
         defaultFormat="feed_square"
         onImageGenerated={(imageUrl) => {
           setGeneratedImage(imageUrl);
+          setIsGenerating(false);
           toast.success("Imagem gerada!");
+          
+          // Scroll suave até a imagem
+          setTimeout(() => {
+            const element = document.getElementById('generated-photo-image');
+            element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 100);
         }}
       />
     </div>

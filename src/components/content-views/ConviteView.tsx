@@ -23,8 +23,11 @@ interface ConviteViewProps {
 export const ConviteView = ({ convite }: ConviteViewProps) => {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleGenerateImage = () => {
+    setIsGenerating(true);
     setImageModalOpen(true);
   };
 
@@ -53,15 +56,16 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
             <Button
               variant={generatedImage ? "outline" : "default"}
               onClick={handleGenerateImage}
+              disabled={isGenerating}
               className="w-full sm:w-auto"
             >
               <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-              {generatedImage ? "Regerar Arte" : "Gerar Arte do Convite"}
+              {isGenerating ? "Gerando..." : generatedImage ? "Regerar Arte" : "Gerar Arte do Convite"}
             </Button>
           </div>
 
           {generatedImage && (
-            <div className="rounded-lg overflow-hidden bg-muted">
+            <div id="generated-invite-image" className="rounded-lg overflow-hidden bg-muted">
               <img 
                 src={generatedImage} 
                 alt="Arte do convite"
@@ -117,7 +121,14 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
         defaultFormat="feed_square"
         onImageGenerated={(imageUrl) => {
           setGeneratedImage(imageUrl);
+          setIsGenerating(false);
           toast.success("Arte do convite gerada!");
+          
+          // Scroll suave até a imagem
+          setTimeout(() => {
+            const element = document.getElementById('generated-invite-image');
+            element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 100);
         }}
       />
     </div>

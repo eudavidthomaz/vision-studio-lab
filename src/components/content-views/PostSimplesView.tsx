@@ -23,18 +23,23 @@ interface PostSimplesViewProps {
 export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSimplesViewProps) {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   // Extrair valores com fallback para ContentViewer
   const actualConteudo = conteudo || data?.conteudo;
   const actualImagem = imagem || data?.imagem;
   
   const handleGenerateImage = () => {
+    setIsGenerating(true);
     setImageModalOpen(true);
   };
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
+    setIsCopied(true);
     toast.success(`${label} copiado!`);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   return (
@@ -145,16 +150,17 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
               variant={generatedImage ? "outline" : "default"}
               size="sm"
               onClick={handleGenerateImage}
+              disabled={isGenerating}
               className="w-full sm:w-auto"
             >
               <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-              {generatedImage ? "Regerar Imagem" : "Gerar Imagem"}
+              {isGenerating ? "Gerando..." : generatedImage ? "Regerar Imagem" : "Gerar Imagem"}
             </Button>
           </div>
         </CardHeader>
         {generatedImage && (
           <CardContent>
-            <div className="rounded-lg overflow-hidden bg-muted">
+            <div id="generated-post-image" className="rounded-lg overflow-hidden bg-muted">
               <img 
                 src={generatedImage} 
                 alt="Imagem do post"
@@ -173,7 +179,14 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
         defaultFormat="feed_square"
         onImageGenerated={(imageUrl) => {
           setGeneratedImage(imageUrl);
+          setIsGenerating(false);
           toast.success("Imagem do post gerada!");
+          
+          // Scroll suave até a imagem
+          setTimeout(() => {
+            const element = document.getElementById('generated-post-image');
+            element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 100);
         }}
       />
     </div>

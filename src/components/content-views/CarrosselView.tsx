@@ -47,6 +47,8 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<{ numero: number; titulo: string; texto: string } | null>(null);
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
+  const [loadingCard, setLoadingCard] = useState<number | null>(null);
+  const [copiedCard, setCopiedCard] = useState<number | null>(null);
 
   // Extrair valores com fallback para ContentViewer
   const actualEstrutura = estrutura || data?.estrutura || data?.estrutura_visual;
@@ -58,13 +60,16 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
   const items = actualEstruturaVisual?.slides || actualEstruturaVisual?.cards || actualEstrutura?.cards || [];
   
   const handleGenerateImage = (cardData: { numero: number; titulo: string; texto: string }) => {
+    setLoadingCard(cardData.numero);
     setSelectedCard(cardData);
     setImageModalOpen(true);
   };
 
-  const copyToClipboard = (text: string, label: string) => {
+  const copyToClipboard = (text: string, label: string, cardNum: number) => {
     navigator.clipboard.writeText(text);
+    setCopiedCard(cardNum);
     toast.success(`${label} copiado!`);
+    setTimeout(() => setCopiedCard(null), 2000);
   };
 
   const copyAll = () => {
@@ -113,7 +118,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                   
                   return (
                     <CarouselItem key={index}>
-                      <Card className="border-2">
+                      <Card className="border-2" data-card={index + 1}>
                         <CardHeader className="bg-primary/5">
                           <CardTitle className="text-sm sm:text-base md:text-lg">
                             Card {index + 1}: {titulo}
@@ -127,17 +132,19 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                                 titulo, 
                                 texto 
                               })}
+                              disabled={loadingCard === index + 1}
                               className="w-full sm:w-auto"
                             >
                               <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                              {generatedImages[index + 1] ? "Regerar" : "Gerar Imagem"}
+                              {loadingCard === index + 1 ? "Gerando..." : generatedImages[index + 1] ? "Regerar" : "Gerar Imagem"}
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => copyToClipboard(
                                 `${titulo}\n\n${texto}`,
-                                `Card ${index + 1}`
+                                `Card ${index + 1}`,
+                                index + 1
                               )}
                               className="w-full sm:w-auto"
                             >
@@ -191,7 +198,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(actualConteudo.legenda!, "Legenda")}
+                onClick={() => copyToClipboard(actualConteudo.legenda!, "Legenda", 0)}
               >
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar
@@ -213,7 +220,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(actualDicaProducao.hashtags!.join(" "), "Hashtags")}
+                onClick={() => copyToClipboard(actualDicaProducao.hashtags!.join(" "), "Hashtags", 0)}
               >
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar
@@ -281,7 +288,14 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
               ...prev,
               [selectedCard.numero]: imageUrl
             }));
+            setLoadingCard(null);
             toast.success(`Imagem do Card ${selectedCard.numero} gerada!`);
+            
+            // Scroll suave até a imagem
+            setTimeout(() => {
+              const element = document.querySelector(`[data-card="${selectedCard.numero}"]`);
+              element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
           }}
         />
       )}

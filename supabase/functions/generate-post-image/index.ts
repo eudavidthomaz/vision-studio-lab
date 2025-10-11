@@ -125,32 +125,27 @@ serve(async (req) => {
 
     const estiloAdaptacao = estiloAdaptacoes[estilo as keyof typeof estiloAdaptacoes] || estiloAdaptacoes['minimalista'];
 
-    const prompt = `Tarefa: Gerar um pôster para redes sociais no formato ${dimensoes.width}x${dimensoes.height}px (respeite a proporção e margens de segurança), com estética editorial cristã/cinemática e acabamento profissional.
-
-CRÍTICO - TEXTO PERMITIDO:
-* Use EXCLUSIVAMENTE o texto fornecido: "${truncatedCopy}"
-* NÃO invente ou adicione: placeholders como "Nome da comunidade", logos genéricos, assinaturas fictícias, códigos de cor (como #F2552B), ou qualquer texto não fornecido pelo usuário.
-* Se o texto tiver apenas 1 linha, use apenas como título (sem subtítulo inventado).
+    const prompt = `Tarefa: Gerar um pôster para redes sociais no formato já selecionado (respeite a proporção e margens de segurança), com estética editorial cristã/cinemática e acabamento profissional.
 
 Texto a renderizar (exato, em PT-BR, sem traduzir ou reescrever):
-* Título: primeira linha do texto fornecido (aplique visualmente CAIXA-ALTA, grotesk bold/condensed, alinhado à esquerda, tracking levemente negativo, linhas compactas).
-* Subtítulo/assinatura (opcional): linhas seguintes do texto fornecido (estilo handwritten/brush fino, podendo ter sublinhado discreto ou setas desenhadas à mão).
+* Título: primeira linha do input do usuário "${truncatedCopy.split('\n')[0]}" (aplique visualmente CAIXA-ALTA, grotesk bold/condensed, alinhado à esquerda, tracking levemente negativo, linhas compactas).
+* Subtítulo/assinatura (opcional): linhas seguintes do input (estilo handwritten/brush fino, podendo ter sublinhado discreto ou setas desenhadas à mão).
 
 Diretrizes comuns (sempre):
 * Composição: layout limpo, forte hierarquia, espaço negativo para respiro; grid 12 col / 24pt baseline; margens mín. 6% do lado menor.
 * Legibilidade: alto contraste texto/fundo; não distorcer letras; evitar fundo poluído atrás do título.
 * Tratamento de imagem: granulação de filme 6–8%, matte finish, halation suave nas altas luzes; nitidez profissional sem oversharpen.
-* Cores sugeridas: paleta quente (âmbar/ocre/sépia) ou neutros elegantes (preto carvão, off-white), com possibilidade de acento em tom laranja vibrante (não renderize códigos de cor).
+* Cores sugeridas: paleta quente (âmbar/ocre/sépia) ou neutros elegantes (preto carvão, off-white), com possibilidade de destaque laranja #F2552B.
 * Respeito: retratar pessoas de forma digna, natural, sem caricatura.
 
-Adapte ao ESTILO "${estilo}":
+Adapte ao ESTILO selecionado pelo usuário (${estilo}):
 ${estiloAdaptacao}
 
 ${sanitizedContexto ? `Contexto adicional: ${sanitizedContexto}` : ''}
 
-NUNCA fazer: baixa resolução, clip-art, 3D/cartoon, neon, bevel/emboss, sombras duras, textos errados/omitidos, deformações de mão/rosto, marcas d'água, molduras, excesso de elementos, texto não fornecido pelo usuário (como "Nome da comunidade", códigos hex, ou placeholders genéricos).
+NUNCA fazer: baixa resolução, clip-art, 3D/cartoon, neon, bevel/emboss, sombras duras, textos errados/omitidos, deformações de mão/rosto, marcas d'água, molduras, excesso de elementos.
 
-Entrega: imagem final pronta para social no formato ${dimensoes.width}x${dimensoes.height}px, texto nítido e legível, sem bordas, usando SOMENTE o texto fornecido pelo usuário.`;
+Entrega: imagem final pronta para social no formato escolhido, texto nítido e legível, sem bordas.`;
 
     console.log('Calling Lovable AI...');
 
