@@ -22,6 +22,9 @@ import { TrilhaOracaoView } from "./content-views/TrilhaOracaoView";
 import { QAEstruturadoView } from "./content-views/QAEstruturadoView";
 import { ConviteGruposView } from "./content-views/ConviteGruposView";
 import { DiscipuladoView } from "./content-views/DiscipuladoView";
+import { DevocionalView } from "./content-views/DevocionalView";
+import { FotoPostView } from "./content-views/FotoPostView";
+import { RoteiroVideoView } from "./content-views/RoteiroVideoView";
 
 interface ContentResultProps {
   content: any; // Tipo dinâmico baseado no content_type
@@ -50,6 +53,9 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   const contentType = 
     parsedContent.content_type ||
     (parsedContent.resumo_pregacao && parsedContent.versiculos_base && parsedContent.legendas_instagram) ? 'pack_semanal' :
+    parsedContent.devocional ? 'devocional' :
+    parsedContent.foto_post ? 'foto_post' :
+    parsedContent.roteiro_video ? 'roteiro_video' :
     parsedContent.calendario_editorial ? 'calendario' :
     parsedContent.convite ? 'convite' :
     parsedContent.aviso ? 'aviso' :
@@ -344,6 +350,162 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
 
   if (contentType === 'desafio_semanal' && content.desafio_semanal) {
     return <DesafioSemanalView data={content} onSave={onSave} onRegenerate={onRegenerate} isSaving={isSaving} />;
+  }
+
+  if (contentType === 'devocional') {
+    return (
+      <>
+        {parsedContent.fundamento_biblico && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Book className="h-5 w-5" />
+                Fundamento Bíblico
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
+                <ul className="space-y-2">
+                  {parsedContent.fundamento_biblico.versiculos?.map((v: string, i: number) => (
+                    <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
+                      {v}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {parsedContent.fundamento_biblico.contexto && (
+                <div>
+                  <h4 className="font-semibold mb-2 text-sm">Contexto:</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {parsedContent.fundamento_biblico.contexto}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <DevocionalView devocional={parsedContent.devocional} />
+
+        <div className="flex gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
+
+  if (contentType === 'foto_post') {
+    return (
+      <>
+        {parsedContent.fundamento_biblico && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Book className="h-5 w-5" />
+                Fundamento Bíblico
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
+                <ul className="space-y-2">
+                  {parsedContent.fundamento_biblico.versiculos?.map((v: string, i: number) => (
+                    <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
+                      {v}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {parsedContent.fundamento_biblico.contexto && (
+                <div>
+                  <h4 className="font-semibold mb-2 text-sm">Contexto:</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {parsedContent.fundamento_biblico.contexto}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <FotoPostView 
+          conteudo_criativo={parsedContent.conteudo_criativo}
+          dica_producao={parsedContent.dica_producao}
+        />
+
+        <div className="flex gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
+  }
+
+  if (contentType === 'roteiro_video') {
+    return (
+      <>
+        {parsedContent.fundamento_biblico && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Book className="h-5 w-5" />
+                Fundamento Bíblico
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
+                <ul className="space-y-2">
+                  {parsedContent.fundamento_biblico.versiculos?.map((v: string, i: number) => (
+                    <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
+                      {v}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {parsedContent.fundamento_biblico.contexto && (
+                <div>
+                  <h4 className="font-semibold mb-2 text-sm">Contexto:</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {parsedContent.fundamento_biblico.contexto}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <RoteiroVideoView 
+          conteudo_criativo={parsedContent.conteudo_criativo}
+          dica_producao={parsedContent.dica_producao}
+        />
+
+        <div className="flex gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </>
+    );
   }
 
   // Pack Semanal - Comprehensive Weekly Content Pack
