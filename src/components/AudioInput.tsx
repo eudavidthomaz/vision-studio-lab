@@ -130,97 +130,125 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
     try {
       setIsProcessing(true);
 
-      // Prepare metadata
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      // Prepare file name
       const isFile = audioData instanceof File;
       const fileName = isFile ? (audioData as File).name : 'recording.webm';
-      const metadata = {
-        original_name: fileName,
-        original_mime: audioData.type,
-        size_bytes: audioData.size,
-        source: isFile ? 'upload' : 'microphone',
-      };
-
-      // Create multipart FormData
-      const formData = new FormData();
-      formData.append('file', audioData, fileName);
-      formData.append('metadata', JSON.stringify(metadata));
+      const timestamp = Date.now();
+      const storageFileName = `${user.id}/${timestamp}_${fileName}`;
 
       toast({
         title: "Preparando sua mensagem",
         description: "Cada palavra está sendo cuidadosamente registrada para alcançar mais vidas.",
       });
 
-      // Send to Edge Function with multipart
-      const { data: session } = await supabase.auth.getSession();
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-sermon`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session?.session?.access_token}`,
-          },
-          body: formData, // multipart, NOT JSON
-        }
-      );
+      // Upload audio to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('sermons')
+        .upload(storageFileName, audioData, {
+          contentType: audioData.type,
+          upsert: false,
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Transcription failed');
+      if (uploadError || !uploadData) {
+        throw new Error('Erro ao fazer upload do áudio');
       }
 
-      const result = await response.json();
-      
-      // If status=processing, poll for completion
+      // Call transcription function with storage URL
+      const response = await invokeFunction('transcribe-sermon', {
+        audio_url: uploadData.path,
+        metadata: {
+          fileName,
+          contentType: audioData.type,
+          fileSize: audioData.size,
+        }
+      }) as any;
+
+      if (!response?.success) {
+        throw new Error(response?.error || 'Erro na transcrição');
+      }
+
+      const result = response.data;
+
+      // Handle async processing
       if (result.status === 'processing') {
         toast({
-          title: "Processando áudio...",
-          description: "Áudio longo detectado. Você será notificado quando estiver pronto.",
+          title: "⏳ Processando áudio...",
+          description: "Seu áudio está sendo transcrito. Você será notificado quando estiver pronto.",
         });
-        
-        // Polling every 3 seconds
-        const pollInterval = setInterval(async () => {
-          const { data: sermon } = await supabase
-            .from('sermons')
-            .select('status, transcript')
-            .eq('id', result.sermon_id)
-            .single();
 
-          if (sermon?.status === 'completed') {
+        // Poll for completion
+        const sermonId = result.sermon_id;
+        let attempts = 0;
+        const maxAttempts = 60; // 5 minutes max (5s intervals)
+
+        const pollInterval = setInterval(async () => {
+          attempts++;
+          
+          if (attempts > maxAttempts) {
             clearInterval(pollInterval);
             setIsProcessing(false);
-            toast({ 
-              title: "Transcrição completa!", 
-              description: "Áudio processado com sucesso." 
+            toast({
+              title: "⚠️ Tempo limite excedido",
+              description: "A transcrição está demorando mais que o esperado. Verifique sua biblioteca mais tarde.",
+              variant: "destructive",
             });
-            onTranscriptionComplete(sermon.transcript, result.sermon_id);
+            return;
+          }
+
+          const { data: sermon } = await supabase
+            .from('sermons')
+            .select('status, transcript, error_message')
+            .eq('id', sermonId)
+            .single();
+
+          if (sermon?.status === 'completed' && sermon.transcript) {
+            clearInterval(pollInterval);
+            setIsProcessing(false);
+            
+            toast({
+              title: "✅ Transcrição concluída!",
+              description: "Seu áudio foi transcrito com sucesso.",
+            });
+
+            onTranscriptionComplete(sermon.transcript, sermonId);
             setSelectedFile(null);
           } else if (sermon?.status === 'failed') {
             clearInterval(pollInterval);
             setIsProcessing(false);
-            toast({ 
-              title: "Erro", 
-              description: "Falha ao processar áudio.", 
-              variant: "destructive" 
+            
+            toast({
+              title: "❌ Erro na transcrição",
+              description: sermon.error_message || "Não foi possível transcrever o áudio.",
+              variant: "destructive",
             });
           }
-        }, 3000);
-        
+        }, 5000); // Check every 5 seconds
+
         return;
       }
 
-      // Sync transcription complete
-      toast({
-        title: "Mensagem capturada!",
-        description: "Sua pregação está pronta para impactar vidas através de cada plataforma.",
-      });
+      // Immediate response (small files)
+      if (result.transcript) {
+        toast({
+          title: "Mensagem capturada!",
+          description: "Sua pregação está pronta para impactar vidas através de cada plataforma.",
+        });
 
-      onTranscriptionComplete(result.transcript, result.sermon_id);
-      setSelectedFile(null);
-    } catch (error) {
-      console.error('Error in transcription:', error);
+        onTranscriptionComplete(result.transcript, result.sermon_id);
+        setSelectedFile(null);
+      }
+
+    } catch (error: any) {
+      console.error('Transcription error:', error);
       toast({
-        title: "Erro",
-        description: "Não foi possível processar o áudio.",
+        title: "Erro na transcrição",
+        description: error.message || "Não foi possível transcrever o áudio.",
         variant: "destructive",
       });
     } finally {

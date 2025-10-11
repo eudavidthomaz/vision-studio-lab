@@ -15,77 +15,84 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Detect MIME type from audio bytes
-function detectAudioMimeType(bytes: Uint8Array): string {
-  const header = Array.from(bytes.slice(0, 12))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('');
-  
-  if (header.startsWith('494433') || header.startsWith('fffb')) return 'audio/mpeg'; // MP3
-  if (header.startsWith('52494646')) return 'audio/wav'; // WAV
-  if (header.slice(8, 16) === '66747970') return 'audio/mp4'; // M4A
-  if (header.startsWith('1a45dfa3')) return 'audio/webm'; // WebM
-  return 'audio/webm'; // fallback
+// Cleanup audio from storage after processing
+async function cleanupAudio(supabaseClient: any, audioPath: string) {
+  try {
+    await supabaseClient.storage.from('sermons').remove([audioPath]);
+    console.log(`Cleaned up audio: ${audioPath}`);
+  } catch (err) {
+    console.warn('Failed to cleanup audio:', err);
+  }
 }
 
-// Async transcription processor
+// Asynchronous transcription processing for large files
 async function processTranscriptionAsync(
   supabaseClient: any,
-  sermonId: string,
-  audioBytes: Uint8Array,
-  metadata: any,
-  sermon_hash: string,
-  userId: string
+  audioUrl: string,
+  sermonId: string
 ) {
   try {
-    const startTime = Date.now();
+    console.log(`Starting async transcription for sermon ${sermonId}`);
     
-    // Detect MIME and prepare audio
-    const mimeType = detectAudioMimeType(audioBytes);
-    const extension = mimeType.split('/')[1] || 'webm';
-    const audioArray = Array.from(audioBytes); // Convert to regular array
-    const blob = new Blob([new Uint8Array(audioArray)], { type: mimeType });
-    
+    // Download audio from storage
+    const { data: audioBlob, error: downloadError } = await supabaseClient.storage
+      .from('sermons')
+      .download(audioUrl);
+
+    if (downloadError || !audioBlob) {
+      throw new Error(`Failed to download audio: ${downloadError?.message}`);
+    }
+
     const formData = new FormData();
-    formData.append('file', new File([blob], `audio.${extension}`, { type: mimeType }));
-    formData.append('model', 'gpt-4o-mini-transcribe'); // 50% cheaper than whisper-1
+    formData.append('file', audioBlob, 'audio');
+    formData.append('model', 'whisper-1');
     formData.append('language', 'pt');
-    
+    formData.append('response_format', 'text');
+
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}` },
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+      },
       body: formData,
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI error: ${response.status}`);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
-    
-    const result = await response.json();
-    const sanitizedTranscript = sanitizeText(result.text, 100000);
-    const transcription_time_ms = Date.now() - startTime;
-    
+
+    const transcriptText = await response.text();
+    const sanitizedTranscript = sanitizeText(transcriptText, 50000);
+
     // Update sermon with completed transcription
-    await supabaseClient
+    const { error: updateError } = await supabaseClient
       .from('sermons')
       .update({
         transcript: sanitizedTranscript,
         status: 'completed',
-        transcription_time_ms,
-        sermon_hash,
       })
       .eq('id', sermonId);
-      
-    console.log(`Async transcription completed for sermon ${sermonId} in ${transcription_time_ms}ms`);
+
+    if (updateError) {
+      console.error('Error updating sermon:', updateError);
+      throw updateError;
+    }
+
+    // Cleanup audio from storage
+    await cleanupAudio(supabaseClient, audioUrl);
+
+    console.log(`Async transcription completed for sermon ${sermonId}`);
+    
   } catch (error) {
-    console.error('Async transcription failed:', error);
+    console.error('Error in async transcription:', error);
+    
+    // Update sermon with error status
     await supabaseClient
       .from('sermons')
-      .update({ 
-        status: 'failed', 
-        error_message: error instanceof Error ? error.message : 'Unknown error' 
+      .update({
+        status: 'failed',
+        error_message: error instanceof Error ? error.message : 'Unknown error',
       })
       .eq('id', sermonId);
   }
@@ -113,122 +120,120 @@ serve(async (req) => {
     // Check rate limit
     await checkRateLimit(supabaseClient, userId, 'transcribe-sermon');
 
-    // Parse input (multipart or JSON)
-    const contentType = req.headers.get('content-type') || '';
-    let audioBytes: Uint8Array;
-    let metadata: any = {};
+    // Parse request body
+    const body = await req.json();
+    
+    const { audio_url, metadata = {} } = body;
 
-    if (contentType.includes('multipart/form-data')) {
-      // NEW: Receive multipart from frontend
-      const formData = await req.formData();
-      const file = formData.get('file') as File;
-      const metadataStr = formData.get('metadata') as string;
-      
-      if (!file) throw new ValidationError('No file provided');
-      metadata = metadataStr ? JSON.parse(metadataStr) : {};
-      audioBytes = new Uint8Array(await file.arrayBuffer());
-      
-      // Use real MIME/filename from frontend
-      metadata.original_mime = metadata.original_mime || file.type;
-      metadata.original_name = metadata.original_name || file.name;
-    } else {
-      // FALLBACK: Base64 (legacy, keep for compatibility)
-      const body = await req.json();
-      const { audio_base64 } = body;
-      
-      validateInput('audio_base64', {
-        value: audio_base64,
-        type: 'string',
-        required: true,
-        minLength: 100,
-        maxLength: 50000000,
-      });
-      
-      // Decode base64
-      const binaryString = atob(audio_base64);
-      audioBytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        audioBytes[i] = binaryString.charCodeAt(i);
-      }
+    // Validate audio_url
+    if (!audio_url || typeof audio_url !== 'string') {
+      throw new ValidationError('Missing or invalid audio_url');
     }
 
-    // Calculate hash for deduplication
-    const audioArrayForHash = Array.from(audioBytes);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', new Uint8Array(audioArrayForHash));
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const sermon_hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    console.log(`Processing audio from storage: ${audio_url}`);
 
-    // Check for duplicate (same user + same hash)
+    // Calculate hash for deduplication (using URL to avoid downloading)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(audio_url));
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const audioHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    
+    console.log(`Audio hash: ${audioHash}`);
+
+    // Check for existing transcription with same hash
     const { data: existingSermon } = await supabaseClient
       .from('sermons')
-      .select('id, transcript')
+      .select('id, transcript, status')
       .eq('user_id', userId)
-      .eq('sermon_hash', sermon_hash)
-      .maybeSingle();
+      .eq('sermon_hash', audioHash)
+      .eq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
 
     if (existingSermon && existingSermon.transcript) {
-      console.log('Duplicate detected, returning cached transcript');
-      await logSecurityEvent(supabaseClient, userId, 'transcription_cached', 'transcribe-sermon', true);
-      return new Response(JSON.stringify({
-        transcript: existingSermon.transcript,
-        sermon_id: existingSermon.id,
-        cached: true
-      }), { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      });
+      console.log('Found existing transcription, returning cached result');
+      
+      // Cleanup duplicate audio
+      await cleanupAudio(supabaseClient, audio_url);
+      
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            transcript: existingSermon.transcript,
+            sermon_id: existingSermon.id,
+            cached: true,
+          }
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    // Check if audio is large (>10MB = async processing)
-    const isLongAudio = audioBytes.length > 10 * 1024 * 1024;
+    // Get file size from metadata
+    const audioSizeInMB = (metadata.fileSize || 0) / (1024 * 1024);
+    console.log(`Audio size: ${audioSizeInMB.toFixed(2)} MB`);
 
-    if (isLongAudio && contentType.includes('multipart')) {
-      // Async processing for long audios
-      const { data: sermon } = await supabaseClient
+    // For large files (>10MB), process asynchronously
+    if (audioSizeInMB > 10) {
+      console.log('Large file detected, processing asynchronously');
+      
+      const { data: sermon, error: insertError } = await supabaseClient
         .from('sermons')
         .insert({
           user_id: userId,
           status: 'processing',
-          sermon_hash,
+          sermon_hash: audioHash,
         })
         .select()
         .single();
-      
-      // Process in background (non-blocking)
-      // Note: Deno Deploy doesn't support EdgeRuntime.waitUntil, so we'll use a Promise
-      processTranscriptionAsync(
-        supabaseClient, 
-        sermon.id, 
-        audioBytes, 
-        metadata, 
-        sermon_hash,
-        userId
-      ).catch(err => console.error('Background transcription error:', err));
-      
-      await logSecurityEvent(supabaseClient, userId, 'transcription_async_started', 'transcribe-sermon', true);
-      
-      return new Response(JSON.stringify({
-        sermon_id: sermon.id,
-        status: 'processing',
-      }), { 
-        status: 202, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      });
+
+      if (insertError || !sermon) {
+        throw new Error(`Failed to create sermon record: ${insertError?.message}`);
+      }
+
+      // Start background processing
+      processTranscriptionAsync(supabaseClient, audio_url, sermon.id).catch(err => 
+        console.error('Background transcription error:', err)
+      );
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            status: 'processing',
+            sermon_id: sermon.id,
+            message: 'Transcription started. Poll for completion.',
+          }
+        }),
+        {
+          status: 202,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
-    // Sync processing for small audios
-    console.log('Processing audio synchronously...');
+    // For smaller files, process synchronously
+    console.log('Processing synchronously');
+    const startTime = Date.now();
 
-    // Detect MIME and prepare FormData
-    const mimeType = detectAudioMimeType(audioBytes);
-    const extension = mimeType.split('/')[1] || 'webm';
-    const audioArrayForBlob = Array.from(audioBytes);
-    const blob = new Blob([new Uint8Array(audioArrayForBlob)], { type: mimeType });
-    
+    // Download audio from storage
+    const { data: audioBlob, error: downloadError } = await supabaseClient.storage
+      .from('sermons')
+      .download(audio_url);
+
+    if (downloadError || !audioBlob) {
+      throw new Error(`Failed to download audio: ${downloadError?.message}`);
+    }
+
+    // Prepare form data for OpenAI
     const formData = new FormData();
-    formData.append('file', new File([blob], `audio.${extension}`, { type: mimeType }));
-    formData.append('model', 'gpt-4o-mini-transcribe'); // 50% cheaper ($0.003/min vs $0.006/min)
+    formData.append('file', audioBlob, 'audio');
+    formData.append('model', 'whisper-1');
     formData.append('language', 'pt');
+    formData.append('response_format', 'text');
 
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
@@ -240,47 +245,58 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      const errorMsg = `OpenAI API error: ${response.status}`;
-      await logSecurityEvent(supabaseClient, userId, 'transcription_failed', 'transcribe-sermon', false, errorMsg);
-      throw new Error(errorMsg);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
-    const result = await response.json();
-    const sanitizedTranscript = sanitizeText(result.text, 100000);
-    const duration = Date.now() - startTime;
+    const transcriptText = await response.text();
+    const sanitizedTranscript = sanitizeText(transcriptText, 50000);
+    const transcriptionTime = Date.now() - startTime;
 
-    // Save completed sermon
+    // Save transcription
     const { data: sermon, error: insertError } = await supabaseClient
       .from('sermons')
       .insert({
         user_id: userId,
         transcript: sanitizedTranscript,
+        transcription_time_ms: transcriptionTime,
         status: 'completed',
-        sermon_hash,
-        transcription_time_ms: duration,
+        sermon_hash: audioHash,
       })
       .select()
       .single();
 
-    if (insertError) {
-      console.error('Error saving sermon:', insertError);
-      throw new Error('Failed to save sermon');
+    if (insertError || !sermon) {
+      throw new Error(`Failed to save transcription: ${insertError?.message}`);
     }
 
-    // Log success
-    await logSecurityEvent(supabaseClient, userId, 'transcription_success', 'transcribe-sermon', true);
+    console.log(`Transcription saved successfully. ID: ${sermon.id}, Time: ${transcriptionTime}ms`);
 
-    console.log(`Transcription completed in ${duration}ms`);
+    // Cleanup audio from storage
+    await cleanupAudio(supabaseClient, audio_url);
+
+    // Log success
+    await logSecurityEvent(
+      supabaseClient,
+      userId,
+      'transcription_completed',
+      'transcribe-sermon',
+      true,
+      undefined,
+      { transcription_time_ms: transcriptionTime, audio_size_mb: audioSizeInMB }
+    );
 
     return new Response(
       JSON.stringify({
-        transcript: sanitizedTranscript,
-        sermon_id: sermon.id,
+        success: true,
+        data: {
+          transcript: sanitizedTranscript,
+          sermon_id: sermon.id,
+          transcription_time_ms: transcriptionTime,
+        }
       }),
-      { 
+      {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
       }
     );
 
