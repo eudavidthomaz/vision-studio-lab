@@ -7,20 +7,19 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 interface CarrosselViewProps {
   estrutura?: {
     cards?: Array<{
-      numero: number;
       titulo: string;
       texto: string;
     }>;
   };
   conteudo?: {
     legenda?: string;
-    hashtags?: string[];
+    pilar?: string;
   };
   dica_producao?: {
     formato?: string;
-    cores?: string;
-    fonte?: string;
-    horario_postagem?: string;
+    estilo?: string;
+    horario?: string;
+    hashtags?: string[];
   };
 }
 
@@ -35,8 +34,8 @@ export function CarrosselView({ estrutura, conteudo, dica_producao }: CarrosselV
     
     if (estrutura?.cards) {
       fullText += "📱 CARDS DO CARROSSEL:\n\n";
-      estrutura.cards.forEach(card => {
-        fullText += `Card ${card.numero}: ${card.titulo}\n${card.texto}\n\n`;
+      estrutura.cards.forEach((card, index) => {
+        fullText += `Card ${index + 1}: ${card.titulo}\n${card.texto}\n\n`;
       });
     }
     
@@ -44,8 +43,8 @@ export function CarrosselView({ estrutura, conteudo, dica_producao }: CarrosselV
       fullText += "\n📝 LEGENDA:\n" + conteudo.legenda + "\n\n";
     }
     
-    if (conteudo?.hashtags) {
-      fullText += "\n🏷️ HASHTAGS:\n" + conteudo.hashtags.join(" ") + "\n";
+    if (dica_producao?.hashtags) {
+      fullText += "\n🏷️ HASHTAGS:\n" + dica_producao.hashtags.join(" ") + "\n";
     }
     
     navigator.clipboard.writeText(fullText);
@@ -66,20 +65,20 @@ export function CarrosselView({ estrutura, conteudo, dica_producao }: CarrosselV
           <CardContent>
             <Carousel className="w-full max-w-3xl mx-auto">
               <CarouselContent>
-                {estrutura.cards.map((card) => (
-                  <CarouselItem key={card.numero}>
+                {estrutura.cards.map((card, index) => (
+                  <CarouselItem key={index}>
                     <Card className="border-2">
                       <CardHeader className="bg-primary/5">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg">
-                            Card {card.numero}: {card.titulo}
+                            Card {index + 1}: {card.titulo}
                           </CardTitle>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => copyToClipboard(
                               `${card.titulo}\n\n${card.texto}`,
-                              `Card ${card.numero}`
+                              `Card ${index + 1}`
                             )}
                           >
                             <Copy className="h-4 w-4" />
@@ -123,7 +122,7 @@ export function CarrosselView({ estrutura, conteudo, dica_producao }: CarrosselV
       )}
 
       {/* Hashtags */}
-      {conteudo?.hashtags && conteudo.hashtags.length > 0 && (
+      {dica_producao?.hashtags && dica_producao.hashtags.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -131,7 +130,7 @@ export function CarrosselView({ estrutura, conteudo, dica_producao }: CarrosselV
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(conteudo.hashtags!.join(" "), "Hashtags")}
+                onClick={() => copyToClipboard(dica_producao.hashtags!.join(" "), "Hashtags")}
               >
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar
@@ -140,7 +139,7 @@ export function CarrosselView({ estrutura, conteudo, dica_producao }: CarrosselV
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {conteudo.hashtags.map((tag, i) => (
+              {dica_producao.hashtags.map((tag, i) => (
                 <span key={i} className="text-sm text-primary">
                   {tag}
                 </span>
@@ -163,22 +162,16 @@ export function CarrosselView({ estrutura, conteudo, dica_producao }: CarrosselV
                 <p className="text-sm text-muted-foreground">{dica_producao.formato}</p>
               </div>
             )}
-            {dica_producao.cores && (
+            {dica_producao.estilo && (
               <div>
-                <strong className="text-sm">Cores:</strong>
-                <p className="text-sm text-muted-foreground">{dica_producao.cores}</p>
+                <strong className="text-sm">Estilo:</strong>
+                <p className="text-sm text-muted-foreground">{dica_producao.estilo}</p>
               </div>
             )}
-            {dica_producao.fonte && (
-              <div>
-                <strong className="text-sm">Fonte:</strong>
-                <p className="text-sm text-muted-foreground">{dica_producao.fonte}</p>
-              </div>
-            )}
-            {dica_producao.horario_postagem && (
+            {dica_producao.horario && (
               <div>
                 <strong className="text-sm">Horário de Postagem:</strong>
-                <p className="text-sm text-muted-foreground">{dica_producao.horario_postagem}</p>
+                <p className="text-sm text-muted-foreground">{dica_producao.horario}</p>
               </div>
             )}
           </CardContent>
