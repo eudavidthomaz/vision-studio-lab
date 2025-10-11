@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, FileText } from "lucide-react";
+import { Copy, FileText, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import ImageGenerationModal from "@/components/ImageGenerationModal";
 
 interface PostSimplesViewProps {
   conteudo?: {
@@ -19,9 +21,17 @@ interface PostSimplesViewProps {
 }
 
 export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSimplesViewProps) {
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+
   // Extrair valores com fallback para ContentViewer
   const actualConteudo = conteudo || data?.conteudo;
   const actualImagem = imagem || data?.imagem;
+  
+  const handleGenerateImage = () => {
+    setImageModalOpen(true);
+  };
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
@@ -103,13 +113,13 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Hashtags</CardTitle>
+              <CardTitle className="text-sm sm:text-base">Hashtags</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => copyToClipboard(conteudo.hashtags!.join(" "), "Hashtags")}
               >
-                <Copy className="h-4 w-4 mr-2" />
+                <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                 Copiar
               </Button>
             </div>
@@ -117,7 +127,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {actualConteudo.hashtags.map((tag, i) => (
-                <span key={i} className="text-sm text-primary">
+                <span key={i} className="text-xs sm:text-sm text-primary">
                   {tag}
                 </span>
               ))}
@@ -125,6 +135,47 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
           </CardContent>
         </Card>
       )}
+
+      {/* Geração de Imagem Opcional */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm sm:text-base">Imagem (Opcional)</CardTitle>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              variant={generatedImage ? "outline" : "default"}
+              size="sm"
+              onClick={handleGenerateImage}
+              className="w-full sm:w-auto"
+            >
+              <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              {generatedImage ? "Regerar Imagem" : "Gerar Imagem"}
+            </Button>
+          </div>
+        </CardHeader>
+        {generatedImage && (
+          <CardContent>
+            <div className="rounded-lg overflow-hidden bg-muted">
+              <img 
+                src={generatedImage} 
+                alt="Imagem do post"
+                className="w-full h-auto"
+              />
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
+      <ImageGenerationModal
+        open={imageModalOpen}
+        onOpenChange={setImageModalOpen}
+        copy={`${actualConteudo?.texto || ""}\n\n${actualConteudo?.legenda || ""}`}
+        pilar="Edificar"
+        defaultFormat="feed_square"
+        onImageGenerated={(imageUrl) => {
+          setGeneratedImage(imageUrl);
+          toast.success("Imagem do post gerada!");
+        }}
+      />
     </div>
   );
 }

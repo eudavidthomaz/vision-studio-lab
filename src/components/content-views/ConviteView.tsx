@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, MapPin, Users, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, MapPin, Users, Phone, Image as ImageIcon } from "lucide-react";
+import { toast } from "sonner";
+import ImageGenerationModal from "@/components/ImageGenerationModal";
 
 interface ConviteViewProps {
   convite: {
@@ -17,6 +21,13 @@ interface ConviteViewProps {
 }
 
 export const ConviteView = ({ convite }: ConviteViewProps) => {
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+
+  const handleGenerateImage = () => {
+    setImageModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <Card className="border-primary/20">
@@ -38,8 +49,29 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant={generatedImage ? "outline" : "default"}
+              onClick={handleGenerateImage}
+              className="w-full sm:w-auto"
+            >
+              <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              {generatedImage ? "Regerar Arte" : "Gerar Arte do Convite"}
+            </Button>
+          </div>
+
+          {generatedImage && (
+            <div className="rounded-lg overflow-hidden bg-muted">
+              <img 
+                src={generatedImage} 
+                alt="Arte do convite"
+                className="w-full h-auto"
+              />
+            </div>
+          )}
+
           <div>
-            <p className="text-muted-foreground whitespace-pre-wrap">{convite.descricao}</p>
+            <p className="text-sm sm:text-base text-muted-foreground whitespace-pre-wrap">{convite.descricao}</p>
           </div>
 
           <Card className="bg-primary/5 border-primary/20">
@@ -72,10 +104,22 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
           )}
 
           <div className="text-center p-4 bg-primary text-primary-foreground rounded-lg">
-            <p className="font-semibold">{convite.chamado_acao}</p>
+            <p className="text-sm sm:text-base font-semibold">{convite.chamado_acao}</p>
           </div>
         </CardContent>
       </Card>
+
+      <ImageGenerationModal
+        open={imageModalOpen}
+        onOpenChange={setImageModalOpen}
+        copy={`${convite.titulo_evento}\n\n${convite.descricao}\n\n${convite.data} às ${convite.horario}\n${convite.local}`}
+        pilar="Alcançar"
+        defaultFormat="feed_square"
+        onImageGenerated={(imageUrl) => {
+          setGeneratedImage(imageUrl);
+          toast.success("Arte do convite gerada!");
+        }}
+      />
     </div>
   );
 };

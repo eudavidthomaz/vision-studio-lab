@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Video } from "lucide-react";
+import { Copy, Video, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import ImageGenerationModal from "@/components/ImageGenerationModal";
 
 interface ReelViewProps {
   roteiro?: {
@@ -22,9 +24,17 @@ interface ReelViewProps {
 }
 
 export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps) {
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [generatedCoverImage, setGeneratedCoverImage] = useState<string | null>(null);
+
   // Extrair valores com fallback para ContentViewer
   const actualRoteiro = roteiro || data?.roteiro || data?.roteiro_video;
   const actualConteudo = conteudo || data?.conteudo;
+  
+  const handleGenerateCover = () => {
+    setImageModalOpen(true);
+  };
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
@@ -32,6 +42,37 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+            <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+            Capa do Reel
+          </CardTitle>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              variant={generatedCoverImage ? "outline" : "default"}
+              size="sm"
+              onClick={handleGenerateCover}
+              className="w-full sm:w-auto"
+            >
+              <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              {generatedCoverImage ? "Regerar Capa" : "Gerar Capa do Reel"}
+            </Button>
+          </div>
+        </CardHeader>
+        {generatedCoverImage && (
+          <CardContent>
+            <div className="rounded-lg overflow-hidden bg-muted">
+              <img 
+                src={generatedCoverImage} 
+                alt="Capa do reel"
+                className="w-full h-auto"
+              />
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
       {/* Roteiro de Vídeo */}
       {roteiro?.cenas && roteiro.cenas.length > 0 && (
         <Card>
@@ -126,6 +167,18 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
           </CardContent>
         </Card>
       )}
+
+      <ImageGenerationModal
+        open={imageModalOpen}
+        onOpenChange={setImageModalOpen}
+        copy={`${data?.titulo || "Reel"}\n\n${actualRoteiro?.cenas?.[0]?.visual || ""}\n\n${actualConteudo?.legenda || ""}`}
+        pilar="Alcançar"
+        defaultFormat="reel_cover"
+        onImageGenerated={(imageUrl) => {
+          setGeneratedCoverImage(imageUrl);
+          toast.success("Capa do reel gerada!");
+        }}
+      />
     </div>
   );
 }

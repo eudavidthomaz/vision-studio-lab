@@ -14,6 +14,8 @@ interface ImageGenerationModalProps {
   onOpenChange: (open: boolean) => void;
   copy: string;
   pilar: string;
+  isStoryMode?: boolean;
+  defaultFormat?: string;
   onImageGenerated?: (imageUrl: string) => void;
 }
 
@@ -22,9 +24,13 @@ const ImageGenerationModal = ({
   onOpenChange, 
   copy, 
   pilar,
+  isStoryMode,
+  defaultFormat,
   onImageGenerated 
 }: ImageGenerationModalProps) => {
-  const [formato, setFormato] = useState("feed_square");
+  const [formato, setFormato] = useState(
+    isStoryMode ? "story" : (defaultFormat || "feed_square")
+  );
   const [estilo, setEstilo] = useState("minimalista");
   const [editedCopy, setEditedCopy] = useState(copy);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -141,20 +147,22 @@ const ImageGenerationModal = ({
         <div className="space-y-4 mt-4">
           {!generatedImage ? (
             <>
-              <div className="space-y-2">
-                <Label htmlFor="formato">Formato</Label>
-                <Select value={formato} onValueChange={setFormato}>
-                  <SelectTrigger id="formato">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="feed_square">Feed Quadrado (1:1)</SelectItem>
-                    <SelectItem value="feed_portrait">Feed Vertical (4:5)</SelectItem>
-                    <SelectItem value="story">Story (9:16)</SelectItem>
-                    <SelectItem value="reel_cover">Capa de Reel (9:16)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {!isStoryMode && (
+                <div className="space-y-2">
+                  <Label htmlFor="formato">Formato</Label>
+                  <Select value={formato} onValueChange={setFormato}>
+                    <SelectTrigger id="formato">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="feed_square">Feed Quadrado (1:1)</SelectItem>
+                      <SelectItem value="feed_portrait">Feed Vertical (4:5)</SelectItem>
+                      <SelectItem value="story">Story (9:16)</SelectItem>
+                      <SelectItem value="reel_cover">Capa de Reel (9:16)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="estilo">Estilo</Label>

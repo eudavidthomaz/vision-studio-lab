@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Palette, Hash, Type } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Camera, Palette, Hash, Type, Image as ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import ImageGenerationModal from "@/components/ImageGenerationModal";
 
 interface FotoPostViewProps {
   conteudo_criativo: {
@@ -16,17 +20,44 @@ interface FotoPostViewProps {
 }
 
 export const FotoPostView = ({ conteudo_criativo, dica_producao }: FotoPostViewProps) => {
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+
+  const handleGenerateImage = () => {
+    setImageModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Camera className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+            <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
             Descrição Visual
           </CardTitle>
+          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              variant={generatedImage ? "outline" : "default"}
+              size="sm"
+              onClick={handleGenerateImage}
+              className="w-full sm:w-auto"
+            >
+              <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              {generatedImage ? "Regerar Imagem" : "Gerar Imagem"}
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
-          <p className="whitespace-pre-line text-muted-foreground">{conteudo_criativo.descricao_visual}</p>
+        <CardContent className="space-y-4">
+          {generatedImage && (
+            <div className="rounded-lg overflow-hidden bg-muted">
+              <img 
+                src={generatedImage} 
+                alt="Imagem gerada"
+                className="w-full h-auto"
+              />
+            </div>
+          )}
+          <p className="text-xs sm:text-sm whitespace-pre-line text-muted-foreground">{conteudo_criativo.descricao_visual}</p>
         </CardContent>
       </Card>
 
@@ -78,21 +109,33 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao }: FotoPostViewP
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Hash className="w-5 h-5" />
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+            <Hash className="w-4 h-4 sm:w-5 sm:h-5" />
             Hashtags
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {dica_producao.hashtags.map((tag, i) => (
-              <Badge key={i} variant="outline" className="text-blue-600 border-blue-300">
+              <Badge key={i} variant="outline" className="text-xs sm:text-sm text-blue-600 border-blue-300">
                 {tag}
               </Badge>
             ))}
           </div>
         </CardContent>
       </Card>
+
+      <ImageGenerationModal
+        open={imageModalOpen}
+        onOpenChange={setImageModalOpen}
+        copy={`${conteudo_criativo.descricao_visual}\n\n${conteudo_criativo.legenda_sugerida}`}
+        pilar="Edificar"
+        defaultFormat="feed_square"
+        onImageGenerated={(imageUrl) => {
+          setGeneratedImage(imageUrl);
+          toast.success("Imagem gerada!");
+        }}
+      />
     </div>
   );
 };

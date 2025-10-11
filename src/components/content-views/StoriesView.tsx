@@ -49,64 +49,60 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
   return (
     <div className="space-y-6">
       {/* Slides dos Stories */}
-      {estrutura?.slides && estrutura.slides.length > 0 && (
+      {actualEstrutura?.slides && actualEstrutura.slides.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Layers className="h-5 w-5" />
-              Sequência de Stories - {estrutura.slides.length} Slides
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <Layers className="h-4 w-4 sm:h-5 sm:w-5" />
+              Sequência de Stories - {actualEstrutura.slides.length} Slides
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {estrutura.slides.map((slide) => (
+            {actualEstrutura.slides.map((slide) => (
               <Card key={slide.numero} className="border">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">
-                      Slide {slide.numero}: {slide.titulo}
-                    </CardTitle>
-                    <div className="flex gap-2">
-                      <Button
-                        variant={generatedImages[slide.numero] ? "outline" : "default"}
-                        size="sm"
-                        onClick={() => handleGenerateImage(slide)}
-                        className={generatedImages[slide.numero] ? "" : "bg-gradient-to-r from-primary to-accent"}
-                      >
-                        <Image className="h-4 w-4 mr-2" />
-                        {generatedImages[slide.numero] ? "Regerar" : "Gerar Imagem"}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToClipboard(
-                          `${slide.titulo}\n\n${slide.texto}${slide.sugestao_visual ? `\n\nVisual: ${slide.sugestao_visual}` : ''}`,
-                          `Slide ${slide.numero}`
-                        )}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
+                <CardHeader className="pb-3 space-y-3">
+                  <CardTitle className="text-sm sm:text-base">
+                    Slide {slide.numero}: {slide.titulo}
+                  </CardTitle>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {slide.texto}
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                    <Button
+                      variant={generatedImages[slide.numero] ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => handleGenerateImage(slide)}
+                      className="w-full sm:w-auto"
+                    >
+                      <Image className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                      {generatedImages[slide.numero] ? "Regerar" : "Gerar Imagem"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(
+                        `${slide.titulo}\n\n${slide.texto}`,
+                        `Slide ${slide.numero}`
+                      )}
+                      className="w-full sm:w-auto"
+                    >
+                      <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                      Copiar
+                    </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <p className="text-muted-foreground">{slide.texto}</p>
-                  {slide.sugestao_visual && (
-                    <div className="mt-3 pt-3 border-t">
-                      <strong>Sugestão Visual:</strong>
-                      <p className="text-muted-foreground">{slide.sugestao_visual}</p>
-                    </div>
-                  )}
-                  {generatedImages[slide.numero] && (
-                    <div className="mt-4 pt-4 border-t">
-                      <strong>Imagem Gerada:</strong>
+                {generatedImages[slide.numero] && (
+                  <CardContent className="pt-0">
+                    <div className="rounded-lg overflow-hidden bg-muted">
                       <img 
                         src={generatedImages[slide.numero]} 
                         alt={`Slide ${slide.numero}`}
-                        className="mt-2 rounded-lg w-full max-w-sm"
+                        className="w-full h-auto"
                       />
                     </div>
-                  )}
-                </CardContent>
+                  </CardContent>
+                )}
               </Card>
             ))}
           </CardContent>
@@ -140,9 +136,10 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
         <ImageGenerationModal
           open={imageModalOpen}
           onOpenChange={setImageModalOpen}
-          copy={`${selectedSlide.titulo}\n\n${selectedSlide.texto}`}
-          pilar={data?.pilar || "Edificar"}
-          onImageGenerated={(imageUrl) => {
+        copy={`${selectedSlide.titulo}\n\n${selectedSlide.texto}`}
+        pilar={data?.pilar || "Edificar"}
+        isStoryMode={true}
+        onImageGenerated={(imageUrl) => {
             setGeneratedImages(prev => ({
               ...prev,
               [selectedSlide.numero]: imageUrl

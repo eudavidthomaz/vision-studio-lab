@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Copy, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import ImageGenerationModal from "@/components/ImageGenerationModal";
 
 interface CarrosselViewProps {
   estrutura?: {
@@ -42,6 +44,10 @@ interface CarrosselViewProps {
 }
 
 export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_producao, data, contentType }: CarrosselViewProps) {
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<{ numero: number; titulo: string; texto: string } | null>(null);
+  const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
+
   // Extrair valores com fallback para ContentViewer
   const actualEstrutura = estrutura || data?.estrutura || data?.estrutura_visual;
   const actualEstruturaVisual = estrutura_visual || data?.estrutura_visual;
@@ -51,6 +57,11 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
   // Unificar slides/cards - priorizar estrutura_visual.slides, depois cards
   const items = actualEstruturaVisual?.slides || actualEstruturaVisual?.cards || actualEstrutura?.cards || [];
   
+  const handleGenerateImage = (cardData: { numero: number; titulo: string; texto: string }) => {
+    setSelectedCard(cardData);
+    setImageModalOpen(true);
+  };
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
@@ -104,24 +115,48 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                     <CarouselItem key={index}>
                       <Card className="border-2">
                         <CardHeader className="bg-primary/5">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg">
-                              Card {index + 1}: {titulo}
-                            </CardTitle>
+                          <CardTitle className="text-sm sm:text-base md:text-lg">
+                            Card {index + 1}: {titulo}
+                          </CardTitle>
+                          <div className="flex flex-col sm:flex-row gap-2 pt-2">
                             <Button
-                              variant="ghost"
+                              variant={generatedImages[index + 1] ? "outline" : "default"}
+                              size="sm"
+                              onClick={() => handleGenerateImage({ 
+                                numero: index + 1, 
+                                titulo, 
+                                texto 
+                              })}
+                              className="w-full sm:w-auto"
+                            >
+                              <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                              {generatedImages[index + 1] ? "Regerar" : "Gerar Imagem"}
+                            </Button>
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => copyToClipboard(
                                 `${titulo}\n\n${texto}`,
                                 `Card ${index + 1}`
                               )}
+                              className="w-full sm:w-auto"
                             >
-                              <Copy className="h-4 w-4" />
+                              <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                              Copiar
                             </Button>
                           </div>
                         </CardHeader>
-                        <CardContent className="pt-6 space-y-4">
-                          <p className="text-sm whitespace-pre-line">{texto}</p>
+                        <CardContent className="pt-4 sm:pt-6 space-y-4">
+                          {generatedImages[index + 1] && (
+                            <div className="rounded-lg overflow-hidden bg-muted">
+                              <img 
+                                src={generatedImages[index + 1]} 
+                                alt={`Card ${index + 1}`}
+                                className="w-full h-auto"
+                              />
+                            </div>
+                          )}
+                          <p className="text-xs sm:text-sm whitespace-pre-line">{texto}</p>
                           {imagemSugerida && (
                             <div className="p-3 bg-muted rounded-md">
                               <strong className="text-xs">Sugestão de Imagem:</strong>
@@ -233,6 +268,23 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
           Copiar Tudo
         </Button>
       </div>
+
+      {selectedCard && (
+        <ImageGenerationModal
+          open={imageModalOpen}
+          onOpenChange={setImageModalOpen}
+          copy={`${selectedCard.titulo}\n\n${selectedCard.texto}`}
+          pilar={data?.pilar || "Edificar"}
+          defaultFormat="feed_square"
+          onImageGenerated={(imageUrl) => {
+            setGeneratedImages(prev => ({
+              ...prev,
+              [selectedCard.numero]: imageUrl
+            }));
+            toast.success(`Imagem do Card ${selectedCard.numero} gerada!`);
+          }}
+        />
+      )}
     </div>
   );
 }
