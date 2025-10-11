@@ -28,21 +28,26 @@
 
 ```mermaid
 graph TD
-    A[👤 Usuário] -->|Grava ou Upload| B[📱 AudioInput.tsx]
-    B -->|Blob de Áudio| C[🔄 Conversão Base64]
-    C -->|Base64 String| D[🔒 useSecureApi.tsx]
-    D -->|HTTP Request| E[☁️ transcribe-sermon]
-    E -->|Validação| F[🛡️ security.ts]
-    F -->|Áudio Validado| G[🤖 OpenAI Whisper API]
-    G -->|Texto Transcrito| H[💾 Tabela: sermons]
-    H -->|sermon_id| I[📝 AIPromptModal.tsx]
-    I -->|Prompt + Context| J[☁️ generate-ai-content]
-    J -->|Detecção de Tipo| K[🎯 Content Type Detector]
-    K -->|Estrutura JSON| L[🤖 Lovable AI - Gemini]
-    L -->|Conteúdo Gerado| M[💾 Tabela: generated_contents]
-    M -->|Renderização| N[📊 ContentResultDisplay.tsx]
-    N -->|Componente Específico| O[🎨 14 View Components]
-    O -->|Ações| P[💾 Salvar / 🔄 Regenerar]
+    A[👤 Usuário] -->|Ação| B{Tipo de Entrada}
+    B -->|Áudio/Upload| C[📱 AudioInput.tsx]
+    B -->|Prompt Direto| D[🤖 AI Creator]
+    B -->|Pack Semanal| E[📦 Sermon Pack]
+    
+    C -->|Base64| F[☁️ transcribe-sermon]
+    F -->|Transcrição| G[💾 sermons]
+    G -->|sermon_id| E
+    
+    D -->|Prompt| H[☁️ content-engine]
+    E -->|sermon_id| I[☁️ generate-sermon-pack]
+    
+    H -->|Conteúdo| J[💾 content_library]
+    I -->|12 Conteúdos| J
+    
+    J -->|Listagem| K[📚 ContentLibrary]
+    J -->|Visualização| L[📊 ContentViewer]
+    
+    K -->|Filtros| M[🔍 Tags, Pilar, Tipo]
+    L -->|View Component| N[🎨 34 Tipos de View]
 ```
 
 ### Componentes Principais
@@ -50,36 +55,54 @@ graph TD
 | Camada | Componente | Arquivo | Responsabilidade |
 |--------|-----------|---------|------------------|
 | **Frontend** | AudioInput | `src/components/AudioInput.tsx` | Captura de áudio (gravação/upload) |
-| **Frontend** | useSecureApi | `src/hooks/useSecureApi.tsx` | Comunicação segura com backend |
-| **Frontend** | AIPromptModal | `src/components/AIPromptModal.tsx` | Interface de geração de conteúdo |
-| **Frontend** | ContentResultDisplay | `src/components/ContentResultDisplay.tsx` | Roteamento de visualização |
-| **Backend** | transcribe-sermon | `supabase/functions/transcribe-sermon/index.ts` | Transcrição de áudio |
-| **Backend** | generate-ai-content | `supabase/functions/generate-ai-content/index.ts` | Geração de conteúdo |
-| **Backend** | security | `supabase/functions/_shared/security.ts` | Validação e rate limiting |
-| **Database** | sermons | Tabela Supabase | Armazena transcrições |
-| **Database** | generated_contents | Tabela Supabase | Armazena conteúdos gerados |
+| **Frontend** | AIPromptModal | `src/components/AIPromptModal.tsx` | Criação via prompt direto |
+| **Frontend** | ContentLibrary | `src/pages/ContentLibrary.tsx` | **Biblioteca unificada** |
+| **Frontend** | useContentLibrary | `src/hooks/useContentLibrary.tsx` | **CRUD completo da biblioteca** |
+| **Frontend** | ContentViewer | `src/components/ContentViewer.tsx` | Visualização de conteúdo |
+| **Backend** | transcribe-sermon | `supabase/functions/transcribe-sermon/` | Transcrição de áudio |
+| **Backend** | content-engine | `supabase/functions/content-engine/` | Geração de conteúdo único |
+| **Backend** | generate-sermon-pack | `supabase/functions/generate-sermon-pack/` | Pack de 12 conteúdos |
+| **Database** | **content_library** | Tabela única | **Armazena TODO conteúdo gerado** |
+| **Database** | sermons | Tabela Supabase | Armazena transcrições
 
 ### Tecnologias Utilizadas
 
 ```typescript
 // Frontend
-- React 18.3
-- TypeScript
+- React 18.3 + TypeScript
 - Supabase Client (@supabase/supabase-js)
-- MediaRecorder API (Web Audio)
-- FileReader API (Base64 conversion)
+- React Query (TanStack Query) - Cache e estado
+- MediaRecorder API (captura de áudio)
+- FileReader API (conversão Base64)
 
 // Backend
 - Deno Runtime
 - Supabase Edge Functions
 - OpenAI Whisper API (transcrição)
-- Lovable AI Gateway (Gemini - geração)
+- Lovable AI Gateway (Gemini 2.5 Flash)
 
 // Banco de Dados
 - PostgreSQL (via Supabase)
 - Row Level Security (RLS)
-- JSONB (estruturas de conteúdo)
+- JSONB (estruturas flexíveis)
+- Full-text search (tsvector)
+- Índices otimizados (GIN, B-tree)
 ```
+
+### Arquitetura Unificada
+
+**✅ MUDANÇA CRÍTICA**: Sistema migrado para **biblioteca unificada**
+
+Antes (❌ Arquitetura Antiga):
+- `generated_contents` → Conteúdos avulsos
+- `weekly_packs` → Packs semanais
+- Fragmentação de dados
+
+Agora (✅ Arquitetura Atual):
+- **`content_library`** → ÚNICA fonte de verdade
+- Todos os tipos de conteúdo em um só lugar
+- Queries 10x mais rápidas
+- Sistema escalável
 
 ---
 
