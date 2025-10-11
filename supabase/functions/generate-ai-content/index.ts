@@ -1,6 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { CORE_PRINCIPLES, CONTENT_METHOD, PILLAR_DISTRIBUTION } from "../_shared/prompt-principles.ts";
+import { 
+  MENTOR_IDENTITY, 
+  MENTOR_IDENTITY_SIMPLIFIED,
+  THEOLOGICAL_BASE,
+  ACADEMIC_BASE,
+  STUDY_BASE,
+  CORE_PRINCIPLES, 
+  CONTENT_METHOD, 
+  PILLAR_DISTRIBUTION 
+} from "../_shared/prompt-principles.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,7 +44,7 @@ serve(async (req) => {
       });
     }
 
-    const { prompt } = await req.json();
+    const { prompt, denominationalPrefs } = await req.json();
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 10) {
       return new Response(JSON.stringify({ 
@@ -57,6 +66,55 @@ serve(async (req) => {
       processedPrompt = prompt.substring(0, 20000) + '\n\n[Transcrição truncada por exceder limite]';
     }
 
+    // ============================================
+    // FASE 4: VALIDAÇÃO ÉTICA - POLÍTICA DE RECUSA
+    // ============================================
+    const ethicalValidation = (text: string): { allowed: boolean; reason?: string } => {
+      const lowerText = text.toLowerCase();
+      
+      const redFlags = [
+        {
+          pattern: /(crianças?|menores?|bebês?).*(foto|vídeo|imagem|gravar)/i,
+          reason: 'Conteúdo envolve menores sem menção explícita de autorização dos responsáveis (ECA).'
+        },
+        {
+          pattern: /(choro|sofrimento|luto|funeral).*(postar|publicar|gravar)/i,
+          reason: 'Exploração de vulnerabilidade emocional para engajamento (não edificante).'
+        },
+        {
+          pattern: /(político|eleição|candidato|partido|voto em)/i,
+          reason: 'Proselitismo político-partidário (contra princípios do mentor).'
+        },
+        {
+          pattern: /(baixar|download|piratear|usar).*(música|imagem|vídeo).*(sem|gratuito|de graça)/i,
+          reason: 'Violação de direitos autorais (antiplágio e Lei 9610).'
+        }
+      ];
+      
+      for (const flag of redFlags) {
+        if (flag.pattern.test(text)) {
+          return { allowed: false, reason: flag.reason };
+        }
+      }
+      
+      return { allowed: true };
+    };
+
+    // Aplicar validação ética
+    const validation = ethicalValidation(processedPrompt);
+    if (!validation.allowed) {
+      console.warn('Ethical validation failed:', validation.reason);
+      
+      return new Response(JSON.stringify({ 
+        error: 'Pedido recusado por questões éticas',
+        message: `Prefiro proteger a verdade e a dignidade do que buscar um conteúdo viral. ${validation.reason} Vamos fazer do jeito certo?`,
+        code: 'ETHICAL_VIOLATION'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
   // Detectar tipo de conteúdo solicitado
   let detectedType = 'post'; // default
 
@@ -68,6 +126,15 @@ serve(async (req) => {
   } else {
     // PRIORIDADE 2: Detecção por regex (formatos específicos primeiro)
     const contentTypeDetection = {
+      // COMANDOS ESPECIAIS (prioridade máxima)
+      treino_voluntario: /\/treino-voluntário|treino de voluntário|onboarding mídia/i,
+      campanha_tematica: /\/campanha-temática|série de conteúdo|planejamento série/i,
+      roteiro_reels: /\/roteiro-reels|script reels|roteiro curto/i,
+      checklist_culto: /\/checklist-culto|checklist culto|pré culto/i,
+      kit_basico: /\/kit-básico|mídia com celular|setup mínimo/i,
+      manual_etica: /\/manual-ética|guia ética|proteção imagem/i,
+      estrategia_social: /\/estratégia-social|plano instagram|estratégia redes/i,
+      
       // Resumo breve (for sermon summaries)
       resumo_breve: /resumo_breve|resumo breve/i,
       // FORMATOS DE CONTEÚDO (PRIORIDADE ALTA)
@@ -605,10 +672,183 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     "horario": "Manhã (7h-9h) ou noite (20h-22h)",
     "hashtags": []
   }
+}`,
+
+      // ============================================
+      // FASE 3: COMANDOS EXTRAS (FEATURE)
+      // ============================================
+      
+      treino_voluntario: `{
+  "treino": {
+    "titulo": "Onboarding de Voluntário - Mídia",
+    "objetivo": "Capacitar um novo voluntário em X horas",
+    "modulos": [
+      {
+        "numero": 1,
+        "nome": "Fundamentos",
+        "duracao": "30min",
+        "conteudo": "O que ensinar primeiro",
+        "pratica": "Exercício prático para fixar"
+      }
+    ],
+    "checklist": ["Item 1", "Item 2"],
+    "recursos": ["Template 1", "Vídeo tutorial 2"]
+  }
+}`,
+
+      campanha_tematica: `{
+  "campanha": {
+    "tema": "Tema da série (ex: Páscoa, Advento, Família)",
+    "duracao": "4 semanas",
+    "objetivo_geral": "O que queremos alcançar",
+    "semanas": [
+      {
+        "numero": 1,
+        "titulo": "Semana 1: Introdução",
+        "posts": [
+          {
+            "dia": "Segunda",
+            "formato": "Carrossel",
+            "pilar": "ALCANÇAR",
+            "ideia": "Ideia do post",
+            "versiculo": "Versículo base"
+          }
+        ]
+      }
+    ],
+    "assets_necessarios": ["Foto X", "Vídeo Y"]
+  }
+}`,
+
+      roteiro_reels: `{
+  "roteiro": {
+    "hook": "Primeira frase impactante (0-3s)",
+    "desenvolvimento": "Corpo do reel (3-10s)",
+    "cta": "Chamada pra ação final (10-15s)",
+    "duracao_total": "15 segundos",
+    "texto_tela": ["Frase 1", "Frase 2", "Frase 3"],
+    "audio_sugerido": "Tipo de áudio que combina"
+  }
+}`,
+
+      checklist_culto: `{
+  "checklist": {
+    "pre_culto": [
+      "Item de preparação 1",
+      "Item de preparação 2"
+    ],
+    "durante_culto": [
+      "O que capturar",
+      "Quem filmar (com consentimento)"
+    ],
+    "pos_culto": [
+      "Upload onde",
+      "Edições necessárias"
+    ],
+    "avisos_eticos": [
+      "Verificar autorizações de imagem",
+      "Não expor momentos íntimos sem consentimento"
+    ]
+  }
+}`,
+
+      kit_basico: `{
+  "kit": {
+    "equipamento_minimo": [
+      "Celular com câmera razoável",
+      "Tripé improvisado ou apoio"
+    ],
+    "apps_gratuitos": [
+      "Canva (design)",
+      "CapCut (edição)",
+      "InShot (vídeos)"
+    ],
+    "primeiros_passos": [
+      "1. Configurar perfil da igreja",
+      "2. Definir identidade visual básica",
+      "3. Criar calendário simples"
+    ]
+  }
+}`,
+
+      manual_etica: `{
+  "manual": {
+    "protecao_imagem": [
+      "Termo de autorização de uso de imagem",
+      "Especial atenção com menores (ECA)",
+      "Nunca postar momentos vulneráveis sem consentimento"
+    ],
+    "direitos_autorais": [
+      "Usar apenas músicas licenciadas ou royalty-free",
+      "Citar fontes de textos e imagens",
+      "Atenção com marcas e logos"
+    ],
+    "lgpd": [
+      "Coletar apenas dados necessários",
+      "Informar claramente o uso",
+      "Permitir exclusão a qualquer momento"
+    ]
+  }
+}`,
+
+      estrategia_social: `{
+  "estrategia": {
+    "objetivo": "Objetivo principal (ex: aumentar engajamento, alcançar novos)",
+    "metricas": ["Métrica 1 a acompanhar", "Métrica 2"],
+    "plano_semanal": [
+      {
+        "dia": "Segunda",
+        "formato": "Post",
+        "pilar": "EDIFICAR",
+        "objetivo": "Inspirar a semana"
+      }
+    ],
+    "crescimento": "Como mensurar crescimento além de números",
+    "ajustes": "Quando e como ajustar estratégia"
+  }
 }`
     };
 
     const selectedStructure = structureByType[detectedType] || structureByType.post;
+
+    // ============================================
+    // FASE 2: LÓGICA CONDICIONAL DE IDENTIDADE
+    // ============================================
+    
+    // Tipos que DEVEM receber MENTOR_IDENTITY completo
+    const strategicTypes = [
+      'ideia_estrategica',
+      'calendario',
+      'guia',
+      'campanha_tematica',
+      'estrategia_social'
+    ];
+    
+    // Tipos que recebem IDENTIDADE SIMPLIFICADA
+    const contentTypes = [
+      'carrossel', 'reel', 'stories', 'post',
+      'estudo', 'devocional', 'resumo', 'esboco',
+      'desafio_semanal', 'trilha_oracao'
+    ];
+    
+    // Tipos OPERACIONAIS que NÃO precisam de identidade
+    const operationalTypes = [
+      'convite', 'aviso', 'convite_grupos', 'versiculos_citados'
+    ];
+
+    // Construir identidade dinamicamente
+    let mentorContext = '';
+    
+    if (strategicTypes.includes(detectedType)) {
+      mentorContext = MENTOR_IDENTITY + '\n\n' + THEOLOGICAL_BASE + '\n\n' + ACADEMIC_BASE;
+    } else if (contentTypes.includes(detectedType)) {
+      mentorContext = MENTOR_IDENTITY_SIMPLIFIED;
+    } else if (operationalTypes.includes(detectedType)) {
+      mentorContext = '';
+    } else {
+      // Default para comandos especiais
+      mentorContext = MENTOR_IDENTITY_SIMPLIFIED;
+    }
 
     // Define which types require biblical foundation
     const requiresBiblicalFoundation = [
@@ -619,21 +859,27 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     
     // Define which types are for social media (need production tips)
     const socialMediaTypes = ['post', 'carrossel', 'reel', 'stories'];
-    
-    // Define operational types (no biblical foundation)
-    const operationalTypes = [
-      'calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 
-      'ideia_estrategica', 'versiculos_citados'
-    ];
 
-    // Construir o system prompt dinâmico baseado no tipo detectado
-    const systemPrompt = `${detectedType === 'ideia_estrategica' ? MENTOR_IDENTITY : ''}
+    // ============================================
+    // FASE 2: CONSTRUIR SYSTEM PROMPT DINÂMICO
+    // ============================================
+    
+    const systemPrompt = `${mentorContext}
 
 ${CORE_PRINCIPLES}
 
 ${CONTENT_METHOD}
 
 ${PILLAR_DISTRIBUTION}
+
+${requiresBiblicalFoundation.includes(detectedType) ? STUDY_BASE : ''}
+
+${denominationalPrefs ? `
+ADAPTAÇÃO DENOMINACIONAL:
+- Ênfase teológica: ${denominationalPrefs.enfase || 'genérica evangélica'}
+- Tradução bíblica: ${denominationalPrefs.traducao || 'NVI'}
+- Calendário litúrgico: ${denominationalPrefs.calendario_liturgico ? 'Sim (Advento, Páscoa)' : 'Não'}
+` : ''}
 
 TIPO DETECTADO: ${detectedType}
 
@@ -645,7 +891,7 @@ REGRAS IMPORTANTES PARA TIPO "${detectedType}":
 2. Retorne APENAS os campos necessários para o tipo de conteúdo solicitado
 
 3. ${socialMediaTypes.includes(detectedType)
-    ? 'Inclua dica_producao com formato, estilo, horário e hashtags apropriadas'
+    ? 'Inclua dica_producao com copywriting, hashtags, melhor_horario e cta específico'
     : 'NÃO inclua dica_producao, hashtags ou orientações de redes sociais'}
 
 4. Seja ${operationalTypes.includes(detectedType) 
@@ -682,6 +928,25 @@ INSTRUÇÕES ESPECÍFICAS PARA CALENDÁRIO:
 - Balance os 4 pilares: ALCANÇAR, EDIFICAR, PERTENCER, SERVIR
 - Sugira horários baseados em engajamento típico
 - Seja específico nos temas, não genérico
+` : ''}
+
+${detectedType === 'carrossel' ? `
+INSTRUÇÕES ESPECÍFICAS PARA CARROSSEL:
+- Crie EXATAMENTE 8-10 slides com progressão lógica
+- Cada slide deve ter: titulo_slide, conteudo, imagem_sugerida, chamada_para_acao
+- Slide 1: Hook poderoso
+- Slides 2-8: Desenvolvimento progressivo
+- Último slide: CTA claro e direto
+- dica_producao deve incluir: copywriting (como escrever legenda engajante), cta (call-to-action específico), hashtags
+` : ''}
+
+${['reel', 'stories', 'post'].includes(detectedType) ? `
+INSTRUÇÕES PARA REDES SOCIAIS:
+- dica_producao OBRIGATÓRIA com:
+  * copywriting: Dicas de como escrever legenda envolvente
+  * hashtags: Lista de hashtags relevantes
+  * melhor_horario: Melhor horário para postar
+  * cta: Call-to-action específico e claro
 ` : ''}
 
 ESTRUTURA JSON OBRIGATÓRIA para tipo "${detectedType}":
@@ -741,11 +1006,14 @@ Retorne APENAS o JSON válido.`;
       generatedContent = JSON.parse(jsonMatch[0]);
       
     // Validate structure based on content type
-    const operationalTypes = ['calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 'versiculos_citados', 'ideia_estrategica'];
-    const requiresBiblicalFoundation = !operationalTypes.includes(detectedType);
+    const operationalTypesValidation = [
+      'calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 'versiculos_citados', 'ideia_estrategica',
+      'treino_voluntario', 'campanha_tematica', 'roteiro_reels', 'checklist_culto', 'kit_basico', 'manual_etica', 'estrategia_social'
+    ];
+    const requiresBiblicalFoundationValidation = !operationalTypesValidation.includes(detectedType);
     
     // Only require fundamento_biblico for biblical/spiritual content
-    if (requiresBiblicalFoundation && !generatedContent.fundamento_biblico) {
+    if (requiresBiblicalFoundationValidation && !generatedContent.fundamento_biblico) {
       console.error('Invalid structure:', generatedContent);
       throw new Error('IA retornou estrutura incompleta - falta fundamento_biblico');
     }
@@ -769,6 +1037,13 @@ Retorne APENAS o JSON válido.`;
       (detectedType === 'perguntas' && generatedContent.perguntas_celula) ||
       (detectedType === 'devocional' && generatedContent.devocional) ||
       (detectedType === 'stories' && generatedContent.stories) ||
+      (detectedType === 'treino_voluntario' && generatedContent.treino) ||
+      (detectedType === 'campanha_tematica' && generatedContent.campanha) ||
+      (detectedType === 'roteiro_reels' && generatedContent.roteiro) ||
+      (detectedType === 'checklist_culto' && generatedContent.checklist) ||
+      (detectedType === 'kit_basico' && generatedContent.kit) ||
+      (detectedType === 'manual_etica' && generatedContent.manual) ||
+      (detectedType === 'estrategia_social' && generatedContent.estrategia) ||
       (['post', 'carrossel', 'reel'].includes(detectedType) && generatedContent.conteudo);
 
     if (!hasCorrectStructure) {
