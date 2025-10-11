@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -27,9 +27,13 @@ export interface ContentFilters {
   status: string;
 }
 
+const ITEMS_PER_PAGE = 20;
+
 export function useContentLibrary() {
   const [items, setItems] = useState<ContentLibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
   const [filters, setFilters] = useState<ContentFilters>({
     search: '',
     type: 'all',
@@ -38,25 +42,40 @@ export function useContentLibrary() {
     status: 'all'
   });
 
-  // Carregar itens da biblioteca
-  const loadItems = async () => {
+  // Carregar itens da biblioteca com paginação
+  const loadItems = useCallback(async (pageNum: number = 0, append: boolean = false) => {
     try {
-      setLoading(true);
-      const { data, error } = await supabase
+      if (!append) setLoading(true);
+      
+      const from = pageNum * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+      
+      const { data, error, count } = await supabase
         .from('content_library')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
 
-      setItems(data || []);
+      const newItems = data || [];
+      setItems(prev => append ? [...prev, ...newItems] : newItems);
+      setHasMore(newItems.length === ITEMS_PER_PAGE);
+      setPage(pageNum);
     } catch (error) {
       console.error('Error loading content library:', error);
       toast.error('Erro ao carregar biblioteca');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Carregar próxima página
+  const loadMore = useCallback(() => {
+    if (!loading && hasMore) {
+      loadItems(page + 1, true);
+    }
+  }, [loading, hasMore, page, loadItems]);
 
   // Criar novo conteúdo
   const createContent = async (prompt: string, options?: any) => {
@@ -150,20 +169,25 @@ export function useContentLibrary() {
     });
   }, [items, filters]);
 
-  // Carregar ao montar
+  // Carregar ao montar e resetar quando filtros mudarem
   useEffect(() => {
-    loadItems();
-  }, []);
+    setItems([]);
+    setPage(0);
+    setHasMore(true);
+    loadItems(0, false);
+  }, [filters, loadItems]);
 
   return {
     items: filteredItems,
     allItems: items,
     loading,
+    hasMore,
     filters,
     setFilters,
     createContent,
     updateContent,
     deleteContent,
-    refresh: loadItems
+    loadMore,
+    refresh: () => loadItems(0, false)
   };
 }

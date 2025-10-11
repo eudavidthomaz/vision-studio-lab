@@ -7,7 +7,7 @@ import ContentStatusBadge from "./ContentStatusBadge";
 import TagManagerDialog from "./TagManagerDialog";
 import RegenerateContentDialog from "./RegenerateContentDialog";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import ImageGenerationModal from "./ImageGenerationModal";
@@ -47,7 +47,7 @@ const pillarColors: Record<string, string> = {
   "Cobertura": "bg-red-500"
 };
 
-export default function ContentCard({ content, onDelete, onUpdate, isDraggable = false, isSelected = false, onToggleSelect }: ContentCardProps) {
+const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, isSelected = false, onToggleSelect }: ContentCardProps) => {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitulo, setEditedTitulo] = useState(content.titulo);
@@ -237,7 +237,7 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Image Preview */}
+        {/* Image Preview with Lazy Loading */}
         {content.imagem_url && !isEditing && (
           <div className="relative group">
             <img
@@ -245,6 +245,7 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
               alt={content.titulo}
               className="w-full h-32 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => setShowImagePreview(true)}
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
               <Button
@@ -436,4 +437,8 @@ export default function ContentCard({ content, onDelete, onUpdate, isDraggable =
     </Card>
     </>
   );
-}
+});
+
+ContentCard.displayName = 'ContentCard';
+
+export default ContentCard;

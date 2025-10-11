@@ -18,7 +18,18 @@ import { lazy } from "react";
 const UsageDashboard = lazy(() => import("./pages/UsageDashboard"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 
-const queryClient = new QueryClient();
+// Optimized React Query configuration for performance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh longer
+      gcTime: 30 * 60 * 1000, // 30 minutes - cache persists longer
+      refetchOnWindowFocus: false, // Don't refetch on window focus
+      refetchOnMount: false, // Don't refetch on component mount
+      retry: 1, // Only retry once on failure
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

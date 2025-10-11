@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useContentLibrary, ContentLibraryItem } from "@/hooks/useContentLibrary";
 import { UnifiedContentModal } from "@/components/UnifiedContentModal";
+import { useInView } from "react-intersection-observer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -23,26 +24,12 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
-export default function ContentLibrary() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { items, loading, filters, setFilters, deleteContent, refresh } = useContentLibrary();
-  const [selectedContent, setSelectedContent] = useState<ContentLibraryItem | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  
-  const sermonId = searchParams.get('sermon_id');
-  
-  // Filter by sermon_id if present in URL
-  const displayedItems = sermonId 
-    ? items.filter(item => item.sermon_id === sermonId)
-    : items;
-
-  const handleDelete = async (id: string, title: string) => {
-    if (confirm(`Tem certeza que deseja excluir "${title}"?`)) {
-      await deleteContent(id);
-    }
-  };
-
+// Memoized content card component
+const ContentItemCard = memo(({ item, onView, onDelete }: {
+  item: ContentLibraryItem;
+  onView: () => void;
+  onDelete: () => void;
+}) => {
   const getContentTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
       'carrossel': '🎠 Carrossel',
@@ -75,6 +62,95 @@ export default function ContentLibrary() {
       return dateString;
     }
   };
+
+  return (
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardHeader>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-base truncate">{item.title}</CardTitle>
+            <CardDescription className="flex items-center gap-2 mt-2">
+              <Calendar className="h-3 w-3" />
+              {formatDate(item.created_at)}
+            </CardDescription>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap gap-2 mt-3">
+          <Badge variant="outline" className="text-xs">
+            {getContentTypeLabel(item.content_type)}
+          </Badge>
+          <Badge className={`${getPilarColor(item.pilar)} text-white text-xs`}>
+            {item.pilar}
+          </Badge>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        {item.prompt_original && (
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+            {item.prompt_original}
+          </p>
+        )}
+        
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            className="flex-1"
+            onClick={onView}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Visualizar
+          </Button>
+          
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
+ContentItemCard.displayName = 'ContentItemCard';
+
+export default function ContentLibrary() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { items, loading, hasMore, filters, setFilters, deleteContent, loadMore, refresh } = useContentLibrary();
+  const [selectedContent, setSelectedContent] = useState<ContentLibraryItem | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  const sermonId = searchParams.get('sermon_id');
+  
+  // Infinite scroll observer
+  const { ref: loadMoreRef, inView } = useInView({
+    threshold: 0.1,
+    triggerOnce: false,
+  });
+
+  // Trigger load more when in view
+  useEffect(() => {
+    if (inView && hasMore && !loading) {
+      loadMore();
+    }
+  }, [inView, hasMore, loading, loadMore]);
+  
+  // Filter by sermon_id if present in URL
+  const displayedItems = sermonId 
+    ? items.filter(item => item.sermon_id === sermonId)
+    : items;
+
+  const handleDelete = async (id: string, title: string) => {
+    if (confirm(`Tem certeza que deseja excluir "${title}"?`)) {
+      await deleteContent(id);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -242,59 +318,32 @@ export default function ContentLibrary() {
             </div>
           </Card>
         ) : (
-          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-            {displayedItems.map((item) => (
-              <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base truncate">{item.title}</CardTitle>
-                      <CardDescription className="flex items-center gap-2 mt-2">
-                        <Calendar className="h-3 w-3" />
-                        {formatDate(item.created_at)}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    <Badge variant="outline" className="text-xs">
-                      {getContentTypeLabel(item.content_type)}
-                    </Badge>
-                    <Badge className={`${getPilarColor(item.pilar)} text-white text-xs`}>
-                      {item.pilar}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                
-                <CardContent>
-                  {item.prompt_original && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                      {item.prompt_original}
-                    </p>
-                  )}
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => setSelectedContent(item)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Visualizar
-                    </Button>
-                    
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDelete(item.id, item.title)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <>
+            <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+              {displayedItems.map((item) => (
+                <ContentItemCard
+                  key={item.id}
+                  item={item}
+                  onView={() => setSelectedContent(item)}
+                  onDelete={() => handleDelete(item.id, item.title)}
+                />
+              ))}
+            </div>
+            
+            {/* Infinite scroll trigger */}
+            {hasMore && !loading && (
+              <div ref={loadMoreRef} className="py-8 text-center">
+                <RefreshCw className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+                <p className="text-sm text-muted-foreground mt-2">Carregando mais...</p>
+              </div>
+            )}
+            
+            {!hasMore && displayedItems.length > 0 && (
+              <p className="text-center text-sm text-muted-foreground py-8">
+                ✨ Todos os conteúdos foram carregados
+              </p>
+            )}
+          </>
         )}
 
         {/* Modal */}
