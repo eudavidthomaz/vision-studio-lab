@@ -48,7 +48,7 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
   };
 
   return (
-    <div className="space-y-3 sm:space-y-4 md:space-y-6">
+    <div className="space-y-4">
       {actualEstrutura?.slides && actualEstrutura.slides.map((slide) => {
         const slideNum = slide.numero;
         const hasImage = generatedImages[slideNum];
@@ -56,14 +56,14 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
 
         return (
           <Card key={slideNum} data-slide={slideNum}>
-            <CardHeader className="p-3 sm:p-4 md:p-6">
-              <CardTitle className="text-xs sm:text-sm md:text-base flex items-center justify-between gap-2">
-                <span className="leading-tight">Story {slideNum}: {slide.titulo}</span>
-                {slide.timing && <Badge variant="secondary" className="text-xs flex-shrink-0">{slide.timing}</Badge>}
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-sm sm:text-base flex items-center justify-between gap-2">
+                <span>Story {slideNum}: {slide.titulo}</span>
+                {slide.timing && <Badge variant="secondary" className="text-xs">{slide.timing}</Badge>}
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-3 sm:pt-4 md:pt-6 space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6">
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+            <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
+              <p className="text-sm sm:text-base text-muted-foreground whitespace-pre-line">
                 {slide.texto}
               </p>
 
@@ -73,12 +73,12 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
                   size="sm"
                   onClick={() => handleGenerateImage(slide)}
                   disabled={isLoadingImage}
-                  className="flex items-center gap-2 h-9 sm:h-10 text-xs sm:text-sm"
+                  className="flex items-center gap-2"
                 >
                   {isLoadingImage ? (
-                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Image className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <Image className="h-4 w-4" />
                   )}
                   {isLoadingImage ? "Gerando..." : hasImage ? "Regerar Imagem" : "Gerar Imagem"}
                 </Button>
@@ -87,15 +87,15 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
                   variant="outline"
                   size="sm"
                   onClick={() => copyToClipboard(slide.texto, `Story ${slideNum}`, slideNum)}
-                  className="flex items-center gap-2 h-9 sm:h-10 text-xs sm:text-sm"
+                  className="flex items-center gap-2"
                 >
-                  {copiedSlide === slideNum ? <Check className="h-3 w-3 sm:h-4 sm:w-4" /> : <Copy className="h-3 w-3 sm:h-4 sm:w-4" />}
+                  {copiedSlide === slideNum ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   Copiar
                 </Button>
               </div>
 
               {hasImage && (
-                <div className="mt-3 sm:mt-4">
+                <div className="mt-4">
                   <img src={generatedImages[slideNum]} alt={`Story ${slideNum}`} className="w-full rounded-lg shadow-md" />
                 </div>
               )}
@@ -106,20 +106,20 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
 
       {actualConteudo && (
         <Card>
-          <CardHeader className="p-3 sm:p-4 md:p-6">
-            <CardTitle className="text-sm sm:text-base md:text-lg">Call to Action</CardTitle>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-base sm:text-lg">Call to Action</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 sm:space-y-4 p-3 sm:p-4 md:p-6 pt-0">
+          <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
             {actualConteudo.legenda && (
               <div>
-                <h3 className="font-semibold text-xs sm:text-sm mb-1.5 sm:mb-2">Legenda</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{actualConteudo.legenda}</p>
+                <h3 className="font-semibold text-sm mb-2">Legenda</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">{actualConteudo.legenda}</p>
               </div>
             )}
             {actualConteudo.hashtags && (
               <div>
-                <h3 className="font-semibold text-xs sm:text-sm mb-1.5 sm:mb-2">Hashtags</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground">{actualConteudo.hashtags}</p>
+                <h3 className="font-semibold text-sm mb-2">Hashtags</h3>
+                <p className="text-sm text-muted-foreground">{actualConteudo.hashtags}</p>
               </div>
             )}
           </CardContent>

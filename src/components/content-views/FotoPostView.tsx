@@ -34,8 +34,8 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao }: FotoPostViewP
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Camera className="h-5 w-5" />
             Descrição Visual
           </CardTitle>
           <div className="flex flex-col sm:flex-row gap-2 pt-2">
@@ -46,7 +46,7 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao }: FotoPostViewP
               disabled={isGenerating}
               className="w-full sm:w-auto"
             >
-              <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              <ImageIcon className="h-4 w-4 mr-2" />
               {isGenerating ? "Gerando..." : generatedImage ? "Regerar Imagem" : "Gerar Imagem"}
             </Button>
           </div>
@@ -61,7 +61,7 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao }: FotoPostViewP
               />
             </div>
           )}
-          <p className="text-xs sm:text-sm whitespace-pre-line text-muted-foreground">{conteudo_criativo.descricao_visual}</p>
+          <p className="text-sm whitespace-pre-line text-muted-foreground">{conteudo_criativo.descricao_visual}</p>
         </CardContent>
       </Card>
 
@@ -113,15 +113,15 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao }: FotoPostViewP
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
-            <Hash className="w-4 h-4 sm:w-5 sm:h-5" />
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Hash className="h-5 w-5" />
             Hashtags
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {dica_producao.hashtags.map((tag, i) => (
-              <Badge key={i} variant="outline" className="text-xs sm:text-sm text-blue-600 border-blue-300">
+              <Badge key={i} variant="outline" className="text-xs text-blue-600 border-blue-300">
                 {tag}
               </Badge>
             ))}

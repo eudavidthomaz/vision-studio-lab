@@ -118,13 +118,13 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm sm:text-base">Hashtags</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Hashtags</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => copyToClipboard(conteudo.hashtags!.join(" "), "Hashtags")}
               >
-                <Copy className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                <Copy className="h-4 w-4 mr-2" />
                 Copiar
               </Button>
             </div>
@@ -132,7 +132,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {actualConteudo.hashtags.map((tag, i) => (
-                <span key={i} className="text-xs sm:text-sm text-primary">
+                <span key={i} className="text-sm text-primary">
                   {tag}
                 </span>
               ))}
@@ -144,7 +144,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
       {/* Geração de Imagem Opcional */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm sm:text-base">Imagem (Opcional)</CardTitle>
+          <CardTitle className="text-base sm:text-lg">Imagem (Opcional)</CardTitle>
           <div className="flex flex-col sm:flex-row gap-2 pt-2">
             <Button
               variant={generatedImage ? "outline" : "default"}
@@ -153,7 +153,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
               disabled={isGenerating}
               className="w-full sm:w-auto"
             >
-              <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              <ImageIcon className="h-4 w-4 mr-2" />
               {isGenerating ? "Gerando..." : generatedImage ? "Regerar Imagem" : "Gerar Imagem"}
             </Button>
           </div>
