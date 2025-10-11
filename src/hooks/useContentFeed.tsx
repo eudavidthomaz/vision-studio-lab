@@ -3,7 +3,29 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 export type ContentSource = "ai-creator" | "week-pack";
-export type ContentFormat = "carrossel" | "reel" | "post" | "story" | "all";
+export type ContentFormat = 
+  | "carrossel" 
+  | "reel" 
+  | "post" 
+  | "story" 
+  | "devocional"
+  | "estudo"
+  | "resumo"
+  | "desafio_semanal"
+  | "calendario"
+  | "convite"
+  | "aviso"
+  | "guia"
+  | "convite_grupos"
+  | "versiculos_citados"
+  | "esboco"
+  | "trilha_oracao"
+  | "qa_estruturado"
+  | "discipulado"
+  | "ideia_estrategica"
+  | "foto_post"
+  | "roteiro_video"
+  | "all";
 export type ContentPilar = "ALCANÇAR" | "EDIFICAR" | "ENVIAR" | "EXALTAR" | "all";
 
 export interface NormalizedContent {
@@ -55,11 +77,11 @@ export function useContentFeed() {
 
       const normalized: NormalizedContent[] = [];
 
-      // Helper function to get friendly title based on content type
-      const getFriendlyTitle = (data: any): string => {
-        const contentType = data.content_type;
-        
-        switch(contentType) {
+      // Helper function to get friendly title based on content format
+      const getFriendlyTitle = (data: any, contentFormat: string): string => {
+        switch(contentFormat) {
+          case 'devocional':
+            return data.devocional?.titulo || "Devocional Diário";
           case 'estudo':
             return data.estudo_biblico?.tema || "Estudo Bíblico";
           case 'resumo':
@@ -85,9 +107,13 @@ export function useContentFeed() {
           case 'trilha_oracao':
             return "Trilha de Oração";
           case 'qa_estruturado':
-            return "Perguntas e Respostas";
+            return data.qa?.tema || "Perguntas e Respostas";
           case 'discipulado':
             return "Plano de Discipulado";
+          case 'foto_post':
+            return "Ideia de Foto/Post";
+          case 'roteiro_video':
+            return "Roteiro de Vídeo";
           default:
             // For posts/reels/carousels, use first words of content
             const preview = data.conteudo?.legenda || data.conteudo?.roteiro || "";
@@ -98,20 +124,60 @@ export function useContentFeed() {
 
       // Normalizar generated_contents (NOVO - tabela correta)
       generatedContent?.forEach((item) => {
-        const contentData = item.content as any;
+        let contentData = item.content as any;
+        const contentFormat = item.content_format || "post";
         
+        // CORREÇÃO: Se for array (formato legado de posts), extrair primeiro item
+        if (Array.isArray(contentData)) {
+          contentData = contentData[0] || {};
+        }
+        
+        // Buscar fundamento bíblico
         const verses = contentData.fundamento_biblico?.versiculos || [];
         const firstVerse = verses[0] || "";
+        
+        // Buscar preview específico do formato
+        let preview = "";
+        let hashtags: string[] = [];
+        
+        switch(contentFormat) {
+          case 'devocional':
+            preview = contentData.devocional?.reflexao?.substring(0, 150) || "";
+            break;
+          case 'estudo':
+            preview = contentData.estudo_biblico?.introducao?.substring(0, 150) || "";
+            break;
+          case 'resumo':
+            preview = contentData.resumo?.texto?.substring(0, 150) || "";
+            break;
+          case 'desafio_semanal':
+            preview = contentData.desafio_semanal?.descricao?.substring(0, 150) || "";
+            break;
+          case 'esboco':
+            preview = contentData.esboco?.introducao?.substring(0, 150) || "";
+            break;
+          case 'foto_post':
+            preview = contentData.conteudo_criativo?.descricao_visual?.substring(0, 150) || "";
+            hashtags = contentData.dica_producao?.hashtags || [];
+            break;
+          case 'roteiro_video':
+            preview = contentData.conteudo_criativo?.roteiro?.substring(0, 150) || "";
+            hashtags = contentData.dica_producao?.hashtags || [];
+            break;
+          default:
+            preview = contentData.conteudo?.legenda || contentData.conteudo?.roteiro || "";
+            hashtags = contentData.dica_producao?.hashtags || [];
+        }
         
         normalized.push({
           id: item.id,
           source: "ai-creator",
-          format: (item.content_format || "post") as ContentFormat,
+          format: contentFormat as ContentFormat,
           pilar: (item.pilar || "EDIFICAR") as ContentPilar,
-          title: getFriendlyTitle(contentData),
+          title: getFriendlyTitle(contentData, contentFormat),
           verse: firstVerse,
-          preview: contentData.conteudo?.legenda || contentData.conteudo?.roteiro || contentData.estudo_biblico?.introducao || "",
-          hashtags: contentData.dica_producao?.hashtags || [],
+          preview: preview || JSON.stringify(contentData).substring(0, 100) + "..." || "Sem preview disponível",
+          hashtags: hashtags,
           createdAt: new Date(item.created_at || Date.now()),
           rawData: contentData,
         });
@@ -126,13 +192,14 @@ export function useContentFeed() {
         if (plannerData?.tipo === "ai-generated" || plannerData?.content_type || plannerData?.prompt_original) {
           const verses = plannerData.fundamento_biblico?.versiculos || [];
           const firstVerse = verses[0] || "";
+          const contentFormat = plannerData.conteudo?.tipo || plannerData.content_type || "post";
           
           normalized.push({
             id: `legacy-${item.id}`,
             source: "ai-creator",
-            format: (plannerData.conteudo?.tipo || plannerData.content_type || "post") as ContentFormat,
+            format: contentFormat as ContentFormat,
             pilar: (plannerData.conteudo?.pilar || "ALCANÇAR") as ContentPilar,
-            title: getFriendlyTitle(plannerData),
+            title: getFriendlyTitle(plannerData, contentFormat),
             verse: firstVerse,
             preview: plannerData.conteudo?.legenda || plannerData.conteudo?.roteiro || plannerData.estudo_biblico?.introducao || "",
             hashtags: plannerData.dica_producao?.hashtags || [],
