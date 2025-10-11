@@ -91,16 +91,18 @@ Diretrizes:
 
     const parsedContent = JSON.parse(jsonMatch[0]);
 
-    // Salvar no banco unificado (generated_contents)
+    // Salvar no banco unificado (content_library)
     const { data: insertData, error: insertError } = await supabaseClient
-      .from('generated_contents')
+      .from('content_library')
       .insert({
         user_id: userId,
         source_type: 'quick-post',
-        content_format: tipo,
+        content_type: tipo,
         pilar: parsedContent.pilar,
+        title: parsedContent.conteudo?.legenda?.substring(0, 50) || 'Post Rápido',
         content: parsedContent,
         prompt_original: sanitizedTema,
+        status: 'draft'
       })
       .select()
       .single();

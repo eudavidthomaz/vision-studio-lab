@@ -93,16 +93,18 @@ Diretrizes:
 
     const parsedContent = JSON.parse(jsonMatch[0]);
 
-    // Salvar no banco unificado (generated_contents)
+    // Salvar no banco unificado (content_library)
     const { data: insertData, error: insertError } = await supabaseClient
-      .from('generated_contents')
+      .from('content_library')
       .insert({
         user_id: userId,
         source_type: 'photo-idea',
-        content_format: 'foto_post',
+        content_type: 'foto_post',
         pilar: parsedContent.pilar || 'EDIFICAR',
+        title: parsedContent.conteudo_criativo?.titulo || 'Ideia de Foto',
         content: parsedContent,
         prompt_original: `Tema: ${sanitizedTema}, Estilo: ${estilo}`,
+        status: 'draft'
       })
       .select()
       .single();

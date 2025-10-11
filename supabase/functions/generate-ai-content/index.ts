@@ -776,16 +776,18 @@ Retorne APENAS o JSON válido.`;
       });
     }
 
-    // Salvar na tabela CORRETA: generated_contents
+    // Salvar na tabela unificada: content_library
     const { data: savedContent, error: saveError } = await supabase
-      .from('generated_contents')
+      .from('content_library')
       .insert({
         user_id: user.id,
         source_type: 'ai-creator',
+        content_type: detectedType, // tipo de conteúdo (estudo, post, etc)
         pilar: 'EDIFICAR', // Uppercase para consistência com constraints
-        content_format: detectedType, // tipo de conteúdo (estudo, post, etc)
         prompt_original: prompt.replace(/^TIPO_SOLICITADO:\s*\w+\s*/i, '').trim(),
-        content: generatedContent
+        title: generatedContent.title || 'Conteúdo Gerado',
+        content: generatedContent,
+        status: 'draft'
       })
       .select()
       .single();

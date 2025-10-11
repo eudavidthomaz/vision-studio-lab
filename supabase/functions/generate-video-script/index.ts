@@ -95,16 +95,18 @@ Diretrizes:
 
     const parsedContent = JSON.parse(jsonMatch[0]);
 
-    // Salvar no banco unificado (generated_contents)
+    // Salvar no banco unificado (content_library)
     const { data: insertData, error: insertError } = await supabaseClient
-      .from('generated_contents')
+      .from('content_library')
       .insert({
         user_id: userId,
         source_type: 'video-script',
-        content_format: 'roteiro_video',
+        content_type: 'roteiro_video',
         pilar: parsedContent.pilar || 'EDIFICAR',
+        title: parsedContent.conteudo_criativo?.titulo || 'Roteiro de Vídeo',
         content: parsedContent,
         prompt_original: `Mensagem: ${sanitizedMensagem}, Duração: ${duracao}`,
+        status: 'draft'
       })
       .select()
       .single();

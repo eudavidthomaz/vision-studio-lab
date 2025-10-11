@@ -57,42 +57,33 @@ export function useContentFeed() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Buscar generated_contents (conteúdo gerado por IA)
-      const { data: generatedContent, error: generatedError } = await supabase
-        .from("generated_contents")
+      // Buscar apenas de content_library (tabela unificada)
+      const { data: libraryContent, error: libraryError } = await supabase
+        .from("content_library")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      console.log('🔍 Generated Content Query Result:', {
-        count: generatedContent?.length || 0,
-        error: generatedError,
-        sample: generatedContent?.[0] ? {
-          id: generatedContent[0].id,
-          source_type: generatedContent[0].source_type,
-          content_format: generatedContent[0].content_format,
+      console.log('🔍 Content Library Query Result:', {
+        count: libraryContent?.length || 0,
+        error: libraryError,
+        sample: libraryContent?.[0] ? {
+          id: libraryContent[0].id,
+          source_type: libraryContent[0].source_type,
+          content_type: libraryContent[0].content_type,
         } : null
       });
 
-      if (generatedError) {
-        console.error('❌ Error fetching generated_contents:', generatedError);
-        throw generatedError;
+      if (libraryError) {
+        console.error('❌ Error fetching content_library:', libraryError);
+        throw libraryError;
       }
-
-      // Buscar content_planners (conteúdo legado que ainda pode existir)
-      const { data: aiContent, error: aiError } = await supabase
-        .from("content_planners")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (aiError) throw aiError;
 
       const normalized: NormalizedContent[] = [];
 
       // Helper function to get friendly title based on content format
-      const getFriendlyTitle = (data: any, contentFormat: string): string => {
-        switch(contentFormat) {
+      const getFriendlyTitle = (data: any, contentType: string): string => {
+        switch(contentType) {
           case 'devocional':
             return data.devocional?.titulo || "Devocional Diário";
           case 'estudo':
@@ -135,22 +126,17 @@ export function useContentFeed() {
         }
       };
 
-      // Normalizar generated_contents (NOVO - tabela correta)
-      generatedContent?.forEach((item) => {
+      // Normalizar conteúdos da biblioteca unificada
+      libraryContent?.forEach((item) => {
         let contentData = item.content as any;
-        const contentFormat = item.content_format || "post";
+        const contentType = item.content_type || "post";
         
         console.log('📦 Normalizando item:', {
           id: item.id,
-          content_format: item.content_format,
+          content_type: item.content_type,
           source_type: item.source_type,
           hasContent: !!contentData
         });
-        
-        // CORREÇÃO: Se for array (formato legado de posts), extrair primeiro item
-        if (Array.isArray(contentData)) {
-          contentData = contentData[0] || {};
-        }
         
         // Se content está vazio, pular
         if (!contentData || Object.keys(contentData).length === 0) {
@@ -166,7 +152,7 @@ export function useContentFeed() {
         let preview = "";
         let hashtags: string[] = [];
         
-        switch(contentFormat) {
+        switch(contentType) {
           case 'devocional':
             preview = contentData.devocional?.reflexao?.substring(0, 150) || "";
             break;
@@ -195,44 +181,21 @@ export function useContentFeed() {
             hashtags = contentData.dica_producao?.hashtags || [];
         }
         
+        // Determinar source baseado no source_type
+        const source: ContentSource = item.source_type === 'audio-pack' ? 'week-pack' : 'ai-creator';
+        
         normalized.push({
           id: item.id,
-          source: "ai-creator",
-          format: contentFormat as ContentFormat,
+          source: source,
+          format: contentType as ContentFormat,
           pilar: (item.pilar || "EDIFICAR") as ContentPilar,
-          title: getFriendlyTitle(contentData, contentFormat),
+          title: getFriendlyTitle(contentData, contentType),
           verse: firstVerse,
           preview: preview || JSON.stringify(contentData).substring(0, 100) + "..." || "Sem preview disponível",
           hashtags: hashtags,
           createdAt: new Date(item.created_at || Date.now()),
           rawData: contentData,
         });
-      });
-
-      // Normalizar content_planners (LEGADO - para compatibilidade com dados antigos)
-      aiContent?.forEach((item) => {
-        const plannerDataArray = item.content as any[];
-        const plannerData = plannerDataArray?.[0];
-        
-        // Detectar se é conteúdo de IA
-        if (plannerData?.tipo === "ai-generated" || plannerData?.content_type || plannerData?.prompt_original) {
-          const verses = plannerData.fundamento_biblico?.versiculos || [];
-          const firstVerse = verses[0] || "";
-          const contentFormat = plannerData.conteudo?.tipo || plannerData.content_type || "post";
-          
-          normalized.push({
-            id: `legacy-${item.id}`,
-            source: "ai-creator",
-            format: contentFormat as ContentFormat,
-            pilar: (plannerData.conteudo?.pilar || "ALCANÇAR") as ContentPilar,
-            title: getFriendlyTitle(plannerData, contentFormat),
-            verse: firstVerse,
-            preview: plannerData.conteudo?.legenda || plannerData.conteudo?.roteiro || plannerData.estudo_biblico?.introducao || "",
-            hashtags: plannerData.dica_producao?.hashtags || [],
-            createdAt: new Date(item.created_at || Date.now()),
-            rawData: plannerData,
-          });
-        }
       });
 
       setContents(normalized);
@@ -294,22 +257,13 @@ export function useContentFeed() {
 
   const deleteContent = async (id: string) => {
     try {
-      // Se começa com "legacy-", é conteúdo antigo de content_planners
-      if (id.startsWith("legacy-")) {
-        const uuid = id.replace("legacy-", "");
-        const { error } = await supabase
-          .from("content_planners")
-          .delete()
-          .eq("id", uuid);
-        if (error) throw error;
-      } else {
-        // Senão, é de generated_contents
-        const { error } = await supabase
-          .from("generated_contents")
-          .delete()
-          .eq("id", id);
-        if (error) throw error;
-      }
+      // Deletar de content_library (tabela unificada)
+      const { error } = await supabase
+        .from("content_library")
+        .delete()
+        .eq("id", id);
+      
+      if (error) throw error;
 
       toast({
         title: "✅ Conteúdo excluído",
