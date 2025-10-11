@@ -44,49 +44,16 @@ export function useContentFeed() {
 
       if (aiError) throw aiError;
 
+      // Buscar weekly_packs
+      const { data: weekPacks, error: packError } = await supabase
+        .from("weekly_packs")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (packError) throw packError;
 
       const normalized: NormalizedContent[] = [];
-
-      // Helper function to get friendly title based on content type
-      const getFriendlyTitle = (data: any): string => {
-        const contentType = data.content_type;
-        
-        switch(contentType) {
-          case 'estudo':
-            return data.estudo_biblico?.tema || "Estudo Bíblico";
-          case 'resumo':
-            return "Resumo de Pregação";
-          case 'desafio_semanal':
-            return data.desafio_semanal?.titulo || "Desafio Semanal";
-          case 'ideia_estrategica':
-            return data.ideia_estrategica?.titulo || "Ideia Estratégica";
-          case 'calendario':
-            return "Calendário de Conteúdo";
-          case 'convite':
-            return data.convite?.titulo_evento || "Convite para Evento";
-          case 'aviso':
-            return data.aviso?.titulo || "Aviso Importante";
-          case 'guia':
-            return "Guia de Comunhão";
-          case 'convite_grupos':
-            return "Convite para Grupos";
-          case 'versiculos_citados':
-            return "Versículos Citados";
-          case 'esboco':
-            return data.esboco?.titulo || "Esboço de Pregação";
-          case 'trilha_oracao':
-            return "Trilha de Oração";
-          case 'qa_estruturado':
-            return "Perguntas e Respostas";
-          case 'discipulado':
-            return "Plano de Discipulado";
-          default:
-            // For posts/reels/carousels, use first words of content
-            const preview = data.conteudo?.legenda || data.conteudo?.roteiro || "";
-            const firstLine = preview.split('\n')[0] || "";
-            return firstLine.substring(0, 50) + (firstLine.length > 50 ? '...' : '') || "Conteúdo IA";
-        }
-      };
 
       // Normalizar content_planners (IA)
       aiContent?.forEach((item) => {
@@ -94,18 +61,18 @@ export function useContentFeed() {
         const plannerData = plannerDataArray?.[0];
         
         // Detectar se é conteúdo de IA
-        if (plannerData?.tipo === "ai-generated" || plannerData?.content_type || plannerData?.prompt_original) {
+        if (plannerData?.tipo === "ai-generated" || plannerData?.prompt_original) {
           const verses = plannerData.fundamento_biblico?.versiculos || [];
-          const firstVerse = verses[0] || "";  // versiculos é array de strings
+          const firstVerse = verses[0] ? `${verses[0].versiculo} - ${verses[0].referencia}` : "";
           
           normalized.push({
             id: `ai-${item.id}`,
             source: "ai-creator",
-            format: (plannerData.conteudo?.tipo || plannerData.content_type || "post") as ContentFormat,
+            format: (plannerData.conteudo?.tipo || "post") as ContentFormat,
             pilar: (plannerData.conteudo?.pilar || "ALCANÇAR") as ContentPilar,
-            title: getFriendlyTitle(plannerData),
+            title: plannerData.prompt_original || "Conteúdo IA",
             verse: firstVerse,
-            preview: plannerData.conteudo?.legenda || plannerData.conteudo?.roteiro || plannerData.estudo_biblico?.introducao || "",
+            preview: plannerData.conteudo?.legenda || plannerData.conteudo?.roteiro || "",
             hashtags: plannerData.dica_producao?.hashtags || [],
             createdAt: new Date(item.created_at || Date.now()),
             rawData: plannerData,
@@ -113,6 +80,27 @@ export function useContentFeed() {
         }
       });
 
+      // Normalizar weekly_packs
+      weekPacks?.forEach((item) => {
+        const packData = item.pack as any;
+        
+        if (packData) {
+          const verse = packData.versiculo_principal || "";
+          
+          normalized.push({
+            id: `pack-${item.id}`,
+            source: "week-pack",
+            format: "carrossel",
+            pilar: "EXALTAR" as ContentPilar,
+            title: packData.titulo_principal || "Pack Semanal",
+            verse: verse,
+            preview: packData.resumo_pregacao || "",
+            hashtags: packData.hashtags_sugeridas || [],
+            createdAt: new Date(item.created_at || Date.now()),
+            rawData: packData,
+          });
+        }
+      });
 
       setContents(normalized);
       setFilteredContents(normalized);
@@ -178,6 +166,12 @@ export function useContentFeed() {
       if (type === "ai") {
         const { error } = await supabase
           .from("content_planners")
+          .delete()
+          .eq("id", uuid);
+        if (error) throw error;
+      } else if (type === "pack") {
+        const { error } = await supabase
+          .from("weekly_packs")
           .delete()
           .eq("id", uuid);
         if (error) throw error;

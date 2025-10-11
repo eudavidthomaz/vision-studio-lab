@@ -289,32 +289,23 @@ export type Database = {
       sermons: {
         Row: {
           created_at: string | null
-          error_message: string | null
           id: string
-          sermon_hash: string | null
           status: string | null
           transcript: string | null
-          transcription_time_ms: number | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
-          error_message?: string | null
           id?: string
-          sermon_hash?: string | null
           status?: string | null
           transcript?: string | null
-          transcription_time_ms?: number | null
           user_id: string
         }
         Update: {
           created_at?: string | null
-          error_message?: string | null
           id?: string
-          sermon_hash?: string | null
           status?: string | null
           transcript?: string | null
-          transcription_time_ms?: number | null
           user_id?: string
         }
         Relationships: []
