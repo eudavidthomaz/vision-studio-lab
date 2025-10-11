@@ -44,14 +44,6 @@ export function useContentFeed() {
 
       if (aiError) throw aiError;
 
-      // Buscar weekly_packs
-      const { data: weekPacks, error: packError } = await supabase
-        .from("weekly_packs")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      if (packError) throw packError;
 
       const normalized: NormalizedContent[] = [];
 
@@ -121,27 +113,6 @@ export function useContentFeed() {
         }
       });
 
-      // Normalizar weekly_packs
-      weekPacks?.forEach((item) => {
-        const packData = item.pack as any;
-        
-        if (packData) {
-          const verse = packData.versiculo_principal || "";
-          
-          normalized.push({
-            id: `pack-${item.id}`,
-            source: "week-pack",
-            format: "carrossel",
-            pilar: "EXALTAR" as ContentPilar,
-            title: packData.titulo_principal || "Pack Semanal",
-            verse: verse,
-            preview: packData.resumo_pregacao || "",
-            hashtags: packData.hashtags_sugeridas || [],
-            createdAt: new Date(item.created_at || Date.now()),
-            rawData: packData,
-          });
-        }
-      });
 
       setContents(normalized);
       setFilteredContents(normalized);
@@ -207,12 +178,6 @@ export function useContentFeed() {
       if (type === "ai") {
         const { error } = await supabase
           .from("content_planners")
-          .delete()
-          .eq("id", uuid);
-        if (error) throw error;
-      } else if (type === "pack") {
-        const { error } = await supabase
-          .from("weekly_packs")
           .delete()
           .eq("id", uuid);
         if (error) throw error;

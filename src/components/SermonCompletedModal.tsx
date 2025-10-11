@@ -13,7 +13,7 @@ interface SermonCompletedModalProps {
     summary: string;
     created_at: string;
   };
-  onCreateContent: () => void;
+  onCreateContent: (sermonId: string) => void;
 }
 
 export const SermonCompletedModal = ({
@@ -57,7 +57,7 @@ export const SermonCompletedModal = ({
         </ScrollArea>
 
         <div className="space-y-4 pt-4 border-t">
-          <Button onClick={onCreateContent} size="lg" className="w-full">
+          <Button onClick={() => onCreateContent(sermon.id)} size="lg" className="w-full">
             <Sparkles className="w-4 h-4 mr-2" />
             Criar Conteúdos Agora
           </Button>

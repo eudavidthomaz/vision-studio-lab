@@ -68,9 +68,7 @@ serve(async (req) => {
   } else {
     // PRIORIDADE 2: Detecção por regex (formatos específicos primeiro)
     const contentTypeDetection = {
-      // Weekly pack (highest priority - must be first!)
-      pack_semanal: /pack|pacote|semanal|semana|série de posts/i,
-      // Resumo breve (NEW - for sermon summaries)
+      // Resumo breve (for sermon summaries)
       resumo_breve: /resumo_breve|resumo breve/i,
       // Organizational formats (high priority)
       calendario: /calendário|cronograma|planejamento|plano editorial|grade de posts/i,
@@ -429,43 +427,6 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     "recursos": ["Livro recomendado", "Material de apoio"]
   }
 }`,
-      pack_semanal: `{
-  "versiculos_base": ["Romanos 12:1-2", "João 3:16"],
-  "principio_atemporal": "Frase-chave que captura a verdade central da pregação",
-  "resumo_pregacao": "Resumo conciso da pregação em 2-3 parágrafos",
-  "frases_impacto": ["array com 5-7 frases marcantes da pregação"],
-  "hashtags_sugeridas": ["#fe", "#igreja", "#jesus"],
-  "legendas_instagram": [
-    {
-      "texto": "Legenda completa do post",
-      "pilar_estrategico": "Edificar | Alcançar | Pertencer | Servir",
-      "cta": "Call-to-action específico",
-      "hashtags": ["array", "de", "hashtags"]
-    }
-  ],
-  "carrosseis_instagram": [
-    {
-      "titulo": "Título do carrossel",
-      "pilar_estrategico": "Edificar | Alcançar | Pertencer | Servir",
-      "slides": [
-        {
-          "texto": "Texto do slide",
-          "sugestao_imagem": "Descrição da imagem sugerida"
-        }
-      ]
-    }
-  ],
-  "roteiros_reels": [
-    {
-      "titulo": "Título do reel",
-      "pilar_estrategico": "Edificar | Alcançar | Pertencer | Servir",
-      "gancho": "Gancho inicial (3 segundos)",
-      "desenvolvimento": "Desenvolvimento do conteúdo",
-      "cta": "Call-to-action final",
-      "duracao_estimada": "30-60 segundos"
-    }
-  ]
-}`,
     desafio_semanal: `{
   "fundamento_biblico": {
     "versiculos": ["Versículo 1 com referência completa", "Versículo 2"],
@@ -792,11 +753,6 @@ Retorne APENAS o JSON válido.`;
       (detectedType === 'perguntas' && generatedContent.perguntas_celula) ||
       (detectedType === 'devocional' && generatedContent.devocional) ||
       (detectedType === 'stories' && generatedContent.stories) ||
-      (detectedType === 'pack_semanal' && 
-        generatedContent.versiculos_base && 
-        generatedContent.legendas_instagram && 
-        generatedContent.carrosseis_instagram && 
-        generatedContent.roteiros_reels) ||
       (['post', 'carrossel', 'reel'].includes(detectedType) && generatedContent.conteudo);
 
     if (!hasCorrectStructure) {

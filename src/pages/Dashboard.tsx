@@ -42,6 +42,7 @@ const Dashboard = () => {
   const [showSermonCompletedModal, setShowSermonCompletedModal] = useState(false);
   const [currentSermonSummary, setCurrentSermonSummary] = useState("");
   const [currentSermonId, setCurrentSermonId] = useState("");
+  const [preselectedSermonId, setPreselectedSermonId] = useState<string | undefined>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -84,56 +85,24 @@ const Dashboard = () => {
 
   const handleTranscriptionComplete = async (transcriptText: string, sermonId?: string) => {
     setTranscript(transcriptText);
-    setIsGeneratingPack(true);
-    setGenerationProgress(0);
 
     await trackEvent('sermon_uploaded');
 
     try {
-      setGenerationProgress(25);
-
-      // Gerar resumo automático (até 500 palavras)
-      const summaryPrompt = `TIPO_SOLICITADO: resumo_breve
-
-${transcriptText}`;
-
-      const summaryResult = await invokeFunction<any>('generate-ai-content', {
-        prompt: summaryPrompt
-      });
-
-      if (!summaryResult || !summaryResult.generated_content) {
-        throw new Error('Erro ao gerar resumo');
-      }
-
-      const summary = summaryResult.generated_content.resumo || summaryResult.generated_content.resumo_pregacao?.resumo || "Resumo não disponível";
-
-      setGenerationProgress(75);
-
-      // Salvar automaticamente em "Meus Conteúdos"
-      const { error: saveError } = await supabase
-        .from('generated_contents')
-        .insert({
-          user_id: user.id,
-          content: { resumo: summary, transcript: transcriptText },
-          source_type: 'sermon_transcription',
-          content_format: 'resumo_breve',
-          prompt_original: 'Transcrição de áudio'
-        });
-
-      if (saveError) {
-        console.error('Error saving sermon:', saveError);
-      }
-
-      setGenerationProgress(100);
-
       // Incrementar quota
       incrementUsage('weekly_packs');
       await trackEvent('sermon_completed');
 
-      // Abrir modal de celebração
+      // Abrir modal de celebração com resumo parcial
+      const summary = transcriptText.substring(0, 500) + '...';
       setCurrentSermonSummary(summary);
       setCurrentSermonId(sermonId || '');
       setShowSermonCompletedModal(true);
+
+      toast({
+        title: "Transcrição Completa! 🎉",
+        description: "Sua pregação foi transcrita com sucesso.",
+      });
 
       // Celebration for first generation
       if (isFirstGeneration) {
@@ -150,9 +119,6 @@ ${transcriptText}`;
         description: "Não foi possível processar o sermão. Tente novamente.",
         variant: "destructive",
       });
-    } finally {
-      setIsGeneratingPack(false);
-      setGenerationProgress(0);
     }
   };
 
@@ -212,7 +178,8 @@ ${transcriptText}`;
     }
   };
 
-  const handleOpenContentCreator = () => {
+  const handleOpenContentCreator = (sermonId: string) => {
+    setPreselectedSermonId(sermonId);
     setShowSermonCompletedModal(false);
     setShowAIModal(true);
   };
@@ -390,10 +357,13 @@ ${transcriptText}`;
         {/* AI Modal */}
         <AIPromptModal 
           open={showAIModal} 
-          onOpenChange={setShowAIModal}
+          onOpenChange={(open) => {
+            setShowAIModal(open);
+            if (!open) setPreselectedSermonId(undefined);
+          }}
           onGenerate={handleGenerateAIContent}
           isLoading={isGeneratingAI}
-          preselectedSermonId={currentSermonId}
+          preselectedSermonId={preselectedSermonId}
         />
       </div>
     </>
