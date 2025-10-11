@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.generate-ai-content]
 verify_jwt = true
+
+[functions.content-engine]
+verify_jwt = true

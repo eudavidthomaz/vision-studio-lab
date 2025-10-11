@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      content_library: {
+        Row: {
+          content: Json
+          content_type: string
+          created_at: string | null
+          id: string
+          pilar: string | null
+          prompt_original: string | null
+          published_at: string | null
+          search_vector: unknown | null
+          sermon_id: string | null
+          source_type: string
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content?: Json
+          content_type: string
+          created_at?: string | null
+          id?: string
+          pilar?: string | null
+          prompt_original?: string | null
+          published_at?: string | null
+          search_vector?: unknown | null
+          sermon_id?: string | null
+          source_type: string
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          pilar?: string | null
+          prompt_original?: string | null
+          published_at?: string | null
+          search_vector?: unknown | null
+          sermon_id?: string | null
+          source_type?: string
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_library_sermon_id_fkey"
+            columns: ["sermon_id"]
+            isOneToOne: false
+            referencedRelation: "sermons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_planners: {
         Row: {
           content: Json

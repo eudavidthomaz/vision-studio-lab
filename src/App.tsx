@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import Welcome from "./pages/Welcome";
 import MeusConteudos from "./pages/MeusConteudos";
+import ContentLibrary from "./pages/ContentLibrary";
 import Metrics from "./pages/Metrics";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/meus-conteudos" element={<MeusConteudos />} />
+          <Route path="/biblioteca" element={<ContentLibrary />} />
           <Route path="/metrics" element={<Metrics />} />
           <Route path="/security" element={<SecurityDashboard />} />
           <Route path="/usage" element={<UsageDashboard />} />
