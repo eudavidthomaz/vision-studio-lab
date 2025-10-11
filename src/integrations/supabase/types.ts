@@ -27,6 +27,7 @@ export type Database = {
           prompt_original: string | null
           published_at: string | null
           search_vector: unknown | null
+          sermon_id: string | null
           source_type: string
           status: string | null
           tags: string[] | null
@@ -46,6 +47,7 @@ export type Database = {
           prompt_original?: string | null
           published_at?: string | null
           search_vector?: unknown | null
+          sermon_id?: string | null
           source_type: string
           status?: string | null
           tags?: string[] | null
@@ -65,6 +67,7 @@ export type Database = {
           prompt_original?: string | null
           published_at?: string | null
           search_vector?: unknown | null
+          sermon_id?: string | null
           source_type?: string
           status?: string | null
           tags?: string[] | null
@@ -72,7 +75,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "content_library_sermon_id_fkey"
+            columns: ["sermon_id"]
+            isOneToOne: false
+            referencedRelation: "sermons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       content_planners: {
         Row: {
@@ -587,6 +598,7 @@ export type Database = {
           prompt_original: string | null
           published_at: string | null
           search_vector: unknown | null
+          sermon_id: string | null
           source_type: string
           status: string | null
           tags: string[] | null
