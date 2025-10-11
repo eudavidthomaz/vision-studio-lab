@@ -40,6 +40,7 @@ const Dashboard = () => {
   const [showSermonCompletedModal, setShowSermonCompletedModal] = useState(false);
   const [currentSermonSummary, setCurrentSermonSummary] = useState("");
   const [currentSermonId, setCurrentSermonId] = useState("");
+  const [generatedContentsCount, setGeneratedContentsCount] = useState(0);
   const [preselectedSermonId, setPreselectedSermonId] = useState<string | undefined>();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -105,6 +106,29 @@ const Dashboard = () => {
           
           setCurrentSermonSummary(summary.substring(0, 1000) + (summary.length > 1000 ? '...' : ''));
           setCurrentSermonId(sermon.id);
+          
+          // Automaticamente gerar pack de conteúdos
+          toast({
+            title: "🤖 Gerando Conteúdos...",
+            description: "Estamos criando posts, stories e reels para você!",
+          });
+
+          try {
+            const { data, error } = await supabase.functions.invoke('generate-sermon-pack', {
+              body: { sermon_id: sermon.id }
+            });
+
+            if (error) throw error;
+
+            const contentsCount = data?.data?.contents_count || 0;
+            setGeneratedContentsCount(contentsCount);
+            
+            console.log(`✅ Pack gerado: ${contentsCount} conteúdos criados`);
+          } catch (packError) {
+            console.error('Error generating pack:', packError);
+            // Não bloqueia o fluxo se falhar - usuário pode criar manualmente
+            setGeneratedContentsCount(0);
+          }
         }
       }
 
@@ -144,6 +168,11 @@ const Dashboard = () => {
     setPreselectedSermonId(sermonId);
     setShowSermonCompletedModal(false);
     setShowAIModal(true);
+  };
+
+  const handleViewContents = (sermonId: string) => {
+    setShowSermonCompletedModal(false);
+    navigate(`/biblioteca?sermon_id=${sermonId}`);
   };
 
   const handleGenerateAIContent = async (prompt: string) => {
@@ -292,7 +321,8 @@ const Dashboard = () => {
             summary: currentSermonSummary,
             created_at: new Date().toISOString(),
           }}
-          onCreateContent={handleOpenContentCreator}
+          contentsCount={generatedContentsCount}
+          onViewContents={handleViewContents}
         />
 
         {/* AI Modal */}

@@ -13,14 +13,16 @@ interface SermonCompletedModalProps {
     summary: string;
     created_at: string;
   };
-  onCreateContent: (sermonId: string) => void;
+  contentsCount?: number;
+  onViewContents: (sermonId: string) => void;
 }
 
 export const SermonCompletedModal = ({
   open,
   onOpenChange,
   sermon,
-  onCreateContent,
+  contentsCount = 0,
+  onViewContents,
 }: SermonCompletedModalProps) => {
   useEffect(() => {
     if (open) {
@@ -57,12 +59,26 @@ export const SermonCompletedModal = ({
         </ScrollArea>
 
         <div className="space-y-4 pt-4 border-t">
-          <Button onClick={() => onCreateContent(sermon.id)} size="lg" className="w-full">
+          {contentsCount > 0 && (
+            <div className="p-4 bg-primary/10 rounded-lg text-center">
+              <p className="text-sm font-semibold text-primary mb-1">
+                ✨ {contentsCount} conteúdos criados automaticamente!
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Posts, stories, reels e mais foram gerados com base na sua pregação
+              </p>
+            </div>
+          )}
+          
+          <Button onClick={() => onViewContents(sermon.id)} size="lg" className="w-full">
             <Sparkles className="w-4 h-4 mr-2" />
-            Criar Conteúdos Agora
+            {contentsCount > 0 ? 'Ver Meus Conteúdos' : 'Criar Conteúdos Agora'}
           </Button>
+          
           <p className="text-xs text-center text-muted-foreground">
-            Acesse sua pregação e comece a criar conteúdos baseados nela.
+            {contentsCount > 0 
+              ? 'Visualize, edite e publique seus conteúdos gerados'
+              : 'Acesse sua pregação e comece a criar conteúdos baseados nela'}
           </p>
         </div>
       </DialogContent>

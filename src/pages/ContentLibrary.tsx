@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useContentLibrary, ContentLibraryItem } from "@/hooks/useContentLibrary";
 import { UnifiedContentModal } from "@/components/UnifiedContentModal";
 import { Button } from "@/components/ui/button";
@@ -25,9 +25,17 @@ import { toast } from "sonner";
 
 export default function ContentLibrary() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { items, loading, filters, setFilters, deleteContent, refresh } = useContentLibrary();
   const [selectedContent, setSelectedContent] = useState<ContentLibraryItem | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  const sermonId = searchParams.get('sermon_id');
+  
+  // Filter by sermon_id if present in URL
+  const displayedItems = sermonId 
+    ? items.filter(item => item.sermon_id === sermonId)
+    : items;
 
   const handleDelete = async (id: string, title: string) => {
     if (confirm(`Tem certeza que deseja excluir "${title}"?`)) {
@@ -89,7 +97,9 @@ export default function ContentLibrary() {
                 Biblioteca de Conteúdo
               </h1>
               <p className="text-muted-foreground mt-1">
-                Todos os seus conteúdos unificados em um só lugar
+                {sermonId 
+                  ? '✨ Conteúdos gerados do seu sermão'
+                  : 'Todos os seus conteúdos unificados em um só lugar'}
               </p>
             </div>
 
@@ -180,10 +190,20 @@ export default function ContentLibrary() {
           </div>
 
           {/* Contador */}
-          <div className="mt-4">
+          <div className="mt-4 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              {items.length} {items.length === 1 ? 'conteúdo encontrado' : 'conteúdos encontrados'}
+              {displayedItems.length} {displayedItems.length === 1 ? 'conteúdo encontrado' : 'conteúdos encontrados'}
             </p>
+            
+            {sermonId && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/biblioteca')}
+              >
+                Ver Todos os Conteúdos
+              </Button>
+            )}
           </div>
         </div>
 
@@ -202,7 +222,7 @@ export default function ContentLibrary() {
               </Card>
             ))}
           </div>
-        ) : items.length === 0 ? (
+        ) : displayedItems.length === 0 ? (
           <Card className="p-12 text-center">
             <div className="flex flex-col items-center gap-4">
               <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center">
@@ -223,7 +243,7 @@ export default function ContentLibrary() {
           </Card>
         ) : (
           <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-            {items.map((item) => (
+            {displayedItems.map((item) => (
               <Card key={item.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between gap-2">
