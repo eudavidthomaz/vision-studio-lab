@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Podcast, Square, Loader2, Upload, File } from "lucide-react";
+import { Podcast, Square, Loader2, Upload, File as FileIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSecureApi } from "@/hooks/useSecureApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -336,7 +336,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
               {selectedFile && !isProcessing && (
                 <div className="w-full space-y-4">
                   <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-                    <File className="h-8 w-8 text-primary" />
+                    <FileIcon className="h-8 w-8 text-primary" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{selectedFile.name}</p>
                       <p className="text-xs text-muted-foreground">
