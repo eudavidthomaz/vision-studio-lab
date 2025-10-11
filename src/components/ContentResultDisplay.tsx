@@ -350,8 +350,20 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   if (contentType === 'pack_semanal') {
     const pack = parsedContent;
 
+    // Safe defaults for all pack properties
+    const versiculos = pack.versiculos_base || [];
+    const legendas = pack.legendas_instagram || [];
+    const carrosseis = pack.carrosseis_instagram || [];
+    const reels = pack.roteiros_reels || [];
+    const frases = pack.frases_impacto || [];
+    const hashtags = pack.hashtags_sugeridas || [];
+
     const copyAllVerses = () => {
-      const formatted = pack.versiculos_base.map((v: string, i: number) => `${i + 1}. ${v}`).join('\n\n');
+      if (versiculos.length === 0) {
+        toast.error("Nenhum versículo disponível");
+        return;
+      }
+      const formatted = versiculos.map((v: string, i: number) => `${i + 1}. ${v}`).join('\n\n');
       copyToClipboard(formatted, "Versículos copiados");
     };
 
@@ -361,42 +373,37 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     };
 
     const copyAllSlides = (carousel: any) => {
-      const formatted = carousel.slides.map((s: string, i: number) => `Slide ${i + 1}:\n${s}`).join('\n\n---\n\n');
+      const formatted = carousel.slides?.map((s: string, i: number) => `Slide ${i + 1}:\n${s}`).join('\n\n---\n\n') || '';
       copyToClipboard(formatted, "Slides copiados");
     };
 
     const copyAllPhrases = () => {
-      const formatted = pack.frases_impacto.join('\n\n');
+      if (frases.length === 0) {
+        toast.error("Nenhuma frase disponível");
+        return;
+      }
+      const formatted = frases.join('\n\n');
       copyToClipboard(formatted, "Frases copiadas");
     };
 
     const copyAllHashtags = () => {
-      const formatted = pack.hashtags_sugeridas.join(' ');
+      if (hashtags.length === 0) {
+        toast.error("Nenhuma hashtag disponível");
+        return;
+      }
+      const formatted = hashtags.join(' ');
       copyToClipboard(formatted, "Hashtags copiadas");
     };
 
     const copyEntirePack = () => {
       const formatted = `
-📖 RESUMO DA PREGAÇÃO
-${pack.resumo_pregacao}
-
-📜 VERSÍCULOS BASE
-${pack.versiculos_base.map((v: string, i: number) => `${i + 1}. ${v}`).join('\n')}
-
-📱 LEGENDAS INSTAGRAM
-${pack.legendas_instagram.map((c: any, i: number) => `\n${i + 1}. [${c.tipo}]\n${c.texto}\nCTA: ${c.cta}`).join('\n---\n')}
-
-🎠 CARROSSÉIS
-${pack.carrosseis_instagram.map((car: any, i: number) => `\n${i + 1}. ${car.titulo}\n${car.slides.map((s: string, j: number) => `Slide ${j + 1}: ${s}`).join('\n')}`).join('\n---\n')}
-
-🎥 ROTEIROS DE REELS
-${pack.roteiros_reels.map((r: any, i: number) => `\n${i + 1}.\nGancho: ${r.gancho}\nDesenvolvimento: ${r.desenvolvimento}\nCTA: ${r.cta}`).join('\n---\n')}
-
-⚡ FRASES DE IMPACTO
-${pack.frases_impacto.map((f: string, i: number) => `${i + 1}. ${f}`).join('\n')}
-
-#️⃣ HASHTAGS
-${pack.hashtags_sugeridas.join(' ')}
+${pack.resumo_pregacao ? `📖 RESUMO DA PREGAÇÃO\n${pack.resumo_pregacao}\n` : ''}
+${versiculos.length > 0 ? `\n📜 VERSÍCULOS BASE\n${versiculos.map((v: string, i: number) => `${i + 1}. ${v}`).join('\n')}\n` : ''}
+${legendas.length > 0 ? `\n📱 LEGENDAS INSTAGRAM\n${legendas.map((c: any, i: number) => `\n${i + 1}. [${c.tipo}]\n${c.texto}\nCTA: ${c.cta}`).join('\n---\n')}\n` : ''}
+${carrosseis.length > 0 ? `\n🎠 CARROSSÉIS\n${carrosseis.map((car: any, i: number) => `\n${i + 1}. ${car.titulo}\n${car.slides?.map((s: string, j: number) => `Slide ${j + 1}: ${s}`).join('\n') || ''}`).join('\n---\n')}\n` : ''}
+${reels.length > 0 ? `\n🎥 ROTEIROS DE REELS\n${reels.map((r: any, i: number) => `\n${i + 1}.\nGancho: ${r.gancho}\nDesenvolvimento: ${r.desenvolvimento}\nCTA: ${r.cta}`).join('\n---\n')}\n` : ''}
+${frases.length > 0 ? `\n⚡ FRASES DE IMPACTO\n${frases.map((f: string, i: number) => `${i + 1}. ${f}`).join('\n')}\n` : ''}
+${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
       `.trim();
       
       copyToClipboard(formatted, "Pack completo copiado");
@@ -418,35 +425,37 @@ ${pack.hashtags_sugeridas.join(' ')}
         </Card>
 
         {/* Versículos Base */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Book className="w-5 h-5 text-primary" />
-                <CardTitle className="text-lg">Versículos Base</CardTitle>
-              </div>
-              <Button variant="ghost" size="sm" onClick={copyAllVerses}>
-                <Copy className="w-4 h-4 mr-2" />
-                Copiar Todos
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {pack.versiculos_base.map((verse: string, idx: number) => (
-              <div key={idx} className="group relative p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
-                <p className="text-sm pr-8">{verse}</p>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
-                  onClick={() => copyToClipboard(verse, "Versículo copiado")}
-                >
-                  <Copy className="w-3 h-3" />
+        {versiculos.length > 0 && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Book className="w-5 h-5 text-primary" />
+                  <CardTitle className="text-lg">Versículos Base</CardTitle>
+                </div>
+                <Button variant="ghost" size="sm" onClick={copyAllVerses}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar Todos
                 </Button>
               </div>
-            ))}
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {versiculos.map((verse: string, idx: number) => (
+                <div key={idx} className="group relative p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
+                  <p className="text-sm pr-8">{verse}</p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                    onClick={() => copyToClipboard(verse, "Versículo copiado")}
+                  >
+                    <Copy className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tabs para diferentes tipos de conteúdo */}
         <Tabs defaultValue="legendas" className="w-full">
@@ -472,7 +481,7 @@ ${pack.hashtags_sugeridas.join(' ')}
           {/* Tab: Legendas */}
           <TabsContent value="legendas" className="mt-6">
             <div className="grid gap-4 md:grid-cols-2">
-              {pack.legendas_instagram.map((caption: any, idx: number) => (
+              {legendas.map((caption: any, idx: number) => (
                 <Card key={idx} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -516,7 +525,7 @@ ${pack.hashtags_sugeridas.join(' ')}
           {/* Tab: Carrosséis */}
           <TabsContent value="carrosseis" className="mt-6">
             <div className="space-y-4">
-              {pack.carrosseis_instagram.map((carousel: any, idx: number) => (
+              {carrosseis.map((carousel: any, idx: number) => (
                 <Accordion key={idx} type="single" collapsible>
                   <AccordionItem value={`carousel-${idx}`}>
                     <AccordionTrigger className="hover:no-underline">
@@ -524,13 +533,13 @@ ${pack.hashtags_sugeridas.join(' ')}
                         <Badge className="rounded-full">{idx + 1}</Badge>
                         <span className="font-semibold">{carousel.titulo}</span>
                         <Badge variant="outline" className="ml-auto mr-4">
-                          {carousel.slides.length} slides
+                          {carousel.slides?.length || 0} slides
                         </Badge>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-3 pt-4">
-                        {carousel.slides.map((slide: string, slideIdx: number) => (
+                        {carousel.slides?.map((slide: string, slideIdx: number) => (
                           <div key={slideIdx} className="group relative p-4 bg-card border rounded-lg">
                             <div className="flex items-start gap-3">
                               <Badge variant="secondary" className="mt-1">
@@ -562,7 +571,7 @@ ${pack.hashtags_sugeridas.join(' ')}
                             variant="outline"
                             size="sm"
                             className="w-full"
-                            onClick={() => openImageModal(carousel.slides.join('\n\n'))}
+                            onClick={() => openImageModal(carousel.slides?.join('\n\n') || '')}
                           >
                             <Image className="w-4 h-4 mr-2" />
                             Gerar Imagem
@@ -579,7 +588,7 @@ ${pack.hashtags_sugeridas.join(' ')}
           {/* Tab: Reels */}
           <TabsContent value="reels" className="mt-6">
             <div className="grid gap-4 md:grid-cols-2">
-              {pack.roteiros_reels.map((reel: any, idx: number) => (
+              {reels.map((reel: any, idx: number) => (
                 <Card key={idx} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex items-center justify-between">
@@ -648,7 +657,7 @@ ${pack.hashtags_sugeridas.join(' ')}
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-3 md:grid-cols-2">
-                    {pack.frases_impacto.map((phrase: string, idx: number) => (
+                    {frases.map((phrase: string, idx: number) => (
                       <div
                         key={idx}
                         className="group relative p-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/10 hover:border-primary/30 transition-all"
@@ -694,7 +703,7 @@ ${pack.hashtags_sugeridas.join(' ')}
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {pack.hashtags_sugeridas.map((tag: string, idx: number) => (
+                    {hashtags.map((tag: string, idx: number) => (
                       <Badge
                         key={idx}
                         variant="secondary"
