@@ -1116,7 +1116,7 @@ Retorne APENAS o JSON válido.`;
       generatedContent = JSON.parse(jsonMatch[0]);
       
     // ============================================
-    // FASE 4: VALIDAÇÃO DE PROFUNDIDADE
+    // FASE 4: VALIDAÇÃO DE PROFUNDIDADE + RETRY AUTOMÁTICO
     // ============================================
     const contentDepthCheck = (content: any, type: string): boolean => {
       // Carrossel: deve ter 8-10 slides com conteúdo substancial
@@ -1165,28 +1165,80 @@ Retorne APENAS o JSON válido.`;
         }
       }
       
+      // Treino Voluntário: deve ter mínimo 4 módulos com exercícios práticos
+      if (type === 'treino_voluntario') {
+        const modulos = content.treino?.modulos || [];
+        if (modulos.length < 4) {
+          console.warn('Treino raso: menos de 4 módulos');
+          return false;
+        }
+        const hasExercises = modulos.every((m: any) => m.exercicios && m.exercicios.length > 0);
+        if (!hasExercises) {
+          console.warn('Treino raso: módulos sem exercícios práticos');
+          return false;
+        }
+      }
+      
+      // Resumo Breve: mensagem principal deve ser substancial
+      if (type === 'resumo_breve') {
+        const resumo = content.resumo || '';
+        if (resumo.length < 200) {
+          console.warn('Resumo raso: menos de 200 chars');
+          return false;
+        }
+      }
+      
+      // Reel: deve ter estrutura completa (hook + desenvolvimento + cta)
+      if (type === 'reel') {
+        const estrutura = content.estrutura_visual || {};
+        if (!estrutura.hook || !estrutura.desenvolvimento || !estrutura.cta) {
+          console.warn('Reel raso: estrutura incompleta');
+          return false;
+        }
+      }
+      
       return true; // Passou nos checks
     };
 
     depthOk = contentDepthCheck(generatedContent, detectedType);
     
     // Se conteúdo raso E tipo que deveria ser profundo, fazer retry
-    if (!depthOk && ['carrossel', 'estudo', 'campanha_tematica', 'devocional'].includes(detectedType) && retryCount < 1) {
-      console.warn('Content too shallow, retrying with expanded prompt...');
+    const typesRequiringDepth = [
+      'carrossel', 'estudo', 'campanha_tematica', 'devocional', 
+      'treino_voluntario', 'resumo_breve', 'reel', 'esboco'
+    ];
+    
+    if (!depthOk && typesRequiringDepth.includes(detectedType) && retryCount < 1) {
+      console.warn(`⚠️ Content too shallow for type ${detectedType}, retrying with expanded prompt...`);
       retryCount++;
+      
+      // Prompt expandido específico por tipo
+      const specificRequirements: Record<string, string> = {
+        carrossel: '10 slides com 150+ caracteres cada, conteúdo visual e textual rico',
+        estudo: '3+ aplicações práticas detalhadas + contexto histórico de 300+ caracteres',
+        devocional: 'reflexão de 400+ caracteres com storytelling e aplicação prática',
+        campanha_tematica: '4 semanas completas com posts específicos para cada dia',
+        treino_voluntario: '5+ módulos com teoria sólida + exercícios práticos concretos',
+        resumo_breve: '300+ palavras capturando essência e aplicação prática da mensagem',
+        reel: 'hook impactante + desenvolvimento claro + CTA forte com texto na tela',
+        esboco: '3+ pontos principais com subtópicos desenvolvidos e aplicações'
+      };
+      
+      const requirement = specificRequirements[detectedType] || 'conteúdo rico e profundo';
       
       const expandedPrompt = `${processedPrompt}
 
-🚨 IMPORTANTE: O conteúdo anterior ficou muito superficial. 
+⚠️ IMPORTANTE: O conteúdo anterior ficou muito superficial. 
+
 POR FAVOR, EXPANDA SIGNIFICATIVAMENTE com:
+✅ Exemplos práticos CONCRETOS (não genéricos como "ore mais", mas ações específicas)
+✅ Aplicações ESPECÍFICAS e detalhadas para situações reais
+✅ Contexto histórico/cultural COMPLETO quando relevante
+✅ Linguagem pastoral e HUMANIZADA (não robótica)
+✅ Mínimo de: ${requirement}
 
-✅ Exemplos práticos CONCRETOS (não abstratos tipo "ore mais" - seja específico!)
-✅ Aplicações ESPECÍFICAS para situações reais do dia a dia
-✅ Contexto histórico/cultural DETALHADO quando relevante
-✅ Linguagem PASTORAL e HUMANIZADA (converse como um mentor, não como um robô)
-✅ PROFUNDIDADE teológica sem ser academicista demais
-
-Imagine que você está preparando material para um líder de mídia que precisa de SUBSTÂNCIA e INSPIRAÇÃO real, não genérico.`;
+Imagine que você está conversando com um líder de mídia que precisa de material RICO para usar com a igreja.
+Não seja superficial. Seja PROFUNDO, PRÁTICO e INSPIRADOR.`;
 
       const retryResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
@@ -1212,12 +1264,19 @@ Imagine que você está preparando material para um líder de mídia que precisa
         const retryJsonMatch = retryContent.match(/\{[\s\S]*\}/);
         if (retryJsonMatch) {
           const retryGeneratedContent = JSON.parse(retryJsonMatch[0]);
-          depthOk = contentDepthCheck(retryGeneratedContent, detectedType);
-          if (depthOk) {
-            console.log('Retry successful - content depth improved!');
+          const retryDepthOk = contentDepthCheck(retryGeneratedContent, detectedType);
+          if (retryDepthOk) {
+            console.log('✅ Retry successful - content depth improved!');
             generatedContent = retryGeneratedContent;
+            depthOk = true;
+          } else {
+            console.warn('⚠️ Retry still shallow, using original content');
           }
+        } else {
+          console.error('❌ Retry failed - invalid JSON in response');
         }
+      } else {
+        console.error('❌ Retry API call failed:', retryResponse.status);
       }
     }
       
@@ -1310,17 +1369,28 @@ Imagine que você está preparando material para um líder de mídia que precisa
     // FASE 5: LOGGING DE QUALIDADE
     // ============================================
     const qualityMetrics = {
-      detectedType,
+      content_id: savedContent.id,
+      detected_type: detectedType,
       tokens_system_estimated: Math.round(systemPrompt.length / 4),
       tokens_response_estimated: Math.round(JSON.stringify(generatedContent).length / 4),
       temperature_used: temperature,
       max_tokens_used: maxTokens,
       depth_check_passed: depthOk,
       retry_needed: retryCount > 0,
-      prompt_length: processedPrompt.length
+      retry_successful: retryCount > 0 && depthOk,
+      prompt_length: processedPrompt.length,
+      is_long_transcript: isLongTranscript,
+      timestamp: new Date().toISOString()
     };
     
     console.log('📊 QUALITY_METRICS:', JSON.stringify(qualityMetrics, null, 2));
+    
+    // Log de qualidade resumido para análise rápida
+    if (!depthOk) {
+      console.warn(`⚠️ SHALLOW_CONTENT: ${detectedType} - depth check failed${retryCount > 0 ? ' even after retry' : ''}`);
+    } else if (retryCount > 0) {
+      console.log(`✅ DEPTH_IMPROVED: ${detectedType} - retry successful`);
+    }
 
     return new Response(JSON.stringify({ 
       success: true,
