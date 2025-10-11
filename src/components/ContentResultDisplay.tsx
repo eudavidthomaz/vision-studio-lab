@@ -34,24 +34,37 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<{ copy: string; pilar: string } | null>(null);
 
-  // Detectar tipo de conteúdo
-  const parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
-  const contentType = (parsedContent.resumo_pregacao && parsedContent.versiculos_base && parsedContent.legendas_instagram) ? 'pack_semanal'
-    : parsedContent.calendario_editorial ? 'calendario'
-    : parsedContent.convite ? 'convite'
-    : parsedContent.aviso ? 'aviso'
-    : parsedContent.guia ? 'guia'
-    : parsedContent.esboco ? 'esboco'
-    : parsedContent.versiculos_citados ? 'versiculos_citados'
-    : parsedContent.trilha_oracao ? 'trilha_oracao'
-    : parsedContent.perguntas_respostas ? 'qa_estruturado'
-    : parsedContent.convite_grupos ? 'convite_grupos'
-    : parsedContent.plano_discipulado ? 'discipulado'
-    : parsedContent.ideia_estrategica ? 'ideia_estrategica'
-    : parsedContent.desafio_semanal ? 'desafio_semanal'
-    : parsedContent.estudo_biblico ? 'estudo'
-    : parsedContent.resumo_pregacao ? 'resumo'
-    : 'default';
+  // Parse content - handle both string and object, and extract from array if needed
+  const parsedContent = (() => {
+    let parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    
+    // If it's an array (structure from database), get first item
+    if (Array.isArray(parsed)) {
+      parsed = parsed[0];
+    }
+    
+    return parsed;
+  })();
+  
+  // Detect content type - prioritize explicit content_type, then infer from structure
+  const contentType = 
+    parsedContent.content_type ||
+    (parsedContent.resumo_pregacao && parsedContent.versiculos_base && parsedContent.legendas_instagram) ? 'pack_semanal' :
+    parsedContent.calendario_editorial ? 'calendario' :
+    parsedContent.convite ? 'convite' :
+    parsedContent.aviso ? 'aviso' :
+    parsedContent.guia ? 'guia' :
+    parsedContent.esboco ? 'esboco' :
+    parsedContent.versiculos_citados ? 'versiculos_citados' :
+    parsedContent.trilha_oracao ? 'trilha_oracao' :
+    parsedContent.perguntas_respostas ? 'qa_estruturado' :
+    parsedContent.convite_grupos ? 'convite_grupos' :
+    parsedContent.plano_discipulado ? 'discipulado' :
+    parsedContent.ideia_estrategica ? 'ideia_estrategica' :
+    parsedContent.desafio_semanal ? 'desafio_semanal' :
+    parsedContent.estudo_biblico ? 'estudo' :
+    parsedContent.resumo_pregacao ? 'resumo' :
+    'default';
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -723,6 +736,50 @@ ${pack.hashtags_sugeridas.join(' ')}
           copy={selectedContent?.copy || ""}
           pilar={selectedContent?.pilar || "EDIFICAR"}
         />
+      </div>
+    );
+  }
+
+  // Fallback when content type is not recognized
+  if (contentType === 'default' && !parsedContent.fundamento_biblico && !parsedContent.conteudo) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-destructive/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              ⚠️ Formato de conteúdo não reconhecido
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Este conteúdo foi gerado em um formato que ainda não tem visualização específica. 
+              Você ainda pode copiar os dados abaixo:
+            </p>
+            <pre className="bg-muted p-4 rounded-lg text-xs overflow-x-auto max-h-96">
+              {JSON.stringify(parsedContent, null, 2)}
+            </pre>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => copyToClipboard(JSON.stringify(parsedContent, null, 2), "Conteúdo")}
+                variant="outline"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Copiar JSON
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="flex gap-3">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
       </div>
     );
   }
