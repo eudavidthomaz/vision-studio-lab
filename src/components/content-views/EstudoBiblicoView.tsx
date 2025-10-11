@@ -9,7 +9,8 @@ interface EstudoBiblicoViewProps {
     fundamento_biblico: {
       versiculos: string[];
       contexto: string;
-      principio: string;
+      principio?: string;
+      principio_atemporal?: string;
     };
     estudo_biblico: {
       tema: string;
@@ -103,7 +104,7 @@ ${data.estudo_biblico.desafio}
           <div>
             <h4 className="font-semibold text-sm mb-2">Princípio Atemporal</h4>
             <p className="text-sm font-medium text-primary">
-              {data.fundamento_biblico.principio}
+              {data.fundamento_biblico.principio_atemporal || data.fundamento_biblico.principio}
             </p>
           </div>
         </CardContent>

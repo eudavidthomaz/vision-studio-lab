@@ -43,6 +43,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     
     // If it's an array (structure from database), get first item
     if (Array.isArray(parsed)) {
+      console.log('⚠️ Content is array, extracting first item');
       parsed = parsed[0];
     }
     
@@ -71,13 +72,6 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     parsedContent.estudo_biblico ? 'estudo' :
     parsedContent.resumo_pregacao ? 'resumo' :
     'default';
-
-  console.log('🔍 DEBUG ContentResultDisplay:', {
-    contentType,
-    hasParsedDesafio: !!parsedContent.desafio_semanal,
-    hasContentDesafio: !!content.desafio_semanal,
-    keys: Object.keys(parsedContent)
-  });
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
