@@ -70,7 +70,11 @@ serve(async (req) => {
     const contentTypeDetection = {
       // Resumo breve (for sermon summaries)
       resumo_breve: /resumo_breve|resumo breve/i,
-      // Organizational formats (high priority)
+      // FORMATOS DE CONTEÚDO (PRIORIDADE ALTA)
+      carrossel: /carrossel|slides|cards/i,
+      reel: /reel|vídeo(?!\s+para)|roteiro|script/i,
+      stories: /stories|story|storys/i,
+      // Organizational formats
       calendario: /calendário|cronograma|planejamento|plano editorial|grade de posts/i,
       aviso: /aviso|comunicado|lembrete|atenção/i,
       guia: /guia|manual|passo a passo|tutorial/i,
@@ -80,18 +84,16 @@ serve(async (req) => {
       qa_estruturado: /perguntas e respostas|q&a|dúvidas frequentes|faq/i,
       convite_grupos: /convite para grupo|chamado para célula|junte-se ao|entre no grupo/i,
       discipulado: /discipulado|mentoria|acompanhamento espiritual/i,
-      convite: /convite|convidar|chamado para|venha para/i,
       // Biblical/creative formats
       desafio_semanal: /desafio|challenge|compromisso semanal|missão|jornada/i,
       estudo: /estudo|estudo bíblico|análise bíblica|exegese/i,
       resumo: /resumo|resumir|sintetize|principais pontos|síntese/i,
       devocional: /devocional|meditação|reflexão diária/i,
-      carrossel: /carrossel|slides|cards/i,
-      reel: /reel|vídeo|roteiro|script/i,
-      stories: /stories|story|storys/i,
       perguntas: /perguntas|questões|discussão|célula/i,
       post: /post|publicação|legenda/i,
-      ideia_estrategica: /ideia|viral|campanha|estratégia|plano de conteúdo|série/i
+      ideia_estrategica: /ideia|viral|campanha|estratégia|plano de conteúdo|série/i,
+      // TIPOS DE EVENTO (PRIORIDADE BAIXA - verificar por último)
+      convite: /\b(convite|convidar|chamado para|venha para)\b(?!\s+para\s+grupo)/i
     };
 
     // Apenas analisar os primeiros 2000 caracteres para evitar falsos positivos
@@ -522,26 +524,40 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
 
       carrossel: `{
   "fundamento_biblico": {
-    "versiculos": ["Versículo 1", "Versículo 2"],
-    "contexto": "Contexto da passagem",
-    "principio": "Princípio ensinado"
+    "versiculos": ["Versículo 1 com referência completa", "Versículo 2"],
+    "contexto": "Contexto histórico, cultural e teológico da passagem",
+    "principio": "Princípio atemporal ensinado nos versículos"
   },
   "conteudo": {
     "tipo": "carrossel",
-    "legenda": "Legenda completa",
+    "titulo": "Título principal do carrossel (chamativo e claro)",
+    "legenda": "Legenda completa e engajante para o post no Instagram (com emojis e quebras de linha)",
     "pilar": "ALCANÇAR | EDIFICAR | PERTENCER | SERVIR"
   },
   "estrutura_visual": {
-    "cards": [
-      {"titulo": "Card 1", "texto": "Texto do card 1"},
-      {"titulo": "Card 2", "texto": "Texto do card 2"}
+    "slides": [
+      {
+        "numero": 1,
+        "titulo_slide": "Título impactante do primeiro slide",
+        "conteudo": "Texto principal do slide (claro, direto e visualmente organizado)",
+        "imagem_sugerida": "Descrição da imagem ou visual sugerido para este slide",
+        "chamada_para_acao": "CTA específico deste slide (opcional)"
+      },
+      {
+        "numero": 2,
+        "titulo_slide": "Título do segundo slide",
+        "conteudo": "Desenvolvimento do tema com aplicação prática",
+        "imagem_sugerida": "Sugestão visual para slide 2",
+        "chamada_para_acao": "CTA do slide 2"
+      }
+      // Gerar 8-10 slides com progressão lógica
     ]
   },
   "dica_producao": {
-    "formato": "1080x1080px",
-    "estilo": "Minimalista e clean",
-    "horario": "18h-20h",
-    "hashtags": ["#fe", "#biblia"]
+    "formato": "1080x1080px (carrossel de até 10 slides)",
+    "estilo": "Design clean e moderno, fonte legível, cores harmônicas",
+    "horario": "18h-20h (melhor horário de engajamento)",
+    "hashtags": ["#fe", "#biblia", "#igreja", "#devocional"]
   }
 }`,
 

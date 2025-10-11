@@ -1,5 +1,6 @@
 import { ContentLibraryItem } from "@/hooks/useContentLibrary";
 import { CarrosselView } from "./content-views/CarrosselView";
+import { ConviteView } from "./content-views/ConviteView";
 import { ReelView } from "./content-views/ReelView";
 import { StoriesView } from "./content-views/StoriesView";
 import { PostSimplesView } from "./content-views/PostSimplesView";
@@ -26,6 +27,7 @@ const CONTENT_VIEWS: Record<string, any> = {
   'esboco': EsbocoView,
   'desafio_semanal': DesafioSemanalView,
   'roteiro_video': RoteiroVideoView,
+  'convite': ConviteView,
 };
 
 // View padrão para tipos não mapeados

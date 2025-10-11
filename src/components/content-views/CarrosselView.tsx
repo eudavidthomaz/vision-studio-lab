@@ -11,6 +11,19 @@ interface CarrosselViewProps {
       texto: string;
     }>;
   };
+  estrutura_visual?: {
+    cards?: Array<{
+      titulo: string;
+      texto: string;
+    }>;
+    slides?: Array<{
+      numero: number;
+      titulo_slide: string;
+      conteudo: string;
+      imagem_sugerida?: string;
+      chamada_para_acao?: string;
+    }>;
+  };
   conteudo?: {
     legenda?: string;
     pilar?: string;
@@ -23,7 +36,10 @@ interface CarrosselViewProps {
   };
 }
 
-export function CarrosselView({ estrutura, conteudo, dica_producao }: CarrosselViewProps) {
+export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_producao }: CarrosselViewProps) {
+  // Unificar slides/cards - priorizar estrutura_visual.slides, depois cards
+  const items = estrutura_visual?.slides || estrutura_visual?.cards || estrutura?.cards || [];
+  
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
@@ -32,10 +48,12 @@ export function CarrosselView({ estrutura, conteudo, dica_producao }: CarrosselV
   const copyAll = () => {
     let fullText = "";
     
-    if (estrutura?.cards) {
+    if (items.length > 0) {
       fullText += "📱 CARDS DO CARROSSEL:\n\n";
-      estrutura.cards.forEach((card, index) => {
-        fullText += `Card ${index + 1}: ${card.titulo}\n${card.texto}\n\n`;
+      items.forEach((item: any, index) => {
+        const titulo = item.titulo_slide || item.titulo;
+        const texto = item.conteudo || item.texto;
+        fullText += `Card ${index + 1}: ${titulo}\n${texto}\n\n`;
       });
     }
     
@@ -53,44 +71,63 @@ export function CarrosselView({ estrutura, conteudo, dica_producao }: CarrosselV
 
   return (
     <div className="space-y-6">
-      {/* Estrutura Visual - Cards do Carrossel */}
-      {estrutura?.cards && estrutura.cards.length > 0 && (
+      {/* Estrutura Visual - Cards/Slides do Carrossel */}
+      {items.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ImageIcon className="h-5 w-5" />
-              Estrutura Visual - {estrutura.cards.length} Cards
+              Estrutura Visual - {items.length} Cards
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Carousel className="w-full max-w-3xl mx-auto">
               <CarouselContent>
-                {estrutura.cards.map((card, index) => (
-                  <CarouselItem key={index}>
-                    <Card className="border-2">
-                      <CardHeader className="bg-primary/5">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">
-                            Card {index + 1}: {card.titulo}
-                          </CardTitle>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyToClipboard(
-                              `${card.titulo}\n\n${card.texto}`,
-                              `Card ${index + 1}`
-                            )}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-6">
-                        <p className="text-sm whitespace-pre-line">{card.texto}</p>
-                      </CardContent>
-                    </Card>
-                  </CarouselItem>
-                ))}
+                {items.map((item: any, index) => {
+                  const titulo = item.titulo_slide || item.titulo;
+                  const texto = item.conteudo || item.texto;
+                  const imagemSugerida = item.imagem_sugerida;
+                  const cta = item.chamada_para_acao;
+                  
+                  return (
+                    <CarouselItem key={index}>
+                      <Card className="border-2">
+                        <CardHeader className="bg-primary/5">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg">
+                              Card {index + 1}: {titulo}
+                            </CardTitle>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard(
+                                `${titulo}\n\n${texto}`,
+                                `Card ${index + 1}`
+                              )}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="pt-6 space-y-4">
+                          <p className="text-sm whitespace-pre-line">{texto}</p>
+                          {imagemSugerida && (
+                            <div className="p-3 bg-muted rounded-md">
+                              <strong className="text-xs">Sugestão de Imagem:</strong>
+                              <p className="text-xs text-muted-foreground mt-1">{imagemSugerida}</p>
+                            </div>
+                          )}
+                          {cta && (
+                            <div className="p-3 bg-primary/5 rounded-md border-l-4 border-primary">
+                              <strong className="text-xs">CTA:</strong>
+                              <p className="text-xs mt-1">{cta}</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </CarouselItem>
+                  );
+                })}
               </CarouselContent>
               <CarouselPrevious />
               <CarouselNext />
