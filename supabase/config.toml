@@ -6,6 +6,9 @@ verify_jwt = true
 [functions.generate-sermon-pack]
 verify_jwt = true
 
+[functions.generate-sermon-summary]
+verify_jwt = true
+
 [functions.generate-week-pack]
 verify_jwt = true
 

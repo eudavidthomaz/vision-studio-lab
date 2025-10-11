@@ -307,6 +307,7 @@ export type Database = {
           id: string
           sermon_hash: string | null
           status: string | null
+          summary: string | null
           transcript: string | null
           transcription_time_ms: number | null
           user_id: string
@@ -317,6 +318,7 @@ export type Database = {
           id?: string
           sermon_hash?: string | null
           status?: string | null
+          summary?: string | null
           transcript?: string | null
           transcription_time_ms?: number | null
           user_id: string
@@ -327,6 +329,7 @@ export type Database = {
           id?: string
           sermon_hash?: string | null
           status?: string | null
+          summary?: string | null
           transcript?: string | null
           transcription_time_ms?: number | null
           user_id?: string

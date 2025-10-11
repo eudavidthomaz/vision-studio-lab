@@ -98,12 +98,49 @@ const Dashboard = () => {
           .single();
 
         if (sermon) {
-          // Gerar resumo inteligente (primeiros 3 parágrafos ou 1000 caracteres)
-          const paragraphs = sermon.transcript.split('\n').filter(p => p.trim().length > 0);
-          const summary = paragraphs.slice(0, 3).join('\n\n');
-          
-          setCurrentSermonSummary(summary.substring(0, 1000) + (summary.length > 1000 ? '...' : ''));
           setCurrentSermonId(sermon.id);
+          
+          // Check if summary already exists in database
+          const { data: sermonData } = await supabase
+            .from('sermons')
+            .select('summary')
+            .eq('id', sermon.id)
+            .single();
+          
+          if (sermonData?.summary) {
+            // Use cached summary
+            setCurrentSermonSummary(sermonData.summary);
+          } else {
+            // Generate new summary with AI
+            toast({
+              title: "📝 Gerando resumo...",
+              description: "Criando resumo executivo da pregação",
+            });
+
+            try {
+              const { data: summaryData, error: summaryError } = await supabase.functions.invoke(
+                'generate-sermon-summary',
+                { body: { transcript: sermon.transcript } }
+              );
+
+              if (summaryError) throw summaryError;
+
+              const generatedSummary = summaryData?.summary || 'Resumo não disponível';
+              setCurrentSermonSummary(generatedSummary);
+
+              // Cache summary in database
+              await supabase
+                .from('sermons')
+                .update({ summary: generatedSummary })
+                .eq('id', sermon.id);
+
+            } catch (err) {
+              console.error('Error generating summary:', err);
+              // Fallback: use first 500 characters
+              const fallback = sermon.transcript.substring(0, 500) + '...';
+              setCurrentSermonSummary(fallback);
+            }
+          }
           
           // Automaticamente gerar pack de conteúdos
           toast({

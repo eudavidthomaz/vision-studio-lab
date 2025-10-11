@@ -36,23 +36,23 @@ export const SermonCompletedModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh]">
+      <DialogContent className="w-[95vw] max-w-3xl max-h-[85vh] sm:max-h-[80vh]">
         <DialogHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
             <Sparkles className="w-8 h-8 text-primary animate-pulse" />
           </div>
-          <DialogTitle className="text-2xl font-bold text-primary">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">
             O Reino Cresce a Cada Conteúdo Criado Por Você! 🎉
           </DialogTitle>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[400px] pr-4">
+        <ScrollArea className="max-h-[300px] sm:max-h-[400px] pr-4">
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <BookOpen className="w-4 h-4" />
               <span>Resumo da Pregação</span>
             </div>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
               {sermon.summary}
             </p>
           </div>
