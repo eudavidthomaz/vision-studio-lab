@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import WeeklyPackDisplay from "./WeeklyPackDisplay";
+import { ContentResultDisplay } from "./ContentResultDisplay";
 import IdeonChallengeCard from "./IdeonChallengeCard";
 
 interface DetailModalProps {
@@ -19,8 +19,11 @@ export default function DetailModal({ item, type, open, onOpenChange }: DetailMo
 
         <div className="mt-4">
           {type === "pack" && (
-            <WeeklyPackDisplay 
-              pack={item.pack}
+            <ContentResultDisplay 
+              content={item.pack}
+              onSave={() => {}}
+              onRegenerate={() => {}}
+              isSaving={false}
             />
           )}
           {type === "challenge" && <IdeonChallengeCard challenge={item.challenge} />}

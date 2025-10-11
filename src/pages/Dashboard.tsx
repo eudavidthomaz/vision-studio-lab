@@ -22,6 +22,7 @@ import { AICreatorCard } from "@/components/AICreatorCard";
 import { AIPromptModal } from "@/components/AIPromptModal";
 import { RecentContentSection } from "@/components/RecentContentSection";
 import { HeroHeader } from "@/components/HeroHeader";
+import { SermonCompletedModal } from "@/components/SermonCompletedModal";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -38,6 +39,10 @@ const Dashboard = () => {
   const [showNPSModal, setShowNPSModal] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [showSermonCompletedModal, setShowSermonCompletedModal] = useState(false);
+  const [currentSermonSummary, setCurrentSermonSummary] = useState("");
+  const [currentSermonId, setCurrentSermonId] = useState("");
+  const [preselectedSermonId, setPreselectedSermonId] = useState<string | undefined>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -79,106 +84,41 @@ const Dashboard = () => {
   }, [loading, user, navigate]);
 
   const handleTranscriptionComplete = async (transcriptText: string, sermonId?: string) => {
-    if (!canUse('weekly_packs')) {
-      toast({
-        title: 'Limite atingido',
-        description: 'Você atingiu o limite mensal de packs semanais.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
     setTranscript(transcriptText);
-    setIsGeneratingPack(true);
-    setGenerationProgress(0);
 
-    // Track sermon upload
     await trackEvent('sermon_uploaded');
 
     try {
-      // Step 1: Transcription complete (25%)
-      setGenerationProgress(25);
-
-      // Step 2: Analyzing sermon (50%)
-      setGenerationProgress(50);
-
-      // Construir prompt contextualizado para áudio
-      const audioPrompt = `Com base nesta transcrição de pregação, crie um pacote completo de conteúdo para redes sociais:
-
-${transcriptText}
-
-Inclua:
-- Fundamento bíblico com versículos completos
-- Resumo pastoral da mensagem
-- 5-7 frases impactantes da pregação
-- Ideias de stories para a semana
-- Legendas prontas com CTAs
-- Estrutura de carrossel/reel
-- Estudo bíblico para células`;
-
-      // Generate content using generate-ai-content with Lovable AI (Gemini)
-      const result = await invokeFunction<any>('generate-ai-content', {
-        prompt: audioPrompt
-      });
-
-      if (!result || !result.content_id) {
-        throw new Error('Erro ao gerar conteúdo');
-      }
-      
-      // Step 3: Content generated (75%)
-      setGenerationProgress(75);
-
-      // Update content_planners with sermon_id if provided
-      if (sermonId) {
-        await supabase
-          .from('content_planners')
-          .update({ sermon_id: sermonId })
-          .eq('id', result.content_id);
-      }
-
-      // Step 4: Complete (100%)
-      setGenerationProgress(100);
-
-      // Increment quota usage
+      // Incrementar quota
       incrementUsage('weekly_packs');
+      await trackEvent('sermon_completed');
 
-      // Track successful pack generation
-      await trackEvent('pack_generated');
+      // Abrir modal de celebração com resumo parcial
+      const summary = transcriptText.substring(0, 500) + '...';
+      setCurrentSermonSummary(summary);
+      setCurrentSermonId(sermonId || '');
+      setShowSermonCompletedModal(true);
+
+      toast({
+        title: "Transcrição Completa! 🎉",
+        description: "Sua pregação foi transcrita com sucesso.",
+      });
 
       // Celebration for first generation
       if (isFirstGeneration) {
-        confetti({
-          particleCount: 150,
-          spread: 100,
-          origin: { y: 0.6 }
-        });
         setIsFirstGeneration(false);
-        
-        // Show NPS modal after first successful generation
-        setTimeout(() => setShowNPSModal(true), 2000);
+        setTimeout(() => setShowNPSModal(true), 3000);
       }
 
-      toast({
-        title: "Sucesso! 🎉",
-        description: "Conteúdo gerado com sucesso!",
-      });
-
-      // Navigate to result page
-      navigate(`/conteudo/${result.content_id}`);
     } catch (error) {
-      console.error('Error generating pack:', error);
-      
-      // Track failed pack generation
-      await trackEvent('pack_generation_failed', { error: String(error) });
+      console.error('Error processing sermon:', error);
+      await trackEvent('sermon_processing_failed', { error: String(error) });
       
       toast({
         title: "Erro",
-        description: "Não foi possível gerar o conteúdo. Tente novamente.",
+        description: "Não foi possível processar o sermão. Tente novamente.",
         variant: "destructive",
       });
-    } finally {
-      setIsGeneratingPack(false);
-      setGenerationProgress(0);
     }
   };
 
@@ -238,6 +178,12 @@ Inclua:
     }
   };
 
+  const handleOpenContentCreator = (sermonId: string) => {
+    setPreselectedSermonId(sermonId);
+    setShowSermonCompletedModal(false);
+    setShowAIModal(true);
+  };
+
   const handleGenerateAIContent = async (prompt: string) => {
     setIsGeneratingAI(true);
     try {
@@ -247,7 +193,6 @@ Inclua:
         throw new Error('Erro ao gerar conteúdo');
       }
 
-      // Track AI content generation
       await trackEvent('ai_content_generated', { prompt: prompt.substring(0, 50) });
 
       toast({
@@ -255,7 +200,6 @@ Inclua:
         description: "Seu conteúdo foi gerado com sucesso!",
       });
 
-      // Navigate to result page
       setShowAIModal(false);
       navigate(`/conteudo/${result.content_id}`);
     } catch (error: any) {
@@ -398,12 +342,28 @@ Inclua:
           )}
         </div>
 
+        {/* Sermon Completed Modal */}
+        <SermonCompletedModal
+          open={showSermonCompletedModal}
+          onOpenChange={setShowSermonCompletedModal}
+          sermon={{
+            id: currentSermonId,
+            summary: currentSermonSummary,
+            created_at: new Date().toISOString(),
+          }}
+          onCreateContent={handleOpenContentCreator}
+        />
+
         {/* AI Modal */}
         <AIPromptModal 
           open={showAIModal} 
-          onOpenChange={setShowAIModal}
+          onOpenChange={(open) => {
+            setShowAIModal(open);
+            if (!open) setPreselectedSermonId(undefined);
+          }}
           onGenerate={handleGenerateAIContent}
           isLoading={isGeneratingAI}
+          preselectedSermonId={preselectedSermonId}
         />
       </div>
     </>
