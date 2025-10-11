@@ -107,12 +107,22 @@ Inclua sempre que possível: fundamento_biblico, conteudo, e dica_producao.`;
       throw new Error('No content generated from AI');
     }
 
-    // Parse do conteúdo gerado
+    // Parse do conteúdo gerado com tratamento robusto de markdown
     let content;
     try {
-      content = JSON.parse(generatedText);
+      let cleanedText = generatedText.trim();
+      
+      // Detecta e remove markdown code blocks (```json ... ``` ou ``` ... ```)
+      const jsonMatch = cleanedText.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+      if (jsonMatch) {
+        cleanedText = jsonMatch[1].trim();
+        console.log('Extracted JSON from markdown block');
+      }
+      
+      content = JSON.parse(cleanedText);
     } catch (e) {
       console.error('Failed to parse AI response as JSON:', generatedText);
+      console.error('Parse error:', e);
       throw new Error('Invalid JSON response from AI');
     }
 

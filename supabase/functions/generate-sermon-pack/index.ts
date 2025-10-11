@@ -99,14 +99,19 @@ Retorne APENAS um JSON válido neste formato:
 }`
   };
 
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+  if (!LOVABLE_API_KEY) {
+    throw new Error('LOVABLE_API_KEY not configured');
+  }
+
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'openai/gpt-4o-mini',
+      model: 'google/gemini-2.5-flash',
       messages: [
         {
           role: 'system',
@@ -117,24 +122,35 @@ Retorne APENAS um JSON válido neste formato:
           content: prompts[contentType] || prompts.post_simples
         }
       ],
-      temperature: 0.8,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter API error: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`AI API error: ${response.status}`, errorText);
+    throw new Error(`AI API error: ${response.status}`);
   }
 
   const data = await response.json();
-  const content = data.choices[0]?.message?.content || '{}';
+  const generatedText = data.choices[0]?.message?.content || '{}';
   
-  // Parse JSON from response
-  const jsonMatch = content.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error('Invalid JSON response from AI');
+  // Parse JSON com tratamento robusto de markdown
+  try {
+    let cleanedText = generatedText.trim();
+    
+    // Detecta e remove markdown code blocks (```json ... ``` ou ``` ... ```)
+    const jsonMatch = cleanedText.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+    if (jsonMatch) {
+      cleanedText = jsonMatch[1].trim();
+      console.log(`Extracted JSON from markdown for ${contentType} #${index}`);
+    }
+    
+    return JSON.parse(cleanedText);
+  } catch (e) {
+    console.error(`Failed to parse JSON for ${contentType} #${index}:`, generatedText);
+    console.error('Parse error:', e);
+    throw new Error(`Invalid JSON response for ${contentType}`);
   }
-
-  return JSON.parse(jsonMatch[0]);
 }
 
 serve(async (req) => {
