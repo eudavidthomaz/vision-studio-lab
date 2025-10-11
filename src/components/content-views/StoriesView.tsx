@@ -52,7 +52,7 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
                       variant="ghost"
                       size="sm"
                       onClick={() => copyToClipboard(
-                        `${slide.titulo}\n\n${slide.texto}${slide.visual ? `\n\nVisual: ${slide.visual}` : ''}`,
+                        `${slide.titulo}\n\n${slide.texto}${slide.sugestao_visual ? `\n\nVisual: ${slide.sugestao_visual}` : ''}`,
                         `Slide ${slide.numero}`
                       )}
                     >
@@ -62,10 +62,10 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <p className="text-muted-foreground">{slide.texto}</p>
-                  {slide.visual && (
+                  {slide.sugestao_visual && (
                     <div className="mt-3 pt-3 border-t">
                       <strong>Sugestão Visual:</strong>
-                      <p className="text-muted-foreground">{slide.visual}</p>
+                      <p className="text-muted-foreground">{slide.sugestao_visual}</p>
                     </div>
                   )}
                 </CardContent>
