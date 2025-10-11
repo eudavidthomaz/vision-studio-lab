@@ -172,6 +172,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
       });
 
       // Upload audio to Supabase Storage
+      console.log('Uploading to storage...');
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('sermons')
         .upload(storageFileName, audioData, {
@@ -179,11 +180,39 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
           upsert: false,
         });
 
-      if (uploadError || !uploadData) {
-        throw new Error('Erro ao fazer upload do áudio');
+      // Validação robusta do upload
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Falha no upload: ${uploadError.message}`);
       }
 
+      if (!uploadData || !uploadData.path) {
+        console.error('Invalid upload response:', uploadData);
+        throw new Error('Upload concluído mas sem caminho do arquivo');
+      }
+
+      console.log('✅ Audio uploaded successfully to:', uploadData.path);
+      console.log('Storage upload result:', {
+        path: uploadData.path,
+        fullPath: uploadData.fullPath,
+        id: uploadData.id
+      });
+
+      // Toast temporário para debug
+      toast({
+        title: "Upload concluído",
+        description: `Arquivo: ${uploadData.path}`,
+        duration: 3000,
+      });
+
       // Call transcription function with storage URL
+      console.log('🔄 Calling transcribe-sermon with:', {
+        audio_url: uploadData.path,
+        fileName,
+        fileSize: audioData.size,
+        contentType: audioData.type
+      });
+
       const response = await invokeFunction('transcribe-sermon', {
         audio_url: uploadData.path,
         metadata: {
@@ -192,6 +221,8 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
           fileSize: audioData.size,
         }
       }) as any;
+
+      console.log('📥 Transcribe-sermon response:', response);
 
       if (!response?.success) {
         throw new Error(response?.error || 'Erro na transcrição');

@@ -132,6 +132,25 @@ serve(async (req) => {
 
     console.log(`Processing audio from storage: ${audio_url}`);
 
+    // Verify audio file exists in storage
+    console.log(`Verifying audio exists in storage: ${audio_url}`);
+    const pathParts = audio_url.split('/');
+    const folder = pathParts.length > 1 ? pathParts[0] : '';
+    const file = pathParts.length > 1 ? pathParts.slice(1).join('/') : audio_url;
+    
+    const { data: fileList, error: checkError } = await supabaseClient.storage
+      .from('sermons')
+      .list(folder || undefined, {
+        search: file
+      });
+
+    if (checkError || !fileList || fileList.length === 0) {
+      console.error('Audio file not found in storage:', audio_url, checkError);
+      throw new ValidationError('Arquivo de áudio não encontrado no storage');
+    }
+
+    console.log('✅ Audio file verified in storage');
+
     // Calculate hash for deduplication (using URL to avoid downloading)
     const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(audio_url));
     const hashArray = Array.from(new Uint8Array(hashBuffer));
