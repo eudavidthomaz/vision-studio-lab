@@ -776,24 +776,16 @@ Retorne APENAS o JSON válido.`;
       });
     }
 
-    // Salvar na tabela content_planners
-    const today = new Date();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - today.getDay());
-
+    // Salvar na tabela CORRETA: generated_contents
     const { data: savedContent, error: saveError } = await supabase
-      .from('content_planners')
+      .from('generated_contents')
       .insert({
         user_id: user.id,
-        week_start_date: weekStart.toISOString().split('T')[0],
-        content: [
-          {
-            ...generatedContent,
-            prompt_original: prompt.replace(/^TIPO_SOLICITADO:\s*\w+\s*/i, '').trim(),
-            created_at: new Date().toISOString(),
-            tipo: 'ai-generated'
-          }
-        ]
+        source_type: 'ai_generated',
+        pilar: 'Edificar', // Padrão - pode ser ajustado depois
+        content_format: detectedType, // tipo de conteúdo (estudo, post, etc)
+        prompt_original: prompt.replace(/^TIPO_SOLICITADO:\s*\w+\s*/i, '').trim(),
+        content: generatedContent
       })
       .select()
       .single();

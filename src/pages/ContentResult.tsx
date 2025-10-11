@@ -20,18 +20,22 @@ export default function ContentResult() {
   const loadContent = async () => {
     try {
       const { data, error } = await supabase
-        .from('content_planners')
+        .from('generated_contents')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       
-      // O conteúdo está no campo content como array, pegar o primeiro item
-      const contentItem = data.content?.[0];
-      if (contentItem) {
-        setContent(contentItem);
+      if (!data) {
+        console.error('Content not found');
+        toast.error('Conteúdo não encontrado');
+        navigate('/dashboard');
+        return;
       }
+      
+      // O conteúdo já está no formato correto - campo content contém o JSON completo
+      setContent(data.content);
     } catch (error) {
       console.error('Error loading content:', error);
       toast.error('Erro ao carregar conteúdo');

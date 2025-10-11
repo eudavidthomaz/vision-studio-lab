@@ -35,7 +35,16 @@ export function useContentFeed() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Buscar content_planners (IA)
+      // Buscar generated_contents (conteúdo gerado por IA)
+      const { data: generatedContent, error: generatedError } = await supabase
+        .from("generated_contents")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (generatedError) throw generatedError;
+
+      // Buscar content_planners (conteúdo legado que ainda pode existir)
       const { data: aiContent, error: aiError } = await supabase
         .from("content_planners")
         .select("*")
@@ -43,7 +52,6 @@ export function useContentFeed() {
         .order("created_at", { ascending: false });
 
       if (aiError) throw aiError;
-
 
       const normalized: NormalizedContent[] = [];
 
@@ -88,7 +96,28 @@ export function useContentFeed() {
         }
       };
 
-      // Normalizar content_planners (IA)
+      // Normalizar generated_contents (NOVO - tabela correta)
+      generatedContent?.forEach((item) => {
+        const contentData = item.content as any;
+        
+        const verses = contentData.fundamento_biblico?.versiculos || [];
+        const firstVerse = verses[0] || "";
+        
+        normalized.push({
+          id: item.id,
+          source: "ai-creator",
+          format: (item.content_format || "post") as ContentFormat,
+          pilar: (item.pilar || "EDIFICAR") as ContentPilar,
+          title: getFriendlyTitle(contentData),
+          verse: firstVerse,
+          preview: contentData.conteudo?.legenda || contentData.conteudo?.roteiro || contentData.estudo_biblico?.introducao || "",
+          hashtags: contentData.dica_producao?.hashtags || [],
+          createdAt: new Date(item.created_at || Date.now()),
+          rawData: contentData,
+        });
+      });
+
+      // Normalizar content_planners (LEGADO - para compatibilidade com dados antigos)
       aiContent?.forEach((item) => {
         const plannerDataArray = item.content as any[];
         const plannerData = plannerDataArray?.[0];
@@ -96,10 +125,10 @@ export function useContentFeed() {
         // Detectar se é conteúdo de IA
         if (plannerData?.tipo === "ai-generated" || plannerData?.content_type || plannerData?.prompt_original) {
           const verses = plannerData.fundamento_biblico?.versiculos || [];
-          const firstVerse = verses[0] || "";  // versiculos é array de strings
+          const firstVerse = verses[0] || "";
           
           normalized.push({
-            id: `ai-${item.id}`,
+            id: `legacy-${item.id}`,
             source: "ai-creator",
             format: (plannerData.conteudo?.tipo || plannerData.content_type || "post") as ContentFormat,
             pilar: (plannerData.conteudo?.pilar || "ALCANÇAR") as ContentPilar,
@@ -112,7 +141,6 @@ export function useContentFeed() {
           });
         }
       });
-
 
       setContents(normalized);
       setFilteredContents(normalized);
@@ -173,13 +201,20 @@ export function useContentFeed() {
 
   const deleteContent = async (id: string) => {
     try {
-      const [type, uuid] = id.split("-");
-      
-      if (type === "ai") {
+      // Se começa com "legacy-", é conteúdo antigo de content_planners
+      if (id.startsWith("legacy-")) {
+        const uuid = id.replace("legacy-", "");
         const { error } = await supabase
           .from("content_planners")
           .delete()
           .eq("id", uuid);
+        if (error) throw error;
+      } else {
+        // Senão, é de generated_contents
+        const { error } = await supabase
+          .from("generated_contents")
+          .delete()
+          .eq("id", id);
         if (error) throw error;
       }
 
