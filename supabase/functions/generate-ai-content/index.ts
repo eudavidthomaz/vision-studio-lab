@@ -782,7 +782,7 @@ Retorne APENAS o JSON válido.`;
       .insert({
         user_id: user.id,
         source_type: 'ai_generated',
-        pilar: 'Edificar', // Padrão - pode ser ajustado depois
+        pilar: 'EDIFICAR', // Uppercase para consistência com constraints
         content_format: detectedType, // tipo de conteúdo (estudo, post, etc)
         prompt_original: prompt.replace(/^TIPO_SOLICITADO:\s*\w+\s*/i, '').trim(),
         content: generatedContent

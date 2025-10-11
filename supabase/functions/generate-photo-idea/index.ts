@@ -93,21 +93,19 @@ Diretrizes:
 
     const parsedContent = JSON.parse(jsonMatch[0]);
 
-    // Salvar no banco
-    const fullContent = `${parsedContent.copy}\n\n📸 Imagem sugerida:\n${parsedContent.descricao_imagem}\n\n🎨 Design:\n${parsedContent.sugestao_design}`;
-
-    const { error: insertError } = await supabaseClient
-      .from('content_planners')
+    // Salvar no banco unificado (generated_contents)
+    const { data: insertData, error: insertError } = await supabaseClient
+      .from('generated_contents')
       .insert({
         user_id: userId,
-        tipo_conteudo: 'post',
-        titulo: parsedContent.titulo,
-        conteudo: fullContent,
-        hashtags: parsedContent.hashtags,
-        pilar: parsedContent.pilar,
-        status: 'draft',
-        scheduled_date: new Date().toISOString(),
-      });
+        source_type: 'photo-idea',
+        content_format: 'foto_post',
+        pilar: parsedContent.pilar || 'EDIFICAR',
+        content: parsedContent,
+        prompt_original: `Tema: ${sanitizedTema}, Estilo: ${estilo}`,
+      })
+      .select()
+      .single();
 
     if (insertError) {
       console.error('Database error:', insertError);
@@ -123,7 +121,11 @@ Diretrizes:
     );
 
     return new Response(
-      JSON.stringify({ success: true, content: parsedContent }),
+      JSON.stringify({ 
+        success: true, 
+        content: parsedContent,
+        id: insertData?.id 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
