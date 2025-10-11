@@ -20,7 +20,10 @@ export type Database = {
           content_type: string
           created_at: string | null
           id: string
+          is_favorite: boolean | null
+          is_pinned: boolean | null
           pilar: string | null
+          pinned_at: string | null
           prompt_original: string | null
           published_at: string | null
           search_vector: unknown | null
@@ -36,7 +39,10 @@ export type Database = {
           content_type: string
           created_at?: string | null
           id?: string
+          is_favorite?: boolean | null
+          is_pinned?: boolean | null
           pilar?: string | null
+          pinned_at?: string | null
           prompt_original?: string | null
           published_at?: string | null
           search_vector?: unknown | null
@@ -52,7 +58,10 @@ export type Database = {
           content_type?: string
           created_at?: string | null
           id?: string
+          is_favorite?: boolean | null
+          is_pinned?: boolean | null
           pilar?: string | null
+          pinned_at?: string | null
           prompt_original?: string | null
           published_at?: string | null
           search_vector?: unknown | null
@@ -562,6 +571,28 @@ export type Database = {
           content: Json
           planner_id: string
           week_start_date: string
+        }[]
+      }
+      search_content_library: {
+        Args: { search_query: string; user_uuid: string }
+        Returns: {
+          content: Json
+          content_type: string
+          created_at: string | null
+          id: string
+          is_favorite: boolean | null
+          is_pinned: boolean | null
+          pilar: string | null
+          pinned_at: string | null
+          prompt_original: string | null
+          published_at: string | null
+          search_vector: unknown | null
+          source_type: string
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          user_id: string
         }[]
       }
       validate_text_input: {

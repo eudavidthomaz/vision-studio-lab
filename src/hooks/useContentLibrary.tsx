@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
 
 export interface ContentLibraryItem {
   id: string;
@@ -17,6 +18,9 @@ export interface ContentLibraryItem {
   created_at: string;
   updated_at: string;
   published_at?: string;
+  is_favorite?: boolean;
+  is_pinned?: boolean;
+  pinned_at?: string;
 }
 
 export interface ContentFilters {
@@ -41,8 +45,9 @@ export function useContentLibrary() {
     pilar: 'all',
     status: 'all'
   });
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Carregar itens da biblioteca com paginação
+  // Carregar itens da biblioteca com paginação (pinned primeiro)
   const loadItems = useCallback(async (pageNum: number = 0, append: boolean = false) => {
     try {
       if (!append) setLoading(true);
@@ -53,6 +58,8 @@ export function useContentLibrary() {
       const { data, error, count } = await supabase
         .from('content_library')
         .select('*', { count: 'exact' })
+        .order('is_pinned', { ascending: false })
+        .order('pinned_at', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -169,6 +176,281 @@ export function useContentLibrary() {
     });
   }, [items, filters]);
 
+  // Selection functions
+  const toggleSelection = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => {
+    setSelectedIds(new Set(filteredItems.map(item => item.id)));
+  }, [filteredItems]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  // Bulk operations
+  const bulkDelete = async (ids: string[]) => {
+    try {
+      const { error } = await supabase
+        .from('content_library')
+        .delete()
+        .in('id', ids);
+
+      if (error) throw error;
+
+      toast.success(`${ids.length} conteúdos deletados`);
+      await loadItems(0, false);
+      clearSelection();
+    } catch (error) {
+      console.error('Error bulk deleting:', error);
+      toast.error('Erro ao deletar conteúdos');
+    }
+  };
+
+  const bulkUpdateTags = async (ids: string[], tags: string[]) => {
+    try {
+      for (const id of ids) {
+        await supabase
+          .from('content_library')
+          .update({ tags })
+          .eq('id', id);
+      }
+
+      toast.success(`Tags atualizadas em ${ids.length} conteúdos`);
+      await loadItems(0, false);
+    } catch (error) {
+      console.error('Error bulk updating tags:', error);
+      toast.error('Erro ao atualizar tags');
+    }
+  };
+
+  const bulkToggleFavorite = async (ids: string[]) => {
+    try {
+      const itemsToUpdate = items.filter(item => ids.includes(item.id));
+      const allFavorited = itemsToUpdate.every(item => item.is_favorite);
+      
+      for (const id of ids) {
+        await supabase
+          .from('content_library')
+          .update({ is_favorite: !allFavorited })
+          .eq('id', id);
+      }
+
+      toast.success(`${ids.length} conteúdos ${allFavorited ? 'desfavoritados' : 'favoritados'}`);
+      await loadItems(0, false);
+    } catch (error) {
+      console.error('Error bulk toggling favorite:', error);
+      toast.error('Erro ao atualizar favoritos');
+    }
+  };
+
+  // Duplicate content
+  const duplicateContent = async (id: string) => {
+    try {
+      const original = items.find(item => item.id === id);
+      if (!original) throw new Error('Content not found');
+
+      const { id: _, created_at, updated_at, ...contentData } = original;
+
+      const { error } = await supabase
+        .from('content_library')
+        .insert({
+          ...contentData,
+          title: `[CÓPIA] ${original.title}`,
+          tags: [...(original.tags || []), 'duplicado'],
+          is_favorite: false,
+          is_pinned: false,
+        });
+
+      if (error) throw error;
+
+      toast.success('Conteúdo duplicado!');
+      await loadItems(0, false);
+    } catch (error) {
+      console.error('Error duplicating content:', error);
+      toast.error('Erro ao duplicar conteúdo');
+    }
+  };
+
+  // Export functions
+  const exportToPDF = async (ids: string[]) => {
+    try {
+      const contents = items.filter(item => ids.includes(item.id));
+      const doc = new jsPDF();
+
+      contents.forEach((item, index) => {
+        if (index > 0) doc.addPage();
+
+        doc.setFontSize(16);
+        doc.text(item.title, 20, 20);
+
+        doc.setFontSize(10);
+        doc.text(`Tipo: ${item.content_type}`, 20, 30);
+        doc.text(`Pilar: ${item.pilar}`, 20, 36);
+
+        doc.setFontSize(12);
+        const contentText = JSON.stringify(item.content, null, 2);
+        const lines = doc.splitTextToSize(contentText, 170);
+        doc.text(lines, 20, 46);
+      });
+
+      doc.save(`conteudos-${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success(`${contents.length} conteúdos exportados para PDF`);
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      toast.error('Erro ao exportar PDF');
+    }
+  };
+
+  const exportToTXT = (ids: string[]) => {
+    try {
+      const contents = items.filter(item => ids.includes(item.id));
+
+      contents.forEach(item => {
+        const text = `
+TÍTULO: ${item.title}
+TIPO: ${item.content_type}
+PILAR: ${item.pilar}
+STATUS: ${item.status}
+DATA: ${new Date(item.created_at).toLocaleDateString()}
+TAGS: ${item.tags?.join(', ') || 'Nenhuma'}
+
+CONTEÚDO:
+${JSON.stringify(item.content, null, 2)}
+
+---
+`;
+
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${item.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      toast.success(`${contents.length} arquivo${contents.length > 1 ? 's' : ''} TXT baixado${contents.length > 1 ? 's' : ''}`);
+    } catch (error) {
+      console.error('Error exporting to TXT:', error);
+      toast.error('Erro ao exportar TXT');
+    }
+  };
+
+  const exportToJSON = (ids: string[]) => {
+    try {
+      const contents = items.filter(item => ids.includes(item.id));
+
+      const json = JSON.stringify(contents, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `biblioteca-ideon-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      toast.success(`${contents.length} conteúdos exportados para JSON`);
+    } catch (error) {
+      console.error('Error exporting to JSON:', error);
+      toast.error('Erro ao exportar JSON');
+    }
+  };
+
+  // Tag management
+  const getAllTags = useMemo(() => {
+    const tagMap = new Map<string, number>();
+
+    items.forEach(item => {
+      item.tags?.forEach(tag => {
+        tagMap.set(tag, (tagMap.get(tag) || 0) + 1);
+      });
+    });
+
+    return Array.from(tagMap.entries())
+      .map(([tag, count]) => ({ tag, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [items]);
+
+  const renameTag = async (oldTag: string, newTag: string) => {
+    try {
+      const affectedItems = items.filter(item => item.tags?.includes(oldTag));
+
+      for (const item of affectedItems) {
+        const newTags = item.tags?.map(t => t === oldTag ? newTag : t) || [];
+        await supabase
+          .from('content_library')
+          .update({ tags: newTags })
+          .eq('id', item.id);
+      }
+
+      toast.success(`Tag "${oldTag}" renomeada para "${newTag}" em ${affectedItems.length} conteúdos`);
+      await loadItems(0, false);
+    } catch (error) {
+      console.error('Error renaming tag:', error);
+      toast.error('Erro ao renomear tag');
+    }
+  };
+
+  const deleteTag = async (tag: string) => {
+    try {
+      const affectedItems = items.filter(item => item.tags?.includes(tag));
+
+      for (const item of affectedItems) {
+        const newTags = item.tags?.filter(t => t !== tag) || [];
+        await supabase
+          .from('content_library')
+          .update({ tags: newTags })
+          .eq('id', item.id);
+      }
+
+      toast.success(`Tag "${tag}" removida de ${affectedItems.length} conteúdos`);
+      await loadItems(0, false);
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      toast.error('Erro ao deletar tag');
+    }
+  };
+
+  // Toggle pin (max 3)
+  const togglePin = async (id: string) => {
+    try {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+
+      if (!item.is_pinned) {
+        const pinnedCount = items.filter(i => i.is_pinned).length;
+        if (pinnedCount >= 3) {
+          toast.error('Máximo de 3 conteúdos fixados atingido');
+          return;
+        }
+      }
+
+      await supabase
+        .from('content_library')
+        .update({
+          is_pinned: !item.is_pinned,
+          pinned_at: !item.is_pinned ? new Date().toISOString() : null,
+        })
+        .eq('id', id);
+
+      toast.success(item.is_pinned ? 'Conteúdo desafixado' : 'Conteúdo fixado');
+      await loadItems(0, false);
+    } catch (error) {
+      console.error('Error toggling pin:', error);
+      toast.error('Erro ao fixar/desafixar conteúdo');
+    }
+  };
+
   // Carregar ao montar e resetar quando filtros mudarem
   useEffect(() => {
     setItems([]);
@@ -188,6 +470,27 @@ export function useContentLibrary() {
     updateContent,
     deleteContent,
     loadMore,
-    refresh: () => loadItems(0, false)
+    refresh: () => loadItems(0, false),
+    // Selection
+    selectedIds,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    selectedCount: selectedIds.size,
+    // Bulk operations
+    bulkDelete,
+    bulkUpdateTags,
+    bulkToggleFavorite,
+    duplicateContent,
+    // Export
+    exportToPDF,
+    exportToTXT,
+    exportToJSON,
+    // Tag management
+    getAllTags,
+    renameTag,
+    deleteTag,
+    // Pin
+    togglePin,
   };
 }

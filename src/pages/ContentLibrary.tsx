@@ -9,27 +9,54 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
+import BulkActionsBar from "@/components/BulkActionsBar";
+import ViewSwitcher, { ViewMode } from "@/components/ViewSwitcher";
+import ContentListView from "@/components/ContentListView";
+import ContentGalleryView from "@/components/ContentGalleryView";
+import TagManagerDialog from "@/components/TagManagerDialog";
 import { 
   ArrowLeft, 
   Search, 
-  Grid3x3, 
-  List, 
   RefreshCw, 
   Trash2, 
   Eye,
   Calendar,
+  Star,
+  Pin,
+  Tags as TagsIcon,
+  Copy,
   Sparkles
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
-// Memoized content card component
-const ContentItemCard = memo(({ item, onView, onDelete }: {
+// Memoized content card component for grid view
+const ContentItemCard = memo(({ 
+  item, 
+  onView, 
+  onDelete, 
+  onDuplicate, 
+  isSelected, 
+  onToggleSelection,
+  onToggleFavorite,
+  onTogglePin 
+}: {
   item: ContentLibraryItem;
   onView: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
+  isSelected: boolean;
+  onToggleSelection: () => void;
+  onToggleFavorite: () => void;
+  onTogglePin: () => void;
 }) => {
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(item.title);
+  
   const getContentTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
       'carrossel': '🎠 Carrossel',
@@ -63,12 +90,78 @@ const ContentItemCard = memo(({ item, onView, onDelete }: {
     }
   };
 
+  const handleSaveTitle = async () => {
+    if (editedTitle.trim() && editedTitle !== item.title) {
+      try {
+        await supabase
+          .from('content_library')
+          .update({ title: editedTitle.trim() })
+          .eq('id', item.id);
+        toast.success('Título atualizado');
+      } catch (error) {
+        console.error('Error updating title:', error);
+        toast.error('Erro ao atualizar título');
+      }
+    }
+    setIsEditingTitle(false);
+  };
+
   return (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader>
+    <Card className={cn(
+      "relative hover:shadow-lg transition-shadow",
+      isSelected && "ring-2 ring-primary"
+    )}>
+      {/* Checkbox */}
+      <div className="absolute top-2 left-2 z-10">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={onToggleSelection}
+        />
+      </div>
+
+      {/* Pin & Favorite buttons */}
+      <div className="absolute top-2 right-2 z-10 flex gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={onTogglePin}
+        >
+          <Pin className={cn("h-4 w-4", item.is_pinned && "fill-primary text-primary")} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={onToggleFavorite}
+        >
+          <Star className={cn("h-4 w-4", item.is_favorite && "fill-yellow-400 text-yellow-400")} />
+        </Button>
+      </div>
+
+      <CardHeader className="pt-10">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-base truncate">{item.title}</CardTitle>
+            {isEditingTitle ? (
+              <Input
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                onBlur={handleSaveTitle}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveTitle();
+                  if (e.key === 'Escape') setIsEditingTitle(false);
+                }}
+                autoFocus
+                className="h-8"
+              />
+            ) : (
+              <CardTitle 
+                className="text-base truncate cursor-pointer hover:text-primary"
+                onDoubleClick={() => setIsEditingTitle(true)}
+              >
+                {item.title}
+              </CardTitle>
+            )}
             <CardDescription className="flex items-center gap-2 mt-2">
               <Calendar className="h-3 w-3" />
               {formatDate(item.created_at)}
@@ -105,6 +198,14 @@ const ContentItemCard = memo(({ item, onView, onDelete }: {
           
           <Button
             size="sm"
+            variant="outline"
+            onClick={onDuplicate}
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+          
+          <Button
+            size="sm"
             variant="destructive"
             onClick={onDelete}
           >
@@ -121,10 +222,38 @@ ContentItemCard.displayName = 'ContentItemCard';
 export default function ContentLibrary() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { items, loading, hasMore, filters, setFilters, deleteContent, loadMore, refresh } = useContentLibrary();
-  const [selectedContent, setSelectedContent] = useState<ContentLibraryItem | null>(null);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const { 
+    items, 
+    loading, 
+    hasMore, 
+    filters, 
+    setFilters, 
+    deleteContent, 
+    loadMore, 
+    refresh,
+    selectedIds,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    selectedCount,
+    bulkDelete,
+    bulkUpdateTags,
+    bulkToggleFavorite,
+    duplicateContent,
+    exportToPDF,
+    exportToTXT,
+    exportToJSON,
+    getAllTags,
+    renameTag,
+    deleteTag,
+    togglePin,
+    updateContent,
+  } = useContentLibrary();
   
+  const [selectedContent, setSelectedContent] = useState<ContentLibraryItem | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('cards');
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
+  const [globalTagDialogOpen, setGlobalTagDialogOpen] = useState(false);
   const sermonId = searchParams.get('sermon_id');
   
   // Infinite scroll observer
@@ -151,10 +280,56 @@ export default function ContentLibrary() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (confirm(`Tem certeza que deseja excluir ${selectedCount} conteúdos?`)) {
+      await bulkDelete(Array.from(selectedIds));
+    }
+  };
+
+  const handleExport = (format: 'pdf' | 'txt' | 'json') => {
+    const ids = Array.from(selectedIds);
+    if (format === 'pdf') exportToPDF(ids);
+    else if (format === 'txt') exportToTXT(ids);
+    else if (format === 'json') exportToJSON(ids);
+  };
+
+  const handleToggleFavorite = async (id: string, current: boolean) => {
+    await updateContent(id, { is_favorite: !current });
+    refresh();
+  };
+
+  const handleTogglePin = async (id: string, current: boolean) => {
+    const pinnedCount = items.filter(i => i.is_pinned).length;
+    
+    if (!current && pinnedCount >= 3) {
+      toast.error('Máximo de 3 conteúdos fixados');
+      return;
+    }
+    
+    await togglePin(id);
+  };
+
+  const handleDuplicate = async (id: string) => {
+    await duplicateContent(id);
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Bulk Actions Bar */}
+        <BulkActionsBar
+          selectedCount={selectedCount}
+          onExport={handleExport}
+          onDelete={handleBulkDelete}
+          onEditTags={() => setTagDialogOpen(true)}
+          onToggleFavorite={() => bulkToggleFavorite(Array.from(selectedIds))}
+          onDuplicate={() => {
+            const ids = Array.from(selectedIds);
+            ids.forEach(id => duplicateContent(id));
+          }}
+          onClearSelection={clearSelection}
+        />
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-start gap-4 mb-6">
@@ -182,11 +357,17 @@ export default function ContentLibrary() {
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                size="icon"
-                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+                size="sm"
+                onClick={() => setGlobalTagDialogOpen(true)}
               >
-                {viewMode === 'grid' ? <List className="h-4 w-4" /> : <Grid3x3 className="h-4 w-4" />}
+                <TagsIcon className="h-4 w-4 mr-2" />
+                Gerenciar Tags
               </Button>
+              
+              <ViewSwitcher
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+              />
               
               <Button
                 variant="outline"
@@ -265,11 +446,23 @@ export default function ContentLibrary() {
             </Select>
           </div>
 
-          {/* Contador */}
+          {/* Contador e ações */}
           <div className="mt-4 flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              {displayedItems.length} {displayedItems.length === 1 ? 'conteúdo encontrado' : 'conteúdos encontrados'}
-            </p>
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-muted-foreground">
+                {displayedItems.length} {displayedItems.length === 1 ? 'conteúdo' : 'conteúdos'}
+              </p>
+              
+              {displayedItems.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAll}
+                >
+                  Selecionar Todos
+                </Button>
+              )}
+            </div>
             
             {sermonId && (
               <Button
@@ -284,8 +477,8 @@ export default function ContentLibrary() {
         </div>
 
         {/* Conteúdo */}
-        {loading ? (
-          <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+        {loading && displayedItems.length === 0 ? (
+          <div className={viewMode === 'cards' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i}>
                 <CardHeader>
@@ -319,16 +512,50 @@ export default function ContentLibrary() {
           </Card>
         ) : (
           <>
-            <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-              {displayedItems.map((item) => (
-                <ContentItemCard
-                  key={item.id}
-                  item={item}
-                  onView={() => setSelectedContent(item)}
-                  onDelete={() => handleDelete(item.id, item.title)}
-                />
-              ))}
-            </div>
+            {viewMode === 'cards' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedItems.map((item) => (
+                  <ContentItemCard
+                    key={item.id}
+                    item={item}
+                    onView={() => setSelectedContent(item)}
+                    onDelete={() => handleDelete(item.id, item.title)}
+                    onDuplicate={() => handleDuplicate(item.id)}
+                    isSelected={selectedIds.has(item.id)}
+                    onToggleSelection={() => toggleSelection(item.id)}
+                    onToggleFavorite={() => handleToggleFavorite(item.id, item.is_favorite || false)}
+                    onTogglePin={() => handleTogglePin(item.id, item.is_pinned || false)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {viewMode === 'list' && (
+              <ContentListView
+                items={displayedItems}
+                selectedIds={selectedIds}
+                onToggleSelection={toggleSelection}
+                onView={(item) => setSelectedContent(item)}
+                onDelete={(id) => {
+                  const item = items.find(i => i.id === id);
+                  if (item) handleDelete(id, item.title);
+                }}
+                onDuplicate={handleDuplicate}
+                onToggleFavorite={handleToggleFavorite}
+                onTogglePin={handleTogglePin}
+              />
+            )}
+
+            {viewMode === 'gallery' && (
+              <ContentGalleryView
+                items={displayedItems}
+                selectedIds={selectedIds}
+                onToggleSelection={toggleSelection}
+                onView={(item) => setSelectedContent(item)}
+                onToggleFavorite={handleToggleFavorite}
+                onTogglePin={handleTogglePin}
+              />
+            )}
             
             {/* Infinite scroll trigger */}
             {hasMore && !loading && (
@@ -346,11 +573,29 @@ export default function ContentLibrary() {
           </>
         )}
 
-        {/* Modal */}
+        {/* Modals */}
         <UnifiedContentModal
           content={selectedContent}
           open={!!selectedContent}
           onClose={() => setSelectedContent(null)}
+        />
+
+        <TagManagerDialog
+          open={tagDialogOpen}
+          onOpenChange={setTagDialogOpen}
+          mode="content"
+          onSave={(tags) => {
+            bulkUpdateTags(Array.from(selectedIds), tags);
+          }}
+        />
+
+        <TagManagerDialog
+          open={globalTagDialogOpen}
+          onOpenChange={setGlobalTagDialogOpen}
+          mode="global"
+          allTags={getAllTags}
+          onRenameTag={renameTag}
+          onDeleteTag={deleteTag}
         />
       </div>
     </div>
