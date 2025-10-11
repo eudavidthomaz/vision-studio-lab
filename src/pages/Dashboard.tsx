@@ -15,6 +15,7 @@ import NPSModal from "@/components/NPSModal";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useSecureApi } from "@/hooks/useSecureApi";
 import { useQuota } from "@/hooks/useQuota";
+import { useContentLibrary } from "@/hooks/useContentLibrary";
 import { RateLimitIndicator } from "@/components/RateLimitIndicator";
 import { QuotaIndicator } from "@/components/QuotaIndicator";
 import { AICreatorCard } from "@/components/AICreatorCard";
@@ -45,6 +46,7 @@ const Dashboard = () => {
   const { trackEvent } = useAnalytics();
   const { invokeFunction } = useSecureApi();
   const { canUse, incrementUsage } = useQuota();
+  const { createContent } = useContentLibrary();
 
   useEffect(() => {
     // Check for existing session first
@@ -149,13 +151,9 @@ const Dashboard = () => {
     try {
       console.log('🚀 Gerando conteúdo com prompt:', prompt.substring(0, 100));
       
-      const result = await invokeFunction<any>('generate-ai-content', { prompt });
+      const contentId = await createContent(prompt, preselectedSermonId);
       
-      console.log('✅ Resultado da função:', result);
-      
-      if (!result || !result.content_id) {
-        throw new Error('Conteúdo gerado mas ID não retornado');
-      }
+      console.log('✅ Conteúdo criado com ID:', contentId);
 
       await trackEvent('ai_content_generated', { prompt: prompt.substring(0, 50) });
 
@@ -168,7 +166,7 @@ const Dashboard = () => {
       
       // Aguardar um pouco para garantir que o banco salvou
       setTimeout(() => {
-        navigate(`/conteudo/${result.content_id}`);
+        navigate(`/biblioteca/${contentId}`);
       }, 300);
       
     } catch (error: any) {
@@ -219,7 +217,7 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           {/* Hero Header */}
           <HeroHeader 
-            onNavigateToContent={() => navigate('/meus-conteudos')}
+            onNavigateToContent={() => navigate('/biblioteca')}
             onNavigateToProfile={() => navigate('/profile')}
             onLogout={handleLogout}
           />
