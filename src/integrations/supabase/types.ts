@@ -24,7 +24,6 @@ export type Database = {
           prompt_original: string | null
           published_at: string | null
           search_vector: unknown | null
-          sermon_id: string | null
           source_type: string
           status: string | null
           tags: string[] | null
@@ -41,7 +40,6 @@ export type Database = {
           prompt_original?: string | null
           published_at?: string | null
           search_vector?: unknown | null
-          sermon_id?: string | null
           source_type: string
           status?: string | null
           tags?: string[] | null
@@ -58,7 +56,6 @@ export type Database = {
           prompt_original?: string | null
           published_at?: string | null
           search_vector?: unknown | null
-          sermon_id?: string | null
           source_type?: string
           status?: string | null
           tags?: string[] | null
@@ -66,15 +63,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "content_library_sermon_id_fkey"
-            columns: ["sermon_id"]
-            isOneToOne: false
-            referencedRelation: "sermons"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       content_planners: {
         Row: {
@@ -152,42 +141,6 @@ export type Database = {
           template_data?: Json
           thumbnail_url?: string | null
           updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      generated_contents: {
-        Row: {
-          content: Json
-          content_format: string | null
-          created_at: string | null
-          id: string
-          pilar: string | null
-          prompt_original: string | null
-          source_type: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          content?: Json
-          content_format?: string | null
-          created_at?: string | null
-          id?: string
-          pilar?: string | null
-          prompt_original?: string | null
-          source_type: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          content?: Json
-          content_format?: string | null
-          created_at?: string | null
-          id?: string
-          pilar?: string | null
-          prompt_original?: string | null
-          source_type?: string
-          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -466,9 +419,9 @@ export type Database = {
           id: string
           images_generated: number
           reset_date: string
+          sermon_packs_generated: number | null
           updated_at: string
           user_id: string
-          weekly_packs_used: number
         }
         Insert: {
           challenges_used?: number
@@ -476,9 +429,9 @@ export type Database = {
           id?: string
           images_generated?: number
           reset_date?: string
+          sermon_packs_generated?: number | null
           updated_at?: string
           user_id: string
-          weekly_packs_used?: number
         }
         Update: {
           challenges_used?: number
@@ -486,9 +439,9 @@ export type Database = {
           id?: string
           images_generated?: number
           reset_date?: string
+          sermon_packs_generated?: number | null
           updated_at?: string
           user_id?: string
-          weekly_packs_used?: number
         }
         Relationships: []
       }
@@ -569,38 +522,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      weekly_packs: {
-        Row: {
-          created_at: string | null
-          id: string
-          pack: Json | null
-          sermon_id: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          pack?: Json | null
-          sermon_id?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          pack?: Json | null
-          sermon_id?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "weekly_packs_sermon_id_fkey"
-            columns: ["sermon_id"]
-            isOneToOne: false
-            referencedRelation: "sermons"
-            referencedColumns: ["id"]
-          },
-        ]
       }
     }
     Views: {
