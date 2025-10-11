@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Layers } from "lucide-react";
+import { Copy, Layers, Image } from "lucide-react";
 import { toast } from "sonner";
+import ImageGenerationModal from "@/components/ImageGenerationModal";
 
 interface StoriesViewProps {
   estrutura?: {
@@ -24,9 +26,24 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
   // Extrair valores com fallback para ContentViewer
   const actualEstrutura = estrutura || data?.estrutura;
   const actualConteudo = conteudo || data?.conteudo;
+  
+  // Estado para controlar modal e imagens geradas
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedSlide, setSelectedSlide] = useState<{
+    numero: number;
+    titulo: string;
+    texto: string;
+  } | null>(null);
+  const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
+  };
+
+  const handleGenerateImage = (slide: typeof actualEstrutura.slides[0]) => {
+    setSelectedSlide(slide);
+    setImageModalOpen(true);
   };
 
   return (
@@ -48,16 +65,27 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
                     <CardTitle className="text-base">
                       Slide {slide.numero}: {slide.titulo}
                     </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(
-                        `${slide.titulo}\n\n${slide.texto}${slide.sugestao_visual ? `\n\nVisual: ${slide.sugestao_visual}` : ''}`,
-                        `Slide ${slide.numero}`
-                      )}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant={generatedImages[slide.numero] ? "outline" : "default"}
+                        size="sm"
+                        onClick={() => handleGenerateImage(slide)}
+                        className={generatedImages[slide.numero] ? "" : "bg-gradient-to-r from-primary to-accent"}
+                      >
+                        <Image className="h-4 w-4 mr-2" />
+                        {generatedImages[slide.numero] ? "Regerar" : "Gerar Imagem"}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(
+                          `${slide.titulo}\n\n${slide.texto}${slide.sugestao_visual ? `\n\nVisual: ${slide.sugestao_visual}` : ''}`,
+                          `Slide ${slide.numero}`
+                        )}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
@@ -68,6 +96,16 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
                       <p className="text-muted-foreground">{slide.sugestao_visual}</p>
                     </div>
                   )}
+                  {generatedImages[slide.numero] && (
+                    <div className="mt-4 pt-4 border-t">
+                      <strong>Imagem Gerada:</strong>
+                      <img 
+                        src={generatedImages[slide.numero]} 
+                        alt={`Slide ${slide.numero}`}
+                        className="mt-2 rounded-lg w-full max-w-sm"
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -76,7 +114,7 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
       )}
 
       {/* CTA */}
-      {conteudo?.cta && (
+      {actualConteudo?.cta && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -84,7 +122,7 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(conteudo.cta!, "CTA")}
+                onClick={() => copyToClipboard(actualConteudo.cta!, "CTA")}
               >
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar
@@ -92,9 +130,26 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-sm">{conteudo.cta}</p>
+            <p className="text-sm">{actualConteudo.cta}</p>
           </CardContent>
         </Card>
+      )}
+
+      {/* Modal de Geração de Imagem */}
+      {selectedSlide && (
+        <ImageGenerationModal
+          open={imageModalOpen}
+          onOpenChange={setImageModalOpen}
+          copy={`${selectedSlide.titulo}\n\n${selectedSlide.texto}`}
+          pilar={data?.pilar || "Edificar"}
+          onImageGenerated={(imageUrl) => {
+            setGeneratedImages(prev => ({
+              ...prev,
+              [selectedSlide.numero]: imageUrl
+            }));
+            toast.success(`Imagem do Slide ${selectedSlide.numero} gerada com sucesso!`);
+          }}
+        />
       )}
     </div>
   );
