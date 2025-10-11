@@ -112,8 +112,22 @@ export function ContentFeedModal({ content, open, onOpenChange }: ContentFeedMod
     );
   }
 
+  // Normalizar pack_semanal para garantir compatibilidade com estruturas antigas
+  const normalizePackData = (packData: any) => {
+    return {
+      ...packData,
+      // Normalizar nomes de campos se vieram da estrutura antiga
+      legendas_instagram: packData.legendas_instagram || packData.legendas || [],
+      carrosseis_instagram: packData.carrosseis_instagram || packData.carrosseis || [],
+      roteiros_reels: packData.roteiros_reels || packData.reels || [],
+      frases_impacto: packData.frases_impacto || packData.frases_impactantes || [],
+      hashtags_sugeridas: packData.hashtags_sugeridas || packData.hashtags || [],
+      resumo_pregacao: packData.resumo_pregacao || packData.resumo || "",
+    };
+  };
+
   // Renderizar Pack Semanal
-  const packData = content.rawData;
+  const packData = normalizePackData(content.rawData);
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

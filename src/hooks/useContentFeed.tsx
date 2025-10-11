@@ -104,7 +104,7 @@ export function useContentFeed() {
         // Detectar se é conteúdo de IA
         if (plannerData?.tipo === "ai-generated" || plannerData?.content_type || plannerData?.prompt_original) {
           const verses = plannerData.fundamento_biblico?.versiculos || [];
-          const firstVerse = verses[0] ? `${verses[0].versiculo} - ${verses[0].referencia}` : "";
+          const firstVerse = verses[0] || "";  // versiculos é array de strings
           
           normalized.push({
             id: `ai-${item.id}`,
