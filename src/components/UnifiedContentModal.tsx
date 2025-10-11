@@ -1,4 +1,7 @@
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileContentSheet } from "./MobileContentSheet";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { ContentViewer } from "./ContentViewer";
 import { ContentLibraryItem } from "@/hooks/useContentLibrary";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +16,14 @@ interface UnifiedContentModalProps {
 }
 
 export function UnifiedContentModal({ content, open, onClose }: UnifiedContentModalProps) {
+  const isMobile = useIsMobile();
+  
   if (!content) return null;
+
+  // Mobile: usa Sheet
+  if (isMobile) {
+    return <MobileContentSheet content={content} open={open} onClose={onClose} />;
+  }
 
   // FILTRAR CAMPOS TÉCNICOS (não mostrar para o usuário)
   const technicalFields = [
@@ -72,65 +82,55 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
     return colors[pilar] || 'bg-gray-500';
   };
 
+  // Desktop: usa Dialog
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-2xl sm:max-w-3xl md:max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader className="space-y-3">
-          {/* Título e Badges */}
-          <div className="space-y-2">
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground leading-tight">{content.title}</h2>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden p-0">
+        <DialogHeader className="px-4 py-4 border-b sticky top-0 bg-background z-10 space-y-3">
+          <h2 className="text-lg font-bold text-foreground leading-tight">{content.title}</h2>
             
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="text-xs">
-                {getContentTypeLabel(content.content_type)}
-              </Badge>
-              
-              <Badge className={`${getPilarColor(content.pilar)} text-white text-xs`}>
-                {content.pilar}
-              </Badge>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline" className="text-xs">
+              {getContentTypeLabel(content.content_type)}
+            </Badge>
+            
+            <Badge className={`${getPilarColor(content.pilar)} text-white text-xs`}>
+              {content.pilar}
+            </Badge>
 
-              {content.source_type && (
-                <Badge variant="secondary" className="text-xs">
-                  {content.source_type === 'ai-creator' ? '🤖 IA' : 
-                   content.source_type === 'audio-pack' ? '🎙️ Pack Semanal' : 
-                   '✍️ Manual'}
-                </Badge>
-              )}
-
-              <Badge variant="outline" className="flex items-center gap-1 text-xs">
-                <Calendar className="h-3 w-3" />
-                {formatDate(content.created_at)}
+            {content.source_type && (
+              <Badge variant="secondary" className="text-xs">
+                {content.source_type === 'ai-creator' ? '🤖 IA' : 
+                 content.source_type === 'audio-pack' ? '🎙️ Pack Semanal' : 
+                 '✍️ Manual'}
               </Badge>
-            </div>
-
-            {/* Tags */}
-            {content.tags && content.tags.length > 0 && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <Tag className="h-3 w-3 text-muted-foreground" />
-                {content.tags.map((tag, i) => (
-                  <Badge key={i} variant="outline" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
             )}
 
-            {/* Prompt Original (só se existir E não for muito longo) */}
-            {content.prompt_original && content.prompt_original.length < 500 && (
-              <details className="p-3 bg-muted/30 rounded-lg border">
-                <summary className="text-xs text-muted-foreground cursor-pointer">
-                  Ver prompt original
-                </summary>
-                <p className="text-sm mt-2">{content.prompt_original}</p>
-              </details>
-            )}
+            <Badge variant="outline" className="flex items-center gap-1 text-xs">
+              <Calendar className="h-3 w-3" />
+              {formatDate(content.created_at)}
+            </Badge>
           </div>
+
+          {/* Tags */}
+          {content.tags && content.tags.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Tag className="h-3 w-3 text-muted-foreground" />
+              {content.tags.map((tag, i) => (
+                <Badge key={i} variant="outline" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          )}
         </DialogHeader>
 
-        {/* Conteúdo dinâmico */}
-        <div className="mt-6">
-          <ContentViewer content={content} />
-        </div>
+        {/* Conteúdo scrollável */}
+        <ScrollArea className="h-full max-h-[calc(85vh-120px)]">
+          <div className="px-4 py-4">
+            <ContentViewer content={content} />
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

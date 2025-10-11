@@ -101,9 +101,9 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
       {/* Estrutura Visual - Cards/Slides do Carrossel */}
       {items.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5" />
+          <CardHeader className="p-4">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ImageIcon className="h-4 w-4" />
               Estrutura Visual - {items.length} Cards
             </CardTitle>
           </CardHeader>
@@ -119,8 +119,8 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                   return (
                     <CarouselItem key={index}>
                       <Card className="border-2" data-card={index + 1}>
-                        <CardHeader className="bg-primary/5 p-4 sm:p-6">
-                          <CardTitle className="text-sm sm:text-base">
+                        <CardHeader className="bg-primary/5 p-4">
+                          <CardTitle className="text-base">
                             Card {index + 1}: {titulo}
                           </CardTitle>
                           <div className="flex flex-col sm:flex-row gap-2 pt-2">
@@ -133,7 +133,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                                 texto 
                               })}
                               disabled={loadingCard === index + 1}
-                              className="w-full sm:w-auto"
+                              className="w-full sm:w-auto h-10"
                             >
                               <ImageIcon className="h-4 w-4 mr-2" />
                               {loadingCard === index + 1 ? "Gerando..." : generatedImages[index + 1] ? "Regerar" : "Gerar Imagem"}
@@ -146,14 +146,14 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                                 `Card ${index + 1}`,
                                 index + 1
                               )}
-                              className="w-full sm:w-auto"
+                              className="w-full sm:w-auto h-10"
                             >
                               <Copy className="h-4 w-4 mr-2" />
                               Copiar
                             </Button>
                           </div>
                         </CardHeader>
-                        <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
+                        <CardContent className="p-4 pt-0 space-y-3">
                           {generatedImages[index + 1] && (
                             <div className="rounded-lg overflow-hidden bg-muted">
                               <img 
@@ -192,9 +192,9 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
       {/* Legenda */}
       {actualConteudo?.legenda && (
         <Card>
-          <CardHeader>
+          <CardHeader className="p-4">
             <div className="flex items-center justify-between">
-              <CardTitle>Legenda para Instagram</CardTitle>
+              <CardTitle className="text-base">Legenda para Instagram</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
@@ -205,7 +205,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4">
             <p className="whitespace-pre-line text-sm">{actualConteudo.legenda}</p>
           </CardContent>
         </Card>
@@ -214,9 +214,9 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
       {/* Hashtags */}
       {actualDicaProducao?.hashtags && actualDicaProducao.hashtags.length > 0 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="p-4">
             <div className="flex items-center justify-between">
-              <CardTitle>Hashtags Sugeridas</CardTitle>
+              <CardTitle className="text-base">Hashtags Sugeridas</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
@@ -227,7 +227,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4">
             <div className="flex flex-wrap gap-2">
               {actualDicaProducao.hashtags.map((tag, i) => (
                 <span key={i} className="text-sm text-primary">
@@ -242,10 +242,10 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
       {/* Dicas de Produção */}
       {actualDicaProducao && (
         <Card>
-          <CardHeader>
-            <CardTitle>Dicas de Produção</CardTitle>
+          <CardHeader className="p-4">
+            <CardTitle className="text-base">Dicas de Produção</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="p-4 space-y-3">
             {actualDicaProducao.formato && (
               <div>
                 <strong className="text-sm">Formato:</strong>

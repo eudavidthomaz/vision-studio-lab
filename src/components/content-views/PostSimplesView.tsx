@@ -43,14 +43,14 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Texto do Post */}
       {actualConteudo?.texto && (
         <Card>
-          <CardHeader>
+          <CardHeader className="p-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="h-4 w-4" />
                 Texto do Post
               </CardTitle>
               <Button
@@ -63,7 +63,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4">
             <p className="whitespace-pre-line text-sm">{conteudo.texto}</p>
           </CardContent>
         </Card>
@@ -72,9 +72,9 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
       {/* Legenda */}
       {actualConteudo?.legenda && (
         <Card>
-          <CardHeader>
+          <CardHeader className="p-4">
             <div className="flex items-center justify-between">
-              <CardTitle>Legenda</CardTitle>
+              <CardTitle className="text-base">Legenda</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
@@ -85,7 +85,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4">
             <p className="whitespace-pre-line text-sm">{conteudo.legenda}</p>
           </CardContent>
         </Card>
@@ -94,10 +94,10 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
       {/* Sugestão de Imagem */}
       {actualImagem?.descricao && (
         <Card>
-          <CardHeader>
-            <CardTitle>Sugestão de Imagem</CardTitle>
+          <CardHeader className="p-4">
+            <CardTitle className="text-base">Sugestão de Imagem</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="p-4 space-y-3">
             <p className="text-sm text-muted-foreground">{imagem.descricao}</p>
             {imagem.elementos && imagem.elementos.length > 0 && (
               <div>
@@ -116,9 +116,9 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
       {/* Hashtags */}
       {actualConteudo?.hashtags && actualConteudo.hashtags.length > 0 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="p-4">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base sm:text-lg">Hashtags</CardTitle>
+              <CardTitle className="text-base">Hashtags</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
@@ -129,7 +129,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4">
             <div className="flex flex-wrap gap-2">
               {actualConteudo.hashtags.map((tag, i) => (
                 <span key={i} className="text-sm text-primary">
@@ -143,15 +143,15 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
 
       {/* Geração de Imagem Opcional */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base sm:text-lg">Imagem (Opcional)</CardTitle>
+        <CardHeader className="p-4">
+          <CardTitle className="text-base">Imagem (Opcional)</CardTitle>
           <div className="flex flex-col sm:flex-row gap-2 pt-2">
             <Button
               variant={generatedImage ? "outline" : "default"}
               size="sm"
               onClick={handleGenerateImage}
               disabled={isGenerating}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto h-10"
             >
               <ImageIcon className="h-4 w-4 mr-2" />
               {isGenerating ? "Gerando..." : generatedImage ? "Regerar Imagem" : "Gerar Imagem"}
@@ -159,7 +159,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
           </div>
         </CardHeader>
         {generatedImage && (
-          <CardContent>
+          <CardContent className="p-4">
             <div id="generated-post-image" className="rounded-lg overflow-hidden bg-muted">
               <img 
                 src={generatedImage} 

@@ -32,10 +32,10 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card className="border-primary/20">
-        <CardHeader className="text-center p-4 sm:p-6">
-          <CardTitle className="text-lg sm:text-xl md:text-2xl">{convite.titulo_evento}</CardTitle>
+        <CardHeader className="text-center p-4">
+          <CardTitle className="text-lg">{convite.titulo_evento}</CardTitle>
           <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
             <Badge variant="outline" className="gap-2 text-xs">
               <Calendar className="h-4 w-4" />
@@ -51,13 +51,13 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6 p-4 sm:p-6">
+        <CardContent className="space-y-4 p-4">
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
               variant={generatedImage ? "outline" : "default"}
               onClick={handleGenerateImage}
               disabled={isGenerating}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto h-10"
             >
               <ImageIcon className="h-4 w-4 mr-2" />
               {isGenerating ? "Gerando..." : generatedImage ? "Regerar Arte" : "Gerar Arte do Convite"}
@@ -75,13 +75,13 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
           )}
 
           <div>
-            <p className="text-sm sm:text-base text-muted-foreground whitespace-pre-wrap">{convite.descricao}</p>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{convite.descricao}</p>
           </div>
 
           <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="pt-6">
+            <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <Users className="h-5 w-5 text-primary mt-0.5" />
+                <Users className="h-4 w-4 text-primary mt-0.5" />
                 <div>
                   <p className="font-medium text-sm">Para quem é?</p>
                   <p className="text-sm text-muted-foreground mt-1">{convite.publico_alvo}</p>
@@ -97,9 +97,9 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
 
           {convite.contato && (
             <Card className="bg-muted/50">
-              <CardContent className="pt-6">
+              <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-4 w-4 text-primary" />
+                  <Phone className="h-3 w-3 text-primary" />
                   <span className="font-medium">Contato:</span>
                   <span className="text-muted-foreground">{convite.contato}</span>
                 </div>
@@ -107,8 +107,8 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
             </Card>
           )}
 
-          <div className="text-center p-4 bg-primary text-primary-foreground rounded-lg">
-            <p className="text-sm sm:text-base font-semibold">{convite.chamado_acao}</p>
+          <div className="text-center p-3 bg-primary text-primary-foreground rounded-lg">
+            <p className="text-sm font-semibold">{convite.chamado_acao}</p>
           </div>
         </CardContent>
       </Card>
