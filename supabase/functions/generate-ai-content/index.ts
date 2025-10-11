@@ -70,6 +70,8 @@ serve(async (req) => {
     const contentTypeDetection = {
       // Weekly pack (highest priority - must be first!)
       pack_semanal: /pack|pacote|semanal|semana|série de posts/i,
+      // Resumo breve (NEW - for sermon summaries)
+      resumo_breve: /resumo_breve|resumo breve/i,
       // Organizational formats (high priority)
       calendario: /calendário|cronograma|planejamento|plano editorial|grade de posts/i,
       aviso: /aviso|comunicado|lembrete|atenção/i,
@@ -216,6 +218,10 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     "aplicacao_pratica": "Como aplicar os ensinamentos no dia a dia"
   },
   "frases_impactantes": ["Frase marcante 1", "Frase marcante 2"]
+}`,
+
+      resumo_breve: `{
+  "resumo": "Resumo conciso e impactante da pregação em até 500 palavras. Deve incluir: tema central (1 linha), mensagem principal (2-3 parágrafos), e aplicação prática (1 parágrafo). Estilo claro, inspirador e fiel ao conteúdo original."
 }`,
 
       perguntas: `{
@@ -674,6 +680,15 @@ REGRAS IMPORTANTES PARA TIPO "${detectedType}":
     : 'pastoral, prático e biblicamente fundamentado'}
 
 5. Retorne APENAS JSON válido, sem texto adicional antes ou depois
+
+${detectedType === 'resumo_breve' ? `
+INSTRUÇÕES ESPECÍFICAS PARA RESUMO BREVE:
+- Crie um resumo conciso e impactante com MÁXIMO 500 palavras
+- Estrutura: Tema central (1 linha), Mensagem principal (2-3 parágrafos), Aplicação prática (1 parágrafo)
+- Estilo: Claro, inspirador, fiel ao conteúdo original
+- Foco: Capturar a ESSÊNCIA da pregação, não reescrever tudo
+- Tom: Pastoral mas acessível - como se estivesse contando para alguém que não ouviu
+` : ''}
 
 ${detectedType === 'desafio_semanal' ? `
 INSTRUÇÕES ESPECÍFICAS PARA DESAFIO SEMANAL:
