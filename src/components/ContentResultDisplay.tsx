@@ -72,6 +72,13 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     parsedContent.resumo_pregacao ? 'resumo' :
     'default';
 
+  console.log('🔍 DEBUG ContentResultDisplay:', {
+    contentType,
+    hasParsedDesafio: !!parsedContent.desafio_semanal,
+    hasContentDesafio: !!content.desafio_semanal,
+    keys: Object.keys(parsedContent)
+  });
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copiado!`);
@@ -278,7 +285,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
             <div>
               <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
               <ul className="space-y-2">
-                {content.fundamento_biblico.versiculos.map((v: string, i: number) => (
+                {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
                   <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
                     {v}
                   </li>
@@ -287,16 +294,16 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
             </div>
             <div>
               <h4 className="font-semibold mb-2 text-sm">Contexto:</h4>
-              <p className="text-sm text-muted-foreground">{content.fundamento_biblico.contexto}</p>
+              <p className="text-sm text-muted-foreground">{parsedContent.fundamento_biblico.contexto}</p>
             </div>
             <div>
               <h4 className="font-semibold mb-2 text-sm">Princípio Atemporal:</h4>
-              <p className="text-sm text-muted-foreground">{content.fundamento_biblico.principio_atemporal}</p>
+              <p className="text-sm text-muted-foreground">{parsedContent.fundamento_biblico.principio_atemporal}</p>
             </div>
           </CardContent>
         </Card>
         
-        <IdeiaEstrategicaView data={content.ideia_estrategica} />
+        <IdeiaEstrategicaView data={parsedContent.ideia_estrategica} />
         
         <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t p-4 -mx-4 md:mx-0 md:border md:rounded-lg flex flex-col sm:flex-row gap-3">
           <Button onClick={onSave} disabled={isSaving} className="flex-1">
@@ -315,7 +322,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   if (contentType === 'estudo') {
     return (
       <div className="space-y-6">
-        <EstudoBiblicoView data={content} />
+        <EstudoBiblicoView data={parsedContent} />
         <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t p-4 -mx-4 md:mx-0 md:border md:rounded-lg flex flex-col sm:flex-row gap-3">
           <Button onClick={onSave} disabled={isSaving} className="flex-1">
             <Save className="w-4 h-4 mr-2" />
@@ -333,7 +340,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   if (contentType === 'resumo') {
     return (
       <div className="space-y-6">
-        <ResumoPregacaoView data={content} />
+        <ResumoPregacaoView data={parsedContent} />
         <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t p-4 -mx-4 md:mx-0 md:border md:rounded-lg flex flex-col sm:flex-row gap-3">
           <Button onClick={onSave} disabled={isSaving} className="flex-1">
             <Save className="w-4 h-4 mr-2" />
@@ -348,8 +355,8 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     );
   }
 
-  if (contentType === 'desafio_semanal' && content.desafio_semanal) {
-    return <DesafioSemanalView data={content} onSave={onSave} onRegenerate={onRegenerate} isSaving={isSaving} />;
+  if (contentType === 'desafio_semanal' && parsedContent.desafio_semanal) {
+    return <DesafioSemanalView data={parsedContent} onSave={onSave} onRegenerate={onRegenerate} isSaving={isSaving} />;
   }
 
   if (contentType === 'devocional') {
