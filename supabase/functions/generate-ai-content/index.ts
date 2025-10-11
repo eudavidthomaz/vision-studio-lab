@@ -861,25 +861,53 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     const socialMediaTypes = ['post', 'carrossel', 'reel', 'stories'];
 
     // ============================================
-    // FASE 2: CONSTRUIR SYSTEM PROMPT DINÂMICO
+    // FASE 2: CONSTRUIR SYSTEM PROMPT OTIMIZADO (HIERÁRQUICO)
     // ============================================
     
-    const systemPrompt = `${mentorContext}
+    // NÍVEL 1: IDENTIDADE (sempre)
+    let systemPrompt = mentorContext;
+    
+    // NÍVEL 2: PRINCÍPIOS (completo para estratégicos, condensado para outros)
+    if (strategicTypes.includes(detectedType)) {
+      systemPrompt += `\n\n${CORE_PRINCIPLES}`;
+    } else {
+      // Versão condensada (~70% mais curta)
+      systemPrompt += `\n\nPRINCÍPIOS ESSENCIAIS:
+- Cristocentrismo e fidelidade bíblica
+- Dignidade humana e consentimento (LGPD/ECA)
+- Vulnerabilidade com respeito (sem exploração)
+- Verdade + Esperança (sem sensacionalismo)
+- Medição com propósito (pessoas > números)`;
+    }
+    
+    // NÍVEL 3: MÉTODO DE CONTEÚDO (só quando relevante)
+    if (['estudo', 'devocional', 'resumo', 'esboco', 'resumo_breve'].includes(detectedType)) {
+      systemPrompt += `\n\n${CONTENT_METHOD}`;
+    }
+    
+    // NÍVEL 4: DISTRIBUIÇÃO DE PILARES (só para calendários)
+    if (detectedType === 'calendario') {
+      systemPrompt += `\n\n${PILLAR_DISTRIBUTION}`;
+    }
+    
+    // NÍVEL 5: BASE DE ESTUDOS (só para conteúdo bíblico)
+    if (requiresBiblicalFoundation.includes(detectedType)) {
+      systemPrompt += `\n\n${STUDY_BASE}`;
+    }
+    
+    systemPrompt += `\n\n`;
 
-${CORE_PRINCIPLES}
-
-${CONTENT_METHOD}
-
-${PILLAR_DISTRIBUTION}
-
-${requiresBiblicalFoundation.includes(detectedType) ? STUDY_BASE : ''}
-
-${denominationalPrefs ? `
+    // NÍVEL 6: PREFERÊNCIAS DENOMINACIONAIS (opcional)
+    if (denominationalPrefs) {
+      systemPrompt += `
 ADAPTAÇÃO DENOMINACIONAL:
 - Ênfase teológica: ${denominationalPrefs.enfase || 'genérica evangélica'}
 - Tradução bíblica: ${denominationalPrefs.traducao || 'NVI'}
 - Calendário litúrgico: ${denominationalPrefs.calendario_liturgico ? 'Sim (Advento, Páscoa)' : 'Não'}
-` : ''}
+`;
+    }
+    
+    systemPrompt += `
 
 TIPO DETECTADO: ${detectedType}
 
@@ -933,20 +961,79 @@ INSTRUÇÕES ESPECÍFICAS PARA CALENDÁRIO:
 ${detectedType === 'carrossel' ? `
 INSTRUÇÕES ESPECÍFICAS PARA CARROSSEL:
 - Crie EXATAMENTE 8-10 slides com progressão lógica
-- Cada slide deve ter: titulo_slide, conteudo, imagem_sugerida, chamada_para_acao
-- Slide 1: Hook poderoso
-- Slides 2-8: Desenvolvimento progressivo
+- Cada slide deve ter: titulo_slide, conteudo (mínimo 100 caracteres), imagem_sugerida, chamada_para_acao
+- Slide 1: Hook poderoso que gera curiosidade
+- Slides 2-8: Desenvolvimento progressivo com EXEMPLOS PRÁTICOS
 - Último slide: CTA claro e direto
 - dica_producao deve incluir: copywriting (como escrever legenda engajante), cta (call-to-action específico), hashtags
+
+EXEMPLO DE SLIDE 1 (Hook):
+{
+  "numero_slide": 1,
+  "titulo_slide": "Você já se sentiu invisível?",
+  "conteudo": "Aquela sensação de que ninguém te vê, te ouve ou te entende? Hoje vamos descobrir como Deus enxerga além das aparências e te escolheu desde o início.",
+  "imagem_sugerida": "Pessoa sozinha olhando para o horizonte, luz suave ao entardecer",
+  "chamada_para_acao": "Deslize para descobrir →"
+}
+
+EXEMPLO DE ÚLTIMO SLIDE (CTA):
+{
+  "numero_slide": 10,
+  "titulo_slide": "Seu próximo passo",
+  "conteudo": "Você não precisa ser perfeito para ser visto por Deus. Ele já te escolheu. Que tal começar uma conversa com Ele hoje? Experimente orar por 5 minutos sobre o que você leu aqui.",
+  "imagem_sugerida": "Mãos abertas ao céu, luz dourada, ambiente esperançoso",
+  "chamada_para_acao": "Comente 🙏 se você vai orar hoje"
+}
+` : ''}
+
+${detectedType === 'estudo' ? `
+INSTRUÇÕES ESPECÍFICAS PARA ESTUDO BÍBLICO:
+- Contexto histórico/cultural DETALHADO (mínimo 200 caracteres)
+- Mínimo de 3 aplicações práticas CONCRETAS (não genéricas)
+- Cada ponto de desenvolvimento deve ter: explicação + aplicação + exemplo real
+- Linguagem pastoral, não acadêmica demais
+- Perguntas reflexivas profundas, não superficiais
+
+EXEMPLO DE APLICAÇÃO PRÁTICA BOA:
+"Em vez de apenas 'ore mais', diga: 'Esta semana, escolha um momento fixo (ex: 7h da manhã ou 22h) e converse com Deus por 10 minutos sobre uma decisão específica que você precisa tomar. Anote o que você sentiu.'"
+` : ''}
+
+${detectedType === 'devocional' ? `
+INSTRUÇÕES ESPECÍFICAS PARA DEVOCIONAL:
+- Reflexão em 3-4 parágrafos CONECTANDO Escritura com vida cotidiana
+- Use linguagem humana e pastoral (como conversa entre amigos)
+- Desafio do dia deve ser ESPECÍFICO e realizável em 15-30 minutos
+- Oração sugerida deve ser genuína, não formulaica
+
+EXEMPLO DE REFLEXÃO BOA:
+"Você já acordou com aquela sensação de que o dia vai ser pesado demais? Davi também conhecia essa sensação. No Salmo 42, ele fala de uma sede tão profunda que parece que sua alma vai secar. Mas repare: mesmo na angústia, ele não abandona a conversa com Deus. Ele questiona, reclama, mas continua ali..."
+` : ''}
+
+${detectedType === 'campanha_tematica' ? `
+INSTRUÇÕES ESPECÍFICAS PARA CAMPANHA TEMÁTICA:
+- Mínimo de 4 semanas completas com progressão narrativa
+- Cada semana deve ter objetivos específicos e formatos variados
+- Incluir métricas de acompanhamento para cada fase
+- Tom inspirador mas prático - evite jargões
+- Forneça exemplos concretos de posts para cada semana
+` : ''}
+
+${detectedType === 'treino_voluntario' ? `
+INSTRUÇÕES ESPECÍFICAS PARA TREINO DE VOLUNTÁRIO:
+- Estrutura modular com teoria + prática
+- Exercícios práticos para cada módulo
+- Checklist de competências ao final
+- Linguagem acessível para iniciantes
+- Incluir casos reais e simulações
 ` : ''}
 
 ${['reel', 'stories', 'post'].includes(detectedType) ? `
 INSTRUÇÕES PARA REDES SOCIAIS:
 - dica_producao OBRIGATÓRIA com:
-  * copywriting: Dicas de como escrever legenda envolvente
-  * hashtags: Lista de hashtags relevantes
-  * melhor_horario: Melhor horário para postar
-  * cta: Call-to-action específico e claro
+  * copywriting: Dicas de como escrever legenda envolvente (2-3 frases específicas)
+  * hashtags: Lista de 8-12 hashtags relevantes (mix de popular + nicho)
+  * melhor_horario: Melhor horário para postar com justificativa
+  * cta: Call-to-action específico e claro (não genérico tipo "comente")
 ` : ''}
 
 ESTRUTURA JSON OBRIGATÓRIA para tipo "${detectedType}":
@@ -963,6 +1050,25 @@ Retorne APENAS o JSON válido.`;
 
     console.log('Calling Lovable AI with prompt:', prompt.substring(0, 100));
 
+    // ============================================
+    // FASE 1: TOKENS E TEMPERATURA DINÂMICOS
+    // ============================================
+    
+    // Tipos complexos precisam de mais tokens
+    const complexTypes = ['campanha_tematica', 'treino_voluntario', 'manual_etica', 'estrategia_social'];
+    const deepBiblicalTypes = ['estudo', 'esboco', 'discipulado', 'qa_estruturado'];
+    const operationalTypesTemp = ['aviso', 'convite', 'versiculos_citados', 'checklist_culto'];
+    
+    const maxTokens = complexTypes.includes(detectedType) 
+      ? 8000  // Conteúdo complexo/estratégico
+      : deepBiblicalTypes.includes(detectedType)
+      ? 6000  // Conteúdo bíblico profundo
+      : 4000; // Outros tipos
+    
+    const temperature = operationalTypesTemp.includes(detectedType)
+      ? 0.5   // Operacional - mais conservador e preciso
+      : 0.85; // Criativo/Pastoral - mais humano e natural
+
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -976,8 +1082,8 @@ Retorne APENAS o JSON válido.`;
           { role: 'user', content: processedPrompt }
         ],
         response_format: { type: 'json_object' },
-        max_tokens: 4000,
-        temperature: 0.7
+        max_tokens: maxTokens,
+        temperature: temperature
       }),
     });
 
@@ -989,6 +1095,10 @@ Retorne APENAS o JSON válido.`;
 
     const aiData = await aiResponse.json();
     console.log('AI response received');
+
+    // Variáveis para tracking de qualidade (declaradas aqui para serem acessíveis no final)
+    let depthOk = true;
+    let retryCount = 0;
 
     let generatedContent;
     try {
@@ -1004,6 +1114,112 @@ Retorne APENAS o JSON válido.`;
       }
       
       generatedContent = JSON.parse(jsonMatch[0]);
+      
+    // ============================================
+    // FASE 4: VALIDAÇÃO DE PROFUNDIDADE
+    // ============================================
+    const contentDepthCheck = (content: any, type: string): boolean => {
+      // Carrossel: deve ter 8-10 slides com conteúdo substancial
+      if (type === 'carrossel') {
+        const slides = content.carrossel?.slides || [];
+        if (slides.length < 8) {
+          console.warn('Carrossel raso: menos de 8 slides');
+          return false;
+        }
+        const avgLength = slides.reduce((sum: number, s: any) => sum + (s.conteudo?.length || 0), 0) / slides.length;
+        if (avgLength < 100) {
+          console.warn('Carrossel raso: conteúdo médio < 100 chars por slide');
+          return false;
+        }
+      }
+      
+      // Estudo: contexto e aplicações com profundidade
+      if (type === 'estudo') {
+        const contexto = content.fundamento_biblico?.contexto || '';
+        const aplicacoes = content.estudo_biblico?.desenvolvimento || [];
+        if (contexto.length < 200) {
+          console.warn('Estudo raso: contexto < 200 chars');
+          return false;
+        }
+        if (aplicacoes.length < 3) {
+          console.warn('Estudo raso: menos de 3 pontos de desenvolvimento');
+          return false;
+        }
+      }
+      
+      // Campanha: deve ter 4 semanas completas
+      if (type === 'campanha_tematica') {
+        const semanas = content.campanha?.semanas || [];
+        if (semanas.length < 4) {
+          console.warn('Campanha rasa: menos de 4 semanas');
+          return false;
+        }
+      }
+      
+      // Devocional: reflexão substancial
+      if (type === 'devocional') {
+        const reflexao = content.devocional?.reflexao || '';
+        if (reflexao.length < 300) {
+          console.warn('Devocional raso: reflexão < 300 chars');
+          return false;
+        }
+      }
+      
+      return true; // Passou nos checks
+    };
+
+    depthOk = contentDepthCheck(generatedContent, detectedType);
+    
+    // Se conteúdo raso E tipo que deveria ser profundo, fazer retry
+    if (!depthOk && ['carrossel', 'estudo', 'campanha_tematica', 'devocional'].includes(detectedType) && retryCount < 1) {
+      console.warn('Content too shallow, retrying with expanded prompt...');
+      retryCount++;
+      
+      const expandedPrompt = `${processedPrompt}
+
+🚨 IMPORTANTE: O conteúdo anterior ficou muito superficial. 
+POR FAVOR, EXPANDA SIGNIFICATIVAMENTE com:
+
+✅ Exemplos práticos CONCRETOS (não abstratos tipo "ore mais" - seja específico!)
+✅ Aplicações ESPECÍFICAS para situações reais do dia a dia
+✅ Contexto histórico/cultural DETALHADO quando relevante
+✅ Linguagem PASTORAL e HUMANIZADA (converse como um mentor, não como um robô)
+✅ PROFUNDIDADE teológica sem ser academicista demais
+
+Imagine que você está preparando material para um líder de mídia que precisa de SUBSTÂNCIA e INSPIRAÇÃO real, não genérico.`;
+
+      const retryResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: expandedPrompt }
+          ],
+          response_format: { type: 'json_object' },
+          max_tokens: maxTokens,
+          temperature: temperature
+        }),
+      });
+      
+      if (retryResponse.ok) {
+        const retryData = await retryResponse.json();
+        const retryContent = retryData.choices[0].message.content;
+        const retryJsonMatch = retryContent.match(/\{[\s\S]*\}/);
+        if (retryJsonMatch) {
+          const retryGeneratedContent = JSON.parse(retryJsonMatch[0]);
+          depthOk = contentDepthCheck(retryGeneratedContent, detectedType);
+          if (depthOk) {
+            console.log('Retry successful - content depth improved!');
+            generatedContent = retryGeneratedContent;
+          }
+        }
+      }
+    }
       
     // Validate structure based on content type
     const operationalTypesValidation = [
@@ -1090,10 +1306,27 @@ Retorne APENAS o JSON válido.`;
 
     console.log('Content saved successfully with id:', savedContent.id);
 
+    // ============================================
+    // FASE 5: LOGGING DE QUALIDADE
+    // ============================================
+    const qualityMetrics = {
+      detectedType,
+      tokens_system_estimated: Math.round(systemPrompt.length / 4),
+      tokens_response_estimated: Math.round(JSON.stringify(generatedContent).length / 4),
+      temperature_used: temperature,
+      max_tokens_used: maxTokens,
+      depth_check_passed: depthOk,
+      retry_needed: retryCount > 0,
+      prompt_length: processedPrompt.length
+    };
+    
+    console.log('📊 QUALITY_METRICS:', JSON.stringify(qualityMetrics, null, 2));
+
     return new Response(JSON.stringify({ 
       success: true,
       content_id: savedContent.id,
-      content: generatedContent
+      content: generatedContent,
+      _metrics: qualityMetrics // Para debugging
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
