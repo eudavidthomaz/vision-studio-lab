@@ -6,7 +6,6 @@ import { Loader2, Sparkles, FileText, Camera, Video, Edit, Mic, Calendar, Users,
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import AudioInput from "@/components/AudioInput";
-import WeeklyPackDisplay from "@/components/WeeklyPackDisplay";
 import OnboardingTour from "@/components/OnboardingTour";
 import EmptyState from "@/components/EmptyState";
 import ProgressSteps from "@/components/ProgressSteps";
@@ -29,7 +28,6 @@ const Dashboard = () => {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [transcript, setTranscript] = useState("");
-  const [weeklyPack, setWeeklyPack] = useState<any>(null);
   const [isGeneratingPack, setIsGeneratingPack] = useState(false);
   const [runTour, setRunTour] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
@@ -302,14 +300,6 @@ const Dashboard = () => {
             </div>
           )}
 
-          {/* Results */}
-          {weeklyPack && !isGeneratingPack && (
-            <div className="space-y-8">
-              <WeeklyPackDisplay 
-                pack={weeklyPack}
-              />
-            </div>
-          )}
         </div>
 
         {/* Sermon Completed Modal */}
