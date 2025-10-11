@@ -150,6 +150,27 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
     }
   };
 
+  // Sanitize filename to avoid invalid characters in storage
+  const sanitizeFileName = (fileName: string): string => {
+    // Extract name and extension
+    const lastDotIndex = fileName.lastIndexOf('.');
+    const name = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
+    const ext = lastDotIndex > 0 ? fileName.substring(lastDotIndex) : '';
+    
+    // Remove/replace invalid characters
+    const sanitized = name
+      .normalize('NFD') // Decompose accents
+      .replace(/[\u0300-\u036f]/g, '') // Remove diacritical marks
+      .replace(/[^\w\s-]/g, '') // Remove special characters (except spaces, letters, numbers, hyphens)
+      .replace(/\s+/g, '_') // Replace spaces with underscores
+      .replace(/_+/g, '_') // Remove duplicate underscores
+      .replace(/^_|_$/g, '') // Remove underscores at start/end
+      .toLowerCase() // Convert to lowercase
+      .substring(0, 100); // Limit to 100 characters
+    
+    return sanitized + ext.toLowerCase();
+  };
+
   const transcribeAudio = async (audioData: Blob | File) => {
     try {
       setIsProcessing(true);
@@ -160,11 +181,26 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
         throw new Error('Usuário não autenticado');
       }
 
-      // Prepare file name
+      // Prepare file name with sanitization
       const isFile = audioData instanceof File;
-      const fileName = isFile ? (audioData as File).name : 'recording.webm';
+      const originalFileName = isFile ? (audioData as File).name : 'recording.webm';
+      const sanitizedFileName = sanitizeFileName(originalFileName);
+      
+      // Validate sanitized filename
+      if (sanitizedFileName.length < 3) {
+        throw new Error('Nome do arquivo muito curto após sanitização');
+      }
+
       const timestamp = Date.now();
-      const storageFileName = `${user.id}/${timestamp}_${fileName}`;
+      const storageFileName = `${user.id}/${timestamp}_${sanitizedFileName}`;
+
+      if (storageFileName.length > 255) {
+        throw new Error('Caminho do arquivo muito longo');
+      }
+
+      console.log('Original filename:', originalFileName);
+      console.log('Sanitized filename:', sanitizedFileName);
+      console.log('Storage path:', storageFileName);
 
       toast({
         title: "Preparando sua mensagem",
@@ -208,7 +244,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
       // Call transcription function with storage URL
       console.log('🔄 Calling transcribe-sermon with:', {
         audio_url: uploadData.path,
-        fileName,
+        fileName: originalFileName,
         fileSize: audioData.size,
         contentType: audioData.type
       });
@@ -216,7 +252,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
       const response = await invokeFunction('transcribe-sermon', {
         audio_url: uploadData.path,
         metadata: {
-          fileName,
+          fileName: originalFileName,
           contentType: audioData.type,
           fileSize: audioData.size,
         }
