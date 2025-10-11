@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,9 +33,20 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { invokeFunction } = useSecureApi();
   const navigate = useNavigate();
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   // Calcula progresso estimado baseado no tamanho do áudio e tempo decorrido
   const calculateProgress = (audioSizeMB: number, elapsedSeconds: number): number => {
@@ -172,6 +183,16 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
   };
 
   const transcribeAudio = async (audioData: Blob | File) => {
+    // Prevent multiple simultaneous uploads
+    if (isProcessing) {
+      toast({
+        title: "Processamento em andamento",
+        description: "Aguarde o arquivo atual ser processado antes de enviar outro.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsProcessing(true);
 
@@ -275,7 +296,13 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
         let attempts = 0;
         const maxAttempts = 60; // 5 minutes max (5s intervals)
 
-        const pollInterval = setInterval(async () => {
+        // Clear any existing interval before creating new one
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+
+        pollIntervalRef.current = setInterval(async () => {
           attempts++;
           const elapsedSeconds = attempts * 5; // 5s por tentativa
           
@@ -293,7 +320,10 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
           }
           
           if (attempts > maxAttempts) {
-            clearInterval(pollInterval);
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
             setIsProcessing(false);
             setTranscriptionProgress(0);
             setTranscriptionStage('');
@@ -312,7 +342,10 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
             .single();
 
           if (sermon?.status === 'completed' && sermon.transcript) {
-            clearInterval(pollInterval);
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
             setTranscriptionProgress(100);
             setTranscriptionStage('Concluído!');
             
@@ -330,7 +363,10 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
               });
             }, 500);
           } else if (sermon?.status === 'failed') {
-            clearInterval(pollInterval);
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
             setIsProcessing(false);
             setTranscriptionProgress(0);
             setTranscriptionStage('');
@@ -359,13 +395,19 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
 
     } catch (error: any) {
       console.error('Transcription error:', error);
+      // Clear interval if error occurs
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+      setIsProcessing(false);
+      setTranscriptionProgress(0);
+      setTranscriptionStage('');
       toast({
         title: "Erro na transcrição",
         description: error.message || "Não foi possível transcrever o áudio.",
         variant: "destructive",
       });
-    } finally {
-      setIsProcessing(false);
     }
   };
 
