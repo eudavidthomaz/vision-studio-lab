@@ -34,7 +34,8 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
 
   // Detectar tipo de conteúdo
   const parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
-  const contentType = parsedContent.calendario_editorial ? 'calendario'
+  const contentType = parsedContent.versiculos_base && parsedContent.resumo && parsedContent.legendas ? 'pack_semanal'
+    : parsedContent.calendario_editorial ? 'calendario'
     : parsedContent.convite ? 'convite'
     : parsedContent.aviso ? 'aviso'
     : parsedContent.guia ? 'guia'

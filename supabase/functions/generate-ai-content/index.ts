@@ -68,7 +68,9 @@ serve(async (req) => {
   } else {
     // PRIORIDADE 2: Detecção por regex (formatos específicos primeiro)
     const contentTypeDetection = {
-      // Organizational formats (highest priority)
+      // Weekly pack (highest priority - must be first!)
+      pack_semanal: /pack|pacote|semanal|semana|série de posts/i,
+      // Organizational formats (high priority)
       calendario: /calendário|cronograma|planejamento|plano editorial|grade de posts/i,
       aviso: /aviso|comunicado|lembrete|atenção/i,
       guia: /guia|manual|passo a passo|tutorial/i,
@@ -398,7 +400,7 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     "chamado_acao": "Frase motivadora final"
   }
 }`,
-    discipulado: `{
+      discipulado: `{
   "fundamento_biblico": {
     "versiculos": ["Versículos sobre discipulado"],
     "contexto": "Base bíblica do discipulado",
@@ -420,6 +422,47 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     ],
     "recursos": ["Livro recomendado", "Material de apoio"]
   }
+}`,
+      pack_semanal: `{
+  "versiculos_base": ["Romanos 12:1-2", "João 3:16"],
+  "principio_atemporal": "Frase-chave que captura a verdade central da pregação",
+  "resumo": "Resumo conciso da pregação em 2-3 parágrafos",
+  "frases_impactantes": ["array com 5-7 frases marcantes da pregação"],
+  "stories": ["array com 3-5 ideias de stories para Instagram/Facebook"],
+  "estudo_biblico": {
+    "tema": "Tema principal do estudo",
+    "versiculos": ["array com versículos relevantes com referência completa"],
+    "perguntas": ["array com 5-7 perguntas para reflexão em grupo"]
+  },
+  "legendas": [
+    {
+      "texto": "Legenda completa do post",
+      "pilar_estrategico": "Edificar | Alcançar | Pertencer | Servir",
+      "cta": "Call-to-action específico (ex: Envie CÉLULA no DM)",
+      "hashtags": ["array", "de", "hashtags"]
+    }
+  ],
+  "carrosseis": [
+    {
+      "titulo": "Título do carrossel",
+      "pilar_estrategico": "Edificar | Alcançar | Pertencer | Servir",
+      "slides": [
+        {
+          "texto": "Texto do slide",
+          "sugestao_imagem": "Descrição da imagem sugerida"
+        }
+      ]
+    }
+  ],
+  "reels": [
+    {
+      "titulo": "Título do reel",
+      "pilar_estrategico": "Edificar | Alcançar | Pertencer | Servir",
+      "roteiro": "Roteiro completo do vídeo",
+      "duracao_estimada": "30-60 segundos",
+      "hook": "Gancho inicial para prender atenção"
+    }
+  ]
 }`,
     desafio_semanal: `{
   "fundamento_biblico": {

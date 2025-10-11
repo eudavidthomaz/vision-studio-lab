@@ -102,19 +102,24 @@ const Dashboard = () => {
       // Step 2: Analyzing sermon (50%)
       setGenerationProgress(50);
 
-      // Construir prompt contextualizado para áudio
-      const audioPrompt = `Com base nesta transcrição de pregação, crie um pacote completo de conteúdo para redes sociais:
+      // Construir prompt para pack semanal com Gemini
+      const audioPrompt = `TIPO_SOLICITADO: pack_semanal
 
+Com base nesta transcrição de pregação, crie um pacote completo de conteúdo para redes sociais seguindo EXATAMENTE a estrutura JSON solicitada.
+
+Transcrição:
 ${transcriptText}
 
-Inclua:
-- Fundamento bíblico com versículos completos
-- Resumo pastoral da mensagem
-- 5-7 frases impactantes da pregação
-- Ideias de stories para a semana
-- Legendas prontas com CTAs
-- Estrutura de carrossel/reel
-- Estudo bíblico para células`;
+Inclua TODOS os campos obrigatórios:
+- versiculos_base (array com versículos completos)
+- principio_atemporal (verdade central)
+- resumo (2-3 parágrafos)
+- frases_impactantes (5-7 frases)
+- stories (3-5 ideias)
+- estudo_biblico (tema, versículos, perguntas)
+- legendas (array com texto, pilar, cta, hashtags)
+- carrosseis (array com título, pilar, slides)
+- reels (array com título, pilar, roteiro, hook)`;
 
       // Generate content using generate-ai-content with Lovable AI (Gemini)
       const result = await invokeFunction<any>('generate-ai-content', {

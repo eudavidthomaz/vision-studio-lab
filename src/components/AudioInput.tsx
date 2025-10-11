@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Podcast, Square, Loader2, Upload, File } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSecureApi } from "@/hooks/useSecureApi";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AudioInputProps {
   onTranscriptionComplete: (transcript: string, sermonId?: string) => void;
@@ -127,43 +128,102 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
 
   const transcribeAudio = async (audioData: Blob | File) => {
     try {
-      // Convert to base64
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Audio = (reader.result as string).split(',')[1];
-        
-        toast({
-          title: "Preparando sua mensagem",
-          description: "Cada palavra está sendo cuidadosamente registrada para alcançar mais vidas.",
-        });
+      setIsProcessing(true);
 
-        try {
-          const result = await invokeFunction<{ transcript: string; sermon_id?: string }>('transcribe-sermon', {
-            audio_base64: base64Audio
-          });
-
-          if (!result) {
-            // Error already handled by useSecureApi
-            setIsProcessing(false);
-            return;
-          }
-          
-          toast({
-            title: "Mensagem capturada!",
-            description: "Sua pregação está pronta para impactar vidas através de cada plataforma.",
-          });
-
-          onTranscriptionComplete(result.transcript, result.sermon_id);
-          setSelectedFile(null);
-        } catch (error) {
-          console.error('Unexpected error:', error);
-        } finally {
-          setIsProcessing(false);
-        }
+      // Prepare metadata
+      const isFile = audioData instanceof File;
+      const fileName = isFile ? (audioData as File).name : 'recording.webm';
+      const metadata = {
+        original_name: fileName,
+        original_mime: audioData.type,
+        size_bytes: audioData.size,
+        source: isFile ? 'upload' : 'microphone',
       };
-      reader.readAsDataURL(audioData);
+
+      // Create multipart FormData
+      const formData = new FormData();
+      formData.append('file', audioData, fileName);
+      formData.append('metadata', JSON.stringify(metadata));
+
+      toast({
+        title: "Preparando sua mensagem",
+        description: "Cada palavra está sendo cuidadosamente registrada para alcançar mais vidas.",
+      });
+
+      // Send to Edge Function with multipart
+      const { data: session } = await supabase.auth.getSession();
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-sermon`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.session?.access_token}`,
+          },
+          body: formData, // multipart, NOT JSON
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Transcription failed');
+      }
+
+      const result = await response.json();
+      
+      // If status=processing, poll for completion
+      if (result.status === 'processing') {
+        toast({
+          title: "Processando áudio...",
+          description: "Áudio longo detectado. Você será notificado quando estiver pronto.",
+        });
+        
+        // Polling every 3 seconds
+        const pollInterval = setInterval(async () => {
+          const { data: sermon } = await supabase
+            .from('sermons')
+            .select('status, transcript')
+            .eq('id', result.sermon_id)
+            .single();
+
+          if (sermon?.status === 'completed') {
+            clearInterval(pollInterval);
+            setIsProcessing(false);
+            toast({ 
+              title: "Transcrição completa!", 
+              description: "Áudio processado com sucesso." 
+            });
+            onTranscriptionComplete(sermon.transcript, result.sermon_id);
+            setSelectedFile(null);
+          } else if (sermon?.status === 'failed') {
+            clearInterval(pollInterval);
+            setIsProcessing(false);
+            toast({ 
+              title: "Erro", 
+              description: "Falha ao processar áudio.", 
+              variant: "destructive" 
+            });
+          }
+        }, 3000);
+        
+        return;
+      }
+
+      // Sync transcription complete
+      toast({
+        title: "Mensagem capturada!",
+        description: "Sua pregação está pronta para impactar vidas através de cada plataforma.",
+      });
+
+      onTranscriptionComplete(result.transcript, result.sermon_id);
+      setSelectedFile(null);
     } catch (error) {
-      console.error('Error reading audio:', error);
+      console.error('Error in transcription:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível processar o áudio.",
+        variant: "destructive",
+      });
+    } finally {
       setIsProcessing(false);
     }
   };
