@@ -87,7 +87,7 @@ export function useContentLibrary() {
   // Criar novo conteúdo
   const createContent = async (prompt: string, options?: any) => {
     try {
-      const { data, error } = await supabase.functions.invoke('content-engine', {
+      const { data, error } = await supabase.functions.invoke('generate-ai-content', {
         body: { prompt, ...options }
       });
 
