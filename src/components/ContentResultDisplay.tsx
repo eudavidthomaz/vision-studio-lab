@@ -15,6 +15,10 @@ import { DesafioSemanalView } from "./content-views/DesafioSemanalView";
 import { CalendarioView } from "./content-views/CalendarioView";
 import { ConviteView } from "./content-views/ConviteView";
 import { AvisoView } from "./content-views/AvisoView";
+import { CarrosselView } from "./content-views/CarrosselView";
+import { ReelView } from "./content-views/ReelView";
+import { StoriesView } from "./content-views/StoriesView";
+import { PostSimplesView } from "./content-views/PostSimplesView";
 import { GuiaView } from "./content-views/GuiaView";
 import { EsbocoView } from "./content-views/EsbocoView";
 import { VersiculosCitadosView } from "./content-views/VersiculosCitadosView";
@@ -54,6 +58,10 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   const contentType = 
     parsedContent.content_type ||
     (parsedContent.resumo_pregacao && parsedContent.versiculos_base && parsedContent.legendas_instagram) ? 'pack_semanal' :
+    parsedContent.estrutura_visual?.cards ? 'carrossel' :
+    parsedContent.roteiro_video?.cenas ? 'reel' :
+    parsedContent.estrutura_stories?.slides ? 'stories' :
+    (parsedContent.conteudo?.texto && !parsedContent.estrutura_visual && !parsedContent.roteiro_video) ? 'post' :
     parsedContent.devocional ? 'devocional' :
     parsedContent.foto_post ? 'foto_post' :
     parsedContent.roteiro_video ? 'roteiro_video' :
@@ -82,6 +90,199 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     setSelectedContent({ copy, pilar: parsedContent.conteudo?.pilar || 'EDIFICAR' });
     setImageModalOpen(true);
   };
+
+  // Conteúdos criativos de rede social
+  if (contentType === 'carrossel') {
+    return (
+      <div className="space-y-6">
+        {parsedContent.fundamento_biblico && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Book className="h-5 w-5" />
+                Fundamento Bíblico
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {parsedContent.fundamento_biblico.versiculos && (
+                <div>
+                  <h4 className="font-semibold mb-2">Versículos-base:</h4>
+                  <ul className="space-y-2">
+                    {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
+                      <li key={i} className="border-l-2 border-primary pl-3 text-sm">
+                        {v}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {parsedContent.fundamento_biblico.contexto && (
+                <div>
+                  <h4 className="font-semibold mb-2">Contexto:</h4>
+                  <p className="text-sm">{parsedContent.fundamento_biblico.contexto}</p>
+                </div>
+              )}
+              {parsedContent.fundamento_biblico.principio_atemporal && (
+                <div>
+                  <h4 className="font-semibold mb-2">Princípio Atemporal:</h4>
+                  <p className="text-sm">{parsedContent.fundamento_biblico.principio_atemporal}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <CarrosselView 
+          estrutura={parsedContent.estrutura_visual}
+          conteudo={parsedContent.conteudo}
+          dica_producao={parsedContent.dica_producao}
+        />
+
+        <div className="flex gap-3">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (contentType === 'reel') {
+    return (
+      <div className="space-y-6">
+        {parsedContent.fundamento_biblico && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Book className="h-5 w-5" />
+                Fundamento Bíblico
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {parsedContent.fundamento_biblico.versiculos && (
+                <div>
+                  <h4 className="font-semibold mb-2">Versículos-base:</h4>
+                  <ul className="space-y-2">
+                    {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
+                      <li key={i} className="border-l-2 border-primary pl-3 text-sm">
+                        {v}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <ReelView roteiro={parsedContent.roteiro_video} conteudo={parsedContent.conteudo} />
+
+        <div className="flex gap-3">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (contentType === 'stories') {
+    return (
+      <div className="space-y-6">
+        {parsedContent.fundamento_biblico && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Book className="h-5 w-5" />
+                Fundamento Bíblico
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {parsedContent.fundamento_biblico.versiculos && (
+                <div>
+                  <h4 className="font-semibold mb-2">Versículos-base:</h4>
+                  <ul className="space-y-2">
+                    {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
+                      <li key={i} className="border-l-2 border-primary pl-3 text-sm">
+                        {v}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <StoriesView estrutura={parsedContent.estrutura_stories} conteudo={parsedContent.conteudo} />
+
+        <div className="flex gap-3">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (contentType === 'post') {
+    return (
+      <div className="space-y-6">
+        {parsedContent.fundamento_biblico && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Book className="h-5 w-5" />
+                Fundamento Bíblico
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {parsedContent.fundamento_biblico.versiculos && (
+                <div>
+                  <h4 className="font-semibold mb-2">Versículos-base:</h4>
+                  <ul className="space-y-2">
+                    {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
+                      <li key={i} className="border-l-2 border-primary pl-3 text-sm">
+                        {v}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        <PostSimplesView conteudo={parsedContent.conteudo} imagem={parsedContent.sugestao_imagem} />
+
+        <div className="flex gap-3">
+          <Button onClick={onSave} disabled={isSaving} size="lg">
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? "Salvando..." : "Salvar"}
+          </Button>
+          <Button onClick={onRegenerate} variant="outline" size="lg">
+            <RotateCw className="w-4 h-4 mr-2" />
+            Regenerar
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Organizational formats (no fundamento_biblico)
   if (contentType === 'calendario') {

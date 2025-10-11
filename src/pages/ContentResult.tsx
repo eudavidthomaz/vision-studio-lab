@@ -34,6 +34,16 @@ export default function ContentResult() {
         return;
       }
       
+      // Debug log para análise
+      const contentData = data.content as any;
+      console.log('📦 Conteúdo carregado:', {
+        id,
+        contentType: contentData?.content_type,
+        hasEstrutura: !!contentData?.estrutura_visual,
+        hasConteudo: !!contentData?.conteudo,
+        keys: Object.keys(contentData || {})
+      });
+      
       // O conteúdo já está no formato correto - campo content contém o JSON completo
       setContent(data.content);
     } catch (error) {
