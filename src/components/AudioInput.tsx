@@ -2,10 +2,11 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Podcast, Square, Loader2, Upload, File as FileIcon } from "lucide-react";
+import { Podcast, Square, Loader2, Upload, File as FileIcon, Library } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSecureApi } from "@/hooks/useSecureApi";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface AudioInputProps {
   onTranscriptionComplete: (transcript: string, sermonId?: string) => void;
@@ -20,6 +21,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { invokeFunction } = useSecureApi();
+  const navigate = useNavigate();
 
   const startRecording = async () => {
     try {
@@ -177,9 +179,19 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
 
       // Handle async processing
       if (result.status === 'processing') {
+        const audioSizeMB = audioData.size / (1024 * 1024);
+        const estimatedMinutes = Math.ceil(audioSizeMB / 2);
+        
         toast({
-          title: "⏳ Processando áudio...",
-          description: "Seu áudio está sendo transcrito. Você será notificado quando estiver pronto.",
+          title: "⏳ Processando áudio de longa duração",
+          description: "Áudios maiores levam mais tempo. Fique tranquilo, você será notificado quando estiver pronto!",
+          duration: 6000,
+        });
+
+        toast({
+          title: "📊 Tempo estimado",
+          description: `Aproximadamente ${estimatedMinutes} minuto${estimatedMinutes > 1 ? 's' : ''} para áudios deste tamanho.`,
+          duration: 5000,
         });
 
         // Poll for completion
@@ -189,6 +201,15 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
 
         const pollInterval = setInterval(async () => {
           attempts++;
+          
+          // Mostrar progresso visual a cada 3 tentativas (15 segundos)
+          if (attempts % 3 === 0) {
+            toast({
+              title: "🔄 Ainda processando...",
+              description: `Verificando status da transcrição (tentativa ${attempts}/${maxAttempts})`,
+              duration: 3000,
+            });
+          }
           
           if (attempts > maxAttempts) {
             clearInterval(pollInterval);
@@ -363,9 +384,37 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
               )}
 
               {isProcessing && (
-                <div className="w-full flex flex-col items-center gap-4 p-8">
-                  <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                  <p className="text-sm text-muted-foreground">Processando a mensagem do seu coração...</p>
+                <div className="w-full flex flex-col items-center gap-6 p-8">
+                  <div className="relative">
+                    <Loader2 className="h-16 w-16 text-primary animate-spin" />
+                    <div className="absolute -inset-4 bg-primary/10 rounded-full animate-pulse" />
+                  </div>
+                  <div className="text-center space-y-2">
+                    <p className="text-base font-semibold text-foreground">
+                      Transformando áudio em texto sagrado...
+                    </p>
+                    <p className="text-sm text-muted-foreground max-w-md">
+                      Cada palavra está sendo preservada com cuidado. 
+                      Áudios maiores podem levar alguns minutos.
+                    </p>
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground mt-4">
+                      <div className="h-2 w-2 bg-primary rounded-full animate-bounce" />
+                      <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:100ms]" />
+                      <div className="h-2 w-2 bg-primary rounded-full animate-bounce [animation-delay:200ms]" />
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/meus-conteudos')}
+                    className="mt-4"
+                  >
+                    <Library className="w-4 h-4 mr-2" />
+                    Ver Minhas Pregações
+                  </Button>
+                  <p className="text-xs text-muted-foreground text-center max-w-sm">
+                    Você pode sair desta tela. A transcrição continuará em segundo plano.
+                  </p>
                 </div>
               )}
             </div>

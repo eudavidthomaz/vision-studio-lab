@@ -85,23 +85,36 @@ const Dashboard = () => {
 
   const handleTranscriptionComplete = async (transcriptText: string, sermonId?: string) => {
     setTranscript(transcriptText);
-
     await trackEvent('sermon_uploaded');
 
     try {
-      // Incrementar quota
       incrementUsage('weekly_packs');
       await trackEvent('sermon_completed');
 
-      // Abrir modal de celebração com resumo parcial
-      const summary = transcriptText.substring(0, 500) + '...';
-      setCurrentSermonSummary(summary);
-      setCurrentSermonId(sermonId || '');
+      // Buscar dados completos do sermão do banco
+      if (sermonId) {
+        const { data: sermon } = await supabase
+          .from('sermons')
+          .select('id, transcript')
+          .eq('id', sermonId)
+          .single();
+
+        if (sermon) {
+          // Gerar resumo inteligente (primeiros 3 parágrafos ou 1000 caracteres)
+          const paragraphs = sermon.transcript.split('\n').filter(p => p.trim().length > 0);
+          const summary = paragraphs.slice(0, 3).join('\n\n');
+          
+          setCurrentSermonSummary(summary.substring(0, 1000) + (summary.length > 1000 ? '...' : ''));
+          setCurrentSermonId(sermon.id);
+        }
+      }
+
       setShowSermonCompletedModal(true);
 
       toast({
-        title: "Transcrição Completa! 🎉",
-        description: "Sua pregação foi transcrita com sucesso.",
+        title: "✅ Transcrição Completa! 🎉",
+        description: "Sua pregação foi transcrita com sucesso e está pronta para gerar conteúdos.",
+        duration: 5000,
       });
 
       // Celebration for first generation
