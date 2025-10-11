@@ -4,69 +4,9 @@ import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Badge } from "./ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-import { Sparkles, Loader2, BookOpen, Wand2, Calendar, Video, ClipboardList, Smartphone, Shield, TrendingUp, GraduationCap } from "lucide-react";
+import { Sparkles, Loader2, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-// Comandos especiais disponíveis
-const SPECIAL_COMMANDS = [
-  {
-    command: "/treino-voluntário",
-    name: "Treino de Voluntário",
-    description: "Onboarding completo para capacitar novos voluntários",
-    icon: GraduationCap,
-    example: "Ex: /treino-voluntário para equipe de fotografia",
-    category: "Educação"
-  },
-  {
-    command: "/campanha-temática",
-    name: "Campanha Temática",
-    description: "Planejamento de série com 4 semanas de conteúdo",
-    icon: Calendar,
-    example: "Ex: /campanha-temática sobre família",
-    category: "Estratégia"
-  },
-  {
-    command: "/roteiro-reels",
-    name: "Roteiro de Reels",
-    description: "Script completo com Hook, Valor e CTA",
-    icon: Video,
-    example: "Ex: /roteiro-reels sobre superação",
-    category: "Criativo"
-  },
-  {
-    command: "/checklist-culto",
-    name: "Checklist de Culto",
-    description: "Checklist pré, durante e pós-culto com avisos éticos",
-    icon: ClipboardList,
-    example: "Ex: /checklist-culto para culto de domingo",
-    category: "Operacional"
-  },
-  {
-    command: "/kit-básico",
-    name: "Kit Básico",
-    description: "Setup mínimo para mídia digna mesmo com celular",
-    icon: Smartphone,
-    example: "Ex: /kit-básico para igreja pequena",
-    category: "Recursos"
-  },
-  {
-    command: "/manual-ética",
-    name: "Manual de Ética",
-    description: "Guia para proteger imagens e evitar abusos (LGPD/ECA)",
-    icon: Shield,
-    example: "Ex: /manual-ética para equipe de mídia",
-    category: "Segurança"
-  },
-  {
-    command: "/estratégia-social",
-    name: "Estratégia Social",
-    description: "Plano completo para Instagram com metas semanais",
-    icon: TrendingUp,
-    example: "Ex: /estratégia-social para aumentar alcance",
-    category: "Marketing"
-  }
-];
 
 interface AIPromptModalProps {
   open: boolean;
@@ -80,12 +20,6 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
   const [prompt, setPrompt] = useState("");
   const [sermons, setSermons] = useState<any[]>([]);
   const [selectedSermonId, setSelectedSermonId] = useState<string>("");
-  const [showCommands, setShowCommands] = useState(true);
-
-  // Detectar se há comando especial no prompt
-  const detectedCommand = SPECIAL_COMMANDS.find(cmd => 
-    prompt.toLowerCase().includes(cmd.command.toLowerCase())
-  );
 
   useEffect(() => {
     if (open) {
@@ -173,12 +107,6 @@ ${prompt.trim()}`;
     }
   };
 
-  // Inserir comando ao clicar
-  const insertCommand = (command: string) => {
-    setPrompt(command + " ");
-    setShowCommands(false);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
@@ -193,71 +121,6 @@ ${prompt.trim()}`;
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          {/* Comandos especiais sugeridos */}
-          {showCommands && !prompt && (
-            <div className="space-y-3 p-4 bg-muted/50 rounded-lg border border-border">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Wand2 className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium">Comandos Especiais</span>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-6 text-xs"
-                  onClick={() => setShowCommands(false)}
-                >
-                  Ocultar
-                </Button>
-              </div>
-              
-              <TooltipProvider delayDuration={200}>
-                <div className="grid grid-cols-2 gap-2">
-                  {SPECIAL_COMMANDS.map((cmd) => {
-                    const Icon = cmd.icon;
-                    return (
-                      <Tooltip key={cmd.command}>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="justify-start gap-2 h-auto py-2 px-3 text-left hover:bg-primary/10 hover:border-primary transition-colors"
-                            onClick={() => insertCommand(cmd.command)}
-                          >
-                            <Icon className="w-4 h-4 text-primary flex-shrink-0" />
-                            <div className="flex flex-col gap-0.5 min-w-0">
-                              <span className="text-xs font-medium truncate">{cmd.name}</span>
-                              <span className="text-[10px] text-muted-foreground truncate">{cmd.category}</span>
-                            </div>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-[300px]">
-                          <div className="space-y-1">
-                            <p className="font-medium text-xs">{cmd.name}</p>
-                            <p className="text-xs text-muted-foreground">{cmd.description}</p>
-                            <p className="text-[10px] text-primary mt-2">{cmd.example}</p>
-                          </div>
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </div>
-              </TooltipProvider>
-              
-              {!showCommands && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full h-8 text-xs"
-                  onClick={() => setShowCommands(true)}
-                >
-                  <Wand2 className="w-3 h-3 mr-2" />
-                  Ver Comandos Especiais
-                </Button>
-              )}
-            </div>
-          )}
-
           {/* Select de pregações (opcional) */}
           <div className="space-y-2">
             <label className="text-sm font-medium">
@@ -284,23 +147,6 @@ ${prompt.trim()}`;
               </SelectContent>
             </Select>
           </div>
-
-          {/* Badge indicador quando comando detectado */}
-          {detectedCommand && (
-            <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg border border-primary/20">
-              <Badge variant="default" className="gap-1.5">
-                {(() => {
-                  const Icon = detectedCommand.icon;
-                  return <Icon className="w-3 h-3" />;
-                })()}
-                {detectedCommand.category}
-              </Badge>
-              <div className="flex flex-col flex-1 min-w-0">
-                <span className="text-sm font-medium text-primary">{detectedCommand.name}</span>
-                <span className="text-xs text-muted-foreground truncate">{detectedCommand.description}</span>
-              </div>
-            </div>
-          )}
 
           {/* Badge indicador quando pregação selecionada */}
           {selectedSermonId && selectedSermonId !== "none" && (
