@@ -64,7 +64,20 @@ export function useContentFeed() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (generatedError) throw generatedError;
+      console.log('🔍 Generated Content Query Result:', {
+        count: generatedContent?.length || 0,
+        error: generatedError,
+        sample: generatedContent?.[0] ? {
+          id: generatedContent[0].id,
+          source_type: generatedContent[0].source_type,
+          content_format: generatedContent[0].content_format,
+        } : null
+      });
+
+      if (generatedError) {
+        console.error('❌ Error fetching generated_contents:', generatedError);
+        throw generatedError;
+      }
 
       // Buscar content_planners (conteúdo legado que ainda pode existir)
       const { data: aiContent, error: aiError } = await supabase
@@ -127,9 +140,22 @@ export function useContentFeed() {
         let contentData = item.content as any;
         const contentFormat = item.content_format || "post";
         
+        console.log('📦 Normalizando item:', {
+          id: item.id,
+          content_format: item.content_format,
+          source_type: item.source_type,
+          hasContent: !!contentData
+        });
+        
         // CORREÇÃO: Se for array (formato legado de posts), extrair primeiro item
         if (Array.isArray(contentData)) {
           contentData = contentData[0] || {};
+        }
+        
+        // Se content está vazio, pular
+        if (!contentData || Object.keys(contentData).length === 0) {
+          console.warn('⚠️ Conteúdo vazio para item:', item.id);
+          return;
         }
         
         // Buscar fundamento bíblico

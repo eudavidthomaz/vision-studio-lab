@@ -200,23 +200,32 @@ const Dashboard = () => {
   const handleGenerateAIContent = async (prompt: string) => {
     setIsGeneratingAI(true);
     try {
+      console.log('🚀 Gerando conteúdo com prompt:', prompt.substring(0, 100));
+      
       const result = await invokeFunction<any>('generate-ai-content', { prompt });
       
+      console.log('✅ Resultado da função:', result);
+      
       if (!result || !result.content_id) {
-        throw new Error('Erro ao gerar conteúdo');
+        throw new Error('Conteúdo gerado mas ID não retornado');
       }
 
       await trackEvent('ai_content_generated', { prompt: prompt.substring(0, 50) });
 
       toast({
         title: "Conteúdo criado! 🎉",
-        description: "Seu conteúdo foi gerado com sucesso!",
+        description: "Redirecionando para visualização...",
       });
 
       setShowAIModal(false);
-      navigate(`/conteudo/${result.content_id}`);
+      
+      // Aguardar um pouco para garantir que o banco salvou
+      setTimeout(() => {
+        navigate(`/conteudo/${result.content_id}`);
+      }, 300);
+      
     } catch (error: any) {
-      console.error('Error generating AI content:', error);
+      console.error('❌ Error generating AI content:', error);
       
       const errorMessage = error?.message || 
         'Não foi possível gerar o conteúdo. Tente novamente com um prompt mais específico.';
