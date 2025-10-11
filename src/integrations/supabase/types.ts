@@ -192,27 +192,6 @@ export type Database = {
         }
         Relationships: []
       }
-      ideon_challenges: {
-        Row: {
-          challenge: Json | null
-          created_at: string | null
-          id: string
-          user_id: string
-        }
-        Insert: {
-          challenge?: Json | null
-          created_at?: string | null
-          id?: string
-          user_id: string
-        }
-        Update: {
-          challenge?: Json | null
-          created_at?: string | null
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       notifications: {
         Row: {
           created_at: string

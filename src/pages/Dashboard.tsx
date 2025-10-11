@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import AudioInput from "@/components/AudioInput";
 import WeeklyPackDisplay from "@/components/WeeklyPackDisplay";
-import IdeonChallengeCard from "@/components/IdeonChallengeCard";
 import OnboardingTour from "@/components/OnboardingTour";
 import EmptyState from "@/components/EmptyState";
 import ProgressSteps from "@/components/ProgressSteps";
@@ -30,9 +29,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [transcript, setTranscript] = useState("");
   const [weeklyPack, setWeeklyPack] = useState<any>(null);
-  const [challenge, setChallenge] = useState<any>(null);
   const [isGeneratingPack, setIsGeneratingPack] = useState(false);
-  const [isGeneratingChallenge, setIsGeneratingChallenge] = useState(false);
   const [runTour, setRunTour] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [isFirstGeneration, setIsFirstGeneration] = useState(true);
@@ -140,56 +137,6 @@ const Dashboard = () => {
     setRunTour(false);
   };
 
-  const handleGenerateChallenge = async () => {
-    if (!canUse('challenges')) {
-      toast({
-        title: 'Limite atingido',
-        description: 'Você atingiu o limite mensal de desafios Ide.On.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsGeneratingChallenge(true);
-
-    try {
-      // Generate challenge using secure API
-      const challengeData = await invokeFunction<any>('generate-ideon-challenge', {});
-
-      if (!challengeData) {
-        throw new Error('Erro ao gerar desafio');
-      }
-      setChallenge(challengeData);
-
-      // Save challenge to database
-      await supabase
-        .from('ideon_challenges')
-        .insert({
-          user_id: user.id,
-          challenge: challengeData
-        });
-
-      // Increment quota usage
-      incrementUsage('challenges');
-
-      // Track challenge generation
-      await trackEvent('challenge_generated');
-
-      toast({
-        title: "Desafio criado!",
-        description: "Um novo desafio Ide.On foi gerado para você.",
-      });
-    } catch (error) {
-      console.error('Error generating challenge:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível gerar o desafio. Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingChallenge(false);
-    }
-  };
 
   const handleOpenContentCreator = (sermonId: string) => {
     setPreselectedSermonId(sermonId);
@@ -334,32 +281,6 @@ const Dashboard = () => {
               <WeeklyPackDisplay 
                 pack={weeklyPack}
               />
-              
-              {challenge && (
-                <IdeonChallengeCard challenge={challenge} />
-              )}
-              
-              {!challenge && (
-                <div className="text-center">
-                  <Button 
-                    onClick={handleGenerateChallenge}
-                    disabled={isGeneratingChallenge}
-                    className="gap-2"
-                  >
-                    {isGeneratingChallenge ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Gerando...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4" />
-                        Gerar Desafio Ide.On
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
             </div>
           )}
         </div>
