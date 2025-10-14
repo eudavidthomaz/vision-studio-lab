@@ -34,30 +34,30 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
   return (
     <div className="space-y-4">
       <Card className="border-primary/20">
-        <CardHeader className="text-center p-4">
-          <CardTitle className="text-lg">{convite.titulo_evento}</CardTitle>
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+        <CardHeader className="text-center p-3">
+          <CardTitle className="text-base font-semibold">{convite.titulo_evento}</CardTitle>
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
             <Badge variant="outline" className="gap-2 text-xs">
-              <Calendar className="h-4 w-4" />
+              <Calendar className="h-3 w-3" />
               {convite.data}
             </Badge>
             <Badge variant="outline" className="gap-2 text-xs">
-              <Clock className="h-4 w-4" />
+              <Clock className="h-3 w-3" />
               {convite.horario}
             </Badge>
             <Badge variant="outline" className="gap-2 text-xs">
-              <MapPin className="h-4 w-4" />
+              <MapPin className="h-3 w-3" />
               {convite.local}
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4 p-4">
+        <CardContent className="space-y-3 p-3">
           <div className="flex flex-col sm:flex-row gap-2">
             <Button
               variant={generatedImage ? "outline" : "default"}
               onClick={handleGenerateImage}
               disabled={isGenerating}
-              className="w-full sm:w-auto h-10"
+              className="w-full sm:w-auto h-9"
             >
               <ImageIcon className="h-4 w-4 mr-2" />
               {isGenerating ? "Gerando..." : generatedImage ? "Regerar Arte" : "Gerar Arte do Convite"}
@@ -79,9 +79,9 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
           </div>
 
           <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="p-4">
+            <CardContent className="p-3">
               <div className="flex items-start gap-3">
-                <Users className="h-4 w-4 text-primary mt-0.5" />
+                <Users className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-sm">Para quem é?</p>
                   <p className="text-sm text-muted-foreground mt-1">{convite.publico_alvo}</p>
@@ -97,9 +97,9 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
 
           {convite.contato && (
             <Card className="bg-muted/50">
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 <div className="flex items-center gap-2 text-sm">
-                  <Phone className="h-3 w-3 text-primary" />
+                  <Phone className="h-3 w-3 text-primary flex-shrink-0" />
                   <span className="font-medium">Contato:</span>
                   <span className="text-muted-foreground">{convite.contato}</span>
                 </div>

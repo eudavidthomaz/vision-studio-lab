@@ -315,80 +315,89 @@ export default function ContentLibrary() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Bulk Actions Bar */}
-        <BulkActionsBar
-          selectedCount={selectedCount}
-          onExport={handleExport}
-          onDelete={handleBulkDelete}
-          onEditTags={() => setTagDialogOpen(true)}
-          onToggleFavorite={() => bulkToggleFavorite(Array.from(selectedIds))}
-          onDuplicate={() => {
-            const ids = Array.from(selectedIds);
-            ids.forEach(id => duplicateContent(id));
-          }}
-          onClearSelection={clearSelection}
-        />
+      {/* Header fixo no topo */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="container mx-auto px-4 py-3 max-w-7xl">
+          {/* Bulk Actions Bar */}
+          <BulkActionsBar
+            selectedCount={selectedCount}
+            onExport={handleExport}
+            onDelete={handleBulkDelete}
+            onEditTags={() => setTagDialogOpen(true)}
+            onToggleFavorite={() => bulkToggleFavorite(Array.from(selectedIds))}
+            onDuplicate={() => {
+              const ids = Array.from(selectedIds);
+              ids.forEach(id => duplicateContent(id));
+            }}
+            onClearSelection={clearSelection}
+          />
 
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-start gap-4 mb-6">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/dashboard")}
-              className="flex-shrink-0"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent flex items-center gap-2">
-                <Sparkles className="h-8 w-8 text-primary" />
-                Biblioteca de Conteúdo
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                {sermonId 
-                  ? '✨ Conteúdos gerados do seu sermão'
-                  : 'Todos os seus conteúdos unificados em um só lugar'}
-              </p>
+          {/* Header */}
+          <div className="mb-4">
+            {/* Linha 1: Botão Voltar + Título */}
+            <div className="flex items-start gap-3 mb-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/dashboard")}
+                className="flex-shrink-0 h-9 w-9"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent flex items-center gap-2">
+                  <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-primary" />
+                  <span className="truncate">Biblioteca de Conteúdo</span>
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  {sermonId 
+                    ? '✨ Conteúdos gerados do seu sermão'
+                    : 'Todos os seus conteúdos unificados em um só lugar'}
+                </p>
+              </div>
             </div>
 
-            <div className="flex gap-2">
+            {/* Linha 2: Botões de ação */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 sm:justify-end">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setGlobalTagDialogOpen(true)}
+                className="w-full sm:w-auto h-9"
               >
-                <TagsIcon className="h-4 w-4 mr-2" />
-                Gerenciar Tags
+                <TagsIcon className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Gerenciar Tags</span>
               </Button>
               
-              <ViewSwitcher
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-              />
-              
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={refresh}
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <ViewSwitcher
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                />
+                
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={refresh}
+                  className="h-9 w-9"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
           {/* Filtros */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            {/* Busca */}
-            <div className="md:col-span-2 relative">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {/* Busca - ocupa 2 colunas no lg */}
+            <div className="sm:col-span-2 lg:col-span-2 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por título ou prompt..."
+                placeholder="Buscar..."
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                className="pl-10"
+                className="pl-10 h-9"
               />
             </div>
 
@@ -397,7 +406,7 @@ export default function ContentLibrary() {
               value={filters.type}
               onValueChange={(value) => setFilters({ ...filters, type: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-9">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -417,7 +426,7 @@ export default function ContentLibrary() {
               value={filters.source}
               onValueChange={(value) => setFilters({ ...filters, source: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-9">
                 <SelectValue placeholder="Fonte" />
               </SelectTrigger>
               <SelectContent>
@@ -433,7 +442,7 @@ export default function ContentLibrary() {
               value={filters.pilar}
               onValueChange={(value) => setFilters({ ...filters, pilar: value })}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-9">
                 <SelectValue placeholder="Pilar" />
               </SelectTrigger>
               <SelectContent>
@@ -447,7 +456,7 @@ export default function ContentLibrary() {
           </div>
 
           {/* Contador e ações */}
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-3 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <p className="text-sm text-muted-foreground">
                 {displayedItems.length} {displayedItems.length === 1 ? 'conteúdo' : 'conteúdos'}
@@ -458,6 +467,7 @@ export default function ContentLibrary() {
                   variant="outline"
                   size="sm"
                   onClick={selectAll}
+                  className="h-9"
                 >
                   Selecionar Todos
                 </Button>
@@ -469,12 +479,17 @@ export default function ContentLibrary() {
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/biblioteca')}
+                className="h-9"
               >
                 Ver Todos os Conteúdos
               </Button>
             )}
           </div>
         </div>
+      </div>
+
+      {/* Conteúdo scrollável */}
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
 
         {/* Conteúdo */}
         {loading && displayedItems.length === 0 ? (

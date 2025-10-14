@@ -56,13 +56,13 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
 
         return (
           <Card key={slideNum} data-slide={slideNum}>
-            <CardHeader className="p-4">
-              <CardTitle className="text-base flex items-center justify-between gap-2">
-                <span>Story {slideNum}: {slide.titulo}</span>
-                {slide.timing && <Badge variant="secondary" className="text-xs">{slide.timing}</Badge>}
+            <CardHeader className="p-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between gap-2">
+                <span className="line-clamp-1">Story {slideNum}: {slide.titulo}</span>
+                {slide.timing && <Badge variant="secondary" className="text-xs flex-shrink-0">{slide.timing}</Badge>}
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-4 pt-0 space-y-3">
+            <CardContent className="p-3 pt-0 space-y-2">
               <p className="text-sm text-muted-foreground whitespace-pre-line">
                 {slide.texto}
               </p>
@@ -73,7 +73,7 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
                   size="sm"
                   onClick={() => handleGenerateImage(slide)}
                   disabled={isLoadingImage}
-                  className="flex items-center gap-2 h-10"
+                  className="flex items-center gap-2 h-9"
                 >
                   {isLoadingImage ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -87,7 +87,7 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
                   variant="outline"
                   size="sm"
                   onClick={() => copyToClipboard(slide.texto, `Story ${slideNum}`, slideNum)}
-                  className="flex items-center gap-2 h-10"
+                  className="flex items-center gap-2 h-9"
                 >
                   {copiedSlide === slideNum ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   Copiar
@@ -106,10 +106,10 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
 
       {actualConteudo && (
         <Card>
-          <CardHeader className="p-4">
-            <CardTitle className="text-base">Call to Action</CardTitle>
+          <CardHeader className="p-3">
+            <CardTitle className="text-sm font-semibold">Call to Action</CardTitle>
           </CardHeader>
-          <CardContent className="p-4 pt-0 space-y-3">
+          <CardContent className="p-3 pt-0 space-y-2">
             {actualConteudo.legenda && (
               <div>
                 <h3 className="font-semibold text-sm mb-2">Legenda</h3>

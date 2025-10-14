@@ -86,8 +86,8 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden p-0">
-        <DialogHeader className="px-4 py-4 border-b sticky top-0 bg-background z-10 space-y-3">
-          <h2 className="text-lg font-bold text-foreground leading-tight">{content.title}</h2>
+        <DialogHeader className="px-4 py-3 border-b sticky top-0 bg-background z-10 space-y-2">
+          <h2 className="text-base font-semibold line-clamp-2 leading-tight">{content.title}</h2>
             
           <div className="flex flex-wrap gap-2">
             <Badge variant="outline" className="text-xs">
