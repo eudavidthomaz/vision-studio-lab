@@ -43,7 +43,14 @@ interface CarrosselViewProps {
   contentType?: string;
 }
 
-export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_producao, data, contentType }: CarrosselViewProps) {
+export function CarrosselView({
+  estrutura,
+  estrutura_visual,
+  conteudo,
+  dica_producao,
+  data,
+  contentType,
+}: CarrosselViewProps) {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<{ numero: number; titulo: string; texto: string } | null>(null);
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
@@ -55,10 +62,10 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
   const actualEstruturaVisual = estrutura_visual || data?.estrutura_visual;
   const actualConteudo = conteudo || data?.conteudo;
   const actualDicaProducao = dica_producao || data?.dica_producao;
-  
+
   // Unificar slides/cards - priorizar estrutura_visual.slides, depois cards
   const items = actualEstruturaVisual?.slides || actualEstruturaVisual?.cards || actualEstrutura?.cards || [];
-  
+
   const handleGenerateImage = (cardData: { numero: number; titulo: string; texto: string }) => {
     setLoadingCard(cardData.numero);
     setSelectedCard(cardData);
@@ -74,78 +81,83 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
 
   const copyAll = () => {
     let fullText = "";
-    
+
     if (items.length > 0) {
       fullText += "📱 CARDS DO CARROSSEL:\n\n";
       items.forEach((item: any, index) => {
-        const titulo = item.titulo_slide || item.titulo;
-        const texto = item.conteudo || item.texto;
+        const titulo = item.titulo_slide || item.titulo || "";
+        const texto = item.conteudo || item.texto || "";
         fullText += `Card ${index + 1}: ${titulo}\n${texto}\n\n`;
       });
     }
-    
+
     if (actualConteudo?.legenda) {
       fullText += "\n📝 LEGENDA:\n" + actualConteudo.legenda + "\n\n";
     }
-    
-    if (actualDicaProducao?.hashtags && actualDicaProducao.hashtags.length > 0) {
+
+    if (actualDicaProducao?.hashtags?.length) {
       fullText += "\n🏷️ HASHTAGS:\n" + actualDicaProducao.hashtags.join(" ") + "\n";
     }
-    
+
     navigator.clipboard.writeText(fullText);
     toast.success("Conteúdo completo copiado!");
   };
 
   return (
-    <div className="space-y-6 overflow-x-clip">
+    <div className="space-y-6 min-w-0 overflow-x-clip">
       {/* Estrutura Visual - Cards/Slides do Carrossel */}
       {items.length > 0 && (
-        <Card>
+        <Card className="min-w-0">
           <CardHeader className="p-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <ImageIcon className="h-4 w-4" />
-              Estrutura Visual - {items.length} Cards
+            <CardTitle className="text-sm font-semibold flex items-center gap-2 break-words min-w-0">
+              <ImageIcon className="h-4 w-4 shrink-0" />
+              <span className="truncate">Estrutura Visual - {items.length} Cards</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <Carousel className="w-full max-w-2xl mx-auto">
-              <CarouselContent>
+
+          <CardContent className="p-3 pt-0 min-w-0">
+            <Carousel className="w-full mx-auto max-w-full sm:max-w-[92vw] lg:max-w-[48rem] min-w-0 overflow-x-clip">
+              <CarouselContent className="min-w-0">
                 {items.map((item: any, index) => {
-                  const titulo = item.titulo_slide || item.titulo;
-                  const texto = item.conteudo || item.texto;
+                  const titulo = item.titulo_slide || item.titulo || "";
+                  const texto = item.conteudo || item.texto || "";
                   const imagemSugerida = item.imagem_sugerida;
                   const cta = item.chamada_para_acao;
-                  
+
                   return (
-                    <CarouselItem key={index}>
-                      <Card className="border-2" data-card={index + 1}>
+                    <CarouselItem key={index} className="min-w-0">
+                      <Card className="border-2 min-w-0" data-card={index + 1}>
                         <CardHeader className="bg-primary/5 p-3">
-                          <CardTitle className="text-sm font-semibold line-clamp-1">
-                            Card {index + 1}: {titulo}
+                          <CardTitle className="text-sm font-semibold line-clamp-1 break-words min-w-0">
+                            {`Card ${index + 1}: ${titulo}`}
                           </CardTitle>
-                          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+
+                          <div className="flex flex-col sm:flex-row flex-wrap gap-2 pt-2 min-w-0">
                             <Button
                               variant={generatedImages[index + 1] ? "outline" : "default"}
                               size="sm"
-                              onClick={() => handleGenerateImage({ 
-                                numero: index + 1, 
-                                titulo, 
-                                texto 
-                              })}
+                              onClick={() =>
+                                handleGenerateImage({
+                                  numero: index + 1,
+                                  titulo,
+                                  texto,
+                                })
+                              }
                               disabled={loadingCard === index + 1}
                               className="w-full sm:w-auto h-9"
                             >
                               <ImageIcon className="h-4 w-4 mr-2" />
-                              {loadingCard === index + 1 ? "Gerando..." : generatedImages[index + 1] ? "Regerar" : "Gerar Imagem"}
+                              {loadingCard === index + 1
+                                ? "Gerando..."
+                                : generatedImages[index + 1]
+                                  ? "Regerar"
+                                  : "Gerar Imagem"}
                             </Button>
+
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => copyToClipboard(
-                                `${titulo}\n\n${texto}`,
-                                `Card ${index + 1}`,
-                                index + 1
-                              )}
+                              onClick={() => copyToClipboard(`${titulo}\n\n${texto}`, `Card ${index + 1}`, index + 1)}
                               className="w-full sm:w-auto h-9"
                             >
                               <Copy className="h-4 w-4 mr-2" />
@@ -153,27 +165,32 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                             </Button>
                           </div>
                         </CardHeader>
-                        <CardContent className="p-3 pt-0 space-y-2">
+
+                        <CardContent className="p-3 pt-0 space-y-2 min-w-0">
                           {generatedImages[index + 1] && (
                             <div className="rounded-lg overflow-hidden bg-muted">
-                              <img 
-                                src={generatedImages[index + 1]} 
+                              <img
+                                src={generatedImages[index + 1]}
                                 alt={`Card ${index + 1}`}
-                                className="w-full h-auto"
+                                className="block w-full h-auto max-w-full"
+                                loading="lazy"
                               />
                             </div>
                           )}
+
                           <p className="text-sm whitespace-pre-wrap break-words">{texto}</p>
+
                           {imagemSugerida && (
                             <div className="p-3 bg-muted rounded-md">
                               <strong className="text-sm">Sugestão de Imagem:</strong>
-                              <p className="text-sm text-muted-foreground mt-1">{imagemSugerida}</p>
+                              <p className="text-sm text-muted-foreground mt-1 break-words">{imagemSugerida}</p>
                             </div>
                           )}
+
                           {cta && (
                             <div className="p-3 bg-primary/5 rounded-md border-l-4 border-primary">
                               <strong className="text-sm">CTA:</strong>
-                              <p className="text-sm mt-1">{cta}</p>
+                              <p className="text-sm mt-1 break-words">{cta}</p>
                             </div>
                           )}
                         </CardContent>
@@ -182,6 +199,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                   );
                 })}
               </CarouselContent>
+
               <CarouselPrevious />
               <CarouselNext />
             </Carousel>
@@ -191,31 +209,27 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
 
       {/* Legenda */}
       {actualConteudo?.legenda && (
-        <Card>
+        <Card className="min-w-0">
           <CardHeader className="p-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Legenda para Instagram</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => copyToClipboard(actualConteudo.legenda!, "Legenda", 0)}
-              >
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm font-semibold break-words">Legenda para Instagram</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => copyToClipboard(actualConteudo.legenda!, "Legenda", 0)}>
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar
               </Button>
             </div>
           </CardHeader>
           <CardContent className="p-3 pt-0">
-            <p className="whitespace-pre-line text-sm">{actualConteudo.legenda}</p>
+            <p className="text-sm whitespace-pre-wrap break-words">{actualConteudo.legenda}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Hashtags */}
-      {actualDicaProducao?.hashtags && actualDicaProducao.hashtags.length > 0 && (
-        <Card>
+      {actualDicaProducao?.hashtags?.length ? (
+        <Card className="min-w-0">
           <CardHeader className="p-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <CardTitle className="text-sm font-semibold">Hashtags Sugeridas</CardTitle>
               <Button
                 variant="ghost"
@@ -228,20 +242,20 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
             </div>
           </CardHeader>
           <CardContent className="p-3 pt-0">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 overflow-x-clip">
               {actualDicaProducao.hashtags.map((tag, i) => (
-                <span key={i} className="text-sm text-primary">
+                <span key={i} className="text-sm text-primary break-all">
                   {tag}
                 </span>
               ))}
             </div>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       {/* Dicas de Produção */}
       {actualDicaProducao && (
-        <Card>
+        <Card className="min-w-0">
           <CardHeader className="p-3">
             <CardTitle className="text-sm font-semibold">Dicas de Produção</CardTitle>
           </CardHeader>
@@ -249,19 +263,19 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
             {actualDicaProducao.formato && (
               <div>
                 <strong className="text-sm">Formato:</strong>
-                <p className="text-sm text-muted-foreground">{actualDicaProducao.formato}</p>
+                <p className="text-sm text-muted-foreground break-words">{actualDicaProducao.formato}</p>
               </div>
             )}
             {actualDicaProducao.estilo && (
               <div>
                 <strong className="text-sm">Estilo:</strong>
-                <p className="text-sm text-muted-foreground">{actualDicaProducao.estilo}</p>
+                <p className="text-sm text-muted-foreground break-words">{actualDicaProducao.estilo}</p>
               </div>
             )}
             {actualDicaProducao.horario && (
               <div>
                 <strong className="text-sm">Horário de Postagem:</strong>
-                <p className="text-sm text-muted-foreground">{actualDicaProducao.horario}</p>
+                <p className="text-sm text-muted-foreground break-words">{actualDicaProducao.horario}</p>
               </div>
             )}
           </CardContent>
@@ -284,17 +298,17 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
           pilar={data?.pilar || "Edificar"}
           defaultFormat="feed_square"
           onImageGenerated={(imageUrl) => {
-            setGeneratedImages(prev => ({
+            setGeneratedImages((prev) => ({
               ...prev,
-              [selectedCard.numero]: imageUrl
+              [selectedCard.numero]: imageUrl,
             }));
             setLoadingCard(null);
             toast.success(`Imagem do Card ${selectedCard.numero} gerada!`);
-            
+
             // Scroll suave até a imagem
             setTimeout(() => {
               const element = document.querySelector(`[data-card="${selectedCard.numero}"]`);
-              element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              element?.scrollIntoView({ behavior: "smooth", block: "nearest" });
             }, 100);
           }}
         />
