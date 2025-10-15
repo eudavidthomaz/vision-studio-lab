@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Template {
   id: string;
@@ -78,107 +79,151 @@ export default function TemplateGallery({ open, onOpenChange, onApplyTemplate, s
     });
   };
 
-  const filteredTemplates = selectedType === "all" 
-    ? templates 
-    : templates.filter(t => t.content_type === selectedType);
+  const filteredTemplates =
+    selectedType === "all" ? templates : templates.filter((t) => t.content_type === selectedType);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Galeria de Templates
-          </DialogTitle>
-          <DialogDescription>
-            Escolha um template para começar rapidamente
-          </DialogDescription>
-        </DialogHeader>
+      {/* Mobile-first container: fills width, uses safe viewport height, no horizontal overflow */}
+      <DialogContent
+        className="
+          w-[min(100vw,90rem)] max-w-[98vw] sm:max-w-3xl md:max-w-5xl
+          h-[min(92svh,92dvh)] p-0 overflow-hidden rounded-xl sm:rounded-2xl
+        "
+      >
+        {/* Flex wrapper to create a sticky header + scrollable body layout */}
+        <div className="flex h-full w-full min-w-0 flex-col overflow-x-clip">
+          {/* Drag handle for mobile */}
+          <div className="mx-auto mt-2 mb-1 h-1.5 w-12 rounded-full bg-muted" />
 
-        {/* Filters */}
-        <div className="flex gap-2 mb-4">
-          <Button
-            variant={selectedType === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedType("all")}
-          >
-            Todos
-          </Button>
-          <Button
-            variant={selectedType === "post" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedType("post")}
-          >
-            Posts
-          </Button>
-          <Button
-            variant={selectedType === "story" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedType("story")}
-          >
-            Stories
-          </Button>
-          <Button
-            variant={selectedType === "reel" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedType("reel")}
-          >
-            Reels
-          </Button>
-        </div>
+          {/* Header (sticky) */}
+          <DialogHeader className="px-4 pb-3 pt-2 sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+            <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Sparkles className="h-5 w-5 text-primary" />
+              Galeria de Templates
+            </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              Escolha um template para começar rapidamente
+            </DialogDescription>
 
-        {/* Templates Grid */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : filteredTemplates.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-              <Sparkles className="h-8 w-8 text-primary" />
+            {/* Filters - wrap on small, inline on larger screens */}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                variant={selectedType === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedType("all")}
+                className="h-8"
+              >
+                Todos
+              </Button>
+              <Button
+                variant={selectedType === "post" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedType("post")}
+                className="h-8"
+              >
+                Posts
+              </Button>
+              <Button
+                variant={selectedType === "story" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedType("story")}
+                className="h-8"
+              >
+                Stories
+              </Button>
+              <Button
+                variant={selectedType === "reel" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedType("reel")}
+                className="h-8"
+              >
+                Reels
+              </Button>
             </div>
-            <h3 className="text-lg font-semibold mb-2">Nenhum template encontrado</h3>
-            <p className="text-muted-foreground mb-4">
-              {selectedType === "all" 
-                ? "Ainda não há templates disponíveis. Crie conteúdo incrível e salve como template!"
-                : `Nenhum template de ${selectedType} disponível no momento.`}
-            </p>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Criar Novo Conteúdo
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredTemplates.map((template) => (
-              <Card key={template.id} className="hover:border-primary transition-colors">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{template.name}</CardTitle>
-                      <CardDescription className="mt-1">
-                        {template.description}
-                      </CardDescription>
-                    </div>
-                    <Badge className={typeColors[template.content_type] || "bg-gray-500/20"}>
-                      {template.content_type}
-                    </Badge>
+          </DialogHeader>
+
+          {/* Scrollable content area */}
+          <ScrollArea className="flex-1 min-w-0 touch-pan-y overscroll-contain scroll-smooth-ios">
+            <div className="p-4 pb-[env(safe-area-inset-bottom)]">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : filteredTemplates.length === 0 ? (
+                <div className="text-center py-12 px-2">
+                  <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                    <Sparkles className="h-8 w-8 text-primary" />
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline">{template.pillar}</Badge>
-                    <Button
-                      size="sm"
-                      onClick={() => handleApplyTemplate(template)}
-                    >
-                      Usar Template
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  <h3 className="mb-2 text-base sm:text-lg font-semibold">Nenhum template encontrado</h3>
+                  <p className="mx-auto mb-4 max-w-md text-xs sm:text-sm text-muted-foreground">
+                    {selectedType === "all"
+                      ? "Ainda não há templates disponíveis. Crie conteúdo incrível e salve como template!"
+                      : `Nenhum template de ${selectedType} disponível no momento.`}
+                  </p>
+                  <Button variant="outline" onClick={() => onOpenChange(false)}>
+                    Criar Novo Conteúdo
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  className="
+                    grid grid-cols-1 gap-4
+                    sm:grid-cols-2
+                  "
+                >
+                  {filteredTemplates.map((template) => (
+                    <Card key={template.id} className="hover:border-primary transition-colors">
+                      <CardHeader className="space-y-2">
+                        {/* Optional thumbnail (kept responsive) */}
+                        {template.thumbnail_url && (
+                          <div className="overflow-hidden rounded-md">
+                            <img
+                              src={template.thumbnail_url}
+                              alt={template.name}
+                              loading="lazy"
+                              className="h-auto w-full max-h-40 object-cover"
+                            />
+                          </div>
+                        )}
+
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <CardTitle className="text-base break-words">{template.name}</CardTitle>
+                            <CardDescription className="mt-1 line-clamp-3 break-words">
+                              {template.description}
+                            </CardDescription>
+                          </div>
+                          <Badge
+                            className={
+                              typeColors[template.content_type] || "bg-gray-500/20 text-gray-300 border-gray-500/30"
+                            }
+                          >
+                            {template.content_type}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+
+                      <CardContent className="flex items-center justify-between gap-3">
+                        <Badge variant="outline" className="truncate">
+                          {template.pillar}
+                        </Badge>
+                        <Button
+                          size="sm"
+                          onClick={() => handleApplyTemplate(template)}
+                          className="shrink-0"
+                          aria-label={`Usar template ${template.name}`}
+                        >
+                          Usar Template
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
