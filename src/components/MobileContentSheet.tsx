@@ -66,9 +66,9 @@ export function MobileContentSheet({ content, open, onClose }: MobileContentShee
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent 
         side="bottom" 
-        className="h-[95vh] p-0 rounded-t-xl"
+        className="h-[min(95svh,95dvh)] w-screen max-w-full p-0 rounded-t-2xl overflow-hidden pb-[env(safe-area-inset-bottom)]"
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full w-full min-w-0 overflow-x-clip">
           {/* Header fixo */}
           <SheetHeader className="px-4 py-3 border-b sticky top-0 bg-background z-10 space-y-2">
             <SheetTitle className="text-base font-semibold line-clamp-2 text-left">
@@ -107,8 +107,16 @@ export function MobileContentSheet({ content, open, onClose }: MobileContentShee
           </SheetHeader>
 
           {/* Conteúdo scrollável */}
-          <ScrollArea className="flex-1">
-            <div className="p-4">
+          <ScrollArea className="flex-1 min-w-0">
+            <div 
+              className="
+                p-4 w-full min-w-0 break-words overflow-x-hidden
+                [&_img]:max-w-full [&_img]:h-auto
+                [&_video]:max-w-full [&_video]:h-auto
+                [&_iframe]:w-full [&_iframe]:aspect-video
+                [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto
+              "
+            >
               <ContentViewer content={content} />
             </div>
           </ScrollArea>

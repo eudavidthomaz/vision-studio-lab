@@ -58,7 +58,7 @@ export default function ContentLibraryDetail() {
   return (
     <UnifiedContentModal
       content={content}
-      open={true}
+      open={!!content}
       onClose={handleClose}
     />
   );

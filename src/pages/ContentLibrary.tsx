@@ -156,7 +156,7 @@ const ContentItemCard = memo(({
               />
             ) : (
               <CardTitle 
-                className="text-base truncate cursor-pointer hover:text-primary"
+                className="text-base truncate break-words cursor-pointer hover:text-primary"
                 onDoubleClick={() => setIsEditingTitle(true)}
               >
                 {item.title}
@@ -181,7 +181,7 @@ const ContentItemCard = memo(({
       
       <CardContent>
         {item.prompt_original && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+          <p className="text-sm text-muted-foreground line-clamp-2 break-words mb-4">
             {item.prompt_original}
           </p>
         )}
@@ -314,10 +314,10 @@ export default function ContentLibrary() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-clip">
       {/* Header fixo no topo */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto px-4 py-3 max-w-7xl">
+        <div className="mx-auto px-4 py-3 max-w-7xl">
           {/* Bulk Actions Bar */}
           <BulkActionsBar
             selectedCount={selectedCount}
@@ -489,7 +489,7 @@ export default function ContentLibrary() {
       </div>
 
       {/* Conteúdo scrollável */}
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="mx-auto px-4 py-6 max-w-7xl">
 
         {/* Conteúdo */}
         {loading && displayedItems.length === 0 ? (
@@ -604,14 +604,14 @@ export default function ContentLibrary() {
           }}
         />
 
-        <TagManagerDialog
-          open={globalTagDialogOpen}
-          onOpenChange={setGlobalTagDialogOpen}
-          mode="global"
-          allTags={getAllTags}
-          onRenameTag={renameTag}
-          onDeleteTag={deleteTag}
-        />
+      <TagManagerDialog
+        open={globalTagDialogOpen}
+        onOpenChange={setGlobalTagDialogOpen}
+        mode="global"
+        allTags={getAllTags}
+        onRenameTag={renameTag}
+        onDeleteTag={deleteTag}
+      />
       </div>
     </div>
   );

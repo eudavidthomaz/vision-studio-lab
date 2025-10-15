@@ -85,7 +85,7 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
   // Desktop: usa Dialog
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden p-0">
+      <DialogContent className="w-[min(92vw,42rem)] max-w-none max-h-[90dvh] overflow-hidden p-0">
         <DialogHeader className="px-4 py-3 border-b sticky top-0 bg-background z-10 space-y-2">
           <h2 className="text-base font-semibold line-clamp-2 leading-tight">{content.title}</h2>
             
@@ -126,8 +126,16 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
         </DialogHeader>
 
         {/* Conteúdo scrollável */}
-        <ScrollArea className="h-full max-h-[calc(85vh-120px)]">
-          <div className="px-4 py-4">
+        <ScrollArea className="max-h-[calc(90dvh-120px)]">
+          <div 
+            className="
+              px-4 py-4 w-full min-w-0 break-words overflow-x-hidden
+              [&_img]:max-w-full [&_img]:h-auto
+              [&_video]:max-w-full [&_video]:h-auto
+              [&_iframe]:w-full [&_iframe]:aspect-video
+              [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto
+            "
+          >
             <ContentViewer content={content} />
           </div>
         </ScrollArea>
