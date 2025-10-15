@@ -1,5 +1,22 @@
 import { useState } from "react";
-import { Book, Edit3, Palette, Lightbulb, Copy, Save, RotateCw, Image, BookOpen, Instagram, Layout, Video, Sparkles, MessageSquare, Zap, Hash } from "lucide-react";
+import {
+  Book,
+  Edit3,
+  Palette,
+  Lightbulb,
+  Copy,
+  Save,
+  RotateCw,
+  Image,
+  BookOpen,
+  Instagram,
+  Layout,
+  Video,
+  Sparkles,
+  MessageSquare,
+  Zap,
+  Hash,
+} from "lucide-react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { Separator } from "./ui/separator";
@@ -43,43 +60,65 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
 
   // Parse content - handle both string and object, and extract from array if needed
   const parsedContent = (() => {
-    let parsed = typeof content === 'string' ? JSON.parse(content) : content;
-    
+    let parsed = typeof content === "string" ? JSON.parse(content) : content;
+
     // If it's an array (structure from database), get first item
     if (Array.isArray(parsed)) {
-      console.log('⚠️ Content is array, extracting first item');
+      console.log("⚠️ Content is array, extracting first item");
       parsed = parsed[0];
     }
-    
+
     return parsed;
   })();
-  
-  // Detect content type - prioritize explicit content_type, then infer from structure
-  const contentType = 
+
+  // Detect content type
+  const contentType =
     parsedContent.content_type ||
-    (parsedContent.resumo_pregacao && parsedContent.versiculos_base && parsedContent.legendas_instagram) ? 'pack_semanal' :
-    parsedContent.estrutura_visual?.cards ? 'carrossel' :
-    parsedContent.roteiro_video?.cenas ? 'reel' :
-    parsedContent.estrutura_stories?.slides ? 'stories' :
-    (parsedContent.conteudo?.texto && !parsedContent.estrutura_visual && !parsedContent.roteiro_video) ? 'post' :
-    parsedContent.devocional ? 'devocional' :
-    parsedContent.foto_post ? 'foto_post' :
-    parsedContent.roteiro_video ? 'roteiro_video' :
-    parsedContent.calendario_editorial ? 'calendario' :
-    parsedContent.convite ? 'convite' :
-    parsedContent.aviso ? 'aviso' :
-    parsedContent.guia ? 'guia' :
-    parsedContent.esboco ? 'esboco' :
-    parsedContent.versiculos_citados ? 'versiculos_citados' :
-    parsedContent.trilha_oracao ? 'trilha_oracao' :
-    parsedContent.perguntas_respostas ? 'qa_estruturado' :
-    parsedContent.convite_grupos ? 'convite_grupos' :
-    parsedContent.plano_discipulado ? 'discipulado' :
-    parsedContent.ideia_estrategica ? 'ideia_estrategica' :
-    parsedContent.desafio_semanal ? 'desafio_semanal' :
-    parsedContent.estudo_biblico ? 'estudo' :
-    parsedContent.resumo_pregacao ? 'resumo' :
-    'default';
+    (parsedContent.resumo_pregacao && parsedContent.versiculos_base && parsedContent.legendas_instagram
+      ? "pack_semanal"
+      : parsedContent.estrutura_visual?.cards
+        ? "carrossel"
+        : parsedContent.roteiro_video?.cenas
+          ? "reel"
+          : parsedContent.estrutura_stories?.slides
+            ? "stories"
+            : parsedContent.conteudo?.texto && !parsedContent.estrutura_visual && !parsedContent.roteiro_video
+              ? "post"
+              : parsedContent.devocional
+                ? "devocional"
+                : parsedContent.foto_post
+                  ? "foto_post"
+                  : parsedContent.roteiro_video
+                    ? "roteiro_video"
+                    : parsedContent.calendario_editorial
+                      ? "calendario"
+                      : parsedContent.convite
+                        ? "convite"
+                        : parsedContent.aviso
+                          ? "aviso"
+                          : parsedContent.guia
+                            ? "guia"
+                            : parsedContent.esboco
+                              ? "esboco"
+                              : parsedContent.versiculos_citados
+                                ? "versiculos_citados"
+                                : parsedContent.trilha_oracao
+                                  ? "trilha_oracao"
+                                  : parsedContent.perguntas_respostas
+                                    ? "qa_estruturado"
+                                    : parsedContent.convite_grupos
+                                      ? "convite_grupos"
+                                      : parsedContent.plano_discipulado
+                                        ? "discipulado"
+                                        : parsedContent.ideia_estrategica
+                                          ? "ideia_estrategica"
+                                          : parsedContent.desafio_semanal
+                                            ? "desafio_semanal"
+                                            : parsedContent.estudo_biblico
+                                              ? "estudo"
+                                              : parsedContent.resumo_pregacao
+                                                ? "resumo"
+                                                : "default");
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -87,18 +126,18 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   };
 
   const openImageModal = (copy: string) => {
-    setSelectedContent({ copy, pilar: parsedContent.conteudo?.pilar || 'EDIFICAR' });
+    setSelectedContent({ copy, pilar: parsedContent.conteudo?.pilar || "EDIFICAR" });
     setImageModalOpen(true);
   };
 
-  // Conteúdos criativos de rede social
-  if (contentType === 'carrossel') {
+  /* ---------------------- CARROSSEL ---------------------- */
+  if (contentType === "carrossel") {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 media-fluid min-w-0 overflow-x-clip">
         {parsedContent.fundamento_biblico && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 break-words">
                 <Book className="h-5 w-5" />
                 Fundamento Bíblico
               </CardTitle>
@@ -109,7 +148,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
                   <h4 className="font-semibold mb-2">Versículos-base:</h4>
                   <ul className="space-y-2">
                     {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
-                      <li key={i} className="border-l-2 border-primary pl-3 text-sm">
+                      <li key={i} className="border-l-2 border-primary pl-3 text-sm whitespace-pre-wrap break-words">
                         {v}
                       </li>
                     ))}
@@ -119,31 +158,33 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
               {parsedContent.fundamento_biblico.contexto && (
                 <div>
                   <h4 className="font-semibold mb-2">Contexto:</h4>
-                  <p className="text-sm">{parsedContent.fundamento_biblico.contexto}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words">{parsedContent.fundamento_biblico.contexto}</p>
                 </div>
               )}
               {parsedContent.fundamento_biblico.principio_atemporal && (
                 <div>
                   <h4 className="font-semibold mb-2">Princípio Atemporal:</h4>
-                  <p className="text-sm">{parsedContent.fundamento_biblico.principio_atemporal}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {parsedContent.fundamento_biblico.principio_atemporal}
+                  </p>
                 </div>
               )}
             </CardContent>
           </Card>
         )}
 
-        <CarrosselView 
+        <CarrosselView
           estrutura={parsedContent.estrutura_visual}
           conteudo={parsedContent.conteudo}
           dica_producao={parsedContent.dica_producao}
         />
 
-        <div className="flex gap-3">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
@@ -152,13 +193,14 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     );
   }
 
-  if (contentType === 'reel') {
+  /* ---------------------- REEL ---------------------- */
+  if (contentType === "reel") {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 media-fluid min-w-0 overflow-x-clip">
         {parsedContent.fundamento_biblico && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 break-words">
                 <Book className="h-5 w-5" />
                 Fundamento Bíblico
               </CardTitle>
@@ -169,7 +211,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
                   <h4 className="font-semibold mb-2">Versículos-base:</h4>
                   <ul className="space-y-2">
                     {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
-                      <li key={i} className="border-l-2 border-primary pl-3 text-sm">
+                      <li key={i} className="border-l-2 border-primary pl-3 text-sm whitespace-pre-wrap break-words">
                         {v}
                       </li>
                     ))}
@@ -182,12 +224,12 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
 
         <ReelView roteiro={parsedContent.roteiro_video} conteudo={parsedContent.conteudo} />
 
-        <div className="flex gap-3">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
@@ -196,13 +238,14 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     );
   }
 
-  if (contentType === 'stories') {
+  /* ---------------------- STORIES ---------------------- */
+  if (contentType === "stories") {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 media-fluid min-w-0 overflow-x-clip">
         {parsedContent.fundamento_biblico && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 break-words">
                 <Book className="h-5 w-5" />
                 Fundamento Bíblico
               </CardTitle>
@@ -213,7 +256,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
                   <h4 className="font-semibold mb-2">Versículos-base:</h4>
                   <ul className="space-y-2">
                     {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
-                      <li key={i} className="border-l-2 border-primary pl-3 text-sm">
+                      <li key={i} className="border-l-2 border-primary pl-3 text-sm whitespace-pre-wrap break-words">
                         {v}
                       </li>
                     ))}
@@ -226,12 +269,12 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
 
         <StoriesView estrutura={parsedContent.estrutura_stories} conteudo={parsedContent.conteudo} />
 
-        <div className="flex gap-3">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
@@ -240,13 +283,14 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     );
   }
 
-  if (contentType === 'post') {
+  /* ---------------------- POST ---------------------- */
+  if (contentType === "post") {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 media-fluid min-w-0 overflow-x-clip">
         {parsedContent.fundamento_biblico && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 break-words">
                 <Book className="h-5 w-5" />
                 Fundamento Bíblico
               </CardTitle>
@@ -257,7 +301,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
                   <h4 className="font-semibold mb-2">Versículos-base:</h4>
                   <ul className="space-y-2">
                     {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
-                      <li key={i} className="border-l-2 border-primary pl-3 text-sm">
+                      <li key={i} className="border-l-2 border-primary pl-3 text-sm whitespace-pre-wrap break-words">
                         {v}
                       </li>
                     ))}
@@ -270,12 +314,12 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
 
         <PostSimplesView conteudo={parsedContent.conteudo} imagem={parsedContent.sugestao_imagem} />
 
-        <div className="flex gap-3">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
@@ -284,194 +328,194 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     );
   }
 
-  // Organizational formats (no fundamento_biblico)
-  if (contentType === 'calendario') {
+  /* ---------------------- CALENDÁRIO / CONVITE / AVISO / GUIA / CONVITE_GRUPOS / VERSÍCULOS ---------------------- */
+  if (contentType === "calendario") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip space-y-6">
         <CalendarioView calendario={parsedContent.calendario_editorial} />
         <div className="flex flex-wrap gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  if (contentType === 'convite') {
+  if (contentType === "convite") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip space-y-6">
         <ConviteView convite={parsedContent.convite} />
         <div className="flex flex-wrap gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  if (contentType === 'aviso') {
+  if (contentType === "aviso") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip space-y-6">
         <AvisoView aviso={parsedContent.aviso} />
         <div className="flex flex-wrap gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  if (contentType === 'guia') {
+  if (contentType === "guia") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip space-y-6">
         <GuiaView guia={parsedContent.guia} />
         <div className="flex flex-wrap gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  if (contentType === 'convite_grupos') {
+  if (contentType === "convite_grupos") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip space-y-6">
         <ConviteGruposView convite={parsedContent.convite_grupos} />
         <div className="flex flex-wrap gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  if (contentType === 'versiculos_citados') {
+  if (contentType === "versiculos_citados") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip space-y-6">
         <VersiculosCitadosView versiculos={parsedContent.versiculos_citados} />
         <div className="flex flex-wrap gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  // Biblical formats (with fundamento_biblico)
-  if (contentType === 'esboco') {
+  /* ---------------------- BÍBLICOS ---------------------- */
+  if (contentType === "esboco") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip space-y-6">
         <EsbocoView esboco={parsedContent.esboco} />
         <div className="flex flex-wrap gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  if (contentType === 'trilha_oracao') {
+  if (contentType === "trilha_oracao") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip space-y-6">
         <TrilhaOracaoView trilha={parsedContent.trilha_oracao} />
         <div className="flex flex-wrap gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  if (contentType === 'qa_estruturado') {
+  if (contentType === "qa_estruturado") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip space-y-6">
         <QAEstruturadoView qa={parsedContent.perguntas_respostas} />
         <div className="flex flex-wrap gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  if (contentType === 'discipulado') {
+  if (contentType === "discipulado") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip space-y-6">
         <DiscipuladoView plano={parsedContent.plano_discipulado} />
         <div className="flex flex-wrap gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  if (contentType === 'ideia_estrategica' && parsedContent.ideia_estrategica) {
+  if (contentType === "ideia_estrategica" && parsedContent.ideia_estrategica) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 media-fluid min-w-0 overflow-x-clip">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 break-words">
               <Book className="h-5 w-5" />
               Fundamento Bíblico
             </CardTitle>
@@ -481,7 +525,10 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
               <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
               <ul className="space-y-2">
                 {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
-                  <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
+                  <li
+                    key={i}
+                    className="text-sm text-muted-foreground border-l-2 border-primary pl-3 whitespace-pre-wrap break-words"
+                  >
                     {v}
                   </li>
                 ))}
@@ -489,17 +536,21 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
             </div>
             <div>
               <h4 className="font-semibold mb-2 text-sm">Contexto:</h4>
-              <p className="text-sm text-muted-foreground">{parsedContent.fundamento_biblico.contexto}</p>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
+                {parsedContent.fundamento_biblico.contexto}
+              </p>
             </div>
             <div>
               <h4 className="font-semibold mb-2 text-sm">Princípio Atemporal:</h4>
-              <p className="text-sm text-muted-foreground">{parsedContent.fundamento_biblico.principio_atemporal}</p>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
+                {parsedContent.fundamento_biblico.principio_atemporal}
+              </p>
             </div>
           </CardContent>
         </Card>
-        
+
         <IdeiaEstrategicaView data={parsedContent.ideia_estrategica} />
-        
+
         <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t p-4 -mx-4 md:mx-0 md:border md:rounded-lg flex flex-col sm:flex-row gap-3">
           <Button onClick={onSave} disabled={isSaving} className="flex-1">
             <Save className="w-4 h-4 mr-2" />
@@ -513,10 +564,10 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
       </div>
     );
   }
-  
-  if (contentType === 'estudo') {
+
+  if (contentType === "estudo") {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 media-fluid min-w-0 overflow-x-clip">
         <EstudoBiblicoView data={parsedContent} />
         <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t p-4 -mx-4 md:mx-0 md:border md:rounded-lg flex flex-col sm:flex-row gap-3">
           <Button onClick={onSave} disabled={isSaving} className="flex-1">
@@ -532,9 +583,9 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     );
   }
 
-  if (contentType === 'resumo') {
+  if (contentType === "resumo") {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 media-fluid min-w-0 overflow-x-clip">
         <ResumoPregacaoView data={parsedContent} />
         <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t p-4 -mx-4 md:mx-0 md:border md:rounded-lg flex flex-col sm:flex-row gap-3">
           <Button onClick={onSave} disabled={isSaving} className="flex-1">
@@ -550,17 +601,23 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     );
   }
 
-  if (contentType === 'desafio_semanal' && parsedContent.desafio_semanal) {
-    return <DesafioSemanalView data={parsedContent} onSave={onSave} onRegenerate={onRegenerate} isSaving={isSaving} />;
+  /* ---------------------- DESAFIO SEMANAL ---------------------- */
+  if (contentType === "desafio_semanal" && parsedContent.desafio_semanal) {
+    return (
+      <div className="media-fluid min-w-0 overflow-x-clip">
+        <DesafioSemanalView data={parsedContent} onSave={onSave} onRegenerate={onRegenerate} isSaving={isSaving} />
+      </div>
+    );
   }
 
-  if (contentType === 'devocional') {
+  /* ---------------------- DEVOCIONAL ---------------------- */
+  if (contentType === "devocional") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip">
         {parsedContent.fundamento_biblico && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 break-words">
                 <Book className="h-5 w-5" />
                 Fundamento Bíblico
               </CardTitle>
@@ -570,7 +627,10 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
                 <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
                 <ul className="space-y-2">
                   {parsedContent.fundamento_biblico.versiculos?.map((v: string, i: number) => (
-                    <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
+                    <li
+                      key={i}
+                      className="text-sm text-muted-foreground border-l-2 border-primary pl-3 whitespace-pre-wrap break-words"
+                    >
                       {v}
                     </li>
                   ))}
@@ -579,7 +639,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
               {parsedContent.fundamento_biblico.contexto && (
                 <div>
                   <h4 className="font-semibold mb-2 text-sm">Contexto:</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
                     {parsedContent.fundamento_biblico.contexto}
                   </p>
                 </div>
@@ -590,27 +650,28 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
 
         <DevocionalView devocional={parsedContent.devocional} />
 
-        <div className="flex gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  if (contentType === 'foto_post') {
+  /* ---------------------- FOTO_POST ---------------------- */
+  if (contentType === "foto_post") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip">
         {parsedContent.fundamento_biblico && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 break-words">
                 <Book className="h-5 w-5" />
                 Fundamento Bíblico
               </CardTitle>
@@ -620,7 +681,10 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
                 <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
                 <ul className="space-y-2">
                   {parsedContent.fundamento_biblico.versiculos?.map((v: string, i: number) => (
-                    <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
+                    <li
+                      key={i}
+                      className="text-sm text-muted-foreground border-l-2 border-primary pl-3 whitespace-pre-wrap break-words"
+                    >
                       {v}
                     </li>
                   ))}
@@ -629,7 +693,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
               {parsedContent.fundamento_biblico.contexto && (
                 <div>
                   <h4 className="font-semibold mb-2 text-sm">Contexto:</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
                     {parsedContent.fundamento_biblico.contexto}
                   </p>
                 </div>
@@ -638,32 +702,30 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
           </Card>
         )}
 
-        <FotoPostView 
-          conteudo_criativo={parsedContent.conteudo_criativo}
-          dica_producao={parsedContent.dica_producao}
-        />
+        <FotoPostView conteudo_criativo={parsedContent.conteudo_criativo} dica_producao={parsedContent.dica_producao} />
 
-        <div className="flex gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  if (contentType === 'roteiro_video') {
+  /* ---------------------- ROTEIRO VÍDEO ---------------------- */
+  if (contentType === "roteiro_video") {
     return (
-      <>
+      <div className="media-fluid min-w-0 overflow-x-clip">
         {parsedContent.fundamento_biblico && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 break-words">
                 <Book className="h-5 w-5" />
                 Fundamento Bíblico
               </CardTitle>
@@ -673,7 +735,10 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
                 <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
                 <ul className="space-y-2">
                   {parsedContent.fundamento_biblico.versiculos?.map((v: string, i: number) => (
-                    <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
+                    <li
+                      key={i}
+                      className="text-sm text-muted-foreground border-l-2 border-primary pl-3 whitespace-pre-wrap break-words"
+                    >
                       {v}
                     </li>
                   ))}
@@ -682,7 +747,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
               {parsedContent.fundamento_biblico.contexto && (
                 <div>
                   <h4 className="font-semibold mb-2 text-sm">Contexto:</h4>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">
                     {parsedContent.fundamento_biblico.contexto}
                   </p>
                 </div>
@@ -691,30 +756,29 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
           </Card>
         )}
 
-        <RoteiroVideoView 
+        <RoteiroVideoView
           conteudo_criativo={parsedContent.conteudo_criativo}
           dica_producao={parsedContent.dica_producao}
         />
 
-        <div className="flex gap-3 mt-6">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
         </div>
-      </>
+      </div>
     );
   }
 
-  // Pack Semanal - Comprehensive Weekly Content Pack
-  if (contentType === 'pack_semanal') {
+  /* ---------------------- PACK SEMANAL ---------------------- */
+  if (contentType === "pack_semanal") {
     const pack = parsedContent;
 
-    // Safe defaults for all pack properties
     const versiculos = pack.versiculos_base || [];
     const legendas = pack.legendas_instagram || [];
     const carrosseis = pack.carrosseis_instagram || [];
@@ -727,7 +791,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
         toast.error("Nenhum versículo disponível");
         return;
       }
-      const formatted = versiculos.map((v: string, i: number) => `${i + 1}. ${v}`).join('\n\n');
+      const formatted = versiculos.map((v: string, i: number) => `${i + 1}. ${v}`).join("\n\n");
       copyToClipboard(formatted, "Versículos copiados");
     };
 
@@ -737,7 +801,8 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     };
 
     const copyAllSlides = (carousel: any) => {
-      const formatted = carousel.slides?.map((s: string, i: number) => `Slide ${i + 1}:\n${s}`).join('\n\n---\n\n') || '';
+      const formatted =
+        carousel.slides?.map((s: string, i: number) => `Slide ${i + 1}:\n${s}`).join("\n\n---\n\n") || "";
       copyToClipboard(formatted, "Slides copiados");
     };
 
@@ -746,7 +811,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
         toast.error("Nenhuma frase disponível");
         return;
       }
-      const formatted = frases.join('\n\n');
+      const formatted = frases.join("\n\n");
       copyToClipboard(formatted, "Frases copiadas");
     };
 
@@ -755,26 +820,26 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
         toast.error("Nenhuma hashtag disponível");
         return;
       }
-      const formatted = hashtags.join(' ');
+      const formatted = hashtags.join(" ");
       copyToClipboard(formatted, "Hashtags copiadas");
     };
 
     const copyEntirePack = () => {
       const formatted = `
-${pack.resumo_pregacao ? `📖 RESUMO DA PREGAÇÃO\n${pack.resumo_pregacao}\n` : ''}
-${versiculos.length > 0 ? `\n📜 VERSÍCULOS BASE\n${versiculos.map((v: string, i: number) => `${i + 1}. ${v}`).join('\n')}\n` : ''}
-${legendas.length > 0 ? `\n📱 LEGENDAS INSTAGRAM\n${legendas.map((c: any, i: number) => `\n${i + 1}. [${c.tipo}]\n${c.texto}\nCTA: ${c.cta}`).join('\n---\n')}\n` : ''}
-${carrosseis.length > 0 ? `\n🎠 CARROSSÉIS\n${carrosseis.map((car: any, i: number) => `\n${i + 1}. ${car.titulo}\n${car.slides?.map((s: string, j: number) => `Slide ${j + 1}: ${s}`).join('\n') || ''}`).join('\n---\n')}\n` : ''}
-${reels.length > 0 ? `\n🎥 ROTEIROS DE REELS\n${reels.map((r: any, i: number) => `\n${i + 1}.\nGancho: ${r.gancho}\nDesenvolvimento: ${r.desenvolvimento}\nCTA: ${r.cta}`).join('\n---\n')}\n` : ''}
-${frases.length > 0 ? `\n⚡ FRASES DE IMPACTO\n${frases.map((f: string, i: number) => `${i + 1}. ${f}`).join('\n')}\n` : ''}
-${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
+${pack.resumo_pregacao ? `📖 RESUMO DA PREGAÇÃO\n${pack.resumo_pregacao}\n` : ""}
+${versiculos.length > 0 ? `\n📜 VERSÍCULOS BASE\n${versiculos.map((v: string, i: number) => `${i + 1}. ${v}`).join("\n")}\n` : ""}
+${legendas.length > 0 ? `\n📱 LEGENDAS INSTAGRAM\n${legendas.map((c: any, i: number) => `\n${i + 1}. [${c.tipo}]\n${c.texto}\nCTA: ${c.cta}`).join("\n---\n")}\n` : ""}
+${carrosseis.length > 0 ? `\n🎠 CARROSSÉIS\n${carrosseis.map((car: any, i: number) => `\n${i + 1}. ${car.titulo}\n${car.slides?.map((s: string, j: number) => `Slide ${j + 1}: ${s}`).join("\n") || ""}`).join("\n---\n")}\n` : ""}
+${reels.length > 0 ? `\n🎥 ROTEIROS DE REELS\n${reels.map((r: any, i: number) => `\n${i + 1}.\nGancho: ${r.gancho}\nDesenvolvimento: ${r.desenvolvimento}\nCTA: ${r.cta}`).join("\n---\n")}\n` : ""}
+${frases.length > 0 ? `\n⚡ FRASES DE IMPACTO\n${frases.map((f: string, i: number) => `${i + 1}. ${f}`).join("\n")}\n` : ""}
+${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(" ")}` : ""}
       `.trim();
-      
+
       copyToClipboard(formatted, "Pack completo copiado");
     };
 
     return (
-      <div className="space-y-8">
+      <div className="space-y-8 media-fluid min-w-0 overflow-x-clip">
         {/* Hero Section - Resumo */}
         <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
           <CardHeader>
@@ -784,7 +849,7 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-base leading-relaxed">{pack.resumo_pregacao}</p>
+            <p className="text-base leading-relaxed whitespace-pre-wrap break-words">{pack.resumo_pregacao}</p>
           </CardContent>
         </Card>
 
@@ -792,12 +857,12 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
         {versiculos.length > 0 && (
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   <Book className="w-5 h-5 text-primary" />
                   <CardTitle className="text-lg">Versículos Base</CardTitle>
                 </div>
-                <Button variant="ghost" size="sm" onClick={copyAllVerses}>
+                <Button variant="ghost" size="sm" onClick={copyAllVerses} className="shrink-0">
                   <Copy className="w-4 h-4 mr-2" />
                   Copiar Todos
                 </Button>
@@ -806,7 +871,7 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
             <CardContent className="space-y-3">
               {versiculos.map((verse: string, idx: number) => (
                 <div key={idx} className="group relative p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
-                  <p className="text-sm pr-8">{verse}</p>
+                  <p className="text-sm pr-8 whitespace-pre-wrap break-words">{verse}</p>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -844,11 +909,11 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
 
           {/* Tab: Legendas */}
           <TabsContent value="legendas" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 min-w-0">
               {legendas.map((caption: any, idx: number) => (
                 <Card key={idx} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
                       <Badge variant="secondary">{caption.tipo}</Badge>
                       <div className="flex gap-2">
                         <Button
@@ -858,23 +923,17 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
                         >
                           <Copy className="w-4 h-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openImageModal(caption.texto)}
-                        >
+                        <Button variant="ghost" size="icon" onClick={() => openImageModal(caption.texto)}>
                           <Image className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                      {caption.texto}
-                    </p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">{caption.texto}</p>
                     {caption.cta && (
                       <div className="pt-2 border-t">
-                        <p className="text-xs text-muted-foreground flex items-center gap-2">
+                        <p className="text-xs text-muted-foreground flex items-center gap-2 whitespace-pre-wrap break-words">
                           <MessageSquare className="w-3 h-3" />
                           CTA: {caption.cta}
                         </p>
@@ -888,15 +947,15 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
 
           {/* Tab: Carrosséis */}
           <TabsContent value="carrosseis" className="mt-6">
-            <div className="space-y-4">
+            <div className="space-y-4 min-w-0">
               {carrosseis.map((carousel: any, idx: number) => (
                 <Accordion key={idx} type="single" collapsible>
                   <AccordionItem value={`carousel-${idx}`}>
                     <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center gap-3 w-full">
-                        <Badge className="rounded-full">{idx + 1}</Badge>
-                        <span className="font-semibold">{carousel.titulo}</span>
-                        <Badge variant="outline" className="ml-auto mr-4">
+                      <div className="flex items-center gap-3 w-full min-w-0">
+                        <Badge className="rounded-full shrink-0">{idx + 1}</Badge>
+                        <span className="font-semibold break-words">{carousel.titulo}</span>
+                        <Badge variant="outline" className="ml-auto mr-0">
                           {carousel.slides?.length || 0} slides
                         </Badge>
                       </div>
@@ -905,15 +964,15 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
                       <div className="space-y-3 pt-4">
                         {carousel.slides?.map((slide: string, slideIdx: number) => (
                           <div key={slideIdx} className="group relative p-4 bg-card border rounded-lg">
-                            <div className="flex items-start gap-3">
-                              <Badge variant="secondary" className="mt-1">
+                            <div className="flex items-start gap-3 min-w-0">
+                              <Badge variant="secondary" className="mt-1 shrink-0">
                                 Slide {slideIdx + 1}
                               </Badge>
-                              <p className="flex-1 text-sm">{slide}</p>
+                              <p className="flex-1 text-sm whitespace-pre-wrap break-words">{slide}</p>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                                 onClick={() => copyToClipboard(slide, "Slide copiado")}
                               >
                                 <Copy className="w-3 h-3" />
@@ -935,7 +994,7 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
                             variant="outline"
                             size="sm"
                             className="w-full"
-                            onClick={() => openImageModal(carousel.slides?.join('\n\n') || '')}
+                            onClick={() => openImageModal(carousel.slides?.join("\n\n") || "")}
                           >
                             <Image className="w-4 h-4 mr-2" />
                             Gerar Imagem
@@ -951,20 +1010,16 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
 
           {/* Tab: Reels */}
           <TabsContent value="reels" className="mt-6">
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-2 min-w-0">
               {reels.map((reel: any, idx: number) => (
                 <Card key={idx} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-2">
                         <Video className="w-5 h-5 text-primary" />
                         <CardTitle className="text-base">Roteiro {idx + 1}</CardTitle>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => copyFullReel(reel)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => copyFullReel(reel)}>
                         <Copy className="w-4 h-4" />
                       </Button>
                     </div>
@@ -974,27 +1029,25 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant="default">Gancho</Badge>
                       </div>
-                      <p className="text-sm bg-primary/5 p-3 rounded-lg">
+                      <p className="text-sm bg-primary/5 p-3 rounded-lg whitespace-pre-wrap break-words">
                         {reel.gancho}
                       </p>
                     </div>
-                    
+
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant="secondary">Desenvolvimento</Badge>
                       </div>
-                      <p className="text-sm bg-muted/50 p-3 rounded-lg whitespace-pre-wrap">
+                      <p className="text-sm bg-muted/50 p-3 rounded-lg whitespace-pre-wrap break-words">
                         {reel.desenvolvimento}
                       </p>
                     </div>
-                    
+
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <Badge variant="outline">CTA</Badge>
                       </div>
-                      <p className="text-sm border p-3 rounded-lg">
-                        {reel.cta}
-                      </p>
+                      <p className="text-sm border p-3 rounded-lg whitespace-pre-wrap break-words">{reel.cta}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -1008,25 +1061,25 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
               {/* Frases de Impacto */}
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
                       <Zap className="w-5 h-5 text-primary" />
                       <CardTitle className="text-lg">Frases de Impacto</CardTitle>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={copyAllPhrases}>
+                    <Button variant="ghost" size="sm" onClick={copyAllPhrases} className="shrink-0">
                       <Copy className="w-4 h-4 mr-2" />
                       Copiar Todas
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-3 md:grid-cols-2">
+                  <div className="grid gap-3 md:grid-cols-2 min-w-0">
                     {frases.map((phrase: string, idx: number) => (
                       <div
                         key={idx}
                         className="group relative p-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/10 hover:border-primary/30 transition-all"
                       >
-                        <p className="text-sm font-medium pr-8">{phrase}</p>
+                        <p className="text-sm font-medium pr-8 whitespace-pre-wrap break-words">{phrase}</p>
                         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button
                             variant="ghost"
@@ -1054,12 +1107,12 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
               {/* Hashtags */}
               <Card>
                 <CardHeader>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
                       <Hash className="w-5 h-5 text-primary" />
                       <CardTitle className="text-lg">Hashtags Sugeridas</CardTitle>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={copyAllHashtags}>
+                    <Button variant="ghost" size="sm" onClick={copyAllHashtags} className="shrink-0">
                       <Copy className="w-4 h-4 mr-2" />
                       Copiar Todas
                     </Button>
@@ -1071,7 +1124,7 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
                       <Badge
                         key={idx}
                         variant="secondary"
-                        className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                        className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors break-all"
                         onClick={() => copyToClipboard(tag, "Hashtag copiada")}
                       >
                         {tag}
@@ -1113,26 +1166,26 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
     );
   }
 
-  // Fallback when content type is not recognized
-  if (contentType === 'default' && !parsedContent.fundamento_biblico && !parsedContent.conteudo) {
+  /* ---------------------- FALLBACKS ---------------------- */
+  if (contentType === "default" && !parsedContent.fundamento_biblico && !parsedContent.conteudo) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 media-fluid min-w-0 overflow-x-clip">
         <Card className="border-destructive/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-destructive">
+            <CardTitle className="flex items-center gap-2 text-destructive break-words">
               ⚠️ Formato de conteúdo não reconhecido
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Este conteúdo foi gerado em um formato que ainda não tem visualização específica. 
-              Você ainda pode copiar os dados abaixo:
+              Este conteúdo foi gerado em um formato que ainda não tem visualização específica. Você ainda pode copiar
+              os dados abaixo:
             </p>
             <pre className="bg-muted p-4 rounded-lg text-xs overflow-x-auto max-h-96">
               {JSON.stringify(parsedContent, null, 2)}
             </pre>
             <div className="flex gap-2">
-              <Button 
+              <Button
                 onClick={() => copyToClipboard(JSON.stringify(parsedContent, null, 2), "Conteúdo")}
                 variant="outline"
               >
@@ -1142,13 +1195,13 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
             </div>
           </CardContent>
         </Card>
-        
-        <div className="flex gap-3">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
+
+        <div className="flex flex-wrap gap-3">
+          <Button onClick={onSave} disabled={isSaving} size="lg" className="flex-1 sm:flex-none">
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? "Salvando..." : "Salvar"}
           </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
+          <Button onClick={onRegenerate} variant="outline" size="lg" className="flex-1 sm:flex-none">
             <RotateCw className="w-4 h-4 mr-2" />
             Regenerar
           </Button>
@@ -1157,7 +1210,6 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
     );
   }
 
-  // Validação para formato de redes sociais
   if (!content.conteudo) {
     return (
       <Card>
@@ -1174,7 +1226,7 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
     const allText = `
 📖 FUNDAMENTO BÍBLICO
 
-${content.fundamento_biblico.versiculos.join('\n\n')}
+${content.fundamento_biblico.versiculos.join("\n\n")}
 
 Contexto: ${content.fundamento_biblico.contexto}
 
@@ -1188,25 +1240,36 @@ ${content.conteudo.legenda}
 
 ---
 
-${content.estrutura_visual?.cards ? `
+${
+  content.estrutura_visual?.cards
+    ? `
 🎨 CARDS DO CARROSSEL
 
-${content.estrutura_visual.cards.map((card, i) => `
+${content.estrutura_visual.cards
+  .map(
+    (card, i) => `
 Card ${i + 1}:
 ${card.titulo}
 ${card.texto}
-`).join('\n')}
-
+`,
+  )
+  .join("\n")}
 ---
-` : ''}
+`
+    : ""
+}
 
-${content.estrutura_visual?.roteiro ? `
+${
+  content.estrutura_visual?.roteiro
+    ? `
 🎬 ROTEIRO
 
 ${content.estrutura_visual.roteiro}
 
 ---
-` : ''}
+`
+    : ""
+}
 
 💡 DICAS DE PRODUÇÃO
 
@@ -1214,17 +1277,17 @@ Formato: ${content.dica_producao.formato}
 Estilo: ${content.dica_producao.estilo}
 Melhor horário: ${content.dica_producao.horario}
 
-Hashtags: ${content.dica_producao.hashtags.join(' ')}
+Hashtags: ${content.dica_producao.hashtags.join(" ")}
 `;
     copyToClipboard(allText, "Conteúdo completo");
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 media-fluid min-w-0 overflow-x-clip">
       {/* Fundamento Bíblico */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 break-words">
             <Book className="w-5 h-5 text-primary" />
             Fundamento Bíblico
           </CardTitle>
@@ -1233,23 +1296,23 @@ Hashtags: ${content.dica_producao.hashtags.join(' ')}
           <div className="space-y-3">
             {content.fundamento_biblico.versiculos.map((versiculo, idx) => (
               <div key={idx} className="p-4 bg-muted/50 rounded-lg border-l-4 border-primary">
-                <p className="text-sm leading-relaxed italic">{versiculo}</p>
+                <p className="text-sm leading-relaxed italic whitespace-pre-wrap break-words">{versiculo}</p>
               </div>
             ))}
           </div>
-          
+
           <Separator />
-          
+
           <div>
             <h4 className="font-semibold text-sm mb-2">Contexto Histórico</h4>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap break-words">
               {content.fundamento_biblico.contexto}
             </p>
           </div>
-          
+
           <div>
             <h4 className="font-semibold text-sm mb-2">Princípio Atemporal</h4>
-            <p className="text-sm font-medium text-primary">
+            <p className="text-sm font-medium text-primary whitespace-pre-wrap break-words">
               {content.fundamento_biblico.principio}
             </p>
           </div>
@@ -1259,7 +1322,7 @@ Hashtags: ${content.dica_producao.hashtags.join(' ')}
       {/* Conteúdo Criativo */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <CardTitle className="flex items-center gap-2">
               <Edit3 className="w-5 h-5 text-primary" />
               Conteúdo Criativo
@@ -1272,24 +1335,14 @@ Hashtags: ${content.dica_producao.hashtags.join(' ')}
         </CardHeader>
         <CardContent>
           <div className="p-4 bg-muted/50 rounded-lg">
-            <p className="text-sm whitespace-pre-wrap leading-relaxed">
-              {content.conteudo.legenda}
-            </p>
+            <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">{content.conteudo.legenda}</p>
           </div>
           <div className="flex gap-2 mt-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => copyToClipboard(content.conteudo.legenda, "Legenda")}
-            >
+            <Button variant="outline" size="sm" onClick={() => copyToClipboard(content.conteudo.legenda, "Legenda")}>
               <Copy className="w-4 h-4 mr-2" />
               Copiar Legenda
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openImageModal(content.conteudo.legenda)}
-            >
+            <Button variant="outline" size="sm" onClick={() => openImageModal(content.conteudo.legenda)}>
               <Image className="w-4 h-4 mr-2" />
               Gerar Imagem
             </Button>
@@ -1322,17 +1375,17 @@ Hashtags: ${content.dica_producao.hashtags.join(' ')}
                         Gerar
                       </Button>
                     </div>
-                    <h4 className="font-semibold mb-2">{card.titulo}</h4>
-                    <p className="text-sm text-muted-foreground">{card.texto}</p>
+                    <h4 className="font-semibold mb-2 break-words">{card.titulo}</h4>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words">{card.texto}</p>
                   </div>
                 ))}
               </div>
             )}
-            
+
             {content.estrutura_visual.roteiro && (
               <div className="p-4 bg-muted/50 rounded-lg">
                 <h4 className="font-semibold mb-2">Roteiro do Vídeo</h4>
-                <p className="text-sm whitespace-pre-wrap leading-relaxed">
+                <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">
                   {content.estrutura_visual.roteiro}
                 </p>
               </div>
@@ -1353,25 +1406,25 @@ Hashtags: ${content.dica_producao.hashtags.join(' ')}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h4 className="font-semibold text-sm mb-1">Formato</h4>
-              <p className="text-sm text-muted-foreground">{content.dica_producao.formato}</p>
+              <p className="text-sm text-muted-foreground break-words">{content.dica_producao.formato}</p>
             </div>
             <div>
               <h4 className="font-semibold text-sm mb-1">Estilo Visual</h4>
-              <p className="text-sm text-muted-foreground">{content.dica_producao.estilo}</p>
+              <p className="text-sm text-muted-foreground break-words">{content.dica_producao.estilo}</p>
             </div>
             <div>
               <h4 className="font-semibold text-sm mb-1">Melhor Horário</h4>
-              <p className="text-sm text-muted-foreground">{content.dica_producao.horario}</p>
+              <p className="text-sm text-muted-foreground break-words">{content.dica_producao.horario}</p>
             </div>
           </div>
-          
+
           <Separator />
-          
+
           <div>
             <h4 className="font-semibold text-sm mb-2">Hashtags Estratégicas</h4>
             <div className="flex flex-wrap gap-2">
               {content.dica_producao.hashtags.map((tag, idx) => (
-                <Badge key={idx} variant="secondary">
+                <Badge key={idx} variant="secondary" className="break-all">
                   {tag}
                 </Badge>
               ))}
@@ -1380,7 +1433,7 @@ Hashtags: ${content.dica_producao.hashtags.join(' ')}
               variant="outline"
               size="sm"
               className="mt-3"
-              onClick={() => copyToClipboard(content.dica_producao.hashtags.join(' '), "Hashtags")}
+              onClick={() => copyToClipboard(content.dica_producao.hashtags.join(" "), "Hashtags")}
             >
               <Copy className="w-4 h-4 mr-2" />
               Copiar Hashtags
@@ -1391,27 +1444,15 @@ Hashtags: ${content.dica_producao.hashtags.join(' ')}
 
       {/* Ações */}
       <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t p-4 -mx-4 md:mx-0 md:border md:rounded-lg flex flex-col sm:flex-row gap-3">
-        <Button
-          onClick={onSave}
-          disabled={isSaving}
-          className="flex-1"
-        >
+        <Button onClick={onSave} disabled={isSaving} className="flex-1">
           <Save className="w-4 h-4 mr-2" />
           {isSaving ? "Salvando..." : "Salvar na Biblioteca"}
         </Button>
-        <Button
-          onClick={copyAll}
-          variant="outline"
-          className="flex-1"
-        >
+        <Button onClick={copyAll} variant="outline" className="flex-1">
           <Copy className="w-4 h-4 mr-2" />
           Copiar Tudo
         </Button>
-        <Button
-          onClick={onRegenerate}
-          variant="outline"
-          className="flex-1"
-        >
+        <Button onClick={onRegenerate} variant="outline" className="flex-1">
           <RotateCw className="w-4 h-4 mr-2" />
           Regenerar
         </Button>
