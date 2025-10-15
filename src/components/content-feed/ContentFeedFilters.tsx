@@ -1,12 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Sparkles, AudioLines, X } from "lucide-react";
 import { ContentSource, ContentFormat, ContentPilar } from "@/hooks/useContentFeed";
@@ -38,8 +32,7 @@ export function ContentFeedFilters({
   setSortBy,
   totalCount,
 }: ContentFeedFiltersProps) {
-  const hasActiveFilters =
-    searchTerm || sourceFilter !== "all" || formatFilter !== "all" || pilarFilter !== "all";
+  const hasActiveFilters = searchTerm || sourceFilter !== "all" || formatFilter !== "all" || pilarFilter !== "all";
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -49,22 +42,26 @@ export function ContentFeedFilters({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 min-w-0 overflow-x-clip">
       {/* Busca */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className="relative min-w-0">
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
+          aria-hidden
+        />
         <Input
           placeholder="Buscar por título, versículo, hashtags..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 pr-10"
+          className="w-full pl-10 pr-10"
         />
         {searchTerm && (
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 shrink-0"
             onClick={() => setSearchTerm("")}
+            aria-label="Limpar busca"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -73,23 +70,25 @@ export function ContentFeedFilters({
 
       {/* Filtros de Fonte */}
       <Tabs value={sourceFilter} onValueChange={(v) => setSourceFilter(v as any)}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="all">Todos ({totalCount})</TabsTrigger>
-          <TabsTrigger value="ai-creator" className="gap-2">
-            <Sparkles className="h-4 w-4" />
+        <TabsList className="grid w-full min-w-0 grid-cols-2 sm:grid-cols-3 gap-2">
+          <TabsTrigger value="all" className="truncate text-xs sm:text-sm px-2 sm:px-3">
+            Todos ({totalCount})
+          </TabsTrigger>
+          <TabsTrigger value="ai-creator" className="gap-2 truncate text-xs sm:text-sm px-2 sm:px-3">
+            <Sparkles className="h-4 w-4 shrink-0" />
             IA Criativa
           </TabsTrigger>
-          <TabsTrigger value="week-pack" className="gap-2">
-            <AudioLines className="h-4 w-4" />
+          <TabsTrigger value="week-pack" className="gap-2 truncate text-xs sm:text-sm px-2 sm:px-3">
+            <AudioLines className="h-4 w-4 shrink-0" />
             Pack Semanal
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
       {/* Filtros Avançados */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 min-w-0">
         <Select value={formatFilter} onValueChange={(v) => setFormatFilter(v as ContentFormat)}>
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="flex-1 min-w-0">
             <SelectValue placeholder="Formato" />
           </SelectTrigger>
           <SelectContent>
@@ -102,7 +101,7 @@ export function ContentFeedFilters({
         </Select>
 
         <Select value={pilarFilter} onValueChange={(v) => setPilarFilter(v as ContentPilar)}>
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="flex-1 min-w-0">
             <SelectValue placeholder="Pilar" />
           </SelectTrigger>
           <SelectContent>
@@ -115,7 +114,7 @@ export function ContentFeedFilters({
         </Select>
 
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-          <SelectTrigger className="flex-1">
+          <SelectTrigger className="flex-1 min-w-0">
             <SelectValue placeholder="Ordenar" />
           </SelectTrigger>
           <SelectContent>
@@ -128,9 +127,9 @@ export function ContentFeedFilters({
 
       {/* Indicador de filtros ativos */}
       {hasActiveFilters && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>Filtros ativos</span>
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground min-w-0">
+          <span className="truncate">Filtros ativos</span>
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-2 shrink-0">
             <X className="h-4 w-4" />
             Limpar filtros
           </Button>
