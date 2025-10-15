@@ -108,15 +108,11 @@ export function MobileContentSheet({ content, open, onClose }: MobileContentShee
 
           {/* Conteúdo scrollável */}
           <ScrollArea className="flex-1 min-w-0">
-            <div 
-              className="
-                p-4 w-full min-w-0 break-words overflow-x-hidden
-                [&_img]:max-w-full [&_img]:h-auto
-                [&_video]:max-w-full [&_video]:h-auto
-                [&_iframe]:w-full [&_iframe]:aspect-video
-                [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto
-              "
-            >
+            <div className="p-4 w-full min-w-0 break-words overflow-x-hidden
+                            [&_img]:max-w-full [&_img]:h-auto
+                            [&_video]:max-w-full [&_video]:h-auto
+                            [&_iframe]:w-full [&_iframe]:aspect-video
+                            [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto">
               <ContentViewer content={content} />
             </div>
           </ScrollArea>

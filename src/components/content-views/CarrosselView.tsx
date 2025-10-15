@@ -97,7 +97,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-clip">
       {/* Estrutura Visual - Cards/Slides do Carrossel */}
       {items.length > 0 && (
         <Card>
@@ -163,7 +163,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                               />
                             </div>
                           )}
-                          <p className="text-sm whitespace-pre-line">{texto}</p>
+                          <p className="text-sm whitespace-pre-wrap break-words">{texto}</p>
                           {imagemSugerida && (
                             <div className="p-3 bg-muted rounded-md">
                               <strong className="text-sm">Sugestão de Imagem:</strong>

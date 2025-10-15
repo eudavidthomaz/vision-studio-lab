@@ -823,7 +823,7 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
 
         {/* Tabs para diferentes tipos de conteúdo */}
         <Tabs defaultValue="legendas" className="w-full">
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
             <TabsTrigger value="legendas">
               <Instagram className="w-4 h-4 mr-2" />
               Legendas
