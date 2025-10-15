@@ -59,11 +59,11 @@ export const ContentFeedCard = memo(({ content, onView, onDelete }: ContentFeedC
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden hover:border-primary/50">
-      <div className="p-4 space-y-3">
+    <Card className="group hover:shadow-lg transition-all duration-300 overflow-hidden hover:border-primary/50 min-w-0 w-full">
+      <div className="p-4 space-y-3 min-w-0 overflow-x-clip">
         {/* Header com badges */}
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-wrap gap-2">
+        <div className="flex items-start justify-between gap-2 flex-wrap min-w-0">
+          <div className="flex flex-wrap gap-2 min-w-0">
             <Badge variant="secondary" className="gap-1">
               <SourceIcon className="h-3 w-3" />
               {content.source === "ai-creator" ? "IA Criativa" : "Pack Semanal"}
@@ -80,7 +80,7 @@ export const ContentFeedCard = memo(({ content, onView, onDelete }: ContentFeedC
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-8 w-8 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity shrink-0"
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
@@ -94,10 +94,7 @@ export const ContentFeedCard = memo(({ content, onView, onDelete }: ContentFeedC
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar conteúdo
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDelete(content.id)}
-                className="text-destructive"
-              >
+              <DropdownMenuItem onClick={() => onDelete(content.id)} className="text-destructive">
                 <Trash2 className="h-4 w-4 mr-2" />
                 Excluir
               </DropdownMenuItem>
@@ -106,40 +103,34 @@ export const ContentFeedCard = memo(({ content, onView, onDelete }: ContentFeedC
         </div>
 
         {/* Título */}
-        <h3 className="font-semibold text-lg line-clamp-2 text-foreground">
-          {content.title}
-        </h3>
+        <h3 className="font-semibold text-lg line-clamp-2 text-foreground break-words">{content.title}</h3>
 
         {/* Versículo */}
         {content.verse && (
-          <p className="text-sm text-muted-foreground italic line-clamp-2 border-l-2 border-primary/30 pl-3">
+          <p className="text-sm text-muted-foreground italic line-clamp-2 border-l-2 border-primary/30 pl-3 break-words">
             "{content.verse}"
           </p>
         )}
 
         {/* Preview */}
-        <p className="text-sm text-muted-foreground line-clamp-3">
-          {content.preview}
-        </p>
+        <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-wrap break-words">{content.preview}</p>
 
         {/* Hashtags */}
         {content.hashtags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {content.hashtags.slice(0, 3).map((tag, i) => (
-              <span key={i} className="text-xs text-primary">
+              <span key={i} className="text-xs text-primary break-all">
                 #{tag}
               </span>
             ))}
             {content.hashtags.length > 3 && (
-              <span className="text-xs text-muted-foreground">
-                +{content.hashtags.length - 3}
-              </span>
+              <span className="text-xs text-muted-foreground">+{content.hashtags.length - 3}</span>
             )}
           </div>
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t">
+        <div className="flex items-center justify-between pt-2 border-t min-w-0">
           <span className="text-xs text-muted-foreground">
             {formatDistanceToNow(content.createdAt, {
               addSuffix: true,
@@ -150,7 +141,7 @@ export const ContentFeedCard = memo(({ content, onView, onDelete }: ContentFeedC
             variant="ghost"
             size="sm"
             onClick={() => onView(content)}
-            className="gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="gap-2 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity shrink-0"
           >
             <Eye className="h-4 w-4" />
             Ver
@@ -161,4 +152,4 @@ export const ContentFeedCard = memo(({ content, onView, onDelete }: ContentFeedC
   );
 });
 
-ContentFeedCard.displayName = 'ContentFeedCard';
+ContentFeedCard.displayName = "ContentFeedCard";
