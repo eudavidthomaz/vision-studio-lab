@@ -127,11 +127,26 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
 
         {/* Conteúdo scrollável */}
         <ScrollArea className="max-h-[calc(90dvh-120px)]">
-          <div className="px-4 py-4 w-full min-w-0 break-words overflow-x-hidden
-                          [&_img]:max-w-full [&_img]:h-auto
-                          [&_video]:max-w-full [&_video]:h-auto
-                          [&_iframe]:w-full [&_iframe]:aspect-video
-                          [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto">
+          <div className="
+            px-3 sm:px-4 md:px-6 
+            py-3 sm:py-4 md:py-5 
+            w-full min-w-0 
+            break-words overflow-x-hidden
+            text-sm sm:text-base
+            [&_img]:max-w-full [&_img]:h-auto [&_img]:object-contain
+            [&_video]:max-w-full [&_video]:h-auto [&_video]:object-contain
+            [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:max-h-[60vh]
+            [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto [&_table]:text-xs [&_table]:sm:text-sm
+            [&_pre]:text-xs [&_pre]:sm:text-sm [&_pre]:overflow-x-auto [&_pre]:max-w-full
+            [&_code]:text-xs [&_code]:sm:text-sm [&_code]:break-all
+            [&_h1]:text-xl [&_h1]:sm:text-2xl [&_h1]:md:text-3xl [&_h1]:font-bold [&_h1]:mb-4
+            [&_h2]:text-lg [&_h2]:sm:text-xl [&_h2]:md:text-2xl [&_h2]:font-semibold [&_h2]:mb-3
+            [&_h3]:text-base [&_h3]:sm:text-lg [&_h3]:md:text-xl [&_h3]:font-semibold [&_h3]:mb-2
+            [&_p]:mb-3 [&_p]:leading-relaxed
+            [&_ul]:mb-3 [&_ul]:pl-4 [&_ul]:sm:pl-6
+            [&_ol]:mb-3 [&_ol]:pl-4 [&_ol]:sm:pl-6
+            [&_li]:mb-2
+          ">
             <ContentViewer content={content} />
           </div>
         </ScrollArea>
