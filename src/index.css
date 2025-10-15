@@ -163,49 +163,13 @@ All colors MUST be HSL.
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
-/* === Guardrails de responsividade (add ao final) === */
-html,
-body,
-#root {
-  height: 100%;
-  overflow-x: clip;
-  box-sizing: border-box;
-}
-*,
-*::before,
-*::after {
-  box-sizing: inherit;
+/* iOS às vezes “aumenta” o tamanho de texto: normalize */
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
-/* Conteúdo rico sem estourar largura */
-.media-fluid {
-  min-width: 0;
-  overflow-x: hidden;
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-}
-.media-fluid img,
-.media-fluid video,
-.media-fluid svg,
-.media-fluid canvas {
+/* Evitar que 100vw inclua a barra de rolagem e crie 1-2px de overflow */
+:root,
+body {
   max-width: 100%;
-  height: auto;
-}
-
-.media-fluid iframe {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
-}
-.media-fluid table {
-  width: 100%;
-  display: block;
-  overflow-x: auto;
-}
-
-/* Código/texto longo não quebra layout */
-pre,
-code {
-  white-space: pre-wrap;
-  word-break: break-word;
 }
