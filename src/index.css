@@ -1,163 +1,57 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
+/* === Guardrails de responsividade (colar no FINAL do arquivo) === */
 @layer base {
-  :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --card: 240 10% 7%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 240 10% 7%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 263 70% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 263 85% 65%;
-
-    --secondary: 240 10% 15%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 240 10% 15%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --accent: 188 95% 50%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 10% 15%;
-    --input: 240 10% 15%;
-    --ring: 263 70% 50%;
-
-    --radius: 0.75rem;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(263 70% 50%), hsl(188 95% 50%));
-    --gradient-hero: linear-gradient(180deg, hsl(240 10% 3.9%), hsl(240 10% 7%));
-    --shadow-glow: 0 0 40px hsl(263 85% 65% / 0.3);
-    --shadow-accent: 0 10px 40px hsl(188 95% 50% / 0.2);
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow-x: clip;
+    box-sizing: border-box;
   }
-
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --card: 240 10% 7%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 240 10% 7%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 263 70% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 263 85% 65%;
-
-    --secondary: 240 10% 15%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 240 10% 15%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --accent: 188 95% 50%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 240 10% 15%;
-    --input: 240 10% 15%;
-    --ring: 263 70% 50%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  *,
+  *::before,
+  *::after {
+    box-sizing: inherit;
   }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
+  html {
+    -webkit-text-size-adjust: 100%;
+  } /* evita "super-zoom" no iOS */
+  :root,
   body {
-    @apply bg-background text-foreground;
-  }
+    max-width: 100%;
+  } /* impede vazamento de 1-2px */
 }
 
+/* Conteúdo rico nunca estoura a largura (use esta classe no wrapper do conteúdo) */
 @layer utilities {
-  /* Mobile gesture utilities */
-  .touch-pan-y {
-    touch-action: pan-y;
+  .media-fluid {
+    min-width: 0;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
   }
-  
-  .touch-pan-x {
-    touch-action: pan-x;
-  }
-  
-  /* Smooth momentum scrolling on iOS */
-  .scroll-smooth-ios {
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  /* Safe area padding for mobile devices */
-  .safe-area-top {
-    padding-top: env(safe-area-inset-top);
-  }
-  
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
+  .media-fluid img,
+  .media-fluid video,
+  .media-fluid svg,
+  .media-fluid canvas {
+    max-width: 100%;
+    height: auto;
   }
 
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
+  .media-fluid iframe {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
   }
-}
-
-/* Prevenir zoom no iOS em inputs menores que 16px */
-@supports (-webkit-touch-callout: none) {
-  input, textarea, select {
-    font-size: 16px !important;
+  .media-fluid table {
+    width: 100%;
+    display: block;
+    overflow-x: auto;
   }
-}
 
-/* Melhorar scroll em iOS */
-.overscroll-contain {
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
+  /* Texto/código longo não quebra layout */
+  .media-fluid pre,
+  .media-fluid code {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
 }
