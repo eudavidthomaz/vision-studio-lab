@@ -47,7 +47,7 @@ All colors MUST be HSL.
     --ring: 263 70% 50%;
 
     --radius: 0.75rem;
-    
+
     --gradient-primary: linear-gradient(135deg, hsl(263 70% 50%), hsl(188 95% 50%));
     --gradient-hero: linear-gradient(180deg, hsl(240 10% 3.9%), hsl(240 10% 7%));
     --shadow-glow: 0 0 40px hsl(263 85% 65% / 0.3);
@@ -125,21 +125,21 @@ All colors MUST be HSL.
   .touch-pan-y {
     touch-action: pan-y;
   }
-  
+
   .touch-pan-x {
     touch-action: pan-x;
   }
-  
+
   /* Smooth momentum scrolling on iOS */
   .scroll-smooth-ios {
     -webkit-overflow-scrolling: touch;
   }
-  
+
   /* Safe area padding for mobile devices */
   .safe-area-top {
     padding-top: env(safe-area-inset-top);
   }
-  
+
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -151,7 +151,9 @@ All colors MUST be HSL.
 
 /* Prevenir zoom no iOS em inputs menores que 16px */
 @supports (-webkit-touch-callout: none) {
-  input, textarea, select {
+  input,
+  textarea,
+  select {
     font-size: 16px !important;
   }
 }
@@ -160,4 +162,50 @@ All colors MUST be HSL.
 .overscroll-contain {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+}
+/* === Guardrails de responsividade (add ao final) === */
+html,
+body,
+#root {
+  height: 100%;
+  overflow-x: clip;
+  box-sizing: border-box;
+}
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Conteúdo rico sem estourar largura */
+.media-fluid {
+  min-width: 0;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.media-fluid img,
+.media-fluid video,
+.media-fluid svg,
+.media-fluid canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.media-fluid iframe {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+.media-fluid table {
+  width: 100%;
+  display: block;
+  overflow-x: auto;
+}
+
+/* Código/texto longo não quebra layout */
+pre,
+code {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
