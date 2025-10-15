@@ -54,68 +54,66 @@ interface ContentViewerProps {
 // MAPEAMENTO COMPLETO: 34 TIPOS
 const CONTENT_VIEWS: Record<string, any> = {
   // Social (6 tipos)
-  'carrossel': CarrosselView,
-  'reel': ReelView,
-  'stories': StoriesView,
-  'post': PostSimplesView,
-  'foto_post': FotoPostView,
-  'convite': ConviteView,
-  
+  carrossel: CarrosselView,
+  reel: ReelView,
+  stories: StoriesView,
+  post: PostSimplesView,
+  foto_post: FotoPostView,
+  convite: ConviteView,
+
   // Bíblico (7 tipos)
-  'estudo': EstudoBiblicoView,
-  'devocional': DevocionalView,
-  'esboco': EsbocoView,
-  'resumo': ResumoPregacaoView,
-  'resumo_breve': ResumoBrevView,
-  'trilha_oracao': TrilhaOracaoView,
-  'versiculos_citados': VersiculosCitadosView,
-  
+  estudo: EstudoBiblicoView,
+  devocional: DevocionalView,
+  esboco: EsbocoView,
+  resumo: ResumoPregacaoView,
+  resumo_breve: ResumoBrevView,
+  trilha_oracao: TrilhaOracaoView,
+  versiculos_citados: VersiculosCitadosView,
+
   // Educativo/Estratégico (7 tipos)
-  'guia': GuiaView,
-  'ideia_estrategica': IdeiaEstrategicaView,
-  'calendario': CalendarioView,
-  'treino_voluntario': TreinoVoluntarioView,
-  'campanha_tematica': CampanhaTematicaView,
-  'manual_etica': ManualEticaView,
-  'estrategia_social': EstrategiaSocialView,
-  'kit_basico': KitBasicoView,
-  
+  guia: GuiaView,
+  ideia_estrategica: IdeiaEstrategicaView,
+  calendario: CalendarioView,
+  treino_voluntario: TreinoVoluntarioView,
+  campanha_tematica: CampanhaTematicaView,
+  manual_etica: ManualEticaView,
+  estrategia_social: EstrategiaSocialView,
+  kit_basico: KitBasicoView,
+
   // Operacional (2 tipos)
-  'aviso': AvisoView,
-  'convite_grupos': ConviteGruposView,
-  
+  aviso: AvisoView,
+  convite_grupos: ConviteGruposView,
+
   // Interativo (4 tipos)
-  'desafio_semanal': DesafioSemanalView,
-  'qa_estruturado': QAEstruturadoView,
-  'perguntas': PerguntasView,
-  'discipulado': DiscipuladoView,
-  
+  desafio_semanal: DesafioSemanalView,
+  qa_estruturado: QAEstruturadoView,
+  perguntas: PerguntasView,
+  discipulado: DiscipuladoView,
+
   // Outros (3 tipos)
-  'roteiro_video': RoteiroVideoView,
-  'roteiro_reels': RoteiroReelsView,
-  'checklist_culto': ChecklistCultoView,
+  roteiro_video: RoteiroVideoView,
+  roteiro_reels: RoteiroReelsView,
+  checklist_culto: ChecklistCultoView,
 };
 
 // View de fallback melhorada
 function DefaultView({ data, type }: { data: any; type: string }) {
   return (
-    <Card className="border-yellow-500/50">
+    <Card className="border-yellow-500/50 min-w-0 overflow-x-clip">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-yellow-600">
           <AlertCircle className="h-5 w-5" />
           View em Desenvolvimento
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0">
         <p className="text-sm text-muted-foreground mb-4">
-          A visualização específica para <strong>{type}</strong> ainda está sendo criada. 
-          Por enquanto, aqui está o conteúdo:
+          A visualização específica para <strong>{type}</strong> ainda está sendo criada. Por enquanto, aqui está o
+          conteúdo:
         </p>
         <details className="bg-muted p-4 rounded-lg">
-          <summary className="cursor-pointer font-medium text-sm mb-2">
-            Ver conteúdo JSON
-          </summary>
-          <pre className="overflow-auto max-h-[600px] text-xs mt-2">
+          <summary className="cursor-pointer font-medium text-sm mb-2">Ver conteúdo JSON</summary>
+          <pre className="overflow-auto max-h-[600px] text-xs mt-2 w-full max-w-full">
             {JSON.stringify(data, null, 2)}
           </pre>
         </details>
@@ -126,18 +124,23 @@ function DefaultView({ data, type }: { data: any; type: string }) {
 
 export function ContentViewer({ content }: ContentViewerProps) {
   const ViewComponent = CONTENT_VIEWS[content.content_type];
-  
+
   if (!ViewComponent) {
     console.warn(`No view found for content_type: ${content.content_type}`);
     return <DefaultView data={content.content} type={content.content_type} />;
   }
-  
+
   return (
-    <div className="space-y-6">
-      <ViewComponent 
-        data={content.content}
-        contentType={content.content_type}
-      />
+    <div
+      className="
+        space-y-6 min-w-0 overflow-x-clip break-words
+        [&_img]:max-w-full [&_img]:h-auto
+        [&_video]:max-w-full [&_video]:h-auto
+        [&_iframe]:w-full [&_iframe]:aspect-video
+        [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto
+      "
+    >
+      <ViewComponent data={content.content} contentType={content.content_type} />
     </div>
   );
 }
