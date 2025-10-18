@@ -7,7 +7,13 @@ import { useState } from "react";
 import ImageGenerationModal from "./ImageGenerationModal";
 import { useSwipeGesture } from "@/hooks/useSwipeGesture";
 import { ContentLibraryItem } from "@/hooks/useContentLibrary";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 interface MobileContentCardProps {
   content: ContentLibraryItem;
@@ -18,25 +24,31 @@ interface MobileContentCardProps {
 }
 
 const pillarColors: Record<string, string> = {
-  Edificar: "bg-blue-500",
-  Alcançar: "bg-green-500",
-  Pertencer: "bg-purple-500",
-  Servir: "bg-orange-500",
-  Convite: "bg-pink-500",
-  Comunidade: "bg-cyan-500",
-  Cobertura: "bg-red-500",
+  "Edificar": "bg-blue-500",
+  "Alcançar": "bg-green-500",
+  "Pertencer": "bg-purple-500",
+  "Servir": "bg-orange-500",
+  "Convite": "bg-pink-500",
+  "Comunidade": "bg-cyan-500",
+  "Cobertura": "bg-red-500"
 };
 
-export default function MobileContentCard({ content, onDelete, onUpdate, onMove, onEdit }: MobileContentCardProps) {
+export default function MobileContentCard({ 
+  content, 
+  onDelete, 
+  onUpdate, 
+  onMove,
+  onEdit 
+}: MobileContentCardProps) {
   const { toast } = useToast();
-
-  // Extract data from nested content JSON (com fallbacks)
+  
+  // Extract data from nested content JSON
   const contentData = content.content || {};
-  const copy = contentData.copy || contentData.texto || "";
+  const copy = contentData.copy || contentData.texto || '';
   const hashtags = contentData.hashtags || [];
-  const cta = contentData.cta || "";
-  const imagem_url = contentData.imagem_url || contentData.image_url || "";
-
+  const cta = contentData.cta || '';
+  const imagem_url = contentData.imagem_url || contentData.image_url || '';
+  
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -62,7 +74,7 @@ export default function MobileContentCard({ content, onDelete, onUpdate, onMove,
   const handleImageGenerated = (imageUrl: string) => {
     const updatedContent = {
       ...contentData,
-      imagem_url: imageUrl,
+      imagem_url: imageUrl
     };
     onUpdate(content.id, { content: updatedContent });
     toast({
@@ -82,7 +94,7 @@ export default function MobileContentCard({ content, onDelete, onUpdate, onMove,
   };
 
   const copyAll = () => {
-    const fullText = `${copy}\n\n${cta}\n\n${Array.isArray(hashtags) ? hashtags.join(" ") : ""}`;
+    const fullText = `${copy}\n\n${cta}\n\n${Array.isArray(hashtags) ? hashtags.join(" ") : ''}`;
     copyToClipboard(fullText, "Conteúdo completo");
   };
 
@@ -93,27 +105,25 @@ export default function MobileContentCard({ content, onDelete, onUpdate, onMove,
 
   return (
     <>
-      <Card
-        className={`w-full min-w-0 overflow-x-clip touch-pan-y bg-card/50 backdrop-blur-sm border-border/50 active:scale-[0.98] transition-all duration-300 ${
-          isDeleting ? "animate-swipe-delete" : ""
+      <Card 
+        className={`bg-card/50 backdrop-blur-sm border-border/50 active:scale-[0.98] transition-all duration-300 ${
+          isDeleting ? 'animate-swipe-delete' : ''
         }`}
         style={{
           transform: `translateX(${swipeOffset}px)`,
-          transition: swipeOffset === 0 ? "transform 0.3s ease-out" : "none",
+          transition: swipeOffset === 0 ? 'transform 0.3s ease-out' : 'none',
         }}
         {...handlers}
       >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-foreground text-base leading-tight mb-2 line-clamp-2 break-words">
+            <div className="flex-1">
+              <CardTitle className="text-foreground text-base leading-tight mb-2">
                 {content.title}
               </CardTitle>
-              <div className="flex gap-2 flex-wrap items-center min-w-0">
-                <Badge variant="secondary" className="text-xs max-w-full truncate">
-                  {content.content_type}
-                </Badge>
-                <Badge className={`${pillarColors[content.pilar] || "bg-gray-500"} text-white text-xs`}>
+              <div className="flex gap-2 flex-wrap">
+                <Badge variant="secondary" className="text-xs">{content.content_type}</Badge>
+                <Badge className={`${pillarColors[content.pilar] || 'bg-gray-500'} text-white text-xs`}>
                   {content.pilar}
                 </Badge>
                 {content.is_favorite && (
@@ -128,17 +138,21 @@ export default function MobileContentCard({ content, onDelete, onUpdate, onMove,
                 )}
               </div>
             </div>
-
+            
             {/* More Actions Sheet */}
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" aria-label="Mais ações">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                >
                   <MoreVertical className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto pb-safe pt-4">
+              <SheetContent side="bottom" className="h-auto">
                 <SheetHeader>
-                  <SheetTitle className="text-left break-words">{content.title}</SheetTitle>
+                  <SheetTitle className="text-left">{content.title}</SheetTitle>
                 </SheetHeader>
                 <div className="grid gap-2 mt-4">
                   <Button
@@ -167,7 +181,7 @@ export default function MobileContentCard({ content, onDelete, onUpdate, onMove,
                   <Button
                     variant="outline"
                     size="lg"
-                    onClick={() => copyToClipboard(copy, "Texto")}
+                    onClick={() => copyToClipboard(copy, "Copy")}
                     className="justify-start h-14"
                   >
                     <Copy className="h-5 w-5 mr-2" />
@@ -176,7 +190,7 @@ export default function MobileContentCard({ content, onDelete, onUpdate, onMove,
                   <Button
                     variant="outline"
                     size="lg"
-                    onClick={() => copyToClipboard(Array.isArray(hashtags) ? hashtags.join(" ") : "", "Hashtags")}
+                    onClick={() => copyToClipboard(Array.isArray(hashtags) ? hashtags.join(" ") : '', "Hashtags")}
                     className="justify-start h-14"
                   >
                     <Copy className="h-5 w-5 mr-2" />
@@ -191,8 +205,8 @@ export default function MobileContentCard({ content, onDelete, onUpdate, onMove,
                     }}
                     className="justify-start h-14"
                   >
-                    <Star className={`h-5 w-5 mr-2 ${content.is_favorite ? "fill-yellow-400 text-yellow-400" : ""}`} />
-                    {content.is_favorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                    <Star className={`h-5 w-5 mr-2 ${content.is_favorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                    {content.is_favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                   </Button>
                   <Button
                     variant="outline"
@@ -203,10 +217,15 @@ export default function MobileContentCard({ content, onDelete, onUpdate, onMove,
                     }}
                     className="justify-start h-14"
                   >
-                    <Pin className={`h-5 w-5 mr-2 ${content.is_pinned ? "fill-primary text-primary" : ""}`} />
-                    {content.is_pinned ? "Desafixar" : "Fixar"}
+                    <Pin className={`h-5 w-5 mr-2 ${content.is_pinned ? 'fill-primary text-primary' : ''}`} />
+                    {content.is_pinned ? 'Desafixar' : 'Fixar'}
                   </Button>
-                  <Button variant="destructive" size="lg" onClick={handleDelete} className="justify-start h-14">
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    onClick={handleDelete}
+                    className="justify-start h-14"
+                  >
                     Excluir post
                   </Button>
                 </div>
@@ -214,41 +233,55 @@ export default function MobileContentCard({ content, onDelete, onUpdate, onMove,
             </Sheet>
           </div>
         </CardHeader>
-
+        
         <CardContent className="space-y-3">
           {/* Image Preview */}
           {imagem_url && (
-            <div
+            <div 
               className="relative rounded-md overflow-hidden active:opacity-80 transition-opacity"
               onClick={() => setShowImagePreview(true)}
             >
-              <img src={imagem_url} alt={content.title} className="w-full h-40 object-cover" loading="lazy" />
+              <img
+                src={imagem_url}
+                alt={content.title}
+                className="w-full h-40 object-cover"
+                loading="lazy"
+              />
             </div>
           )}
 
           {/* Preview Text */}
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed break-words">{copy}</p>
-
+          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+            {copy}
+          </p>
+          
           {/* Hashtags Preview */}
-          <div className="flex flex-wrap gap-1 overflow-hidden">
-            {Array.isArray(hashtags) &&
-              hashtags.slice(0, 3).map((tag, i) => (
-                <span key={i} className="text-xs text-primary break-all">
-                  {tag}
-                </span>
-              ))}
+          <div className="flex flex-wrap gap-1">
+            {Array.isArray(hashtags) && hashtags.slice(0, 3).map((tag, i) => (
+              <span key={i} className="text-xs text-primary">{tag}</span>
+            ))}
             {Array.isArray(hashtags) && hashtags.length > 3 && (
               <span className="text-xs text-muted-foreground">+{hashtags.length - 3}</span>
             )}
           </div>
-
+          
           {/* Primary Actions - Large Touch Targets */}
           <div className="grid grid-cols-2 gap-2 pt-2">
-            <Button variant="default" size="lg" onClick={copyAll} className="h-12">
+            <Button
+              variant="default"
+              size="lg"
+              onClick={copyAll}
+              className="h-12"
+            >
               <Copy className="h-4 w-4 mr-2" />
               Copiar tudo
             </Button>
-            <Button variant="outline" size="lg" onClick={() => setImageModalOpen(true)} className="h-12">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setImageModalOpen(true)}
+              className="h-12"
+            >
               <ImageIcon className="h-4 w-4 mr-2" />
               {imagem_url ? "Editar" : "Gerar"}
             </Button>
@@ -271,7 +304,11 @@ export default function MobileContentCard({ content, onDelete, onUpdate, onMove,
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
           onClick={() => setShowImagePreview(false)}
         >
-          <img src={imagem_url} alt={content.title} className="max-w-full max-h-[90vh] object-contain rounded-lg" />
+          <img
+            src={imagem_url}
+            alt={content.title}
+            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+          />
         </div>
       )}
     </>

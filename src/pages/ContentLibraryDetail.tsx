@@ -17,27 +17,31 @@ export default function ContentLibraryDetail() {
       return;
     }
 
-    const loadContent = async () => {
-      try {
-        const { data, error } = await supabase.from("content_library").select("*").eq("id", id).single();
+    loadContent();
+  }, [id]);
 
-        if (error || !data) {
-          console.error("Error loading content:", error);
-          navigate("/biblioteca");
-          return;
-        }
+  const loadContent = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("content_library")
+        .select("*")
+        .eq("id", id)
+        .single();
 
-        setContent(data as ContentLibraryItem);
-      } catch (error) {
+      if (error || !data) {
         console.error("Error loading content:", error);
         navigate("/biblioteca");
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
-    loadContent();
-  }, [id, navigate]);
+      setContent(data as ContentLibraryItem);
+    } catch (error) {
+      console.error("Error loading content:", error);
+      navigate("/biblioteca");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleClose = () => {
     navigate("/biblioteca");
@@ -45,15 +49,17 @@ export default function ContentLibraryDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center min-w-0 overflow-x-clip">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" aria-label="Carregando" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background min-w-0 overflow-x-clip">
-      <UnifiedContentModal content={content} open={true} onClose={handleClose} />
-    </div>
+    <UnifiedContentModal
+      content={content}
+      open={!!content}
+      onClose={handleClose}
+    />
   );
 }

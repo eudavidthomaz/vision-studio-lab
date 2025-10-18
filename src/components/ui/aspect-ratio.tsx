@@ -1,23 +1,5 @@
-import * as React from "react";
 import * as AspectRatioPrimitive from "@radix-ui/react-aspect-ratio";
-import { cn } from "@/lib/utils";
 
-/**
- * Mobile-first AspectRatio:
- * - w-full / max-w-full para nunca “estourar” a viewport
- * - overflow-hidden para evitar vazamento de mídia dentro do contêiner
- */
-const AspectRatio = React.forwardRef<
-  React.ElementRef<typeof AspectRatioPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof AspectRatioPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <AspectRatioPrimitive.Root
-    ref={ref}
-    className={cn("relative w-full max-w-full overflow-hidden", className)}
-    {...props}
-  />
-));
-
-AspectRatio.displayName = AspectRatioPrimitive.Root.displayName;
+const AspectRatio = AspectRatioPrimitive.Root;
 
 export { AspectRatio };
