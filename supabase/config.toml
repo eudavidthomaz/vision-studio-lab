@@ -3,10 +3,13 @@ project_id = "imitktxtunqovyqsmplb"
 [functions.transcribe-sermon]
 verify_jwt = true
 
-[functions.generate-week-pack]
+[functions.generate-sermon-pack]
 verify_jwt = true
 
-[functions.generate-ideon-challenge]
+[functions.generate-sermon-summary]
+verify_jwt = true
+
+[functions.generate-week-pack]
 verify_jwt = true
 
 [functions.generate-content-idea]
@@ -25,4 +28,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.generate-ai-content]
+verify_jwt = true
+
+[functions.content-engine]
 verify_jwt = true

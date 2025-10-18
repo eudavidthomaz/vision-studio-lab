@@ -8,23 +8,44 @@ Plataforma de IA para criar conteúdo evangelístico impactante para redes socia
 - Grave pregações ao vivo ou faça upload de arquivos
 - Transcrição automática com OpenAI Whisper
 - Suporte a múltiplos formatos (MP3, WAV, M4A, WEBM)
+- Processamento em até 60 segundos
 
-### 📦 Geração de Conteúdo
-- **Pack Semanal Completo**: posts, stories, reels, carrosséis
-- **Desafios Ide.On**: roteiros para vídeos evangelísticos
-- **Ideias Personalizadas**: conteúdo sob demanda
-- **Geração de Imagens**: arte profissional para posts
+### 🤖 Geração de Conteúdo com IA
+- **AI Creator**: Crie qualquer tipo de conteúdo via prompt
+- **Sermon Pack**: 12 conteúdos automáticos baseados em sermão
+- **Quick Posts**: Posts rápidos por tipo e tema
+- **Photo Ideas**: Sugestões criativas de fotos
+- **Video Scripts**: Roteiros profissionais para vídeos
+- **34 tipos de conteúdo** suportados
 
-### 📅 Planner Visual
-- Organize conteúdo por dia da semana
-- Drag & drop intuitivo
-- Edição inline de conteúdo
-- Export para PDF/imagem
+### 📚 Biblioteca Unificada
+- Todos os conteúdos em um só lugar
+- Filtros avançados (tipo, pilar, tags, status)
+- Busca full-text otimizada
+- Organização por tags personalizadas
+- Workflow completo (draft → published → archived)
+- Edição, duplicação e exclusão
 
-### 📊 Analytics & Métricas
-- Dashboard de uso
-- Histórico completo
-- Métricas de engajamento
+### 🎨 Tipos de Conteúdo Suportados
+- **Posts**: post_simples, carrossel, foto_post
+- **Stories**: stories, qa_estruturado
+- **Vídeos**: reel, roteiro_video
+- **Conteúdo Bíblico**: devocional, estudo, esboco, resumo_pregacao
+- **Engajamento**: desafio_semanal, ideia_estrategica
+- **Materiais**: guia, discipulado
+- E mais 20+ tipos adicionais!
+
+### 📊 Analytics & Uso
+- Dashboard de quotas em tempo real
+- Histórico completo de geração
+- Métricas de performance
+- Controle de limites por plano (Free/Pro/Team/Admin)
+
+### 🏷️ Pilares Editoriais
+- **EDIFICAR**: Fortalecer a fé dos crentes
+- **ALCANÇAR**: Evangelizar não-crentes
+- **EXALTAR**: Adoração e louvor
+- **ENVIAR**: Mobilizar para missões
 
 ## 🔒 Segurança
 
@@ -38,6 +59,12 @@ Sistema robusto de segurança implementado:
 ✅ Tratamento de erros padronizado  
 
 Ver [SECURITY.md](./SECURITY.md) para detalhes completos.
+
+## 📚 Documentação
+
+- [ARQUITETURA_SISTEMA_IDEON.md](./ARQUITETURA_SISTEMA_IDEON.md) - Arquitetura técnica completa
+- [CONTENT_TYPES.md](./CONTENT_TYPES.md) - Tipos de conteúdo suportados
+- [CORRECOES_SISTEMA.md](./CORRECOES_SISTEMA.md) - Histórico de correções
 
 ---
 
@@ -100,10 +127,12 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (Lovable Cloud)
+- Lovable AI Gateway
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/7265615f-78ba-4b21-b14a-5e5467afc285) and click on Share -> Publish.
+Simply open [Lovable](https://lovable.dev/projects/7265615f-78ba-4b21-b14a-5e5467afc285) and click on Share → Publish.
 
 ## Can I connect a custom domain to my Lovable project?
 

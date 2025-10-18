@@ -12,11 +12,11 @@ export const QuotaIndicator = () => {
 
   const features = [
     {
-      key: 'weekly_packs' as const,
-      label: 'Packs Semanais',
+      key: 'sermon_packs' as const,
+      label: 'Packs de Sermões',
       icon: Sparkles,
-      used: quota.weekly_packs_used,
-      limit: limits.weekly_packs,
+      used: quota.sermon_packs_generated,
+      limit: limits.sermon_packs,
     },
     {
       key: 'challenges' as const,

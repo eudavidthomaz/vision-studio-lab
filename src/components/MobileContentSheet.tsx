@@ -1,0 +1,129 @@
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ContentViewer } from "./ContentViewer";
+import { ContentLibraryItem } from "@/hooks/useContentLibrary";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Tag } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+interface MobileContentSheetProps {
+  content: ContentLibraryItem | null;
+  open: boolean;
+  onClose: () => void;
+}
+
+export function MobileContentSheet({ content, open, onClose }: MobileContentSheetProps) {
+  if (!content) return null;
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "dd 'de' MMMM 'de' yyyy 'às' HH:mm", { locale: ptBR });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const getContentTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      'carrossel': '🎠 Carrossel',
+      'reel': '🎬 Reels',
+      'stories': '📱 Stories',
+      'post': '📝 Post',
+      'foto_post': '📸 Foto Post',
+      'devocional': '📖 Devocional',
+      'estudo': '📚 Estudo Bíblico',
+      'esboco': '📋 Esboço',
+      'desafio_semanal': '💪 Desafio Semanal',
+      'roteiro_video': '🎥 Roteiro de Vídeo',
+      'convite': '🎉 Convite',
+      'aviso': '📢 Aviso',
+      'resumo': '📄 Resumo',
+      'resumo_breve': '📝 Resumo Breve',
+      'guia': '📖 Guia',
+      'calendario': '📅 Calendário',
+      'perguntas': '❓ Perguntas',
+      'treino_voluntario': '🎓 Treino',
+      'campanha_tematica': '📣 Campanha',
+      'manual_etica': '🛡️ Manual de Ética',
+      'estrategia_social': '📊 Estratégia Social',
+      'kit_basico': '📦 Kit Básico',
+    };
+    return labels[type] || type;
+  };
+
+  const getPilarColor = (pilar: string) => {
+    const colors: Record<string, string> = {
+      'ALCANÇAR': 'bg-blue-500',
+      'EDIFICAR': 'bg-green-500',
+      'ENVIAR': 'bg-purple-500',
+      'EXALTAR': 'bg-yellow-500'
+    };
+    return colors[pilar] || 'bg-gray-500';
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={onClose}>
+      <SheetContent 
+        side="bottom" 
+        className="h-[95dvh] w-screen max-w-full p-0 rounded-t-2xl overflow-hidden"
+      >
+        {/* Container com altura fixa e overflow controlado */}
+        <div className="flex flex-col h-full w-full">
+          {/* Header fixo - não rola */}
+          <SheetHeader className="flex-shrink-0 px-3 py-3 border-b bg-background z-10 space-y-2">
+            <SheetTitle className="text-sm font-semibold line-clamp-1 text-left pr-8">
+              {content.title}
+            </SheetTitle>
+            
+            <div className="flex gap-1.5 flex-wrap">
+              <Badge variant="outline" className="text-xs">
+                {getContentTypeLabel(content.content_type)}
+              </Badge>
+              
+              <Badge className={`${getPilarColor(content.pilar)} text-white text-xs`}>
+                {content.pilar}
+              </Badge>
+
+              {content.source_type && (
+                <Badge variant="secondary" className="text-xs">
+                  {content.source_type === 'ai-creator' ? '🤖 IA' : 
+                   content.source_type === 'audio-pack' ? '🎙️ Pack' : 
+                   '✍️ Manual'}
+                </Badge>
+              )}
+            </div>
+
+            {/* Tags */}
+            {content.tags && content.tags.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <Tag className="h-3 w-3 text-muted-foreground" />
+                {content.tags.map((tag, i) => (
+                  <Badge key={i} variant="outline" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </SheetHeader>
+
+          {/* Conteúdo scrollável - cresce para preencher espaço */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="
+              p-3 w-full min-w-0 
+              [&_*]:max-w-full
+              [&_img]:w-full [&_img]:h-auto
+              [&_video]:w-full [&_video]:h-auto
+              [&_iframe]:w-full [&_iframe]:aspect-video
+              [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto
+              [&_pre]:text-xs [&_pre]:overflow-x-auto
+              [&_code]:text-xs [&_code]:break-all
+            ">
+              <ContentViewer content={content} />
+            </div>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}

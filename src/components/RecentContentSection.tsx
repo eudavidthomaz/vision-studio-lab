@@ -1,101 +1,19 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
-import { Sparkles, Calendar, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "./ui/badge";
-
-interface RecentContent {
-  id: string;
-  type: "ai" | "pack";
-  title: string;
-  createdAt: string;
-}
+import { useContentLibrary } from "@/hooks/useContentLibrary";
 
 export const RecentContentSection = () => {
-  const [recentContents, setRecentContents] = useState<RecentContent[]>([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { items, loading } = useContentLibrary();
 
-  useEffect(() => {
-    loadRecentContent();
-  }, []);
-
-  const loadRecentContent = async () => {
-    try {
-      // SECURITY: Validate user before any query
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user?.id) {
-        throw new Error('Unauthorized');
-      }
-
-      const [aiContentResponse, weeklyPackResponse] = await Promise.all([
-        supabase
-          .from("content_planners")
-          .select("id, content, created_at, user_id")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(2),
-        supabase
-          .from("weekly_packs")
-          .select("id, pack, created_at, user_id")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(1),
-      ]);
-
-      // SECURITY: Validate all data belongs to user
-      if (aiContentResponse.data?.some(item => item.user_id !== user.id)) {
-        throw new Error('Data integrity violation detected');
-      }
-      if (weeklyPackResponse.data?.some(item => item.user_id !== user.id)) {
-        throw new Error('Data integrity violation detected');
-      }
-
-      const contents: RecentContent[] = [];
-
-      if (aiContentResponse.data) {
-        aiContentResponse.data.forEach((item) => {
-          const plannerDataArray = item.content as any[];
-          const plannerData = plannerDataArray?.[0];
-          
-          if (plannerData?.prompt_original) {
-            contents.push({
-              id: item.id,
-              type: "ai",
-              title: plannerData.prompt_original.substring(0, 50) + "...",
-              createdAt: item.created_at,
-            });
-          }
-        });
-      }
-
-      if (weeklyPackResponse.data?.[0]) {
-        const pack = weeklyPackResponse.data[0];
-        const packData = pack.pack as any;
-        contents.push({
-          id: pack.id,
-          type: "pack",
-          title: packData?.titulo_principal || "Pack Semanal",
-          createdAt: pack.created_at,
-        });
-      }
-
-      contents.sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-
-      setRecentContents(contents.slice(0, 3));
-    } catch (error) {
-      console.error("Error loading recent content:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const recentContents = items
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 3);
 
   const getRelativeTime = (dateString: string) => {
     try {
@@ -112,6 +30,19 @@ export const RecentContentSection = () => {
     return null;
   }
 
+  const getContentTypeIcon = (type: string) => {
+    const icons: Record<string, string> = {
+      'carrossel': '🎠',
+      'reel': '🎬',
+      'stories': '📱',
+      'post': '📝',
+      'devocional': '📖',
+      'estudo': '📚',
+      'esboco': '📋'
+    };
+    return icons[type] || '✨';
+  };
+
   return (
     <Card className="hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="pb-3">
@@ -120,7 +51,7 @@ export const RecentContentSection = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/meus-conteudos")}
+            onClick={() => navigate("/biblioteca")}
             className="text-xs group"
           >
             Ver Todos
@@ -140,7 +71,7 @@ export const RecentContentSection = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate("/meus-conteudos")}
+              onClick={() => navigate("/biblioteca")}
               className="mt-2"
             >
               Criar Primeiro Conteúdo
@@ -150,22 +81,14 @@ export const RecentContentSection = () => {
           recentContents.map((content) => (
             <div
               key={content.id}
-              onClick={() => navigate("/meus-conteudos")}
+              onClick={() => navigate(`/biblioteca/${content.id}`)}
               className="group relative overflow-hidden rounded-lg border bg-gradient-to-br from-card to-card/50 hover:shadow-md transition-all duration-300 cursor-pointer"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               
               <div className="relative p-4 flex items-start gap-3">
-                <div className={`flex-shrink-0 p-2 rounded-lg ${
-                  content.type === "ai" 
-                    ? "bg-primary/10" 
-                    : "bg-accent/10"
-                }`}>
-                  {content.type === "ai" ? (
-                    <Sparkles className="w-5 h-5 text-primary" />
-                  ) : (
-                    <Calendar className="w-5 h-5 text-accent" />
-                  )}
+                <div className="flex-shrink-0 text-2xl">
+                  {getContentTypeIcon(content.content_type)}
                 </div>
                 
                 <div className="flex-1 min-w-0 space-y-1">
@@ -174,10 +97,10 @@ export const RecentContentSection = () => {
                       variant="secondary" 
                       className="text-xs"
                     >
-                      {content.type === "ai" ? "IA Creator" : "Pack Semanal"}
+                      {content.source_type === 'ai-creator' ? 'IA Creator' : content.source_type}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
-                      {getRelativeTime(content.createdAt)}
+                      {getRelativeTime(content.created_at)}
                     </span>
                   </div>
                   <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
