@@ -18,6 +18,7 @@ import {
   Copy,
   Trash2,
   MoreVertical,
+  Share2,
 } from "lucide-react";
 import { NormalizedContent } from "@/hooks/useContentFeed";
 import { formatDistanceToNow } from "date-fns";
@@ -28,6 +29,7 @@ interface ContentFeedCardProps {
   content: NormalizedContent;
   onView: (content: NormalizedContent) => void;
   onDelete: (id: string) => void;
+  onShare?: (content: NormalizedContent) => void;
 }
 
 const formatIcons = {
@@ -44,7 +46,7 @@ const pilarColors = {
   EXALTAR: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
 };
 
-export function ContentFeedCard({ content, onView, onDelete }: ContentFeedCardProps) {
+export function ContentFeedCard({ content, onView, onDelete, onShare }: ContentFeedCardProps) {
   const FormatIcon = formatIcons[content.format] || FileText;
   const SourceIcon = content.source === "ai-creator" ? Sparkles : AudioLines;
 
@@ -89,6 +91,12 @@ export function ContentFeedCard({ content, onView, onDelete }: ContentFeedCardPr
                 <Eye className="h-4 w-4 mr-2" />
                 Ver completo
               </DropdownMenuItem>
+              {onShare && (
+                <DropdownMenuItem onClick={() => onShare(content)}>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Compartilhar
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={handleCopy}>
                 <Copy className="h-4 w-4 mr-2" />
                 Copiar conteúdo

@@ -32,8 +32,12 @@ export function useContentFeed() {
   const loadContents = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      // SECURITY: Validate user before any query
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user?.id) {
+        throw new Error('Unauthorized');
+      }
 
       // Buscar content_planners (IA)
       const { data: aiContent, error: aiError } = await supabase
@@ -44,6 +48,18 @@ export function useContentFeed() {
 
       if (aiError) throw aiError;
 
+      // SECURITY: Validate all data belongs to user
+      if (aiContent?.some(item => item.user_id !== user.id)) {
+        await supabase.from('security_audit_log').insert({
+          user_id: user.id,
+          event_type: 'data_integrity_violation',
+          endpoint: 'content_planners',
+          success: false,
+          error_message: 'Query returned data from other users'
+        });
+        throw new Error('Data integrity violation detected');
+      }
+
       // Buscar weekly_packs
       const { data: weekPacks, error: packError } = await supabase
         .from("weekly_packs")
@@ -52,6 +68,18 @@ export function useContentFeed() {
         .order("created_at", { ascending: false });
 
       if (packError) throw packError;
+
+      // SECURITY: Validate all data belongs to user
+      if (weekPacks?.some(item => item.user_id !== user.id)) {
+        await supabase.from('security_audit_log').insert({
+          user_id: user.id,
+          event_type: 'data_integrity_violation',
+          endpoint: 'weekly_packs',
+          success: false,
+          error_message: 'Query returned data from other users'
+        });
+        throw new Error('Data integrity violation detected');
+      }
 
       const normalized: NormalizedContent[] = [];
 
@@ -161,19 +189,49 @@ export function useContentFeed() {
 
   const deleteContent = async (id: string) => {
     try {
+      // SECURITY: Validate authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user?.id) {
+        throw new Error('Unauthorized');
+      }
+
       const [type, uuid] = id.split("-");
+      const table = type === "ai" ? "content_planners" : "weekly_packs";
       
+      // SECURITY: Verify ownership BEFORE deleting
+      const { data: existing } = await supabase
+        .from(table)
+        .select("user_id")
+        .eq("id", uuid)
+        .single();
+
+      if (!existing || existing.user_id !== user.id) {
+        // Log unauthorized deletion attempt
+        await supabase.from('security_audit_log').insert({
+          user_id: user.id,
+          event_type: 'unauthorized_delete_attempt',
+          endpoint: table,
+          success: false,
+          metadata: { attempted_id: uuid }
+        });
+        
+        throw new Error('Unauthorized: You do not own this content');
+      }
+
+      // Delete with double-check
       if (type === "ai") {
         const { error } = await supabase
           .from("content_planners")
           .delete()
-          .eq("id", uuid);
+          .eq("id", uuid)
+          .eq("user_id", user.id);
         if (error) throw error;
       } else if (type === "pack") {
         const { error } = await supabase
           .from("weekly_packs")
           .delete()
-          .eq("id", uuid);
+          .eq("id", uuid)
+          .eq("user_id", user.id);
         if (error) throw error;
       }
 

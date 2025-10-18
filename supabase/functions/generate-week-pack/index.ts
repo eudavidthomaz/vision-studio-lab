@@ -114,12 +114,12 @@ IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional antes ou de
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Transcrição da pregação:\n\n${sanitizedTranscript}` }
         ],
-        max_completion_tokens: 2000,
+        max_completion_tokens: 5000,
         response_format: { type: 'json_object' }
       }),
     });

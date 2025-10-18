@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Check, Image, Download } from "lucide-react";
+import { Copy, Check, Image, Download, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ImageGenerationModal from "./ImageGenerationModal";
+import { ShareContentDialog } from "./ShareContentDialog";
 
 interface WeeklyPackProps {
   pack: {
@@ -38,11 +39,13 @@ interface WeeklyPackProps {
       hook?: string;
     }>;
   };
+  packId?: string;
 }
 
-const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
+const WeeklyPackDisplay = ({ pack, packId }: WeeklyPackProps) => {
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<{ copy: string; pilar: string } | null>(null);
   const { toast } = useToast();
 
@@ -63,6 +66,21 @@ const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-fade-in">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Pacote Semanal</h2>
+        {packId && (
+          <Button 
+            onClick={() => setShareDialogOpen(true)}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
+            <Share2 className="h-4 w-4" />
+            Compartilhar
+          </Button>
+        )}
+      </div>
+      
       <Tabs defaultValue="resumo" className="w-full">
         <TabsList className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-1 sm:gap-2 h-auto bg-gray-800/50 p-1 sm:p-2">
           <TabsTrigger value="resumo" className="text-xs sm:text-sm px-2 sm:px-3">Resumo</TabsTrigger>
@@ -277,6 +295,15 @@ const WeeklyPackDisplay = ({ pack }: WeeklyPackProps) => {
           ))}
         </TabsContent>
       </Tabs>
+
+      {packId && (
+        <ShareContentDialog 
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+          content={{ id: packId }}
+          contentType="pack"
+        />
+      )}
 
       {selectedContent && (
         <ImageGenerationModal

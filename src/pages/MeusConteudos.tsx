@@ -7,6 +7,7 @@ import { ContentFeedFilters } from "@/components/content-feed/ContentFeedFilters
 import { ContentFeedCard } from "@/components/content-feed/ContentFeedCard";
 import { ContentFeedModal } from "@/components/content-feed/ContentFeedModal";
 import { EmptyFeedState } from "@/components/content-feed/EmptyFeedState";
+import { ShareContentDialog } from "@/components/ShareContentDialog";
 
 const MeusConteudos = () => {
   const navigate = useNavigate();
@@ -29,16 +30,36 @@ const MeusConteudos = () => {
 
   const [selectedContent, setSelectedContent] = useState<NormalizedContent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [contentToShare, setContentToShare] = useState<NormalizedContent | null>(null);
 
   const handleViewContent = (content: NormalizedContent) => {
     setSelectedContent(content);
     setIsModalOpen(true);
   };
 
+  const handleShare = (content: NormalizedContent) => {
+    // Remove prefixo (ai-, pack-, challenge-) do ID para obter UUID puro
+    const cleanId = content.id.replace(/^(ai|pack|challenge)-/, '');
+    
+    setContentToShare({
+      ...content,
+      id: cleanId
+    });
+    setShareDialogOpen(true);
+  };
+
   const handleDelete = async (id: string) => {
     if (confirm("Tem certeza que deseja excluir este conteúdo?")) {
       await deleteContent(id);
     }
+  };
+
+  // Mapear contentType para o ShareContentDialog
+  const getContentTypeForShare = (source: string): 'pack' | 'challenge' | 'planner' => {
+    if (source === 'weekly-pack') return 'pack';
+    if (source === 'ideon-challenge') return 'challenge';
+    return 'planner';
   };
 
   if (loading) {
@@ -108,6 +129,7 @@ const MeusConteudos = () => {
                 content={content}
                 onView={handleViewContent}
                 onDelete={handleDelete}
+                onShare={handleShare}
               />
             ))}
           </div>
@@ -119,6 +141,16 @@ const MeusConteudos = () => {
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
         />
+
+        {/* Share Dialog */}
+        {contentToShare && (
+          <ShareContentDialog 
+            open={shareDialogOpen}
+            onOpenChange={setShareDialogOpen}
+            content={{ id: contentToShare.id }}
+            contentType={getContentTypeForShare(contentToShare.source)}
+          />
+        )}
       </div>
     </div>
   );
