@@ -58,33 +58,14 @@ export const useSecureApi = () => {
       });
 
       if (error) {
-        console.error(`Error calling ${functionName}:`, error);
-        handleApiError(
-          { 
-            error: error.message || 'Erro ao chamar função',
-            type: undefined 
-          } as ApiError,
-          functionName
-        );
+        handleApiError(error as ApiError, functionName);
         return null;
       }
 
-      // Check if response has success: false
-      if (data && typeof data === 'object') {
-        if ('success' in data && data.success === false) {
-          const errorData = {
-            error: (data as any).error || 'Erro desconhecido',
-            type: (data as any).type
-          };
-          handleApiError(errorData as ApiError, functionName);
-          return null;
-        }
-        
-        // Check if the response itself contains an error
-        if ('error' in data) {
-          handleApiError(data as ApiError, functionName);
-          return null;
-        }
+      // Check if response contains error (for edge function errors)
+      if (data && typeof data === 'object' && 'error' in data) {
+        handleApiError(data as ApiError, functionName);
+        return null;
       }
 
       return data as T;

@@ -95,21 +95,21 @@ Diretrizes:
 
     const parsedContent = JSON.parse(jsonMatch[0]);
 
-    // Salvar no banco unificado (content_library)
-    const { data: insertData, error: insertError } = await supabaseClient
-      .from('content_library')
+    // Salvar no banco
+    const fullContent = `🎬 HOOK (0-3s):\n${parsedContent.hook}\n\n📝 ROTEIRO:\n${parsedContent.roteiro}\n\n🎥 VISUAL:\n${parsedContent.sugestoes_visuais}\n\n💬 CTA:\n${parsedContent.cta}`;
+
+    const { error: insertError } = await supabaseClient
+      .from('content_planners')
       .insert({
         user_id: userId,
-        source_type: 'video-script',
-        content_type: 'roteiro_video',
-        pilar: parsedContent.pilar || 'EDIFICAR',
-        title: parsedContent.conteudo_criativo?.titulo || 'Roteiro de Vídeo',
-        content: parsedContent,
-        prompt_original: `Mensagem: ${sanitizedMensagem}, Duração: ${duracao}`,
-        status: 'draft'
-      })
-      .select()
-      .single();
+        tipo_conteudo: 'reel',
+        titulo: parsedContent.titulo,
+        conteudo: fullContent,
+        hashtags: parsedContent.hashtags,
+        pilar: parsedContent.pilar,
+        status: 'draft',
+        scheduled_date: new Date().toISOString(),
+      });
 
     if (insertError) {
       console.error('Database error:', insertError);
@@ -125,11 +125,7 @@ Diretrizes:
     );
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        content: parsedContent,
-        id: insertData?.id 
-      }),
+      JSON.stringify({ success: true, content: parsedContent }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

@@ -91,21 +91,19 @@ Diretrizes:
 
     const parsedContent = JSON.parse(jsonMatch[0]);
 
-    // Salvar no banco unificado (content_library)
-    const { data: insertData, error: insertError } = await supabaseClient
-      .from('content_library')
+    // Salvar no banco
+    const { error: insertError } = await supabaseClient
+      .from('content_planners')
       .insert({
         user_id: userId,
-        source_type: 'quick-post',
-        content_type: tipo,
+        tipo_conteudo: tipo,
+        titulo: parsedContent.titulo,
+        conteudo: parsedContent.conteudo,
+        hashtags: parsedContent.hashtags,
         pilar: parsedContent.pilar,
-        title: parsedContent.conteudo?.legenda?.substring(0, 50) || 'Post Rápido',
-        content: parsedContent,
-        prompt_original: sanitizedTema,
-        status: 'draft'
-      })
-      .select()
-      .single();
+        status: 'draft',
+        scheduled_date: new Date().toISOString(),
+      });
 
     if (insertError) {
       console.error('Database error:', insertError);
@@ -121,11 +119,7 @@ Diretrizes:
     );
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        content: parsedContent,
-        id: insertData?.id 
-      }),
+      JSON.stringify({ success: true, content: parsedContent }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

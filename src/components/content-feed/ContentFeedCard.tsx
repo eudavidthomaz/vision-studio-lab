@@ -23,7 +23,6 @@ import { NormalizedContent } from "@/hooks/useContentFeed";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
-import { memo } from "react";
 
 interface ContentFeedCardProps {
   content: NormalizedContent;
@@ -45,7 +44,7 @@ const pilarColors = {
   EXALTAR: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
 };
 
-export const ContentFeedCard = memo(({ content, onView, onDelete }: ContentFeedCardProps) => {
+export function ContentFeedCard({ content, onView, onDelete }: ContentFeedCardProps) {
   const FormatIcon = formatIcons[content.format] || FileText;
   const SourceIcon = content.source === "ai-creator" ? Sparkles : AudioLines;
 
@@ -159,6 +158,4 @@ export const ContentFeedCard = memo(({ content, onView, onDelete }: ContentFeedC
       </div>
     </Card>
   );
-});
-
-ContentFeedCard.displayName = 'ContentFeedCard';
+}

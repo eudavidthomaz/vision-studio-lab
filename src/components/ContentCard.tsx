@@ -1,25 +1,37 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2, Star, Archive, RefreshCw, Pin } from "lucide-react";
+import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2, Star, Archive, RefreshCw } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import ContentStatusBadge from "./ContentStatusBadge";
 import TagManagerDialog from "./TagManagerDialog";
 import RegenerateContentDialog from "./RegenerateContentDialog";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import ImageGenerationModal from "./ImageGenerationModal";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDebounce } from "@/hooks/useDebounce";
-import { ContentLibraryItem } from "@/hooks/useContentLibrary";
 
 interface ContentCardProps {
-  content: ContentLibraryItem;
+  content: {
+    id: string;
+    titulo: string;
+    tipo: string;
+    pilar: string;
+    copy: string;
+    hashtags: string[];
+    cta: string;
+    imagem_url?: string;
+    status?: string;
+    tags?: string[];
+    is_favorite?: boolean;
+    is_archived?: boolean;
+  };
   onDelete: (id: string) => void;
-  onUpdate: (id: string, updates: Partial<ContentLibraryItem>) => void;
+  onUpdate: (id: string, updates: any) => void;
   isDraggable?: boolean;
   isSelected?: boolean;
   onToggleSelect?: () => void;
@@ -35,20 +47,12 @@ const pillarColors: Record<string, string> = {
   "Cobertura": "bg-red-500"
 };
 
-const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, isSelected = false, onToggleSelect }: ContentCardProps) => {
+export default function ContentCard({ content, onDelete, onUpdate, isDraggable = false, isSelected = false, onToggleSelect }: ContentCardProps) {
   const { toast } = useToast();
-  
-  // Extract data from nested content JSON
-  const contentData = content.content || {};
-  const copy = contentData.copy || contentData.texto || '';
-  const hashtags = contentData.hashtags || [];
-  const cta = contentData.cta || '';
-  const imagem_url = contentData.imagem_url || contentData.image_url || content.content?.imagem_url || '';
-  
   const [isEditing, setIsEditing] = useState(false);
-  const [editedTitulo, setEditedTitulo] = useState(content.title);
-  const [editedCopy, setEditedCopy] = useState(copy);
-  const [editedHashtags, setEditedHashtags] = useState(Array.isArray(hashtags) ? hashtags.join(" ") : '');
+  const [editedTitulo, setEditedTitulo] = useState(content.titulo);
+  const [editedCopy, setEditedCopy] = useState(content.copy);
+  const [editedHashtags, setEditedHashtags] = useState(content.hashtags.join(" "));
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -65,9 +69,9 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
   // Auto-save when debounced values change
   useEffect(() => {
     if (isEditing && (
-      debouncedTitulo !== content.title ||
-      debouncedCopy !== copy ||
-      debouncedHashtags !== (Array.isArray(hashtags) ? hashtags.join(" ") : '')
+      debouncedTitulo !== content.titulo ||
+      debouncedCopy !== content.copy ||
+      debouncedHashtags !== content.hashtags.join(" ")
     )) {
       handleAutoSave();
     }
@@ -95,15 +99,10 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
   const handleAutoSave = async () => {
     setIsSaving(true);
     
-    const updatedContent = {
-      ...contentData,
+    await onUpdate(content.id, {
+      titulo: debouncedTitulo,
       copy: debouncedCopy,
       hashtags: debouncedHashtags.split(" ").filter(h => h.trim())
-    };
-    
-    await onUpdate(content.id, {
-      title: debouncedTitulo,
-      content: updatedContent
     });
     
     setIsSaving(false);
@@ -113,17 +112,13 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
 
   const handleImageGenerated = (imageUrl: string) => {
     setIsGeneratingImage(false);
-    const updatedContent = {
-      ...contentData,
-      imagem_url: imageUrl
-    };
-    onUpdate(content.id, { content: updatedContent });
+    onUpdate(content.id, { imagem_url: imageUrl });
     toast({
       title: "✓ Imagem salva!",
       description: (
         <div className="flex items-center gap-2">
           <img src={imageUrl} alt="" className="w-8 h-8 rounded object-cover" />
-          <span>Imagem adicionada ao post "{content.title}"</span>
+          <span>Imagem adicionada ao post "{content.titulo}"</span>
         </div>
       ),
       duration: 5000,
@@ -143,12 +138,12 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
     setIsEditing(false);
     toast({
       title: "✓ Salvo!",
-      description: `"${content.title}" foi atualizado.`,
+      description: `"${content.titulo}" foi atualizado.`,
     });
   };
 
   const copyAll = () => {
-    const fullText = `${copy}\n\n${cta}\n\n${Array.isArray(hashtags) ? hashtags.join(" ") : ''}`;
+    const fullText = `${content.copy}\n\n${content.cta}\n\n${content.hashtags.join(" ")}`;
     copyToClipboard(fullText, "Conteúdo completo");
   };
 
@@ -159,7 +154,7 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
       style={style}
       className={`bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg ${
         isSelected ? 'ring-2 ring-primary' : ''
-      }`}
+      } ${content.is_archived ? 'opacity-60' : ''}`}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
@@ -190,10 +185,10 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
                 className="mb-2"
               />
             ) : (
-              <CardTitle className="text-foreground text-base">{content.title}</CardTitle>
+              <CardTitle className="text-foreground text-base">{content.titulo}</CardTitle>
             )}
             <div className="flex flex-wrap gap-2 mt-2">
-              <Badge variant="secondary" className="text-xs">{content.content_type}</Badge>
+              <Badge variant="secondary" className="text-xs">{content.tipo}</Badge>
               <Badge className={`${pillarColors[content.pilar] || 'bg-gray-500'} text-white text-xs`}>
                 {content.pilar}
               </Badge>
@@ -208,9 +203,9 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
                   <Star className="h-3 w-3 fill-current" />
                 </Badge>
               )}
-              {content.is_pinned && (
-                <Badge variant="outline" className="text-primary border-primary text-xs">
-                  <Pin className="h-3 w-3 fill-current" />
+              {content.is_archived && (
+                <Badge variant="outline" className="text-orange-500 border-orange-500 text-xs">
+                  <Archive className="h-3 w-3" />
                 </Badge>
               )}
             </div>
@@ -242,15 +237,14 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Image Preview with Lazy Loading */}
-        {imagem_url && !isEditing && (
+        {/* Image Preview */}
+        {content.imagem_url && !isEditing && (
           <div className="relative group">
             <img
-              src={imagem_url}
-              alt={content.title}
+              src={content.imagem_url}
+              alt={content.titulo}
               className="w-full h-32 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => setShowImagePreview(true)}
-              loading="lazy"
             />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
               <Button
@@ -280,13 +274,13 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
           </>
         ) : (
           <>
-            <p className="text-sm text-muted-foreground line-clamp-3">{copy}</p>
+            <p className="text-sm text-muted-foreground line-clamp-3">{content.copy}</p>
             <div className="flex flex-wrap gap-1">
-              {Array.isArray(hashtags) && hashtags.slice(0, 3).map((tag, i) => (
+              {content.hashtags.slice(0, 3).map((tag, i) => (
                 <span key={i} className="text-xs text-primary">{tag}</span>
               ))}
-              {Array.isArray(hashtags) && hashtags.length > 3 && (
-                <span className="text-xs text-muted-foreground">+{hashtags.length - 3}</span>
+              {content.hashtags.length > 3 && (
+                <span className="text-xs text-muted-foreground">+{content.hashtags.length - 3}</span>
               )}
             </div>
           </>
@@ -316,7 +310,7 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
           <Button
             variant="outline"
             size="sm"
-            onClick={() => copyToClipboard(copy, "Copy")}
+            onClick={() => copyToClipboard(content.copy, "Copy")}
           >
             <Copy className="h-3 w-3 mr-1" />
             Copy
@@ -324,7 +318,7 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
           <Button
             variant="outline"
             size="sm"
-            onClick={() => copyToClipboard(Array.isArray(hashtags) ? hashtags.join(" ") : '', "Hashtags")}
+            onClick={() => copyToClipboard(content.hashtags.join(" "), "Hashtags")}
           >
             <Copy className="h-3 w-3 mr-1" />
             #
@@ -347,7 +341,7 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
             ) : (
               <>
                 <Image className="h-3 w-3 mr-1" />
-                {imagem_url ? "Editar" : "Gerar"}
+                {content.imagem_url ? "Editar" : "Gerar"}
               </>
             )}
           </Button>
@@ -367,15 +361,6 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onUpdate(content.id, { is_pinned: !content.is_pinned })}
-            className={content.is_pinned ? "text-primary" : ""}
-            title={content.is_pinned ? "Desafixar" : "Fixar"}
-          >
-            <Pin className={`h-3 w-3 ${content.is_pinned ? 'fill-current' : ''}`} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
             onClick={() => setTagDialogOpen(true)}
             title="Gerenciar Tags"
           >
@@ -389,27 +374,35 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
           >
             <RefreshCw className="h-3 w-3" />
           </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onUpdate(content.id, { is_archived: !content.is_archived })}
+            title="Arquivar"
+          >
+            <Archive className="h-3 w-3" />
+          </Button>
         </div>
       </CardContent>
       
       <ImageGenerationModal
         open={imageModalOpen}
         onOpenChange={setImageModalOpen}
-        copy={copy}
+        copy={content.copy}
         pilar={content.pilar}
         onImageGenerated={handleImageGenerated}
       />
 
       {/* Image Lightbox */}
-      {showImagePreview && imagem_url && (
+      {showImagePreview && content.imagem_url && (
         <div
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
           onClick={() => setShowImagePreview(false)}
         >
           <div className="relative max-w-4xl max-h-[90vh]">
             <img
-              src={imagem_url}
-              alt={content.title}
+              src={content.imagem_url}
+              alt={content.titulo}
               className="max-w-full max-h-[90vh] object-contain rounded-lg"
             />
             <Button
@@ -434,27 +427,13 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
       <RegenerateContentDialog
         open={regenerateDialogOpen}
         onOpenChange={setRegenerateDialogOpen}
-        content={{
-          id: content.id,
-          titulo: content.title,
-          tipo: content.content_type,
-          pilar: content.pilar,
-          copy: copy
-        }}
+        content={content}
         onRegenerated={(newContent) => {
-          const updatedContent = {
-            ...contentData,
-            ...newContent
-          };
-          onUpdate(content.id, { content: updatedContent });
+          onUpdate(content.id, newContent);
           setRegenerateDialogOpen(false);
         }}
       />
     </Card>
     </>
   );
-});
-
-ContentCard.displayName = 'ContentCard';
-
-export default ContentCard;
+}

@@ -1,60 +1,24 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Podcast, Square, Loader2, Upload, File as FileIcon, Library } from "lucide-react";
+import { Podcast, Square, Loader2, Upload, File } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSecureApi } from "@/hooks/useSecureApi";
-import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 
 interface AudioInputProps {
   onTranscriptionComplete: (transcript: string, sermonId?: string) => void;
 }
 
-// Etapas de transcrição com mensagens amigáveis
-const TRANSCRIPTION_STAGES: Record<number, string> = {
-  0: 'Enviando seu áudio...',
-  10: 'Preparando processamento...',
-  25: 'Convertendo áudio em texto...',
-  50: 'Organizando palavras...',
-  75: 'Finalizando transcrição...',
-  95: 'Quase pronto...',
-  100: 'Concluído!'
-};
-
 const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [transcriptionProgress, setTranscriptionProgress] = useState(0);
-  const [transcriptionStage, setTranscriptionStage] = useState<string>('');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const { invokeFunction } = useSecureApi();
-  const navigate = useNavigate();
-
-  // Cleanup interval on unmount
-  useEffect(() => {
-    return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
-    };
-  }, []);
-
-  // Calcula progresso estimado baseado no tamanho do áudio e tempo decorrido
-  const calculateProgress = (audioSizeMB: number, elapsedSeconds: number): number => {
-    // Estimar: 1MB = ~30 segundos de processamento
-    const estimatedTotalSeconds = audioSizeMB * 30;
-    const progress = Math.min((elapsedSeconds / estimatedTotalSeconds) * 100, 95);
-    return Math.floor(progress);
-  };
 
   const startRecording = async () => {
     try {
@@ -161,253 +125,46 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
     }
   };
 
-  // Sanitize filename to avoid invalid characters in storage
-  const sanitizeFileName = (fileName: string): string => {
-    // Extract name and extension
-    const lastDotIndex = fileName.lastIndexOf('.');
-    const name = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
-    const ext = lastDotIndex > 0 ? fileName.substring(lastDotIndex) : '';
-    
-    // Remove/replace invalid characters
-    const sanitized = name
-      .normalize('NFD') // Decompose accents
-      .replace(/[\u0300-\u036f]/g, '') // Remove diacritical marks
-      .replace(/[^\w\s-]/g, '') // Remove special characters (except spaces, letters, numbers, hyphens)
-      .replace(/\s+/g, '_') // Replace spaces with underscores
-      .replace(/_+/g, '_') // Remove duplicate underscores
-      .replace(/^_|_$/g, '') // Remove underscores at start/end
-      .toLowerCase() // Convert to lowercase
-      .substring(0, 100); // Limit to 100 characters
-    
-    return sanitized + ext.toLowerCase();
-  };
-
   const transcribeAudio = async (audioData: Blob | File) => {
-    // Prevent multiple simultaneous uploads
-    if (isProcessing) {
-      toast({
-        title: "Processamento em andamento",
-        description: "Aguarde o arquivo atual ser processado antes de enviar outro.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
-      setIsProcessing(true);
-
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Usuário não autenticado');
-      }
-
-      // Prepare file name with sanitization
-      const isFile = audioData instanceof File;
-      const originalFileName = isFile ? (audioData as File).name : 'recording.webm';
-      const sanitizedFileName = sanitizeFileName(originalFileName);
-      
-      // Validate sanitized filename
-      if (sanitizedFileName.length < 3) {
-        throw new Error('Nome do arquivo muito curto após sanitização');
-      }
-
-      const timestamp = Date.now();
-      const storageFileName = `${user.id}/${timestamp}_${sanitizedFileName}`;
-
-      if (storageFileName.length > 255) {
-        throw new Error('Caminho do arquivo muito longo');
-      }
-
-      console.log('Original filename:', originalFileName);
-      console.log('Sanitized filename:', sanitizedFileName);
-      console.log('Storage path:', storageFileName);
-
-      toast({
-        title: "Preparando sua mensagem",
-        description: "Cada palavra está sendo cuidadosamente registrada para alcançar mais vidas.",
-      });
-
-      // Upload audio to Supabase Storage
-      console.log('Uploading to storage...');
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('sermons')
-        .upload(storageFileName, audioData, {
-          contentType: audioData.type,
-          upsert: false,
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Audio = (reader.result as string).split(',')[1];
+        
+        toast({
+          title: "Preparando sua mensagem",
+          description: "Cada palavra está sendo cuidadosamente registrada para alcançar mais vidas.",
         });
 
-      // Validação robusta do upload
-      if (uploadError) {
-        console.error('Storage upload error:', uploadError);
-        throw new Error(`Falha no upload: ${uploadError.message}`);
-      }
+        try {
+          const result = await invokeFunction<{ transcript: string; sermon_id?: string }>('transcribe-sermon', {
+            audio_base64: base64Audio
+          });
 
-      if (!uploadData || !uploadData.path) {
-        console.error('Invalid upload response:', uploadData);
-        throw new Error('Upload concluído mas sem caminho do arquivo');
-      }
-
-      console.log('✅ Audio uploaded successfully to:', uploadData.path);
-      console.log('Storage upload result:', {
-        path: uploadData.path,
-        fullPath: uploadData.fullPath,
-        id: uploadData.id
-      });
-
-      // Toast temporário para debug
-      toast({
-        title: "Upload concluído",
-        description: `Arquivo: ${uploadData.path}`,
-        duration: 3000,
-      });
-
-      // Call transcription function with storage URL
-      console.log('🔄 Calling transcribe-sermon with:', {
-        audio_url: uploadData.path,
-        fileName: originalFileName,
-        fileSize: audioData.size,
-        contentType: audioData.type
-      });
-
-      const response = await invokeFunction('transcribe-sermon', {
-        audio_url: uploadData.path,
-        metadata: {
-          fileName: originalFileName,
-          contentType: audioData.type,
-          fileSize: audioData.size,
-        }
-      }) as any;
-
-      console.log('📥 Transcribe-sermon response:', response);
-
-      if (!response?.success) {
-        throw new Error(response?.error || 'Erro na transcrição');
-      }
-
-      const result = response.data;
-
-      // Handle async processing
-      if (result.status === 'processing') {
-        const audioSizeMB = audioData.size / (1024 * 1024);
-
-        // Poll for completion
-        const sermonId = result.sermon_id;
-        let attempts = 0;
-        const maxAttempts = 60; // 5 minutes max (5s intervals)
-
-        // Clear any existing interval before creating new one
-        if (pollIntervalRef.current) {
-          clearInterval(pollIntervalRef.current);
-          pollIntervalRef.current = null;
-        }
-
-        pollIntervalRef.current = setInterval(async () => {
-          attempts++;
-          const elapsedSeconds = attempts * 5; // 5s por tentativa
-          
-          // Calcular progresso estimado
-          const estimatedProgress = calculateProgress(audioSizeMB, elapsedSeconds);
-          setTranscriptionProgress(estimatedProgress);
-          
-          // Atualizar etapa baseado no progresso
-          const stage = Object.entries(TRANSCRIPTION_STAGES)
-            .reverse()
-            .find(([threshold]) => estimatedProgress >= Number(threshold));
-          
-          if (stage) {
-            setTranscriptionStage(stage[1]);
-          }
-          
-          if (attempts > maxAttempts) {
-            if (pollIntervalRef.current) {
-              clearInterval(pollIntervalRef.current);
-              pollIntervalRef.current = null;
-            }
+          if (!result) {
+            // Error already handled by useSecureApi
             setIsProcessing(false);
-            setTranscriptionProgress(0);
-            setTranscriptionStage('');
-            toast({
-              title: "Tempo limite excedido",
-              description: "A transcrição está demorando mais que o esperado. Verifique sua biblioteca mais tarde.",
-              variant: "destructive",
-            });
             return;
           }
+          
+          toast({
+            title: "Mensagem capturada!",
+            description: "Sua pregação está pronta para impactar vidas através de cada plataforma.",
+          });
 
-          const { data: sermon } = await supabase
-            .from('sermons')
-            .select('status, transcript, error_message')
-            .eq('id', sermonId)
-            .single();
-
-          if (sermon?.status === 'completed' && sermon.transcript) {
-            if (pollIntervalRef.current) {
-              clearInterval(pollIntervalRef.current);
-              pollIntervalRef.current = null;
-            }
-            setTranscriptionProgress(100);
-            setTranscriptionStage('Concluído!');
-            
-            // Aguardar 500ms para usuário ver 100%
-            setTimeout(() => {
-              setIsProcessing(false);
-              onTranscriptionComplete(sermon.transcript, sermonId);
-              setSelectedFile(null);
-              setTranscriptionProgress(0);
-              setTranscriptionStage('');
-              
-              toast({
-                title: "Transcrição concluída!",
-                description: "Seu áudio foi transcrito com sucesso.",
-              });
-            }, 500);
-          } else if (sermon?.status === 'failed') {
-            if (pollIntervalRef.current) {
-              clearInterval(pollIntervalRef.current);
-              pollIntervalRef.current = null;
-            }
-            setIsProcessing(false);
-            setTranscriptionProgress(0);
-            setTranscriptionStage('');
-            
-            toast({
-              title: "Erro na transcrição",
-              description: sermon.error_message || "Não foi possível transcrever o áudio.",
-              variant: "destructive",
-            });
-          }
-        }, 5000); // Check every 5 seconds
-
-        return;
-      }
-
-      // Immediate response (small files)
-      if (result.transcript) {
-        toast({
-          title: "Mensagem capturada!",
-          description: "Sua pregação está pronta para impactar vidas através de cada plataforma.",
-        });
-
-        onTranscriptionComplete(result.transcript, result.sermon_id);
-        setSelectedFile(null);
-      }
-
-    } catch (error: any) {
-      console.error('Transcription error:', error);
-      // Clear interval if error occurs
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
+          onTranscriptionComplete(result.transcript, result.sermon_id);
+          setSelectedFile(null);
+        } catch (error) {
+          console.error('Unexpected error:', error);
+        } finally {
+          setIsProcessing(false);
+        }
+      };
+      reader.readAsDataURL(audioData);
+    } catch (error) {
+      console.error('Error reading audio:', error);
       setIsProcessing(false);
-      setTranscriptionProgress(0);
-      setTranscriptionStage('');
-      toast({
-        title: "Erro na transcrição",
-        description: error.message || "Não foi possível transcrever o áudio.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -448,55 +205,17 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
         )}
 
         {isProcessing && (
-          <div className="flex flex-col items-center gap-6 w-full max-w-md">
-            {/* Círculo de progresso visual */}
-            <div className="relative h-40 w-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-xl border-2 border-primary/30 shadow-2xl flex items-center justify-center overflow-hidden">
-              {/* Progresso circular */}
-              <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="6"
-                  className="text-primary/20"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="6"
-                  strokeDasharray={`${transcriptionProgress * 2.827} ${282.7 - (transcriptionProgress * 2.827)}`}
-                  className="text-primary transition-all duration-500"
-                />
-              </svg>
-              
-              {/* Porcentagem central */}
-              <div className="relative z-10 text-center">
-                <div className="text-3xl font-bold text-primary">
-                  {transcriptionProgress}%
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {transcriptionStage}
-                </div>
-              </div>
-            </div>
-            
-            <p className="text-sm text-muted-foreground text-center max-w-xs">
-              Processando sua gravação...
-            </p>
+          <div className="relative h-40 w-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-xl border-2 border-primary/30 shadow-2xl flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent animate-pulse" />
+            <Loader2 className="relative h-16 w-16 text-primary animate-spin z-10" />
           </div>
         )}
 
-        {!isProcessing && (
-          <p className="text-sm text-muted-foreground text-center max-w-xs">
-            {!isRecording && "Comece a compartilhar a palavra"}
-            {isRecording && "Registrando sua mensagem... Clique para finalizar"}
-          </p>
-        )}
+        <p className="text-sm text-muted-foreground text-center max-w-xs">
+          {!isRecording && !isProcessing && "Comece a compartilhar a palavra"}
+          {isRecording && "Registrando sua mensagem... Clique para finalizar"}
+          {isProcessing && "Preservando cada palavra da sua pregação..."}
+        </p>
       </TabsContent>
 
       <TabsContent value="upload" className="flex flex-col items-center gap-6">
@@ -529,7 +248,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
               {selectedFile && !isProcessing && (
                 <div className="w-full space-y-4">
                   <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-                    <FileIcon className="h-8 w-8 text-primary" />
+                    <File className="h-8 w-8 text-primary" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{selectedFile.name}</p>
                       <p className="text-xs text-muted-foreground">
@@ -556,57 +275,9 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
               )}
 
               {isProcessing && (
-                <div className="w-full flex flex-col items-center gap-6 p-8">
-                  {/* Barra de Progresso */}
-                  <div className="w-full space-y-4">
-                    <Progress 
-                      value={transcriptionProgress} 
-                      className="h-3 w-full"
-                    />
-                    
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-foreground">
-                        {transcriptionStage || 'Iniciando...'}
-                      </span>
-                      <span className="text-muted-foreground font-mono">
-                        {transcriptionProgress}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Ícone animado */}
-                  <div className="relative">
-                    <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                    <div className="absolute -inset-3 bg-primary/10 rounded-full animate-pulse" />
-                  </div>
-
-                  {/* Mensagem encorajadora */}
-                  <div className="text-center space-y-2">
-                    <p className="text-base font-semibold text-foreground">
-                      Transformando sua mensagem em conteúdo
-                    </p>
-                    <p className="text-sm text-muted-foreground max-w-md">
-                      {selectedFile 
-                        ? `Processando "${selectedFile.name}"` 
-                        : 'Sua gravação está sendo preparada'
-                      }
-                    </p>
-                  </div>
-
-                  {/* Botão de navegação */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/meus-conteudos')}
-                    className="mt-4"
-                  >
-                    <Library className="w-4 h-4 mr-2" />
-                    Ver Minha Biblioteca
-                  </Button>
-                  
-                  <p className="text-xs text-muted-foreground text-center max-w-sm">
-                    Você pode sair desta tela. A transcrição continuará em segundo plano.
-                  </p>
+                <div className="w-full flex flex-col items-center gap-4 p-8">
+                  <Loader2 className="h-12 w-12 text-primary animate-spin" />
+                  <p className="text-sm text-muted-foreground">Processando a mensagem do seu coração...</p>
                 </div>
               )}
             </div>

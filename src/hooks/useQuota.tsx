@@ -5,7 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface UsageQuota {
   id: string;
   user_id: string;
-  sermon_packs_generated: number;
+  weekly_packs_used: number;
   challenges_used: number;
   images_generated: number;
   reset_date: string;
@@ -14,7 +14,7 @@ export interface UsageQuota {
 }
 
 export interface QuotaLimits {
-  sermon_packs: number;
+  weekly_packs: number;
   challenges: number;
   images: number;
 }
@@ -22,22 +22,22 @@ export interface QuotaLimits {
 // Limites padrão por role
 const ROLE_LIMITS: Record<string, QuotaLimits> = {
   free: {
-    sermon_packs: 2,
+    weekly_packs: 2,
     challenges: 5,
     images: 10,
   },
   pro: {
-    sermon_packs: 10,
+    weekly_packs: 10,
     challenges: 30,
     images: 50,
   },
   team: {
-    sermon_packs: 50,
+    weekly_packs: 50,
     challenges: 100,
     images: 200,
   },
   admin: {
-    sermon_packs: 999,
+    weekly_packs: 999,
     challenges: 999,
     images: 999,
   },
@@ -86,11 +86,11 @@ export const useQuota = () => {
   const limits = ROLE_LIMITS[userRole || 'free'];
 
   // Verificar se pode usar uma feature
-  const canUse = (feature: 'sermon_packs' | 'challenges' | 'images'): boolean => {
+  const canUse = (feature: 'weekly_packs' | 'challenges' | 'images'): boolean => {
     if (!quota || !limits) return false;
 
     const usage = {
-      sermon_packs: quota.sermon_packs_generated,
+      weekly_packs: quota.weekly_packs_used,
       challenges: quota.challenges_used,
       images: quota.images_generated,
     };
@@ -100,25 +100,19 @@ export const useQuota = () => {
 
   // Incrementar uso
   const incrementUsage = useMutation({
-    mutationFn: async (feature: 'sermon_packs' | 'challenges' | 'images') => {
+    mutationFn: async (feature: 'weekly_packs' | 'challenges' | 'images') => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       const field = {
-        sermon_packs: 'sermon_packs_generated',
+        weekly_packs: 'weekly_packs_used',
         challenges: 'challenges_used',
         images: 'images_generated',
       }[feature];
 
-      const currentValue = feature === 'sermon_packs' 
-        ? quota?.sermon_packs_generated || 0
-        : feature === 'challenges'
-        ? quota?.challenges_used || 0
-        : quota?.images_generated || 0;
-
       const { error } = await supabase
         .from('usage_quotas')
-        .update({ [field]: currentValue + 1 })
+        .update({ [field]: (quota?.[`${feature}_used` as keyof UsageQuota] as number || 0) + 1 })
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -136,11 +130,11 @@ export const useQuota = () => {
   });
 
   // Calcular percentual de uso
-  const getUsagePercentage = (feature: 'sermon_packs' | 'challenges' | 'images'): number => {
+  const getUsagePercentage = (feature: 'weekly_packs' | 'challenges' | 'images'): number => {
     if (!quota || !limits) return 0;
 
     const usage = {
-      sermon_packs: quota.sermon_packs_generated,
+      weekly_packs: quota.weekly_packs_used,
       challenges: quota.challenges_used,
       images: quota.images_generated,
     }[feature];
@@ -149,7 +143,7 @@ export const useQuota = () => {
   };
 
   // Verificar se está próximo do limite (>80%)
-  const isNearLimit = (feature: 'sermon_packs' | 'challenges' | 'images'): boolean => {
+  const isNearLimit = (feature: 'weekly_packs' | 'challenges' | 'images'): boolean => {
     return getUsagePercentage(feature) > 80;
   };
 

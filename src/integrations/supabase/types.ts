@@ -14,77 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      content_library: {
-        Row: {
-          content: Json
-          content_type: string
-          created_at: string | null
-          id: string
-          is_favorite: boolean | null
-          is_pinned: boolean | null
-          pilar: string | null
-          pinned_at: string | null
-          prompt_original: string | null
-          published_at: string | null
-          search_vector: unknown | null
-          sermon_id: string | null
-          source_type: string
-          status: string | null
-          tags: string[] | null
-          title: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          content?: Json
-          content_type: string
-          created_at?: string | null
-          id?: string
-          is_favorite?: boolean | null
-          is_pinned?: boolean | null
-          pilar?: string | null
-          pinned_at?: string | null
-          prompt_original?: string | null
-          published_at?: string | null
-          search_vector?: unknown | null
-          sermon_id?: string | null
-          source_type: string
-          status?: string | null
-          tags?: string[] | null
-          title: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          content?: Json
-          content_type?: string
-          created_at?: string | null
-          id?: string
-          is_favorite?: boolean | null
-          is_pinned?: boolean | null
-          pilar?: string | null
-          pinned_at?: string | null
-          prompt_original?: string | null
-          published_at?: string | null
-          search_vector?: unknown | null
-          sermon_id?: string | null
-          source_type?: string
-          status?: string | null
-          tags?: string[] | null
-          title?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "content_library_sermon_id_fkey"
-            columns: ["sermon_id"]
-            isOneToOne: false
-            referencedRelation: "sermons"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       content_planners: {
         Row: {
           content: Json
@@ -161,6 +90,63 @@ export type Database = {
           template_data?: Json
           thumbnail_url?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      generated_contents: {
+        Row: {
+          content: Json
+          content_format: string | null
+          created_at: string | null
+          id: string
+          pilar: string | null
+          prompt_original: string | null
+          source_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content?: Json
+          content_format?: string | null
+          created_at?: string | null
+          id?: string
+          pilar?: string | null
+          prompt_original?: string | null
+          source_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          content_format?: string | null
+          created_at?: string | null
+          id?: string
+          pilar?: string | null
+          prompt_original?: string | null
+          source_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ideon_challenges: {
+        Row: {
+          challenge: Json | null
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          challenge?: Json | null
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          challenge?: Json | null
+          created_at?: string | null
+          id?: string
           user_id?: string
         }
         Relationships: []
@@ -303,35 +289,23 @@ export type Database = {
       sermons: {
         Row: {
           created_at: string | null
-          error_message: string | null
           id: string
-          sermon_hash: string | null
           status: string | null
-          summary: string | null
           transcript: string | null
-          transcription_time_ms: number | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
-          error_message?: string | null
           id?: string
-          sermon_hash?: string | null
           status?: string | null
-          summary?: string | null
           transcript?: string | null
-          transcription_time_ms?: number | null
           user_id: string
         }
         Update: {
           created_at?: string | null
-          error_message?: string | null
           id?: string
-          sermon_hash?: string | null
           status?: string | null
-          summary?: string | null
           transcript?: string | null
-          transcription_time_ms?: number | null
           user_id?: string
         }
         Relationships: []
@@ -442,9 +416,9 @@ export type Database = {
           id: string
           images_generated: number
           reset_date: string
-          sermon_packs_generated: number | null
           updated_at: string
           user_id: string
+          weekly_packs_used: number
         }
         Insert: {
           challenges_used?: number
@@ -452,9 +426,9 @@ export type Database = {
           id?: string
           images_generated?: number
           reset_date?: string
-          sermon_packs_generated?: number | null
           updated_at?: string
           user_id: string
+          weekly_packs_used?: number
         }
         Update: {
           challenges_used?: number
@@ -462,9 +436,9 @@ export type Database = {
           id?: string
           images_generated?: number
           reset_date?: string
-          sermon_packs_generated?: number | null
           updated_at?: string
           user_id?: string
+          weekly_packs_used?: number
         }
         Relationships: []
       }
@@ -546,6 +520,38 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_packs: {
+        Row: {
+          created_at: string | null
+          id: string
+          pack: Json | null
+          sermon_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          pack?: Json | null
+          sermon_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          pack?: Json | null
+          sermon_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_packs_sermon_id_fkey"
+            columns: ["sermon_id"]
+            isOneToOne: false
+            referencedRelation: "sermons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -585,29 +591,6 @@ export type Database = {
           content: Json
           planner_id: string
           week_start_date: string
-        }[]
-      }
-      search_content_library: {
-        Args: { search_query: string; user_uuid: string }
-        Returns: {
-          content: Json
-          content_type: string
-          created_at: string | null
-          id: string
-          is_favorite: boolean | null
-          is_pinned: boolean | null
-          pilar: string | null
-          pinned_at: string | null
-          prompt_original: string | null
-          published_at: string | null
-          search_vector: unknown | null
-          sermon_id: string | null
-          source_type: string
-          status: string | null
-          tags: string[] | null
-          title: string
-          updated_at: string | null
-          user_id: string
         }[]
       }
       validate_text_input: {

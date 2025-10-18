@@ -34,12 +34,12 @@ export default function UsageDashboard() {
 
   const features = [
     {
-      key: 'sermon_packs' as const,
-      label: 'Packs de Sermões',
-      description: 'Gerações completas de conteúdo a partir de sermões',
+      key: 'weekly_packs' as const,
+      label: 'Packs Semanais',
+      description: 'Gerações completas de conteúdo semanal',
       icon: Sparkles,
-      used: quota.sermon_packs_generated,
-      limit: limits.sermon_packs,
+      used: quota.weekly_packs_used,
+      limit: limits.weekly_packs,
       color: 'text-purple-500',
     },
     {

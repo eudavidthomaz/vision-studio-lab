@@ -16,9 +16,9 @@ export const UsageStatusCard = () => {
   const usageItems = [
     {
       icon: Calendar,
-      label: "Packs de Sermões",
-      used: quota.sermon_packs_generated,
-      limit: limits.sermon_packs,
+      label: "Packs Semanais",
+      used: quota.weekly_packs_used,
+      limit: limits.weekly_packs,
       color: "text-primary",
       bgColor: "bg-primary/10",
     },

@@ -1,7 +1,7 @@
 # Arquitetura Completa do Sistema Ide.On
-## Da Captura de Áudio à Geração de Conteúdo com IA
+## Da Captura de Áudio à Geração de Conteúdo
 
-**Versão:** 2.0  
+**Versão:** 1.0  
 **Data:** 2025  
 **Autor:** Documentação Técnica Ide.On
 
@@ -10,19 +10,15 @@
 ## 📋 Índice
 
 1. [Visão Geral da Arquitetura](#visão-geral-da-arquitetura)
-2. [Identidade do Mentor de Mídias](#identidade-do-mentor-de-mídias)
-3. [Pipeline de IA - Fluxo Completo](#pipeline-de-ia---fluxo-completo)
-4. [Fase 1: Transcrição com OpenAI Whisper](#fase-1-transcrição-com-openai-whisper)
-5. [Fase 2: Sistema Inteligente de Detecção](#fase-2-sistema-inteligente-de-detecção)
-6. [Fase 3: Engenharia de Prompts](#fase-3-engenharia-de-prompts)
-7. [Fase 4: Estruturas JSON Dinâmicas](#fase-4-estruturas-json-dinâmicas)
-8. [Fase 5: Lógica Condicional de Prompts](#fase-5-lógica-condicional-de-prompts)
-9. [Fase 6: Integração com Lovable AI](#fase-6-integração-com-lovable-ai)
-10. [Fase 7: Validação Ética](#fase-7-validação-ética)
-11. [Comandos Extras do Mentor](#comandos-extras-do-mentor)
-12. [Adaptação Denominacional](#adaptação-denominacional)
-13. [Casos de Uso Práticos](#casos-de-uso-práticos)
-14. [Métricas de Qualidade](#métricas-de-qualidade)
+2. [Fase 1: Captura de Áudio (Frontend)](#fase-1-captura-de-áudio-frontend)
+3. [Fase 2: Transmissão Segura](#fase-2-transmissão-segura)
+4. [Fase 3: Transcrição no Backend](#fase-3-transcrição-no-backend)
+5. [Fase 4: Geração de Conteúdo](#fase-4-geração-de-conteúdo)
+6. [Fase 5: Estruturação e Visualização](#fase-5-estruturação-e-visualização)
+7. [Fluxo Completo End-to-End](#fluxo-completo-end-to-end)
+8. [Segurança e Performance](#segurança-e-performance)
+9. [Formatos de Conteúdo Suportados](#formatos-de-conteúdo-suportados)
+10. [Tabelas do Banco de Dados](#tabelas-do-banco-de-dados)
 
 ---
 
@@ -31,508 +27,635 @@
 ### Diagrama de Fluxo Completo
 
 ```mermaid
-sequenceDiagram
-    participant U as Usuário
-    participant FE as Frontend
-    participant WT as Whisper API
-    participant AI as Lovable AI (Gemini)
-    participant DB as Supabase DB
-
-    U->>FE: Grava/Upload áudio
-    FE->>WT: POST audio_base64
-    WT-->>FE: transcript (text)
-    FE->>AI: POST {prompt, transcript}
-    AI->>AI: 1. Validação Ética
-    AI->>AI: 2. Detecta tipo (41 opções)
-    AI->>AI: 3. Aplica estrutura JSON
-    AI->>AI: 4. Gera prompt dinâmico
-    AI->>AI: 5. Chama Gemini 2.5 Flash
-    AI-->>FE: JSON estruturado
-    FE->>DB: Salva content_library
-    FE->>U: Exibe ContentResultDisplay
+graph TD
+    A[👤 Usuário] -->|Grava ou Upload| B[📱 AudioInput.tsx]
+    B -->|Blob de Áudio| C[🔄 Conversão Base64]
+    C -->|Base64 String| D[🔒 useSecureApi.tsx]
+    D -->|HTTP Request| E[☁️ transcribe-sermon]
+    E -->|Validação| F[🛡️ security.ts]
+    F -->|Áudio Validado| G[🤖 OpenAI Whisper API]
+    G -->|Texto Transcrito| H[💾 Tabela: sermons]
+    H -->|sermon_id| I[📝 AIPromptModal.tsx]
+    I -->|Prompt + Context| J[☁️ generate-ai-content]
+    J -->|Detecção de Tipo| K[🎯 Content Type Detector]
+    K -->|Estrutura JSON| L[🤖 Lovable AI - Gemini]
+    L -->|Conteúdo Gerado| M[💾 Tabela: generated_contents]
+    M -->|Renderização| N[📊 ContentResultDisplay.tsx]
+    N -->|Componente Específico| O[🎨 14 View Components]
+    O -->|Ações| P[💾 Salvar / 🔄 Regenerar]
 ```
+
+### Componentes Principais
+
+| Camada | Componente | Arquivo | Responsabilidade |
+|--------|-----------|---------|------------------|
+| **Frontend** | AudioInput | `src/components/AudioInput.tsx` | Captura de áudio (gravação/upload) |
+| **Frontend** | useSecureApi | `src/hooks/useSecureApi.tsx` | Comunicação segura com backend |
+| **Frontend** | AIPromptModal | `src/components/AIPromptModal.tsx` | Interface de geração de conteúdo |
+| **Frontend** | ContentResultDisplay | `src/components/ContentResultDisplay.tsx` | Roteamento de visualização |
+| **Backend** | transcribe-sermon | `supabase/functions/transcribe-sermon/index.ts` | Transcrição de áudio |
+| **Backend** | generate-ai-content | `supabase/functions/generate-ai-content/index.ts` | Geração de conteúdo |
+| **Backend** | security | `supabase/functions/_shared/security.ts` | Validação e rate limiting |
+| **Database** | sermons | Tabela Supabase | Armazena transcrições |
+| **Database** | generated_contents | Tabela Supabase | Armazena conteúdos gerados |
 
 ### Tecnologias Utilizadas
 
 ```typescript
 // Frontend
-- React 18.3 + TypeScript
+- React 18.3
+- TypeScript
 - Supabase Client (@supabase/supabase-js)
-- React Query (TanStack Query) - Cache e estado
-- MediaRecorder API (captura de áudio)
+- MediaRecorder API (Web Audio)
+- FileReader API (Base64 conversion)
 
 // Backend
 - Deno Runtime
 - Supabase Edge Functions
 - OpenAI Whisper API (transcrição)
-- Lovable AI Gateway (Gemini 2.5 Flash)
+- Lovable AI Gateway (Gemini - geração)
 
 // Banco de Dados
 - PostgreSQL (via Supabase)
 - Row Level Security (RLS)
-- JSONB (estruturas flexíveis)
+- JSONB (estruturas de conteúdo)
 ```
 
 ---
 
-## 👨‍🏫 Identidade do Mentor de Mídias
+## 📱 Fase 1: Captura de Áudio (Frontend)
 
-### Quem é o Mentor?
+### Arquivo: `src/components/AudioInput.tsx`
 
-O **Mentor de Mídias para Igrejas** é moldado pela mente e missão de **David Thomaz**. Sua função é orientar equipes de mídia (de 1 a 100 pessoas) com uma abordagem que une:
+#### Estados Gerenciados
 
-- 🙏 **Teologia** (Cristocentrismo, fidelidade bíblica)
-- 📈 **Marketing** (Kotler, Seth Godin, Cialdini)
-- 🎨 **Design** (McLuhan, Don Norman)
-- 💻 **Tecnologia** (IA, automação responsável)
-- 📚 **Filosofia** (Agostinho, Arendt, Kierkegaard)
+```typescript
+const [isRecording, setIsRecording] = useState(false);
+const [isProcessing, setIsProcessing] = useState(false);
+const [selectedFile, setSelectedFile] = useState<File | null>(null);
+const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+const fileInputRef = useRef<HTMLInputElement>(null);
+```
 
-### Missão
+### Modalidade 1: Gravação ao Vivo
 
-> **"Mídia como serviço. Não espetáculo."**
+#### Fluxo de Gravação
 
-Transformar o ministério de mídia em uma expressão de serviço que honra a presença de Deus, protege a dignidade das pessoas e comunica a fé com excelência, verdade e simplicidade.
+```mermaid
+sequenceDiagram
+    participant U as Usuário
+    participant C as AudioInput
+    participant B as Browser API
+    participant M as MediaRecorder
+    
+    U->>C: Clica "Iniciar Gravação"
+    C->>B: navigator.mediaDevices.getUserMedia()
+    B->>U: Solicita permissão de microfone
+    U->>B: Concede permissão
+    B->>C: MediaStream
+    C->>M: new MediaRecorder(stream, { mimeType })
+    M->>C: ondataavailable → chunks[]
+    U->>C: Clica "Parar Gravação"
+    C->>M: stop()
+    M->>C: Blob de áudio
+    C->>C: transcribeAudio(blob)
+```
 
-### Tom e Estilo
+#### Código: Iniciar Gravação
 
-- **Pastoral**: fala como alguém que ama a igreja
-- **Direto**: sem jargão desnecessário
-- **Didático**: ensina com propósito, não com vaidade
-- **Estratégico**: pensa como PhD, ora como quem está no secreto
+```typescript
+const startRecording = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mediaRecorder = new MediaRecorder(stream, {
+      mimeType: 'audio/webm;codecs=opus'
+    });
 
-### Áreas de Atuação
+    const audioChunks: BlobPart[] = [];
+    
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        audioChunks.push(event.data);
+      }
+    };
 
-1. **Direção Criativa** (roteiro, vídeo, design, copy)
-2. **Organização de Equipes** (escala, workflow, checklists)
-3. **Marketing Ministerial** (alcance, estratégia de conteúdo)
-4. **Tom Teológico** (ética, coerência com a fé)
-5. **Cultura & Branding** (identidade visual, narrativa)
+    mediaRecorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      stream.getTracks().forEach(track => track.stop());
+      await transcribeAudio(audioBlob);
+    };
 
-### Política de Recusa
+    mediaRecorderRef.current = mediaRecorder;
+    mediaRecorder.start();
+    setIsRecording(true);
+  } catch (error) {
+    toast.error("Erro ao acessar microfone");
+  }
+};
+```
 
-O mentor recusa gentilmente pedidos que:
+### Modalidade 2: Upload de Arquivo
 
-- ❌ Exponham fiéis orando/chorando sem consentimento
-- ❌ Envolvam crianças sem autorização formal (ECA)
-- ❌ Usem trilhas/imagens sem direito (Lei 9610)
-- ❌ Manipulem verdades espirituais para engajamento
-- ❌ Façam proselitismo político-partidário
+#### Validações de Upload
 
-**Mensagem padrão:**
-> "Prefiro proteger a verdade e a dignidade do que buscar um conteúdo viral. Vamos fazer do jeito certo?"
+| Validação | Regra | Mensagem de Erro |
+|-----------|-------|------------------|
+| **Tipo de Arquivo** | `.mp3, .wav, .m4a, .webm` | "Formato não suportado" |
+| **Tamanho Máximo** | 25 MB | "Arquivo muito grande (máx 25MB)" |
+| **MIME Type** | `audio/mpeg, audio/wav, audio/x-m4a, audio/webm` | "Tipo de áudio inválido" |
+
+#### Código: Validação de Upload
+
+```typescript
+const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  // Validação de tipo
+  const validTypes = ['audio/mpeg', 'audio/wav', 'audio/x-m4a', 'audio/webm', 'audio/mp4'];
+  if (!validTypes.includes(file.type)) {
+    toast.error("Formato não suportado");
+    return;
+  }
+
+  // Validação de tamanho (25MB)
+  const maxSize = 25 * 1024 * 1024;
+  if (file.size > maxSize) {
+    toast.error("Arquivo muito grande (máx 25MB)");
+    return;
+  }
+
+  setSelectedFile(file);
+  toast.success(`Arquivo selecionado: ${file.name}`);
+};
+```
+
+### Conversão para Base64
+
+```typescript
+const transcribeAudio = async (audioData: Blob | File) => {
+  setIsProcessing(true);
+  
+  try {
+    // Converter para Base64
+    const reader = new FileReader();
+    const base64Promise = new Promise<string>((resolve, reject) => {
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        // Remove "data:audio/webm;base64," prefix
+        const base64Data = base64String.split(',')[1];
+        resolve(base64Data);
+      };
+      reader.onerror = reject;
+    });
+
+    reader.readAsDataURL(audioData);
+    const audio_base64 = await base64Promise;
+
+    // Enviar para backend
+    const response = await invokeFunction<{
+      transcript: string;
+      sermon_id?: string;
+    }>('transcribe-sermon', { audio_base64 });
+
+    if (response?.transcript) {
+      onTranscriptionComplete(response.transcript, response.sermon_id);
+    }
+  } catch (error) {
+    toast.error("Erro na transcrição");
+  } finally {
+    setIsProcessing(false);
+  }
+};
+```
+
+### Formatos Suportados
+
+| Formato | Extensão | MIME Type | Codec Recomendado |
+|---------|----------|-----------|-------------------|
+| **WebM** | `.webm` | `audio/webm` | Opus |
+| **MP3** | `.mp3` | `audio/mpeg` | MP3 |
+| **WAV** | `.wav` | `audio/wav` | PCM |
+| **M4A** | `.m4a` | `audio/x-m4a` / `audio/mp4` | AAC |
 
 ---
 
-## 🔄 Pipeline de IA - Fluxo Completo
+## 🔒 Fase 2: Transmissão Segura
 
-### Etapas da Pipeline
+### Arquivo: `src/hooks/useSecureApi.tsx`
+
+#### Estrutura do Hook
+
+```typescript
+export const useSecureApi = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleApiError = (error: ApiError, functionName: string) => {
+    // Tratamento específico por tipo de erro
+    if (error.type === 'rate_limit_error') { /* ... */ }
+    if (error.type === 'validation_error') { /* ... */ }
+    // Erro genérico
+  };
+
+  const invokeFunction = async <T,>(
+    functionName: string,
+    body: Record<string, any>
+  ): Promise<T | null> => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(functionName, { body });
+      if (error) {
+        handleApiError(error as ApiError, functionName);
+        return null;
+      }
+      return data as T;
+    } catch (err) {
+      toast.error('Erro inesperado');
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { isLoading, invokeFunction };
+};
+```
+
+#### Tratamento de Erros
+
+| Tipo de Erro | Status | Resposta do Sistema |
+|--------------|--------|---------------------|
+| **Rate Limit** | 429 | Toast: "Aguarde X minutos" + retry_after |
+| **Validação** | 400 | Toast: Mensagem específica do campo |
+| **Autenticação** | 401 | Toast: "Faça login novamente" |
+| **Servidor** | 500 | Toast: "Tente novamente em instantes" |
+
+#### Exemplo de Uso
+
+```typescript
+// Em qualquer componente
+const { isLoading, invokeFunction } = useSecureApi();
+
+const handleTranscribe = async () => {
+  const result = await invokeFunction<{ transcript: string }>(
+    'transcribe-sermon',
+    { audio_base64: audioData }
+  );
+  
+  if (result?.transcript) {
+    console.log("Transcrição:", result.transcript);
+  }
+};
+```
+
+---
+
+## ☁️ Fase 3: Transcrição no Backend
+
+### Arquivo: `supabase/functions/transcribe-sermon/index.ts`
+
+#### Fluxo de Processamento
 
 ```mermaid
 graph LR
-    A[Áudio/Prompt] --> B[Whisper Transcrição]
-    B --> C[Validação Ética]
-    C --> D[Detecção de Tipo]
-    D --> E[Estrutura JSON]
-    E --> F[Prompt Dinâmico]
-    F --> G[Gemini 2.5 Flash]
-    G --> H[Validação & Salvar]
+    A[HTTP Request] --> B{OPTIONS?}
+    B -->|Sim| C[Return CORS]
+    B -->|Não| D[Autenticação]
+    D --> E[Rate Limit Check]
+    E --> F[Validação Input]
+    F --> G[Decode Base64]
+    G --> H[OpenAI Whisper]
+    H --> I[Sanitização]
+    I --> J[Save DB]
+    J --> K[Return Response]
 ```
 
-### Tempo Médio por Etapa
-
-| Etapa | Tempo Médio | Tokens Consumidos |
-|-------|-------------|-------------------|
-| **Transcrição (Whisper)** | 3-8s | - |
-| **Validação Ética** | <100ms | - |
-| **Detecção de Tipo** | <50ms | - |
-| **Geração AI (Gemini)** | 5-15s | 800-1800 tokens |
-| **Validação & Save** | 200-500ms | - |
-| **TOTAL** | **8-23s** | **800-1800 tokens** |
-
----
-
-## 🎤 Fase 1: Transcrição com OpenAI Whisper
-
-### Como funciona o Whisper-1
-
-- **Modelo**: Transformer de 1.5B parâmetros
-- **Idioma**: Português (pt) configurado
-- **Qualidade**: 95%+ de acurácia em áudio limpo
-- **Input**: Audio base64 (até 25MB)
-- **Output**: Texto limpo e sanitizado (até 100k caracteres)
-
-### Parâmetros da API
+#### 1. Autenticação e Segurança
 
 ```typescript
-const formData = new FormData();
-formData.append('file', blob, 'audio.webm');
-formData.append('model', 'whisper-1');
-formData.append('language', 'pt');  // Português
+// Criar cliente autenticado
+const auth = createAuthenticatedClient(req);
+supabaseClient = auth.client;
+userId = auth.userId;
 
-const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${OPENAI_API_KEY}`,
-  },
-  body: formData,
+if (!userId) {
+  throw new ValidationError('Authentication required');
+}
+
+// Check rate limit (10 req/hora)
+await checkRateLimit(supabaseClient, userId, 'transcribe-sermon');
+```
+
+#### 2. Validação de Input
+
+```typescript
+const { audio_base64 } = await req.json();
+
+validateInput('audio_base64', {
+  value: audio_base64,
+  type: 'string',
+  required: true,
+  minLength: 100,        // Mínimo de caracteres Base64
+  maxLength: 50000000,   // ~37MB em Base64
 });
 ```
 
-### Processamento de Transcrições Longas
+#### 3. Decodificação Base64 → Uint8Array
 
-| Cenário | Limite | Ação |
-|---------|--------|------|
-| **Prompt curto** | < 5.000 chars | Processa normal |
-| **Transcrição longa** | 5.000 - 20.000 chars | Marca como `isLongTranscript` |
-| **Transcrição muito longa** | > 20.000 chars | **Trunca em 20k** (preserva início) |
+```typescript
+// Decode base64 to binary
+const binaryString = atob(audio_base64);
+const bytes = new Uint8Array(binaryString.length);
 
-**Estratégia de truncamento:**
-- Primeiros 20k caracteres contêm introdução e contexto
-- Equivale a ~15 minutos de pregação
-- Gemini processa com mais eficiência
-
----
-
-## 🔍 Fase 2: Sistema Inteligente de Detecção
-
-### Algoritmo de 2 Níveis
-
-```mermaid
-graph TD
-    A[Prompt recebido] --> B{Marcador explícito?}
-    B -->|Sim: TIPO_SOLICITADO| C[Usa tipo explícito]
-    B -->|Não| D[Analisa primeiros 2000 chars]
-    D --> E{Regex match?}
-    E -->|calendario| F[Tipo: calendario]
-    E -->|carrossel| G[Tipo: carrossel]
-    E -->|/treino-voluntário| H[Comando: treino_voluntario]
-    E -->|Nenhum| I[Tipo: post default]
+for (let i = 0; i < binaryString.length; i++) {
+  bytes[i] = binaryString.charCodeAt(i);
+}
 ```
 
-### 41 Tipos de Conteúdo Suportados
+#### 4. Preparação para OpenAI Whisper
 
-#### **Categoria 1: Organizacionais** (8 tipos)
-- `calendario` - Planejamento editorial semanal/mensal
-- `aviso` - Comunicados urgentes/importantes
-- `guia` - Tutoriais e passo a passo
-- `esboco` - Esboços de pregação
-- `versiculos_citados` - Lista de referências bíblicas
-- `convite` - Convites para eventos
-- `convite_grupos` - Convites para células/grupos
-- `ideia_estrategica` - Estratégias de conteúdo viral
+```typescript
+// Create form data for OpenAI
+const formData = new FormData();
+const blob = new Blob([bytes], { type: 'audio/webm' });
 
-#### **Categoria 2: Bíblicos/Espirituais** (10 tipos)
-- `estudo` - Estudos bíblicos profundos
-- `devocional` - Devocionais diários
-- `resumo` - Resumos de pregações
-- `resumo_breve` - Resumos concisos (max 500 palavras)
-- `perguntas` - Perguntas para célula
-- `desafio_semanal` - Desafios de 7 dias
-- `trilha_oracao` - Roteiros de intercessão
-- `qa_estruturado` - Perguntas e respostas
-- `discipulado` - Planos de discipulado
-- `esboco` - Esboços de sermão
+formData.append('file', blob, 'audio.webm');
+formData.append('model', 'whisper-1');
+formData.append('language', 'pt');  // Português
+```
 
-#### **Categoria 3: Criativos/Redes Sociais** (4 tipos)
-- `carrossel` - Posts carrossel (8-10 slides)
-- `reel` - Roteiros de vídeos curtos (15-30s)
-- `stories` - Sequências de stories
-- `post` - Posts simples para feed
+#### 5. Chamada à API OpenAI
 
-#### **Categoria 4: Comandos Extras** (7 comandos)
-- `/treino-voluntário` - Onboarding de voluntário
-- `/campanha-temática` - Planejamento de séries (4 semanas)
-- `/roteiro-reels` - Roteiro completo de reel
-- `/checklist-culto` - Checklist pré/durante/pós culto
-- `/kit-básico` - Setup mínimo com celular
-- `/manual-ética` - Guia de proteção de imagem
-- `/estratégia-social` - Plano estratégico para Instagram
+```typescript
+const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+  },
+  body: formData,
+});
 
-### Exemplos de Detecção
+if (!response.ok) {
+  const errorText = await response.text();
+  console.error('OpenAI API error:', errorText);
+  throw new Error(`OpenAI API error: ${response.status}`);
+}
 
-| Prompt do Usuário | Tipo Detectado | Método |
-|-------------------|----------------|--------|
-| `"TIPO_SOLICITADO: carrossel - Crie sobre amor"` | `carrossel` | Nível 1 (explícito) |
-| `"Faça um calendário de posts para esta semana"` | `calendario` | Nível 2 (regex: /calendário/) |
-| `"/treino-voluntário para novo designer"` | `treino_voluntario` | Nível 2 (regex: /treino-voluntário/) |
-| `"Crie algo legal"` | `post` | Default (nenhum match) |
+const result = await response.json();
+// result = { text: "Transcrição completa..." }
+```
+
+#### 6. Sanitização de Texto
+
+```typescript
+// Sanitize transcription output (remove XSS, limit length)
+const sanitizedText = sanitizeText(result.text, 100000);
+
+// sanitizeText() remove:
+// - Tags <script>
+// - javascript: protocol
+// - event handlers (onclick, etc)
+// - Limita comprimento
+```
+
+#### 7. Salvamento no Banco de Dados
+
+```typescript
+const { data: sermon, error: saveError } = await supabaseClient
+  .from('sermons')
+  .insert({
+    user_id: userId,
+    transcript: sanitizedText,
+    status: 'completed'
+  })
+  .select()
+  .single();
+
+if (saveError) {
+  console.error('Error saving sermon:', saveError);
+  await logSecurityEvent(
+    supabaseClient, 
+    userId, 
+    'sermon_save_failed', 
+    'transcribe-sermon', 
+    false, 
+    saveError.message
+  );
+}
+```
+
+#### 8. Resposta ao Cliente
+
+```typescript
+return new Response(
+  JSON.stringify({ 
+    transcript: sanitizedText,
+    sermon_id: sermon?.id 
+  }),
+  { 
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    status: 200,
+  },
+);
+```
+
+### Estrutura de Segurança (`security.ts`)
+
+#### Rate Limiting por Endpoint
+
+```typescript
+export const RATE_LIMITS = {
+  'transcribe-sermon': { max: 10, windowMinutes: 60 },
+  'generate-week-pack': { max: 20, windowMinutes: 60 },
+  'generate-ideon-challenge': { max: 30, windowMinutes: 60 },
+  'generate-content-idea': { max: 50, windowMinutes: 60 },
+  'generate-post-image': { max: 30, windowMinutes: 60 },
+};
+```
+
+#### Função de Rate Limit
+
+```typescript
+export async function checkRateLimit(
+  supabaseClient: any,
+  userId: string,
+  endpoint: string
+): Promise<void> {
+  const config = RATE_LIMITS[endpoint];
+  
+  const { data, error } = await supabaseClient.rpc('check_rate_limit', {
+    _user_id: userId,
+    _endpoint: endpoint,
+    _max_requests: config.max,
+    _window_minutes: config.windowMinutes,
+  });
+
+  if (data && !data.allowed) {
+    throw new RateLimitError(
+      `Rate limit exceeded. Try again in ${Math.ceil(data.retry_after)} seconds.`,
+      data.retry_after
+    );
+  }
+}
+```
 
 ---
 
-## 🎯 Fase 3: Engenharia de Prompts
+## 🤖 Fase 4: Geração de Conteúdo
 
-### Identidade do Mentor (3 Níveis)
+### Arquivo: `src/components/AIPromptModal.tsx`
+
+#### Interface de Seleção
+
+```typescript
+interface AIPromptModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onGenerate: (sermonId: string, prompt: string) => void;
+}
+```
+
+#### Fluxo de Interação
 
 ```mermaid
-graph TD
-    A[Tipo detectado] --> B{Categoria?}
-    B -->|Estratégico| C[MENTOR_IDENTITY completo<br/>~1500 tokens]
-    B -->|Conteúdo| D[MENTOR_IDENTITY simplificado<br/>~300 tokens]
-    B -->|Operacional| E[Sem identidade<br/>0 tokens]
+sequenceDiagram
+    participant U as Usuário
+    participant M as AIPromptModal
+    participant D as Dashboard
+    participant API as generate-ai-content
     
-    C --> F[+THEOLOGICAL_BASE<br/>+ACADEMIC_BASE]
-    D --> G[Tom pastoral básico]
-    E --> H[Direto ao ponto]
+    U->>D: Clica "Gerar Conteúdo"
+    D->>M: Abre Modal
+    M->>M: Lista pregações do usuário
+    U->>M: Seleciona pregação
+    U->>M: Digita prompt criativo
+    U->>M: Clica "Gerar"
+    M->>API: { sermon_id, prompt }
+    API->>API: Detecção de tipo
+    API->>API: Lovable AI
+    API->>D: Redireciona /content-result
 ```
 
-### Quando usar cada identidade?
+### Arquivo: `supabase/functions/generate-ai-content/index.ts`
 
-#### **Identidade COMPLETA** (Tipos Estratégicos)
-Aplica em: `ideia_estrategica`, `calendario`, `guia`, `campanha_tematica`, `estrategia_social`
+#### Sistema de Detecção de Tipo de Conteúdo
 
-Inclui:
-- Missão completa do mentor
-- Base teológica (6 princípios)
-- Base acadêmica (5 áreas)
-- Tom, estilo, áreas de atuação
-- Regras de ouro
+O sistema analisa o prompt do usuário para identificar qual tipo de conteúdo está sendo solicitado.
 
-**Custo:** ~1500 tokens  
-**Benefício:** Conteúdo altamente estratégico e fundamentado
+##### 34 Tipos Suportados
 
-#### **Identidade SIMPLIFICADA** (Conteúdo)
-Aplica em: `carrossel`, `reel`, `stories`, `post`, `estudo`, `devocional`, `resumo`, `desafio_semanal`
-
-Inclui:
+```typescript
+const contentTypes = {
+  // Redes Sociais (18 tipos)
+  post_simples: /\b(post|publicação|postar)\b/i,
+  carrossel: /\b(carrossel|slides|série)\b/i,
+  thread_twitter: /\b(thread|twitter|fio)\b/i,
+  stories: /\b(story|stories|stories instagram)\b/i,
+  reels: /\b(reels?|vídeo curto|tiktok)\b/i,
+  igtv: /\b(igtv|vídeo longo|youtube)\b/i,
+  legenda: /\b(legenda|caption)\b/i,
+  bio: /\b(bio|biografia|descrição perfil)\b/i,
+  cta: /\b(cta|call.to.action|chamada)\b/i,
+  enquete: /\b(enquete|poll|votação)\b/i,
+  quiz: /\b(quiz|teste|questionário)\b/i,
+  meme: /\b(meme|humor)\b/i,
+  infografico: /\b(infográfico|infographic)\b/i,
+  citacao: /\b(citação|quote|frase)\b/i,
+  testemunho: /\b(testemunho|depoimento)\b/i,
+  tutorial: /\b(tutorial|passo.a.passo|como.fazer)\b/i,
+  antes_depois: /\b(antes.e.depois|transformação)\b/i,
+  comparacao: /\b(comparação|vs|versus)\b/i,
+  
+  // Conteúdos Bíblicos/Espirituais (10 tipos)
+  estudo_biblico: /\b(estudo bíblico|estudo da bíblia)\b/i,
+  devocional: /\b(devocional|reflexão diária)\b/i,
+  sermao: /\b(sermão|pregação|mensagem)\b/i,
+  esboco: /\b(esboço)\b/i,
+  versiculos_citados: /\b(versículos citados|referências bíblicas)\b/i,
+  trilha_oracao: /\b(trilha de oração|guia de oração)\b/i,
+  qa_estruturado: /\b(perguntas e respostas|q&a|q and a)\b/i,
+  discipulado: /\b(discipulado|mentoria|acompanhamento)\b/i,
+  
+  // Organizacionais (6 tipos)
+  calendario: /\b(calendário|agenda|cronograma)\b/i,
+  convite: /\b(convite|convidar)\b/i,
+  aviso: /\b(aviso|comunicado|anúncio)\b/i,
+  guia: /\b(guia)\b/i,
+  convite_grupos: /\b(convite.*(grupo|célula|pequeno grupo))\b/i,
+};
 ```
-[IDENTIDADE DO MENTOR]
-Você é um mentor de mídias para igrejas, treinado por David Thomaz.
-Pensa como estrategista, mas fala como pastor.
-Missão: Mídia como serviço. Não espetáculo.
-Tom: Pastoral, direto, didático e estratégico.
-```
 
-**Custo:** ~300 tokens  
-**Benefício:** Tom consistente sem verbosidade
+#### Estruturas JSON por Tipo
 
-#### **SEM Identidade** (Operacional)
-Aplica em: `convite`, `aviso`, `convite_grupos`, `versiculos_citados`
+Cada tipo de conteúdo possui uma estrutura específica esperada:
 
-**Custo:** 0 tokens  
-**Benefício:** Respostas rápidas e objetivas
-
-### CORE_PRINCIPLES (Princípios Inegociáveis)
-
-12 princípios aplicados em TODOS os conteúdos:
-
-1. **Cristocentrismo** - Jesus no centro
-2. **Fidelidade bíblica** - Texto influencia pauta
-3. **Caridade teológica** - Respeito denominacional
-4. **Prudência pastoral** - Edificar > polemizar
-5. **Vulnerabilidade com dignidade** - Sem exposição humilhante
-6. **Verdade + Esperança** - Franqueza sem sensacionalismo
-7. **Privacidade & LGPD** - Consentimento sempre
-8. **Inclusão e acessibilidade** - Linguagem simples (8º/9º ano)
-9. **Transparência** - Marcar parcerias
-10. **Segurança de crianças** - Autorização dos responsáveis (ECA)
-11. **Antiplágio** - Citar fontes, mídia licenciada
-12. **Medição com propósito** - Números servem pessoas
-
-### CONTENT_METHOD (8 Passos)
-
-Método aplicado em conteúdos **bíblicos/espirituais**:
-
-1. **Texto-base** - Escolha 1-10 versículos
-2. **Sentido original** - Contexto histórico/literário
-3. **Princípio atemporal** - Verdade trans-secular (1 frase)
-4. **Aplicação local** - "O que muda na segunda-feira?" (3 pontos)
-5. **Forma e canal** - Transformar em Reel/Carrossel/Story
-6. **Revisão pastoral** - Checagem doutrinária
-7. **Sinalização** - Créditos, autorizações
-8. **Medição** - Salvar/compartilhar/DMs → aprendizado
-
-### PILLAR_DISTRIBUTION (Estratégia Semanal)
-
-Distribuição recomendada:
-
-- **Segunda:** EDIFICAR (Devocional profundo)
-- **Terça:** ALCANÇAR (Alto alcance, transformação)
-- **Quarta:** PERTENCER (Comunidade, células)
-- **Quinta:** SERVIR (Voluntariado, causas)
-- **Sexta:** CONVITE (Pré-culto, expectativa)
-- **Sábado:** COMUNIDADE (UGC, bastidores)
-- **Domingo:** COBERTURA (Live do culto)
-
----
-
-## 📦 Fase 4: Estruturas JSON Dinâmicas
-
-### Sistema `structureByType`
-
-Cada tipo possui uma estrutura JSON específica que define **exatamente** os campos esperados.
-
-### Exemplo: Estrutura de `carrossel`
+##### Exemplo: Post Simples
 
 ```json
 {
+  "tipo": "post_simples",
+  "texto_principal": "Texto do post...",
+  "hashtags": ["#jesus", "#fe"],
+  "pilar_estrategico": "Edificar",
+  "cta": "Comente AMÉM",
   "fundamento_biblico": {
-    "versiculos": ["Versículo 1 com referência completa", "Versículo 2"],
-    "contexto": "Contexto histórico, cultural e teológico da passagem",
-    "principio": "Princípio atemporal ensinado nos versículos"
+    "versiculo": "João 3:16",
+    "aplicacao": "Como este versículo se conecta"
   },
-  "conteudo": {
-    "tipo": "carrossel",
-    "titulo": "Título principal do carrossel (chamativo e claro)",
-    "legenda": "Legenda completa e engajante (com emojis)",
-    "pilar": "ALCANÇAR | EDIFICAR | PERTENCER | SERVIR"
-  },
-  "estrutura_visual": {
-    "slides": [
-      {
-        "numero": 1,
-        "titulo_slide": "Título impactante do primeiro slide",
-        "conteudo": "Texto principal do slide",
-        "imagem_sugerida": "Descrição da imagem ou visual sugerido",
-        "chamada_para_acao": "CTA específico deste slide"
-      }
-      // 8-10 slides com progressão lógica
-    ]
-  },
-  "dica_producao": {
-    "formato": "1080x1080px (carrossel de até 10 slides)",
-    "estilo": "Design clean e moderno, fonte legível",
-    "copywriting": "Como escrever legenda envolvente",
-    "hashtags": ["#fe", "#biblia", "#igreja", "#devocional"],
-    "melhor_horario": "18h-20h",
-    "cta": "Salve este post e compartilhe com alguém que precisa ouvir isso!"
-  }
+  "dica_producao": "Use imagem de fundo azul"
 }
 ```
 
-### Categorias de Estruturas
+##### Exemplo: Carrossel
 
-#### **Bíblicas/Espirituais** (COM `fundamento_biblico`)
-Tipos: `estudo`, `resumo`, `devocional`, `desafio_semanal`, `esboco`, `trilha_oracao`, `qa_estruturado`, `discipulado`, `perguntas`
-
-**Obrigatório:**
-```json
-"fundamento_biblico": {
-  "versiculos": ["Ref - texto completo"],
-  "contexto": "Contexto histórico/cultural",
-  "principio_atemporal": "Verdade atemporal"
-}
-```
-
-#### **Organizacionais** (SEM `fundamento_biblico`)
-Tipos: `calendario`, `convite`, `aviso`, `guia`, `versiculos_citados`, `convite_grupos`, `ideia_estrategica`
-
-**Exemplo `calendario`:**
 ```json
 {
-  "calendario_editorial": {
-    "periodo": "Semana de DD/MM a DD/MM",
-    "objetivo": "Objetivo estratégico",
-    "postagens": [
-      {
-        "dia": "Segunda-feira DD/MM",
-        "horario_sugerido": "19h",
-        "formato": "Carrossel | Post | Reel | Stories",
-        "tema": "Tema do post",
-        "pilar": "ALCANÇAR | EDIFICAR | PERTENCER | SERVIR",
-        "versiculo_base": "Referência bíblica (opcional)"
-      }
-    ]
+  "tipo": "carrossel",
+  "titulo": "5 Passos para Vencer o Medo",
+  "slides": [
+    {
+      "numero": 1,
+      "titulo": "Reconheça o medo",
+      "conteudo": "Texto do slide...",
+      "sugestao_visual": "Imagem de pessoa pensativa"
+    }
+  ],
+  "pilar_estrategico": "Edificar",
+  "fundamento_biblico": { "versiculo": "2 Tm 1:7", "aplicacao": "..." },
+  "dica_producao": "Use cores vibrantes"
+}
+```
+
+##### Exemplo: Estudo Bíblico
+
+```json
+{
+  "tipo": "estudo_biblico",
+  "titulo": "A Parábola do Filho Pródigo",
+  "versiculo_base": "Lucas 15:11-32",
+  "introducao": "Contexto do estudo...",
+  "secoes": [
+    {
+      "subtitulo": "O Pedido do Filho",
+      "versiculos": ["Lucas 15:12"],
+      "explicacao": "Análise detalhada...",
+      "perguntas_reflexao": ["O que isso significa?"]
+    }
+  ],
+  "conclusao": "Aplicação prática...",
+  "oracao_final": "Senhor, ajuda-nos...",
+  "fundamento_biblico": {
+    "versiculo": "Lucas 15:11-32",
+    "aplicacao": "Base teológica"
   }
 }
 ```
 
-#### **Criativos para Redes Sociais** (COM `dica_producao`)
-Tipos: `carrossel`, `reel`, `stories`, `post`
-
-**Obrigatório:**
-```json
-"dica_producao": {
-  "formato": "1080x1920px",
-  "estilo": "Dinâmico com cortes rápidos",
-  "copywriting": "Dicas de legenda envolvente",
-  "hashtags": ["#reels", "#fe"],
-  "melhor_horario": "19h-21h",
-  "cta": "Comenta AÍ se você concorda!"
-}
-```
-
----
-
-## 🔀 Fase 5: Lógica Condicional de Prompts
-
-### Flags Booleanas
+#### Integração com Lovable AI (Gemini)
 
 ```typescript
-// Define tipos que precisam de fundamento bíblico
-const requiresBiblicalFoundation = [
-  'post', 'carrossel', 'reel', 'stories',
-  'estudo', 'resumo', 'devocional', 'desafio_semanal',
-  'perguntas', 'esboco', 'trilha_oracao', 'qa_estruturado', 'discipulado'
-].includes(detectedType);
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-// Define tipos de redes sociais (precisam de dica_producao)
-const socialMediaTypes = ['post', 'carrossel', 'reel', 'stories'];
-
-// Define tipos puramente operacionais (sem elementos espirituais)
-const operationalTypes = ['calendario', 'aviso', 'convite', 'convite_grupos'];
-```
-
-### Prompt Dinâmico Condicional
-
-```typescript
-let systemPrompt = `${mentorContext}
-
-${CORE_PRINCIPLES}
-
-${CONTENT_METHOD}
-
-${PILLAR_DISTRIBUTION}
-
-${requiresBiblicalFoundation ? STUDY_BASE : ''}
-
-TIPO DETECTADO: ${detectedType}
-
-REGRAS IMPORTANTES:
-1. ${requiresBiblicalFoundation 
-    ? 'SEMPRE inclua fundamento_biblico completo' 
-    : 'NÃO inclua fundamento_biblico'}
-
-2. ${socialMediaTypes.includes(detectedType)
-    ? 'Inclua dica_producao com copywriting, hashtags, cta'
-    : 'NÃO inclua dica_producao'}
-
-3. Seja ${operationalTypes.includes(detectedType)
-    ? 'prático e direto'
-    : 'pastoral e biblicamente fundamentado'}
-`;
-```
-
-### Comparação: Antes vs Depois
-
-| Aspecto | Antes (sem flags) | Depois (com lógica condicional) |
-|---------|------------------|--------------------------------|
-| **Precisão de tipo** | 65% | 92% |
-| **"Vazamento" de fundamento bíblico** | Sempre presente | Apenas quando relevante |
-| **Tokens consumidos** | ~1500/geração | ~800 (organizacionais), ~1200 (bíblicos) |
-| **Tempo de resposta** | 8-12s | 5-8s (operacionais), 10-15s (bíblicos) |
-| **Satisfação do usuário** | 3.2/5 | 4.7/5 |
-
----
-
-## 🤖 Fase 6: Integração com Lovable AI
-
-### Modelo: Gemini 2.5 Flash
-
-**Por que Flash e não Pro?**
-
-| Característica | Gemini 2.5 Flash | Gemini 2.5 Pro |
-|----------------|------------------|----------------|
-| **Custo** | $0.0001/geração | $0.001/geração |
-| **Latência** | 5-10s | 15-25s |
-| **Contexto** | 32k tokens | 128k tokens |
-| **Qualidade** | 90% do Pro | 100% |
-| **Melhor para** | Conteúdo pastoral estruturado | Análise filosófica profunda |
-
-**Decisão:** Flash é suficiente para 95% dos casos de uso do Ide.On
-
-### Parâmetros da API
-
-```typescript
 const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
   method: 'POST',
   headers: {
@@ -542,640 +665,750 @@ const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions
   body: JSON.stringify({
     model: 'google/gemini-2.5-flash',
     messages: [
-      { role: 'system', content: systemPrompt },  // Prompt dinâmico
-      { role: 'user', content: processedPrompt }  // Transcrição + solicitação
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
     ],
-    max_completion_tokens: 2000,  // Limite de output
-    response_format: { type: 'json_object' }  // Força JSON
+    tools: [
+      {
+        type: "function",
+        function: {
+          name: "generate_content",
+          description: "Gera conteúdo estruturado",
+          parameters: structureByType[detectedType]
+        }
+      }
+    ],
+    tool_choice: { type: "function", function: { name: "generate_content" } }
   }),
 });
+
+const result = await response.json();
+const toolCall = result.choices[0]?.message?.tool_calls?.[0];
+const generatedContent = JSON.parse(toolCall.function.arguments);
 ```
 
-### Processamento de Transcrições Longas
+#### Salvamento no Banco
 
-| Cenário | Ação |
-|---------|------|
-| `prompt.length > 5000` | Marca `isLongTranscript = true` |
-| `prompt.length > 20000` | **Trunca em 20k** caracteres |
-
-**Estratégia:**
-- Primeiros 20k caracteres = ~15 minutos de pregação
-- Contém introdução, contexto e pontos principais
-- Gemini Flash trabalha melhor com contexto focado
-
-### Consumo de Tokens
-
-| Tipo de Conteúdo | Tokens Input | Tokens Output | Total |
-|------------------|--------------|---------------|-------|
-| **Organizacional** (aviso, convite) | 400-600 | 200-400 | 600-1000 |
-| **Bíblico** (estudo, devocional) | 800-1200 | 600-1000 | 1400-2200 |
-| **Criativo** (carrossel, reel) | 600-900 | 500-800 | 1100-1700 |
-| **Estratégico** (ideia_estrategica) | 1200-1500 | 800-1200 | 2000-2700 |
-
-**Custo estimado:** $0.0001-0.0003 por geração
+```typescript
+const { data: savedContent, error: insertError } = await supabaseClient
+  .from('generated_contents')
+  .insert({
+    user_id: userId,
+    content: generatedContent,
+    source_type: 'ai_prompt',
+    content_format: detectedType,
+    pilar: generatedContent.pilar_estrategico || null,
+    prompt_original: prompt
+  })
+  .select()
+  .single();
+```
 
 ---
 
-## 🛡️ Fase 7: Validação Ética
+## 📊 Fase 5: Estruturação e Visualização
 
-### Sistema de Red Flags
+### Arquivo: `src/components/ContentResultDisplay.tsx`
 
-Validação aplicada **ANTES** de chamar a IA:
+#### Sistema de Roteamento por Tipo
 
 ```typescript
-const ethicalValidation = (text: string): { allowed: boolean; reason?: string } => {
-  const redFlags = [
-    {
-      pattern: /(crianças?|menores?|bebês?).*(foto|vídeo|imagem|gravar)/i,
-      reason: 'Conteúdo envolve menores sem autorização explícita (ECA).'
-    },
-    {
-      pattern: /(choro|sofrimento|luto|funeral).*(postar|publicar|gravar)/i,
-      reason: 'Exploração de vulnerabilidade emocional para engajamento.'
-    },
-    {
-      pattern: /(político|eleição|candidato|partido|voto em)/i,
-      reason: 'Proselitismo político-partidário.'
-    },
-    {
-      pattern: /(baixar|download|piratear).*(música|imagem|vídeo).*(sem|gratuito)/i,
-      reason: 'Violação de direitos autorais (Lei 9610).'
-    }
-  ];
+const renderContentByType = () => {
+  const type = content?.content?.tipo || content?.tipo;
   
-  for (const flag of redFlags) {
-    if (flag.pattern.test(text)) {
-      return { allowed: false, reason: flag.reason };
-    }
+  switch (type) {
+    // Redes Sociais
+    case 'post_simples':
+    case 'legenda':
+    case 'citacao':
+      return <PostSimplesView content={content.content} />;
+    
+    case 'carrossel':
+      return <CarrosselView content={content.content} />;
+    
+    case 'stories':
+      return <StoriesView content={content.content} />;
+    
+    case 'reels':
+    case 'igtv':
+      return <ReelsView content={content.content} />;
+    
+    // Bíblicos
+    case 'estudo_biblico':
+      return <EstudoBiblicoView content={content.content} />;
+    
+    case 'esboco':
+      return <EsbocoView content={content.content} />;
+    
+    case 'versiculos_citados':
+      return <VersiculosCitadosView content={content.content} />;
+    
+    case 'trilha_oracao':
+      return <TrilhaOracaoView content={content.content} />;
+    
+    case 'qa_estruturado':
+      return <QAEstruturadoView content={content.content} />;
+    
+    case 'discipulado':
+      return <DiscipuladoView content={content.content} />;
+    
+    // Organizacionais
+    case 'calendario':
+      return <CalendarioView content={content.content} />;
+    
+    case 'convite':
+      return <ConviteView content={content.content} />;
+    
+    case 'aviso':
+      return <AvisoView content={content.content} />;
+    
+    case 'guia':
+      return <GuiaView content={content.content} />;
+    
+    default:
+      return <DefaultView content={content.content} />;
   }
-  
-  return { allowed: true };
 };
 ```
 
-### Resposta de Bloqueio
+### 14 Componentes de Visualização Especializados
 
-```json
-{
-  "error": "Pedido recusado por questões éticas",
-  "message": "Prefiro proteger a verdade e a dignidade do que buscar um conteúdo viral. Exploração de vulnerabilidade emocional para engajamento. Vamos fazer do jeito certo?",
-  "code": "ETHICAL_VIOLATION"
-}
+| Componente | Tipos Atendidos | Localização |
+|------------|-----------------|-------------|
+| **EstudoBiblicoView** | estudo_biblico, devocional, sermao | `src/components/content-views/EstudoBiblicoView.tsx` |
+| **EsbocoView** | esboco | `src/components/content-views/EsbocoView.tsx` |
+| **VersiculosCitadosView** | versiculos_citados | `src/components/content-views/VersiculosCitadosView.tsx` |
+| **TrilhaOracaoView** | trilha_oracao | `src/components/content-views/TrilhaOracaoView.tsx` |
+| **QAEstruturadoView** | qa_estruturado | `src/components/content-views/QAEstruturadoView.tsx` |
+| **DiscipuladoView** | discipulado | `src/components/content-views/DiscipuladoView.tsx` |
+| **CalendarioView** | calendario | `src/components/content-views/CalendarioView.tsx` |
+| **ConviteView** | convite | `src/components/content-views/ConviteView.tsx` |
+| **AvisoView** | aviso | `src/components/content-views/AvisoView.tsx` |
+| **GuiaView** | guia | `src/components/content-views/GuiaView.tsx` |
+| **ConviteGruposView** | convite_grupos | `src/components/content-views/ConviteGruposView.tsx` |
+| **ResumoPregacaoView** | resumo_pregacao | `src/components/content-views/ResumoPregacaoView.tsx` |
+| **IdeiaEstrategicaView** | ideia_estrategica | `src/components/content-views/IdeiaEstrategicaView.tsx` |
+| **DesafioSemanalView** | desafio_semanal | `src/components/content-views/DesafioSemanalView.tsx` |
+
+### Funcionalidades dos Componentes
+
+#### 1. Visualização Estruturada
+
+Cada componente renderiza a estrutura JSON de forma legível:
+
+```tsx
+// Exemplo: EstudoBiblicoView.tsx
+export const EstudoBiblicoView = ({ content }: Props) => {
+  return (
+    <div className="space-y-6">
+      {/* Cabeçalho */}
+      <div>
+        <h2>{content.titulo}</h2>
+        <Badge>{content.versiculo_base}</Badge>
+      </div>
+      
+      {/* Introdução */}
+      <div>{content.introducao}</div>
+      
+      {/* Seções */}
+      {content.secoes?.map((secao, idx) => (
+        <Card key={idx}>
+          <h3>{secao.subtitulo}</h3>
+          <p>{secao.explicacao}</p>
+          {secao.perguntas_reflexao?.map(p => <li>{p}</li>)}
+        </Card>
+      ))}
+      
+      {/* Conclusão e Oração */}
+      <div>{content.conclusao}</div>
+      <div className="prayer">{content.oracao_final}</div>
+    </div>
+  );
+};
 ```
 
-### Taxa de Falsos Positivos
+#### 2. Ações de Salvamento
 
-| Cenário | Bloqueado? | Ajuste Necessário |
-|---------|-----------|-------------------|
-| "política de privacidade da igreja" | ❌ Sim (falso positivo) | ✅ Refinar regex |
-| "fotos do culto infantil com autorização" | ❌ Sim (falso positivo) | ✅ Detectar palavra "autorização" |
-| "postar foto de bebê no berçário" | ✅ Sim (correto) | - |
-| "musica gospel gratuita no YouTube" | ❌ Sim (falso positivo) | ✅ Excluir "gospel" |
+```tsx
+const handleSave = async () => {
+  const { error } = await supabase
+    .from('generated_contents')
+    .update({ 
+      content: editedContent,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', contentId);
+  
+  if (!error) {
+    toast.success("Conteúdo salvo!");
+  }
+};
+```
 
-**Taxa atual:** ~15% de falsos positivos  
-**Meta:** <5% com refinamento de regex
+#### 3. Regeneração de Conteúdo
+
+```tsx
+const handleRegenerate = async () => {
+  const { data } = await supabase.functions.invoke('generate-ai-content', {
+    body: {
+      sermon_id: originalSermonId,
+      prompt: originalPrompt + " (nova versão)"
+    }
+  });
+  
+  if (data) {
+    setContent(data);
+    toast.success("Nova versão gerada!");
+  }
+};
+```
 
 ---
 
-## 🎓 Comandos Extras do Mentor
+## 🔄 Fluxo Completo End-to-End
 
-### 7 Comandos Especiais
+### Diagrama de Sequência Detalhado
 
-Usuários podem usar atalhos com `/comando`:
+```mermaid
+sequenceDiagram
+    participant U as 👤 Usuário
+    participant FE as 📱 Frontend
+    participant API1 as ☁️ transcribe-sermon
+    participant W as 🤖 Whisper API
+    participant DB1 as 💾 sermons table
+    participant API2 as ☁️ generate-ai-content
+    participant AI as 🤖 Lovable AI
+    participant DB2 as 💾 generated_contents
+    
+    U->>FE: Grava/Upload áudio
+    FE->>FE: Converte para Base64
+    FE->>API1: POST { audio_base64 }
+    
+    API1->>API1: Valida (auth, rate limit, input)
+    API1->>API1: Decode Base64 → Uint8Array
+    API1->>W: POST /transcriptions (FormData)
+    W->>API1: { text: "transcrição..." }
+    API1->>API1: Sanitiza texto
+    API1->>DB1: INSERT (user_id, transcript)
+    DB1->>API1: { sermon_id: "uuid..." }
+    API1->>FE: { transcript, sermon_id }
+    
+    FE->>U: Exibe transcrição
+    U->>FE: Abre AIPromptModal
+    U->>FE: Seleciona pregação + digita prompt
+    
+    FE->>API2: POST { sermon_id, prompt }
+    API2->>DB1: SELECT transcript WHERE id = sermon_id
+    API2->>API2: Detecta tipo de conteúdo
+    API2->>API2: Monta systemPrompt + structure
+    API2->>AI: POST /chat/completions (tool calling)
+    AI->>API2: { tool_call: { arguments: {...} } }
+    API2->>API2: Parse JSON estruturado
+    API2->>DB2: INSERT (user_id, content, content_format)
+    DB2->>API2: { content_id: "uuid..." }
+    API2->>FE: { content: {...}, id: "uuid" }
+    
+    FE->>FE: Redireciona /content-result?id=uuid
+    FE->>U: Renderiza componente específico
+    U->>FE: Salva / Regenera
+```
 
-#### 1. `/treino-voluntário`
+### Exemplos de Payloads
 
-**Uso:** `"/treino-voluntário para novo designer"`
+#### Request: Transcrição
 
-**Estrutura JSON:**
 ```json
+// POST /functions/v1/transcribe-sermon
 {
-  "treino": {
-    "titulo": "Onboarding de Voluntário - Mídia",
-    "objetivo": "Capacitar um novo voluntário em X horas",
-    "modulos": [
-      {
-        "numero": 1,
-        "nome": "Fundamentos",
-        "duracao": "30min",
-        "conteudo": "O que ensinar primeiro",
-        "pratica": "Exercício prático para fixar"
-      }
-    ],
-    "checklist": ["Item 1", "Item 2"],
-    "recursos": ["Template 1", "Vídeo tutorial 2"]
-  }
+  "audio_base64": "UklGRiQAAABXQVZFZm10IBAAAAABAAEA..."
 }
 ```
 
-#### 2. `/campanha-temática`
+#### Response: Transcrição
 
-**Uso:** `"/campanha-temática sobre Páscoa - 4 semanas"`
-
-**Estrutura JSON:**
 ```json
 {
-  "campanha": {
-    "tema": "Páscoa - A Cruz e a Esperança",
-    "duracao": "4 semanas",
-    "objetivo_geral": "Evangelizar e edificar durante a Páscoa",
-    "semanas": [
+  "transcript": "Irmãos, hoje vamos falar sobre a fé que move montanhas...",
+  "sermon_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+#### Request: Geração de Conteúdo
+
+```json
+// POST /functions/v1/generate-ai-content
+{
+  "sermon_id": "550e8400-e29b-41d4-a716-446655440000",
+  "prompt": "Crie um estudo bíblico sobre fé com perguntas para células"
+}
+```
+
+#### Response: Conteúdo Gerado
+
+```json
+{
+  "content": {
+    "tipo": "estudo_biblico",
+    "titulo": "Fé que Move Montanhas",
+    "versiculo_base": "Mateus 17:20",
+    "introducao": "A fé é essencial...",
+    "secoes": [
       {
-        "numero": 1,
-        "titulo": "Semana 1: O Caminho para a Cruz",
-        "posts": [
-          {
-            "dia": "Segunda",
-            "formato": "Carrossel",
-            "pilar": "ALCANÇAR",
-            "ideia": "Quem era Jesus antes da cruz?",
-            "versiculo": "João 1:1-14"
-          }
+        "subtitulo": "O que é fé?",
+        "versiculos": ["Hebreus 11:1"],
+        "explicacao": "Fé é a certeza...",
+        "perguntas_reflexao": [
+          "Como você define fé?",
+          "Qual foi um momento em que sua fé foi testada?"
         ]
       }
     ],
-    "assets_necessarios": ["Foto da cruz", "Vídeo de páscoa"]
-  }
+    "conclusao": "Que possamos crescer...",
+    "oracao_final": "Pai, aumenta nossa fé...",
+    "fundamento_biblico": {
+      "versiculo": "Mateus 17:20",
+      "aplicacao": "Jesus ensina que fé do tamanho de um grão..."
+    }
+  },
+  "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "user_id": "auth-user-uuid",
+  "created_at": "2025-01-10T14:30:00Z"
 }
-```
-
-#### 3. `/roteiro-reels`
-
-**Uso:** `"/roteiro-reels sobre perdão em 15 segundos"`
-
-**Estrutura JSON:**
-```json
-{
-  "roteiro": {
-    "hook": "E se você pudesse recomeçar hoje? 🤔",
-    "desenvolvimento": "A Bíblia diz em Efésios 4:32 'Perdoem uns aos outros...'",
-    "cta": "Comenta AÍ quem você precisa perdoar!",
-    "duracao_total": "15 segundos",
-    "texto_tela": ["E se você pudesse recomeçar?", "Efésios 4:32", "Comenta AÍ!"],
-    "audio_sugerido": "Música gospel inspiradora (ex: Reckless Love)"
-  }
-}
-```
-
-#### 4. `/checklist-culto`
-
-**Uso:** `"/checklist-culto para domingo"`
-
-**Estrutura JSON:**
-```json
-{
-  "checklist": {
-    "pre_culto": [
-      "Testar câmera e microfone (30min antes)",
-      "Verificar autorizações de imagem (planilha)"
-    ],
-    "durante_culto": [
-      "Capturar momento de louvor (não intimidade)",
-      "Filmar pregação (primeiros 5min + conclusão)"
-    ],
-    "pos_culto": [
-      "Upload no Google Drive (pasta cultos/2025)",
-      "Editar clipe de 30s para stories"
-    ],
-    "avisos_eticos": [
-      "❌ Não filmar momento de oração íntima",
-      "✅ Filmar apenas quem autorizou previamente"
-    ]
-  }
-}
-```
-
-#### 5. `/kit-básico`
-
-**Uso:** `"/kit-básico para começar do zero"`
-
-**Estrutura JSON:**
-```json
-{
-  "kit": {
-    "equipamento_minimo": [
-      "Celular com câmera razoável (qualquer smartphone pós-2018)",
-      "Tripé improvisado (pode ser 3 livros empilhados)"
-    ],
-    "apps_gratuitos": [
-      "Canva (design de posts) - grátis",
-      "CapCut (edição de vídeo) - grátis",
-      "InShot (stories e reels) - grátis"
-    ],
-    "primeiros_passos": [
-      "1. Criar perfil da igreja no Instagram",
-      "2. Definir 3 cores principais (paleta simples)",
-      "3. Postar 1x por semana (consistência > perfeição)"
-    ]
-  }
-}
-```
-
-#### 6. `/manual-ética`
-
-**Uso:** `"/manual-ética para equipe de mídia"`
-
-**Estrutura JSON:**
-```json
-{
-  "manual": {
-    "protecao_imagem": [
-      "📝 Termo de autorização de uso de imagem (modelo anexo)",
-      "👶 Especial atenção com menores (ECA - Lei 8.069/1990)",
-      "❌ Nunca postar momentos vulneráveis sem consentimento"
-    ],
-    "direitos_autorais": [
-      "🎵 Usar apenas músicas licenciadas ou royalty-free",
-      "📚 Citar fontes de textos e imagens",
-      "🚫 Atenção com marcas e logos (não usar sem permissão)"
-    ],
-    "lgpd": [
-      "✅ Coletar apenas dados necessários",
-      "📢 Informar claramente o uso (política de privacidade)",
-      "🗑️ Permitir exclusão a qualquer momento"
-    ]
-  }
-}
-```
-
-#### 7. `/estratégia-social`
-
-**Uso:** `"/estratégia-social para crescer no Instagram"`
-
-**Estrutura JSON:**
-```json
-{
-  "estrategia": {
-    "objetivo": "Aumentar engajamento em 50% nos próximos 3 meses",
-    "metricas": [
-      "Salvar/Compartilhar (mais importantes que curtidas)",
-      "Crescimento de seguidores orgânicos (meta: +10%/mês)"
-    ],
-    "plano_semanal": [
-      {
-        "dia": "Segunda",
-        "formato": "Post",
-        "pilar": "EDIFICAR",
-        "objetivo": "Inspirar a semana com devocional"
-      }
-    ],
-    "crescimento": "Mensurar conversões (quantos visitaram a igreja após ver post)",
-    "ajustes": "Revisar estratégia a cada 30 dias com base em métricas"
-  }
-}
-```
-
-### UX dos Comandos
-
-**Autocomplete sugerido:**
-Quando usuário digita `/`, o frontend sugere:
-
-```
-/treino-voluntário     Onboarding de voluntário
-/campanha-temática     Planejamento de série (4 semanas)
-/roteiro-reels         Roteiro completo de reel
-/checklist-culto       Checklist pré/durante/pós culto
-/kit-básico            Setup mínimo com celular
-/manual-ética          Guia de proteção de imagem
-/estratégia-social     Plano estratégico para Instagram
 ```
 
 ---
 
-## 🏛️ Adaptação Denominacional
+## 🛡️ Segurança e Performance
 
-### Parâmetros Opcionais
+### Rate Limiting
 
-Usuários podem enviar `denominationalPrefs` no request body:
+#### Configuração por Endpoint
+
+| Endpoint | Limite | Janela | Uso Típico |
+|----------|--------|--------|-----------|
+| **transcribe-sermon** | 10 req | 60 min | Transcrições de áudio |
+| **generate-week-pack** | 20 req | 60 min | Pacotes semanais |
+| **generate-ideon-challenge** | 30 req | 60 min | Desafios Ide.On |
+| **generate-content-idea** | 50 req | 60 min | Ideias rápidas |
+| **generate-post-image** | 30 req | 60 min | Geração de imagens |
+
+#### Implementação (Função RPC no PostgreSQL)
+
+```sql
+CREATE OR REPLACE FUNCTION public.check_rate_limit(
+  _user_id uuid,
+  _endpoint text,
+  _max_requests integer,
+  _window_minutes integer
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  _current_count INTEGER;
+  _window_start TIMESTAMP WITH TIME ZONE;
+  _reset_at TIMESTAMP WITH TIME ZONE;
+BEGIN
+  -- Calcular início da janela
+  _window_start := DATE_TRUNC('minute', NOW()) - 
+    (EXTRACT(MINUTE FROM NOW())::INTEGER % _window_minutes) * INTERVAL '1 minute';
+  _reset_at := _window_start + (_window_minutes * INTERVAL '1 minute');
+  
+  -- Inserir ou incrementar contador
+  INSERT INTO public.rate_limits (user_id, endpoint, window_start, request_count)
+  VALUES (_user_id, _endpoint, _window_start, 1)
+  ON CONFLICT (user_id, endpoint, window_start)
+  DO UPDATE SET 
+    request_count = rate_limits.request_count + 1,
+    created_at = NOW()
+  RETURNING request_count INTO _current_count;
+  
+  -- Retornar resultado
+  RETURN jsonb_build_object(
+    'allowed', _current_count <= _max_requests,
+    'current_count', _current_count,
+    'max_requests', _max_requests,
+    'reset_at', _reset_at,
+    'retry_after', GREATEST(0, EXTRACT(EPOCH FROM (_reset_at - NOW())))
+  );
+END;
+$$;
+```
+
+### Validação de Inputs
+
+#### Regras de Validação (security.ts)
 
 ```typescript
-{
-  "prompt": "Crie um estudo sobre batismo",
-  "denominationalPrefs": {
-    "enfase": "pentecostal",        // ou "reformada", "historica"
-    "traducao": "NVI",              // ou "NAA", "ARA", "NVT"
-    "calendario_liturgico": false   // true = Advento, Páscoa, etc
-  }
+export interface ValidationRule {
+  value: any;
+  type: 'string' | 'number' | 'boolean' | 'object' | 'array';
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  pattern?: RegExp;
+  allowedValues?: any[];
 }
+
+// Exemplo de uso
+validateInput('transcript', {
+  value: transcript,
+  type: 'string',
+  required: true,
+  minLength: 50,
+  maxLength: 100000,
+});
 ```
 
-### Como Funciona no Prompt
+### Sanitização de Outputs
+
+#### Proteção contra XSS
 
 ```typescript
-${denominationalPrefs ? `
-ADAPTAÇÃO DENOMINACIONAL:
-- Ênfase teológica: ${denominationalPrefs.enfase || 'genérica evangélica'}
-- Tradução bíblica: ${denominationalPrefs.traducao || 'NVI'}
-- Calendário litúrgico: ${denominationalPrefs.calendario_liturgico ? 'Sim (Advento, Páscoa)' : 'Não'}
-` : ''}
-```
-
-### Exemplo de Adaptação
-
-#### Prompt sem adaptação:
-> "Crie um estudo sobre batismo"
-
-**Output genérico:**
-```
-Batismo: Símbolo da Nova Vida
-Texto base: Romanos 6:3-4 (NVI)
-...
-```
-
-#### Prompt COM adaptação (pentecostal):
-> "Crie um estudo sobre batismo" + `{ enfase: "pentecostal", traducao: "ARA" }`
-
-**Output adaptado:**
-```
-Batismo: Mergulho na Presença de Deus
-Texto base: Romanos 6:3-4 (ARA)
-Contexto pentecostal: Batismo como portal para experiência do Espírito Santo...
-```
-
-### Taxa de Adoção
-
-| Fase | Adoção Estimada |
-|------|----------------|
-| **Sprint 1** (essencial) | 5% (feature nova) |
-| **Sprint 2** (campanhas) | 20% (igrejas com identidade forte) |
-| **Sprint 3** (lançamento oficial) | 40% (maioria das igrejas) |
-
----
-
-## 📚 Casos de Uso Práticos
-
-### Caso 1: "Crie um calendário de postagens para esta semana"
-
-**Fluxo:**
-1. **Input** → Detecção: "calendário" detectado via regex
-2. **Tipo:** `calendario` (organizacional)
-3. **Flags:** `requiresBiblicalFoundation = false`
-4. **Estrutura JSON aplicada:** `calendario_editorial`
-5. **Prompt do sistema:** SEM fundamento_biblico
-6. **Gemini gera:** 7 postagens (seg-dom) com pilares balanceados
-7. **Validação:** verifica `postagens[].dia`, `formato`, `pilar`
-8. **Output:** JSON estruturado com calendário completo
-
-**Exemplo de output:**
-```json
-{
-  "calendario_editorial": {
-    "periodo": "Semana de 13/01 a 19/01/2025",
-    "objetivo": "Edificar e alcançar durante início do ano",
-    "postagens": [
-      {
-        "dia": "Segunda-feira 13/01",
-        "horario_sugerido": "19h",
-        "formato": "Post",
-        "tema": "Começar o ano com propósito",
-        "pilar": "EDIFICAR",
-        "versiculo_base": "Provérbios 16:3"
-      }
-    ]
+export function sanitizeText(text: string, maxLength: number = 10000): string {
+  if (!text) return '';
+  
+  let sanitized = text
+    .trim()
+    // Remove scripts
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    // Remove javascript: protocol
+    .replace(/javascript:/gi, '')
+    // Remove event handlers
+    .replace(/on\w+\s*=/gi, '');
+  
+  // Limitar comprimento
+  if (sanitized.length > maxLength) {
+    sanitized = sanitized.substring(0, maxLength);
   }
+  
+  return sanitized;
 }
 ```
 
-### Caso 2: "Faça um carrossel sobre amor baseado nesta pregação [20k chars]"
+### Logs de Auditoria
 
-**Fluxo:**
-1. **Input** → Transcrição longa detectada (>5000 chars)
-2. **Detecção:** "carrossel" via regex
-3. **Tipo:** `carrossel` (criativo)
-4. **Flags:** 
-   - `requiresBiblicalFoundation = true`
-   - `socialMediaTypes = true`
-5. **Estrutura:** `fundamento_biblico` + `carrossel` + `dica_producao`
-6. **Prompt:** inclui transcrição truncada (20k) + "extrair princípio sobre amor"
-7. **Gemini processa:**
-   - Extrai versículos sobre amor da pregação
-   - Cria 10 slides com progressão lógica
-   - Gera CTA, hashtags, copywriting
-8. **Validação:** 10 slides obrigatórios, fundamento com versículos
-9. **Output:** Carrossel estruturado pronto para design
+#### Tabela: security_audit_log
 
-**Exemplo de output:**
-```json
-{
-  "fundamento_biblico": {
-    "versiculos": [
-      "1 Coríntios 13:4-7 - O amor é paciente..."
-    ],
-    "contexto": "Paulo escreve aos coríntios sobre amor ágape...",
-    "principio": "Amor verdadeiro é sacrificial, não romântico"
-  },
-  "conteudo": {
-    "tipo": "carrossel",
-    "titulo": "7 Verdades sobre o Amor que Você Precisa Saber",
-    "legenda": "Swipe pra descobrir como a Bíblia define amor...",
-    "pilar": "EDIFICAR"
-  },
-  "estrutura_visual": {
-    "slides": [
-      {
-        "numero": 1,
-        "titulo_slide": "O Amor Não é um Sentimento",
-        "conteudo": "É uma decisão diária de colocar o outro em primeiro lugar",
-        "imagem_sugerida": "Casal de mãos dadas ao pôr do sol",
-        "chamada_para_acao": "Swipe →"
-      }
-    ]
-  },
-  "dica_producao": {
-    "formato": "1080x1080px (10 slides)",
-    "estilo": "Cores quentes (laranja/rosa), fontes clean",
-    "copywriting": "Use perguntas nos primeiros slides para gerar curiosidade",
-    "hashtags": ["#amor", "#biblia", "#relacionamento", "#fe"],
-    "melhor_horario": "19h-21h (horário de maior engajamento)",
-    "cta": "Salve este post e marque alguém que precisa ver isso!"
-  }
-}
+```sql
+CREATE TABLE public.security_audit_log (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users,
+  event_type text NOT NULL,
+  endpoint text,
+  success boolean NOT NULL,
+  error_message text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  ip_address text,
+  user_agent text,
+  created_at timestamptz DEFAULT now()
+);
 ```
 
-### Caso 3: "Preciso de um aviso urgente sobre mudança de horário do culto"
+#### Registro de Eventos
 
-**Fluxo:**
-1. **Input** → Detecção: "aviso" via regex
-2. **Tipo:** `aviso` (operacional)
-3. **Flags:** 
-   - `requiresBiblicalFoundation = false`
-   - `operationalTypes = true`
-4. **Estrutura:** `aviso` (SEM elementos espirituais)
-5. **Prompt:** foco em clareza, urgência, chamado de ação
-6. **Gemini gera:**
-   - `tipo="Urgente"`
-   - Mensagem direta e clara
-   - `data_vigencia`, `responsavel`
-7. **Validação:** campos operacionais obrigatórios
-8. **Output:** Aviso pronto para publicação (SEM versículos desnecessários)
-
-**Exemplo de output:**
-```json
-{
-  "aviso": {
-    "tipo": "Urgente",
-    "titulo": "Mudança de Horário do Culto de Domingo",
-    "mensagem": "Atenção! Por motivo de manutenção no templo, o culto de domingo (19/01) será às 18h (em vez de 19h). Local permanece o mesmo.",
-    "data_vigencia": "Até 19/01/2025",
-    "responsavel": "Secretaria da Igreja - WhatsApp: (11) 99999-9999",
-    "chamado_acao": "Confirme sua presença pelo WhatsApp e avise outros membros!"
-  }
-}
+```typescript
+await logSecurityEvent(
+  supabaseClient,
+  userId,
+  'transcribe_success',      // event_type
+  'transcribe-sermon',       // endpoint
+  true,                      // success
+  null,                      // error_message
+  { duration_ms: 2341 }      // metadata
+);
 ```
 
 ---
 
-## 📊 Métricas de Qualidade
+## 📚 Formatos de Conteúdo Suportados
 
-### Taxa de Sucesso por Categoria
+### Tabela Completa dos 34 Tipos
 
-| Categoria | Taxa de Sucesso | Tempo Médio | Tokens Médios |
-|-----------|----------------|-------------|---------------|
-| **Organizacionais** | 96% | 5-7s | 600-800 |
-| **Bíblicos** | 88% | 15-20s | 1400-1800 |
-| **Criativos** | 91% | 10-15s | 1100-1400 |
-| **Comandos Extras** | 93% | 8-12s | 900-1200 |
+| # | Tipo | Categoria | Estrutura JSON | View Component | Fundamento Bíblico | Dica Produção |
+|---|------|-----------|----------------|----------------|-------------------|---------------|
+| 1 | `post_simples` | Redes Sociais | texto_principal, hashtags, pilar, cta | Default | ✅ | ✅ |
+| 2 | `carrossel` | Redes Sociais | titulo, slides[], pilar | Carrossel | ✅ | ✅ |
+| 3 | `thread_twitter` | Redes Sociais | tweets[], hashtags | Thread | ✅ | ✅ |
+| 4 | `stories` | Redes Sociais | stories[], duracao, pilar | Stories | ✅ | ✅ |
+| 5 | `reels` | Redes Sociais | titulo, roteiro, duracao, hook | Reels | ✅ | ✅ |
+| 6 | `igtv` | Redes Sociais | titulo, roteiro, timestamps | Reels | ✅ | ✅ |
+| 7 | `legenda` | Redes Sociais | texto, hashtags, cta | Default | ✅ | ✅ |
+| 8 | `bio` | Redes Sociais | texto, emojis, link | Default | ❌ | ✅ |
+| 9 | `cta` | Redes Sociais | texto, acao_desejada | Default | ❌ | ✅ |
+| 10 | `enquete` | Redes Sociais | pergunta, opcoes[] | Default | ❌ | ✅ |
+| 11 | `quiz` | Redes Sociais | perguntas[], respostas[] | Default | ✅ | ✅ |
+| 12 | `meme` | Redes Sociais | texto_superior, texto_inferior | Default | ❌ | ✅ |
+| 13 | `infografico` | Redes Sociais | titulo, dados[] | Default | ✅ | ✅ |
+| 14 | `citacao` | Redes Sociais | texto, autor | Default | ✅ | ✅ |
+| 15 | `testemunho` | Redes Sociais | historia, transformacao | Default | ✅ | ✅ |
+| 16 | `tutorial` | Redes Sociais | passos[], materiais | Default | ❌ | ✅ |
+| 17 | `antes_depois` | Redes Sociais | situacao_antes, situacao_depois | Default | ✅ | ✅ |
+| 18 | `comparacao` | Redes Sociais | item_a, item_b, diferencas[] | Default | ❌ | ✅ |
+| 19 | `estudo_biblico` | Bíblico/Espiritual | titulo, secoes[], oracao_final | EstudoBiblico | ✅ | ❌ |
+| 20 | `devocional` | Bíblico/Espiritual | titulo, versiculo, reflexao | EstudoBiblico | ✅ | ❌ |
+| 21 | `sermao` | Bíblico/Espiritual | titulo, introducao, pontos[] | EstudoBiblico | ✅ | ❌ |
+| 22 | `esboco` | Bíblico/Espiritual | titulo, introducao, desenvolvimento | Esboco | ✅ | ❌ |
+| 23 | `versiculos_citados` | Bíblico/Espiritual | versiculos[], contexto | VersiculosCitados | ✅ | ❌ |
+| 24 | `trilha_oracao` | Bíblico/Espiritual | etapas[], duracao_total | TrilhaOracao | ✅ | ❌ |
+| 25 | `qa_estruturado` | Bíblico/Espiritual | perguntas_respostas[] | QAEstruturado | ✅ | ❌ |
+| 26 | `discipulado` | Bíblico/Espiritual | licoes[], acompanhamento | Discipulado | ✅ | ❌ |
+| 27 | `calendario` | Organizacional | eventos[], mes, ano | Calendario | ❌ | ❌ |
+| 28 | `convite` | Organizacional | titulo, data, local, descricao | Convite | ❌ | ❌ |
+| 29 | `aviso` | Organizacional | titulo, mensagem, urgencia | Aviso | ❌ | ❌ |
+| 30 | `guia` | Organizacional | titulo, passos[], recursos | Guia | ❌ | ❌ |
+| 31 | `convite_grupos` | Organizacional | titulo, descricao_grupo, beneficios | ConviteGrupos | ✅ | ❌ |
+| 32 | `resumo_pregacao` | Organizacional | pontos_principais[], aplicacao | ResumoPregacao | ✅ | ❌ |
+| 33 | `ideia_estrategica` | Organizacional | objetivo, estrategias[], metricas | IdeiaEstrategica | ❌ | ❌ |
+| 34 | `desafio_semanal` | Organizacional | titulo, atividades[], recompensa | DesafioSemanal | ✅ | ❌ |
 
-### Tempo Médio de Geração
+### Legenda
 
-| Tipo | Tempo (s) | Motivo |
-|------|-----------|--------|
-| `aviso`, `convite` | 5-7s | Simples, sem fundamento bíblico |
-| `post`, `reel` | 8-10s | Criativo, com fundamento |
-| `carrossel` | 10-15s | 10 slides + dicas de produção |
-| `estudo` | 15-20s | Análise bíblica profunda |
-| `desafio_semanal` | 18-22s | 7 dias + versículos progressivos |
-
-### Consumo de Tokens
-
-| Tipo | Input Tokens | Output Tokens | Total |
-|------|--------------|---------------|-------|
-| **Operacional** | 500-800 | 200-400 | 700-1200 |
-| **Bíblico** | 1200-1800 | 600-1000 | 1800-2800 |
-| **Criativo** | 900-1400 | 500-800 | 1400-2200 |
-| **Estratégico** | 1500-2000 | 800-1200 | 2300-3200 |
-
-### Custo Estimado por Geração
-
-**Modelo:** Gemini 2.5 Flash  
-**Preço:** ~$0.00001 por 1000 tokens
-
-| Tipo | Tokens Totais | Custo |
-|------|---------------|-------|
-| Operacional | 700-1200 | $0.00001 |
-| Bíblico | 1800-2800 | $0.00002-0.00003 |
-| Criativo | 1400-2200 | $0.00001-0.00002 |
-| Estratégico | 2300-3200 | $0.00002-0.00003 |
-
-**Custo médio:** **$0.00002 por geração** (~R$ 0,0001 por conteúdo)
-
----
-
-## 🎯 Boas Práticas e Limitações
-
-### Boas Práticas
-
-#### **Quando usar transcrição:**
-✅ Pregações completas  
-✅ Estudos bíblicos longos  
-✅ Resumos de mensagens  
-
-#### **Quando criar do zero:**
-✅ Posts rápidos  
-✅ Avisos e convites  
-✅ Calendários editoriais  
-
-#### **Prompts eficazes:**
-✅ **Específicos:** "Crie um carrossel de 10 slides sobre perdão baseado em Mateus 18"  
-✅ **Com contexto:** "Faça um aviso urgente sobre mudança de horário do culto de domingo"  
-✅ **Com tipo explícito:** "TIPO_SOLICITADO: calendario - Crie calendário para Páscoa"  
-
-### Limitações
-
-| Limitação | Impacto | Mitigação |
-|-----------|---------|-----------|
-| **Gemini Flash não é teólogo** | Pode errar interpretações profundas | ✅ Sempre revisar teologicamente |
-| **Transcrições ruidosas** | Whisper depende de áudio limpo | ✅ Usar microfone de qualidade |
-| **Contexto perdido em truncamento** | 20k chars = ~15min de pregação | ✅ Resumir pregações longas antes |
-| **Viés cultural** | Modelo treinado em inglês | ✅ Especificar "contexto brasileiro" |
-| **Não substitui revisão pastoral** | IA sugere, humano aprova | ✅ Sempre revisar antes de publicar |
-
-### Edge Cases Tratados
-
-| Situação | Tratamento |
-|----------|-----------|
-| **Transcrição vazia** | Erro 400: "Prompt inválido" |
-| **JSON inválido do Gemini** | Retry com prompt simplificado |
-| **Rate limit (5 req/min)** | Erro 429 com `retry_after` |
-| **Tipo não detectado** | Default para `post` |
-| **Prompt com red flag** | Bloqueio ético com mensagem educativa |
+- **Fundamento Bíblico (✅)**: Conteúdo inclui campo `fundamento_biblico` com versículo e aplicação teológica
+- **Dica Produção (✅)**: Conteúdo inclui sugestões visuais e de design para criação
 
 ---
 
-## 🚀 Próximos Passos
+## 💾 Tabelas do Banco de Dados
 
-### Sprint 4 (Futuro)
+### 1. Tabela: `sermons`
 
-1. **Retry Inteligente:**
-   - Se JSON inválido → simplificar prompt e tentar novamente (temperatura 0.3)
-   
-2. **Auditoria de Logs:**
-   - Estruturar logs com `AUDIT_LOG:` + timestamp, tokens, qualidade
-   
-3. **Validação Teológica Automatizada:**
-   - Função `validateTheologicalQuality()` que verifica:
-     - Versículos têm formato correto
-     - Contexto tem mínimo 50 caracteres
-     - Princípio atemporal existe
-   - Score de qualidade (<70% = warning)
-   
-4. **UI para Comandos:**
-   - Autocomplete com `/` no frontend
-   - Sugestões visuais dos 7 comandos
+Armazena transcrições de pregações.
+
+```sql
+CREATE TABLE public.sermons (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users,
+  transcript text,
+  status text DEFAULT 'completed',
+  created_at timestamptz DEFAULT timezone('utc', now())
+);
+
+-- RLS Policies
+ALTER TABLE public.sermons ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own sermons"
+ON public.sermons
+FOR ALL
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+```
+
+#### Estrutura de Dados
+
+| Campo | Tipo | Nullable | Descrição |
+|-------|------|----------|-----------|
+| `id` | uuid | NOT NULL | PK, auto-gerado |
+| `user_id` | uuid | NOT NULL | FK para auth.users |
+| `transcript` | text | YES | Texto transcrito da pregação |
+| `status` | text | YES | Status (completed, processing, failed) |
+| `created_at` | timestamptz | YES | Data de criação |
+
+#### Exemplo de Registro
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "user_id": "auth-user-uuid",
+  "transcript": "Irmãos, hoje quero falar sobre a importância da fé...",
+  "status": "completed",
+  "created_at": "2025-01-10T10:00:00Z"
+}
+```
+
+### 2. Tabela: `generated_contents`
+
+Armazena todos os conteúdos gerados pela IA.
+
+```sql
+CREATE TABLE public.generated_contents (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users,
+  content jsonb NOT NULL DEFAULT '{}'::jsonb,
+  source_type text NOT NULL,
+  content_format text,
+  pilar text,
+  prompt_original text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- RLS Policies
+ALTER TABLE public.generated_contents ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own content"
+ON public.generated_contents
+FOR SELECT
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own content"
+ON public.generated_contents
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own content"
+ON public.generated_contents
+FOR UPDATE
+USING (auth.uid() = user_id);
+```
+
+#### Estrutura de Dados
+
+| Campo | Tipo | Nullable | Descrição |
+|-------|------|----------|-----------|
+| `id` | uuid | NOT NULL | PK, auto-gerado |
+| `user_id` | uuid | NOT NULL | FK para auth.users |
+| `content` | jsonb | NOT NULL | Estrutura JSON do conteúdo |
+| `source_type` | text | NOT NULL | Origem (ai_prompt, template, etc) |
+| `content_format` | text | YES | Tipo do conteúdo (estudo_biblico, etc) |
+| `pilar` | text | YES | Pilar estratégico (Edificar, Alcançar, etc) |
+| `prompt_original` | text | YES | Prompt usado para gerar |
+| `created_at` | timestamptz | YES | Data de criação |
+| `updated_at` | timestamptz | YES | Data de última atualização |
+
+#### Exemplo de Registro
+
+```json
+{
+  "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+  "user_id": "auth-user-uuid",
+  "content": {
+    "tipo": "estudo_biblico",
+    "titulo": "A Fé que Move Montanhas",
+    "versiculo_base": "Mateus 17:20",
+    "secoes": [...]
+  },
+  "source_type": "ai_prompt",
+  "content_format": "estudo_biblico",
+  "pilar": "Edificar",
+  "prompt_original": "Crie um estudo bíblico sobre fé",
+  "created_at": "2025-01-10T14:30:00Z",
+  "updated_at": "2025-01-10T14:30:00Z"
+}
+```
+
+### 3. Tabela: `rate_limits`
+
+Controla limites de requisições por usuário e endpoint.
+
+```sql
+CREATE TABLE public.rate_limits (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users,
+  endpoint text NOT NULL,
+  window_start timestamptz NOT NULL DEFAULT now(),
+  request_count integer NOT NULL DEFAULT 1,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(user_id, endpoint, window_start)
+);
+```
+
+#### Exemplo de Registro
+
+```json
+{
+  "id": "rate-limit-uuid",
+  "user_id": "auth-user-uuid",
+  "endpoint": "transcribe-sermon",
+  "window_start": "2025-01-10T14:00:00Z",
+  "request_count": 3,
+  "created_at": "2025-01-10T14:15:23Z"
+}
+```
+
+### 4. Tabela: `security_audit_log`
+
+Registra eventos de segurança e auditoria.
+
+```sql
+CREATE TABLE public.security_audit_log (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid REFERENCES auth.users,
+  event_type text NOT NULL,
+  endpoint text,
+  success boolean NOT NULL,
+  error_message text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  ip_address text,
+  user_agent text,
+  created_at timestamptz DEFAULT now()
+);
+```
+
+#### Tipos de Eventos Registrados
+
+| Event Type | Descrição | Success |
+|------------|-----------|---------|
+| `transcribe_success` | Transcrição bem-sucedida | true |
+| `transcribe_failed` | Falha na transcrição | false |
+| `transcribe_error` | Erro inesperado | false |
+| `weekpack_success` | Pacote semanal gerado | true |
+| `weekpack_failed` | Falha na geração | false |
+| `content_generated` | Conteúdo AI gerado | true |
+| `rate_limit_exceeded` | Limite excedido | false |
 
 ---
 
-## 📖 Referências
+## 🎯 Resumo da Arquitetura
 
-### Documentação Técnica
-- [OpenAI Whisper Documentation](https://platform.openai.com/docs/guides/speech-to-text)
-- [Google Gemini Models Comparison](https://ai.google.dev/gemini-api/docs/models)
-- [Lovable AI Documentation](https://docs.lovable.dev/features/ai)
+### Pontos-Chave
 
-### Fontes Acadêmicas
-- **Kotler, Philip.** Marketing 4.0 e Marketing 6.0
-- **Godin, Seth.** Purple Cow e Tribes
-- **Cialdini, Robert.** Influence: The Psychology of Persuasion
-- **Kahneman, Daniel.** Thinking, Fast and Slow
+1. **Captura de Áudio Flexível**
+   - Gravação ao vivo via MediaRecorder API
+   - Upload de arquivos (MP3, WAV, M4A, WebM)
+   - Conversão automática para Base64
 
-### Legislação Brasileira
-- **LGPD** (Lei 13.709/2018) - Proteção de dados
-- **ECA** (Lei 8.069/1990) - Estatuto da Criança e do Adolescente
-- **Lei 9.610/1998** - Direitos autorais
+2. **Segurança Robusta**
+   - Autenticação obrigatória em todos os endpoints
+   - Rate limiting configurável por endpoint
+   - Validação rigorosa de inputs
+   - Sanitização de outputs (anti-XSS)
+   - Logs de auditoria completos
+
+3. **Transcrição Confiável**
+   - OpenAI Whisper API (state-of-the-art)
+   - Suporte nativo para português
+   - Processamento assíncrono
+   - Salvamento em banco com RLS
+
+4. **Geração de Conteúdo Inteligente**
+   - 34 tipos de conteúdo suportados
+   - Detecção automática de tipo via regex
+   - Tool calling para estruturas JSON consistentes
+   - Lovable AI (Gemini 2.5 Flash)
+   - Conteúdo adaptado por categoria (bíblico, social, organizacional)
+
+5. **Visualização Especializada**
+   - 14 componentes React dedicados
+   - Renderização otimizada por tipo
+   - Ações de salvar e regenerar
+   - Design responsivo e acessível
+
+6. **Performance e Escalabilidade**
+   - Edge Functions (Deno) com cold start mínimo
+   - JSONB para flexibilidade de schemas
+   - Índices otimizados no PostgreSQL
+   - Rate limiting para controle de custos
 
 ---
 
-## ❓ FAQ Técnica
+## 📞 Contato e Suporte
 
-**P: Por que Gemini Flash e não GPT-4?**  
-R: Custo 10x menor, latência menor, e performance suficiente para conteúdo pastoral estruturado.
+Para dúvidas técnicas sobre esta arquitetura, entre em contato com a equipe de desenvolvimento Ide.On.
 
-**P: Por que truncar em 20k caracteres?**  
-R: Balanço entre contexto suficiente (15min de pregação) e limite de tokens do Gemini (32k input tokens).
-
-**P: O que acontece se o Gemini retornar JSON inválido?**  
-R: Try/catch com fallback: tenta parse, se falhar retorna erro 500 com mensagem clara para o usuário.
-
-**P: Como garantir qualidade teológica?**  
-R: CORE_PRINCIPLES + CONTENT_METHOD + **revisão pastoral humana** (a IA sugere, o pastor aprova).
-
-**P: Qual a diferença entre `fundamento_biblico` e `versiculo_base`?**  
-R: `fundamento_biblico` é obrigatório em conteúdo espiritual (contexto + princípio). `versiculo_base` é opcional em organizacionais (só referência).
-
-**P: Os comandos extras funcionam em português?**  
-R: Sim! Use `/treino-voluntário` (com hífen e acento) que o sistema detecta automaticamente.
+**Documentação gerada em:** 2025-01-10  
+**Versão:** 1.0  
+**Status:** Produção
 
 ---
 
-**Fim da Documentação v2.0**  
-Para dúvidas: suporte@ideon.com.br
+## 📄 Licença
+
+Este documento é propriedade da Ide.On e destina-se exclusivamente ao uso interno da equipe de desenvolvimento.
+
+---
+
+**Fim do Documento**

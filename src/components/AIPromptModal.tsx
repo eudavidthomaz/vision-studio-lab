@@ -3,20 +3,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Badge } from "./ui/badge";
 import { Sparkles, Loader2, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-
 
 interface AIPromptModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onGenerate: (prompt: string) => void;
   isLoading: boolean;
-  preselectedSermonId?: string;
 }
 
-export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, preselectedSermonId }: AIPromptModalProps) => {
+export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading }: AIPromptModalProps) => {
   const [prompt, setPrompt] = useState("");
   const [sermons, setSermons] = useState<any[]>([]);
   const [selectedSermonId, setSelectedSermonId] = useState<string>("");
@@ -31,13 +28,8 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
         .order('created_at', { ascending: false })
         .limit(20)
         .then(({ data }) => setSermons(data || []));
-      
-      // Pré-selecionar sermão se fornecido
-      if (preselectedSermonId) {
-        setSelectedSermonId(preselectedSermonId);
-      }
     }
-  }, [open, preselectedSermonId]);
+  }, [open]);
 
   // Função para detectar tipo de conteúdo (formatos específicos primeiro)
   const detectContentType = (text: string): string => {

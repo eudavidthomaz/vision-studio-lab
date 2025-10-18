@@ -1,15 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { 
-  MENTOR_IDENTITY, 
-  MENTOR_IDENTITY_SIMPLIFIED,
-  THEOLOGICAL_BASE,
-  ACADEMIC_BASE,
-  STUDY_BASE,
-  CORE_PRINCIPLES, 
-  CONTENT_METHOD, 
-  PILLAR_DISTRIBUTION 
-} from "../_shared/prompt-principles.ts";
+import { CORE_PRINCIPLES, CONTENT_METHOD, PILLAR_DISTRIBUTION } from "../_shared/prompt-principles.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,7 +35,7 @@ serve(async (req) => {
       });
     }
 
-    const { prompt, denominationalPrefs } = await req.json();
+    const { prompt } = await req.json();
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 10) {
       return new Response(JSON.stringify({ 
@@ -66,55 +57,6 @@ serve(async (req) => {
       processedPrompt = prompt.substring(0, 20000) + '\n\n[Transcrição truncada por exceder limite]';
     }
 
-    // ============================================
-    // FASE 4: VALIDAÇÃO ÉTICA - POLÍTICA DE RECUSA
-    // ============================================
-    const ethicalValidation = (text: string): { allowed: boolean; reason?: string } => {
-      const lowerText = text.toLowerCase();
-      
-      const redFlags = [
-        {
-          pattern: /(crianças?|menores?|bebês?).*(foto|vídeo|imagem|gravar)/i,
-          reason: 'Conteúdo envolve menores sem menção explícita de autorização dos responsáveis (ECA).'
-        },
-        {
-          pattern: /(choro|sofrimento|luto|funeral).*(postar|publicar|gravar)/i,
-          reason: 'Exploração de vulnerabilidade emocional para engajamento (não edificante).'
-        },
-        {
-          pattern: /(político|eleição|candidato|partido|voto em)/i,
-          reason: 'Proselitismo político-partidário (contra princípios do mentor).'
-        },
-        {
-          pattern: /(baixar|download|piratear|usar).*(música|imagem|vídeo).*(sem|gratuito|de graça)/i,
-          reason: 'Violação de direitos autorais (antiplágio e Lei 9610).'
-        }
-      ];
-      
-      for (const flag of redFlags) {
-        if (flag.pattern.test(text)) {
-          return { allowed: false, reason: flag.reason };
-        }
-      }
-      
-      return { allowed: true };
-    };
-
-    // Aplicar validação ética
-    const validation = ethicalValidation(processedPrompt);
-    if (!validation.allowed) {
-      console.warn('Ethical validation failed:', validation.reason);
-      
-      return new Response(JSON.stringify({ 
-        error: 'Pedido recusado por questões éticas',
-        message: `Prefiro proteger a verdade e a dignidade do que buscar um conteúdo viral. ${validation.reason} Vamos fazer do jeito certo?`,
-        code: 'ETHICAL_VIOLATION'
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
   // Detectar tipo de conteúdo solicitado
   let detectedType = 'post'; // default
 
@@ -126,22 +68,7 @@ serve(async (req) => {
   } else {
     // PRIORIDADE 2: Detecção por regex (formatos específicos primeiro)
     const contentTypeDetection = {
-      // COMANDOS ESPECIAIS (prioridade máxima)
-      treino_voluntario: /\/treino-voluntário|treino de voluntário|onboarding mídia/i,
-      campanha_tematica: /\/campanha-temática|série de conteúdo|planejamento série/i,
-      roteiro_reels: /\/roteiro-reels|script reels|roteiro curto/i,
-      checklist_culto: /\/checklist-culto|checklist culto|pré culto/i,
-      kit_basico: /\/kit-básico|mídia com celular|setup mínimo/i,
-      manual_etica: /\/manual-ética|guia ética|proteção imagem/i,
-      estrategia_social: /\/estratégia-social|plano instagram|estratégia redes/i,
-      
-      // Resumo breve (for sermon summaries)
-      resumo_breve: /resumo_breve|resumo breve/i,
-      // FORMATOS DE CONTEÚDO (PRIORIDADE ALTA)
-      carrossel: /carrossel|slides|cards/i,
-      reel: /reel|vídeo(?!\s+para)|roteiro|script/i,
-      stories: /stories|story|storys/i,
-      // Organizational formats
+      // Organizational formats (highest priority)
       calendario: /calendário|cronograma|planejamento|plano editorial|grade de posts/i,
       aviso: /aviso|comunicado|lembrete|atenção/i,
       guia: /guia|manual|passo a passo|tutorial/i,
@@ -151,16 +78,18 @@ serve(async (req) => {
       qa_estruturado: /perguntas e respostas|q&a|dúvidas frequentes|faq/i,
       convite_grupos: /convite para grupo|chamado para célula|junte-se ao|entre no grupo/i,
       discipulado: /discipulado|mentoria|acompanhamento espiritual/i,
+      convite: /convite|convidar|chamado para|venha para/i,
       // Biblical/creative formats
       desafio_semanal: /desafio|challenge|compromisso semanal|missão|jornada/i,
       estudo: /estudo|estudo bíblico|análise bíblica|exegese/i,
       resumo: /resumo|resumir|sintetize|principais pontos|síntese/i,
       devocional: /devocional|meditação|reflexão diária/i,
+      carrossel: /carrossel|slides|cards/i,
+      reel: /reel|vídeo|roteiro|script/i,
+      stories: /stories|story|storys/i,
       perguntas: /perguntas|questões|discussão|célula/i,
       post: /post|publicação|legenda/i,
-      ideia_estrategica: /ideia|viral|campanha|estratégia|plano de conteúdo|série/i,
-      // TIPOS DE EVENTO (PRIORIDADE BAIXA - verificar por último)
-      convite: /\b(convite|convidar|chamado para|venha para)\b(?!\s+para\s+grupo)/i
+      ideia_estrategica: /ideia|viral|campanha|estratégia|plano de conteúdo|série/i
     };
 
     // Apenas analisar os primeiros 2000 caracteres para evitar falsos positivos
@@ -285,10 +214,6 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     "aplicacao_pratica": "Como aplicar os ensinamentos no dia a dia"
   },
   "frases_impactantes": ["Frase marcante 1", "Frase marcante 2"]
-}`,
-
-      resumo_breve: `{
-  "resumo": "Resumo conciso e impactante da pregação em até 500 palavras. Deve incluir: tema central (1 linha), mensagem principal (2-3 parágrafos), e aplicação prática (1 parágrafo). Estilo claro, inspirador e fiel ao conteúdo original."
 }`,
 
       perguntas: `{
@@ -473,7 +398,7 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     "chamado_acao": "Frase motivadora final"
   }
 }`,
-      discipulado: `{
+    discipulado: `{
   "fundamento_biblico": {
     "versiculos": ["Versículos sobre discipulado"],
     "contexto": "Base bíblica do discipulado",
@@ -591,40 +516,26 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
 
       carrossel: `{
   "fundamento_biblico": {
-    "versiculos": ["Versículo 1 com referência completa", "Versículo 2"],
-    "contexto": "Contexto histórico, cultural e teológico da passagem",
-    "principio": "Princípio atemporal ensinado nos versículos"
+    "versiculos": ["Versículo 1", "Versículo 2"],
+    "contexto": "Contexto da passagem",
+    "principio": "Princípio ensinado"
   },
   "conteudo": {
     "tipo": "carrossel",
-    "titulo": "Título principal do carrossel (chamativo e claro)",
-    "legenda": "Legenda completa e engajante para o post no Instagram (com emojis e quebras de linha)",
+    "legenda": "Legenda completa",
     "pilar": "ALCANÇAR | EDIFICAR | PERTENCER | SERVIR"
   },
   "estrutura_visual": {
-    "slides": [
-      {
-        "numero": 1,
-        "titulo_slide": "Título impactante do primeiro slide",
-        "conteudo": "Texto principal do slide (claro, direto e visualmente organizado)",
-        "imagem_sugerida": "Descrição da imagem ou visual sugerido para este slide",
-        "chamada_para_acao": "CTA específico deste slide (opcional)"
-      },
-      {
-        "numero": 2,
-        "titulo_slide": "Título do segundo slide",
-        "conteudo": "Desenvolvimento do tema com aplicação prática",
-        "imagem_sugerida": "Sugestão visual para slide 2",
-        "chamada_para_acao": "CTA do slide 2"
-      }
-      // Gerar 8-10 slides com progressão lógica
+    "cards": [
+      {"titulo": "Card 1", "texto": "Texto do card 1"},
+      {"titulo": "Card 2", "texto": "Texto do card 2"}
     ]
   },
   "dica_producao": {
-    "formato": "1080x1080px (carrossel de até 10 slides)",
-    "estilo": "Design clean e moderno, fonte legível, cores harmônicas",
-    "horario": "18h-20h (melhor horário de engajamento)",
-    "hashtags": ["#fe", "#biblia", "#igreja", "#devocional"]
+    "formato": "1080x1080px",
+    "estilo": "Minimalista e clean",
+    "horario": "18h-20h",
+    "hashtags": ["#fe", "#biblia"]
   }
 }`,
 
@@ -672,183 +583,10 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     "horario": "Manhã (7h-9h) ou noite (20h-22h)",
     "hashtags": []
   }
-}`,
-
-      // ============================================
-      // FASE 3: COMANDOS EXTRAS (FEATURE)
-      // ============================================
-      
-      treino_voluntario: `{
-  "treino": {
-    "titulo": "Onboarding de Voluntário - Mídia",
-    "objetivo": "Capacitar um novo voluntário em X horas",
-    "modulos": [
-      {
-        "numero": 1,
-        "nome": "Fundamentos",
-        "duracao": "30min",
-        "conteudo": "O que ensinar primeiro",
-        "pratica": "Exercício prático para fixar"
-      }
-    ],
-    "checklist": ["Item 1", "Item 2"],
-    "recursos": ["Template 1", "Vídeo tutorial 2"]
-  }
-}`,
-
-      campanha_tematica: `{
-  "campanha": {
-    "tema": "Tema da série (ex: Páscoa, Advento, Família)",
-    "duracao": "4 semanas",
-    "objetivo_geral": "O que queremos alcançar",
-    "semanas": [
-      {
-        "numero": 1,
-        "titulo": "Semana 1: Introdução",
-        "posts": [
-          {
-            "dia": "Segunda",
-            "formato": "Carrossel",
-            "pilar": "ALCANÇAR",
-            "ideia": "Ideia do post",
-            "versiculo": "Versículo base"
-          }
-        ]
-      }
-    ],
-    "assets_necessarios": ["Foto X", "Vídeo Y"]
-  }
-}`,
-
-      roteiro_reels: `{
-  "roteiro": {
-    "hook": "Primeira frase impactante (0-3s)",
-    "desenvolvimento": "Corpo do reel (3-10s)",
-    "cta": "Chamada pra ação final (10-15s)",
-    "duracao_total": "15 segundos",
-    "texto_tela": ["Frase 1", "Frase 2", "Frase 3"],
-    "audio_sugerido": "Tipo de áudio que combina"
-  }
-}`,
-
-      checklist_culto: `{
-  "checklist": {
-    "pre_culto": [
-      "Item de preparação 1",
-      "Item de preparação 2"
-    ],
-    "durante_culto": [
-      "O que capturar",
-      "Quem filmar (com consentimento)"
-    ],
-    "pos_culto": [
-      "Upload onde",
-      "Edições necessárias"
-    ],
-    "avisos_eticos": [
-      "Verificar autorizações de imagem",
-      "Não expor momentos íntimos sem consentimento"
-    ]
-  }
-}`,
-
-      kit_basico: `{
-  "kit": {
-    "equipamento_minimo": [
-      "Celular com câmera razoável",
-      "Tripé improvisado ou apoio"
-    ],
-    "apps_gratuitos": [
-      "Canva (design)",
-      "CapCut (edição)",
-      "InShot (vídeos)"
-    ],
-    "primeiros_passos": [
-      "1. Configurar perfil da igreja",
-      "2. Definir identidade visual básica",
-      "3. Criar calendário simples"
-    ]
-  }
-}`,
-
-      manual_etica: `{
-  "manual": {
-    "protecao_imagem": [
-      "Termo de autorização de uso de imagem",
-      "Especial atenção com menores (ECA)",
-      "Nunca postar momentos vulneráveis sem consentimento"
-    ],
-    "direitos_autorais": [
-      "Usar apenas músicas licenciadas ou royalty-free",
-      "Citar fontes de textos e imagens",
-      "Atenção com marcas e logos"
-    ],
-    "lgpd": [
-      "Coletar apenas dados necessários",
-      "Informar claramente o uso",
-      "Permitir exclusão a qualquer momento"
-    ]
-  }
-}`,
-
-      estrategia_social: `{
-  "estrategia": {
-    "objetivo": "Objetivo principal (ex: aumentar engajamento, alcançar novos)",
-    "metricas": ["Métrica 1 a acompanhar", "Métrica 2"],
-    "plano_semanal": [
-      {
-        "dia": "Segunda",
-        "formato": "Post",
-        "pilar": "EDIFICAR",
-        "objetivo": "Inspirar a semana"
-      }
-    ],
-    "crescimento": "Como mensurar crescimento além de números",
-    "ajustes": "Quando e como ajustar estratégia"
-  }
 }`
     };
 
     const selectedStructure = structureByType[detectedType] || structureByType.post;
-
-    // ============================================
-    // FASE 2: LÓGICA CONDICIONAL DE IDENTIDADE
-    // ============================================
-    
-    // Tipos que DEVEM receber MENTOR_IDENTITY completo
-    const strategicTypes = [
-      'ideia_estrategica',
-      'calendario',
-      'guia',
-      'campanha_tematica',
-      'estrategia_social'
-    ];
-    
-    // Tipos que recebem IDENTIDADE SIMPLIFICADA
-    const contentTypes = [
-      'carrossel', 'reel', 'stories', 'post',
-      'estudo', 'devocional', 'resumo', 'esboco',
-      'desafio_semanal', 'trilha_oracao'
-    ];
-    
-    // Tipos OPERACIONAIS que NÃO precisam de identidade
-    const operationalTypes = [
-      'convite', 'aviso', 'convite_grupos', 'versiculos_citados'
-    ];
-
-    // Construir identidade dinamicamente
-    let mentorContext = '';
-    
-    if (strategicTypes.includes(detectedType)) {
-      mentorContext = MENTOR_IDENTITY + '\n\n' + THEOLOGICAL_BASE + '\n\n' + ACADEMIC_BASE;
-    } else if (contentTypes.includes(detectedType)) {
-      mentorContext = MENTOR_IDENTITY_SIMPLIFIED;
-    } else if (operationalTypes.includes(detectedType)) {
-      mentorContext = '';
-    } else {
-      // Default para comandos especiais
-      mentorContext = MENTOR_IDENTITY_SIMPLIFIED;
-    }
 
     // Define which types require biblical foundation
     const requiresBiblicalFoundation = [
@@ -859,55 +597,21 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     
     // Define which types are for social media (need production tips)
     const socialMediaTypes = ['post', 'carrossel', 'reel', 'stories'];
+    
+    // Define operational types (no biblical foundation)
+    const operationalTypes = [
+      'calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 
+      'ideia_estrategica', 'versiculos_citados'
+    ];
 
-    // ============================================
-    // FASE 2: CONSTRUIR SYSTEM PROMPT OTIMIZADO (HIERÁRQUICO)
-    // ============================================
-    
-    // NÍVEL 1: IDENTIDADE (sempre)
-    let systemPrompt = mentorContext;
-    
-    // NÍVEL 2: PRINCÍPIOS (completo para estratégicos, condensado para outros)
-    if (strategicTypes.includes(detectedType)) {
-      systemPrompt += `\n\n${CORE_PRINCIPLES}`;
-    } else {
-      // Versão condensada (~70% mais curta)
-      systemPrompt += `\n\nPRINCÍPIOS ESSENCIAIS:
-- Cristocentrismo e fidelidade bíblica
-- Dignidade humana e consentimento (LGPD/ECA)
-- Vulnerabilidade com respeito (sem exploração)
-- Verdade + Esperança (sem sensacionalismo)
-- Medição com propósito (pessoas > números)`;
-    }
-    
-    // NÍVEL 3: MÉTODO DE CONTEÚDO (só quando relevante)
-    if (['estudo', 'devocional', 'resumo', 'esboco', 'resumo_breve'].includes(detectedType)) {
-      systemPrompt += `\n\n${CONTENT_METHOD}`;
-    }
-    
-    // NÍVEL 4: DISTRIBUIÇÃO DE PILARES (só para calendários)
-    if (detectedType === 'calendario') {
-      systemPrompt += `\n\n${PILLAR_DISTRIBUTION}`;
-    }
-    
-    // NÍVEL 5: BASE DE ESTUDOS (só para conteúdo bíblico)
-    if (requiresBiblicalFoundation.includes(detectedType)) {
-      systemPrompt += `\n\n${STUDY_BASE}`;
-    }
-    
-    systemPrompt += `\n\n`;
+    // Construir o system prompt dinâmico baseado no tipo detectado
+    const systemPrompt = `${detectedType === 'ideia_estrategica' ? MENTOR_IDENTITY : ''}
 
-    // NÍVEL 6: PREFERÊNCIAS DENOMINACIONAIS (opcional)
-    if (denominationalPrefs) {
-      systemPrompt += `
-ADAPTAÇÃO DENOMINACIONAL:
-- Ênfase teológica: ${denominationalPrefs.enfase || 'genérica evangélica'}
-- Tradução bíblica: ${denominationalPrefs.traducao || 'NVI'}
-- Calendário litúrgico: ${denominationalPrefs.calendario_liturgico ? 'Sim (Advento, Páscoa)' : 'Não'}
-`;
-    }
-    
-    systemPrompt += `
+${CORE_PRINCIPLES}
+
+${CONTENT_METHOD}
+
+${PILLAR_DISTRIBUTION}
 
 TIPO DETECTADO: ${detectedType}
 
@@ -919,7 +623,7 @@ REGRAS IMPORTANTES PARA TIPO "${detectedType}":
 2. Retorne APENAS os campos necessários para o tipo de conteúdo solicitado
 
 3. ${socialMediaTypes.includes(detectedType)
-    ? 'Inclua dica_producao com copywriting, hashtags, melhor_horario e cta específico'
+    ? 'Inclua dica_producao com formato, estilo, horário e hashtags apropriadas'
     : 'NÃO inclua dica_producao, hashtags ou orientações de redes sociais'}
 
 4. Seja ${operationalTypes.includes(detectedType) 
@@ -927,15 +631,6 @@ REGRAS IMPORTANTES PARA TIPO "${detectedType}":
     : 'pastoral, prático e biblicamente fundamentado'}
 
 5. Retorne APENAS JSON válido, sem texto adicional antes ou depois
-
-${detectedType === 'resumo_breve' ? `
-INSTRUÇÕES ESPECÍFICAS PARA RESUMO BREVE:
-- Crie um resumo conciso e impactante com MÁXIMO 500 palavras
-- Estrutura: Tema central (1 linha), Mensagem principal (2-3 parágrafos), Aplicação prática (1 parágrafo)
-- Estilo: Claro, inspirador, fiel ao conteúdo original
-- Foco: Capturar a ESSÊNCIA da pregação, não reescrever tudo
-- Tom: Pastoral mas acessível - como se estivesse contando para alguém que não ouviu
-` : ''}
 
 ${detectedType === 'desafio_semanal' ? `
 INSTRUÇÕES ESPECÍFICAS PARA DESAFIO SEMANAL:
@@ -958,84 +653,6 @@ INSTRUÇÕES ESPECÍFICAS PARA CALENDÁRIO:
 - Seja específico nos temas, não genérico
 ` : ''}
 
-${detectedType === 'carrossel' ? `
-INSTRUÇÕES ESPECÍFICAS PARA CARROSSEL:
-- Crie EXATAMENTE 8-10 slides com progressão lógica
-- Cada slide deve ter: titulo_slide, conteudo (mínimo 100 caracteres), imagem_sugerida, chamada_para_acao
-- Slide 1: Hook poderoso que gera curiosidade
-- Slides 2-8: Desenvolvimento progressivo com EXEMPLOS PRÁTICOS
-- Último slide: CTA claro e direto
-- dica_producao deve incluir: copywriting (como escrever legenda engajante), cta (call-to-action específico), hashtags
-
-EXEMPLO DE SLIDE 1 (Hook):
-{
-  "numero_slide": 1,
-  "titulo_slide": "Você já se sentiu invisível?",
-  "conteudo": "Aquela sensação de que ninguém te vê, te ouve ou te entende? Hoje vamos descobrir como Deus enxerga além das aparências e te escolheu desde o início.",
-  "imagem_sugerida": "Pessoa sozinha olhando para o horizonte, luz suave ao entardecer",
-  "chamada_para_acao": "Deslize para descobrir →"
-}
-
-EXEMPLO DE ÚLTIMO SLIDE (CTA):
-{
-  "numero_slide": 10,
-  "titulo_slide": "Seu próximo passo",
-  "conteudo": "Você não precisa ser perfeito para ser visto por Deus. Ele já te escolheu. Que tal começar uma conversa com Ele hoje? Experimente orar por 5 minutos sobre o que você leu aqui.",
-  "imagem_sugerida": "Mãos abertas ao céu, luz dourada, ambiente esperançoso",
-  "chamada_para_acao": "Comente 🙏 se você vai orar hoje"
-}
-` : ''}
-
-${detectedType === 'estudo' ? `
-INSTRUÇÕES ESPECÍFICAS PARA ESTUDO BÍBLICO:
-- Contexto histórico/cultural DETALHADO (mínimo 200 caracteres)
-- Mínimo de 3 aplicações práticas CONCRETAS (não genéricas)
-- Cada ponto de desenvolvimento deve ter: explicação + aplicação + exemplo real
-- Linguagem pastoral, não acadêmica demais
-- Perguntas reflexivas profundas, não superficiais
-
-EXEMPLO DE APLICAÇÃO PRÁTICA BOA:
-"Em vez de apenas 'ore mais', diga: 'Esta semana, escolha um momento fixo (ex: 7h da manhã ou 22h) e converse com Deus por 10 minutos sobre uma decisão específica que você precisa tomar. Anote o que você sentiu.'"
-` : ''}
-
-${detectedType === 'devocional' ? `
-INSTRUÇÕES ESPECÍFICAS PARA DEVOCIONAL:
-- Reflexão em 3-4 parágrafos CONECTANDO Escritura com vida cotidiana
-- Use linguagem humana e pastoral (como conversa entre amigos)
-- Desafio do dia deve ser ESPECÍFICO e realizável em 15-30 minutos
-- Oração sugerida deve ser genuína, não formulaica
-
-EXEMPLO DE REFLEXÃO BOA:
-"Você já acordou com aquela sensação de que o dia vai ser pesado demais? Davi também conhecia essa sensação. No Salmo 42, ele fala de uma sede tão profunda que parece que sua alma vai secar. Mas repare: mesmo na angústia, ele não abandona a conversa com Deus. Ele questiona, reclama, mas continua ali..."
-` : ''}
-
-${detectedType === 'campanha_tematica' ? `
-INSTRUÇÕES ESPECÍFICAS PARA CAMPANHA TEMÁTICA:
-- Mínimo de 4 semanas completas com progressão narrativa
-- Cada semana deve ter objetivos específicos e formatos variados
-- Incluir métricas de acompanhamento para cada fase
-- Tom inspirador mas prático - evite jargões
-- Forneça exemplos concretos de posts para cada semana
-` : ''}
-
-${detectedType === 'treino_voluntario' ? `
-INSTRUÇÕES ESPECÍFICAS PARA TREINO DE VOLUNTÁRIO:
-- Estrutura modular com teoria + prática
-- Exercícios práticos para cada módulo
-- Checklist de competências ao final
-- Linguagem acessível para iniciantes
-- Incluir casos reais e simulações
-` : ''}
-
-${['reel', 'stories', 'post'].includes(detectedType) ? `
-INSTRUÇÕES PARA REDES SOCIAIS:
-- dica_producao OBRIGATÓRIA com:
-  * copywriting: Dicas de como escrever legenda envolvente (2-3 frases específicas)
-  * hashtags: Lista de 8-12 hashtags relevantes (mix de popular + nicho)
-  * melhor_horario: Melhor horário para postar com justificativa
-  * cta: Call-to-action específico e claro (não genérico tipo "comente")
-` : ''}
-
 ESTRUTURA JSON OBRIGATÓRIA para tipo "${detectedType}":
 ${selectedStructure}
 
@@ -1050,25 +667,6 @@ Retorne APENAS o JSON válido.`;
 
     console.log('Calling Lovable AI with prompt:', prompt.substring(0, 100));
 
-    // ============================================
-    // FASE 1: TOKENS E TEMPERATURA DINÂMICOS
-    // ============================================
-    
-    // Tipos complexos precisam de mais tokens
-    const complexTypes = ['campanha_tematica', 'treino_voluntario', 'manual_etica', 'estrategia_social'];
-    const deepBiblicalTypes = ['estudo', 'esboco', 'discipulado', 'qa_estruturado'];
-    const operationalTypesTemp = ['aviso', 'convite', 'versiculos_citados', 'checklist_culto'];
-    
-    const maxTokens = complexTypes.includes(detectedType) 
-      ? 8000  // Conteúdo complexo/estratégico
-      : deepBiblicalTypes.includes(detectedType)
-      ? 6000  // Conteúdo bíblico profundo
-      : 4000; // Outros tipos
-    
-    const temperature = operationalTypesTemp.includes(detectedType)
-      ? 0.5   // Operacional - mais conservador e preciso
-      : 0.85; // Criativo/Pastoral - mais humano e natural
-
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -1082,8 +680,8 @@ Retorne APENAS o JSON válido.`;
           { role: 'user', content: processedPrompt }
         ],
         response_format: { type: 'json_object' },
-        max_tokens: maxTokens,
-        temperature: temperature
+        max_tokens: 4000,
+        temperature: 0.7
       }),
     });
 
@@ -1095,10 +693,6 @@ Retorne APENAS o JSON válido.`;
 
     const aiData = await aiResponse.json();
     console.log('AI response received');
-
-    // Variáveis para tracking de qualidade (declaradas aqui para serem acessíveis no final)
-    let depthOk = true;
-    let retryCount = 0;
 
     let generatedContent;
     try {
@@ -1115,180 +709,12 @@ Retorne APENAS o JSON válido.`;
       
       generatedContent = JSON.parse(jsonMatch[0]);
       
-    // ============================================
-    // FASE 4: VALIDAÇÃO DE PROFUNDIDADE + RETRY AUTOMÁTICO
-    // ============================================
-    const contentDepthCheck = (content: any, type: string): boolean => {
-      // Carrossel: deve ter 8-10 slides com conteúdo substancial
-      if (type === 'carrossel') {
-        const slides = content.carrossel?.slides || [];
-        if (slides.length < 8) {
-          console.warn('Carrossel raso: menos de 8 slides');
-          return false;
-        }
-        const avgLength = slides.reduce((sum: number, s: any) => sum + (s.conteudo?.length || 0), 0) / slides.length;
-        if (avgLength < 100) {
-          console.warn('Carrossel raso: conteúdo médio < 100 chars por slide');
-          return false;
-        }
-      }
-      
-      // Estudo: contexto e aplicações com profundidade
-      if (type === 'estudo') {
-        const contexto = content.fundamento_biblico?.contexto || '';
-        const aplicacoes = content.estudo_biblico?.desenvolvimento || [];
-        if (contexto.length < 200) {
-          console.warn('Estudo raso: contexto < 200 chars');
-          return false;
-        }
-        if (aplicacoes.length < 3) {
-          console.warn('Estudo raso: menos de 3 pontos de desenvolvimento');
-          return false;
-        }
-      }
-      
-      // Campanha: deve ter 4 semanas completas
-      if (type === 'campanha_tematica') {
-        const semanas = content.campanha?.semanas || [];
-        if (semanas.length < 4) {
-          console.warn('Campanha rasa: menos de 4 semanas');
-          return false;
-        }
-      }
-      
-      // Devocional: reflexão substancial
-      if (type === 'devocional') {
-        const reflexao = content.devocional?.reflexao || '';
-        if (reflexao.length < 300) {
-          console.warn('Devocional raso: reflexão < 300 chars');
-          return false;
-        }
-      }
-      
-      // Treino Voluntário: deve ter mínimo 4 módulos com exercícios práticos
-      if (type === 'treino_voluntario') {
-        const modulos = content.treino?.modulos || [];
-        if (modulos.length < 4) {
-          console.warn('Treino raso: menos de 4 módulos');
-          return false;
-        }
-        const hasExercises = modulos.every((m: any) => m.exercicios && m.exercicios.length > 0);
-        if (!hasExercises) {
-          console.warn('Treino raso: módulos sem exercícios práticos');
-          return false;
-        }
-      }
-      
-      // Resumo Breve: mensagem principal deve ser substancial
-      if (type === 'resumo_breve') {
-        const resumo = content.resumo || '';
-        if (resumo.length < 200) {
-          console.warn('Resumo raso: menos de 200 chars');
-          return false;
-        }
-      }
-      
-      // Reel: deve ter estrutura completa (hook + desenvolvimento + cta)
-      if (type === 'reel') {
-        const estrutura = content.estrutura_visual || {};
-        if (!estrutura.hook || !estrutura.desenvolvimento || !estrutura.cta) {
-          console.warn('Reel raso: estrutura incompleta');
-          return false;
-        }
-      }
-      
-      return true; // Passou nos checks
-    };
-
-    depthOk = contentDepthCheck(generatedContent, detectedType);
-    
-    // Se conteúdo raso E tipo que deveria ser profundo, fazer retry
-    const typesRequiringDepth = [
-      'carrossel', 'estudo', 'campanha_tematica', 'devocional', 
-      'treino_voluntario', 'resumo_breve', 'reel', 'esboco'
-    ];
-    
-    if (!depthOk && typesRequiringDepth.includes(detectedType) && retryCount < 1) {
-      console.warn(`⚠️ Content too shallow for type ${detectedType}, retrying with expanded prompt...`);
-      retryCount++;
-      
-      // Prompt expandido específico por tipo
-      const specificRequirements: Record<string, string> = {
-        carrossel: '10 slides com 150+ caracteres cada, conteúdo visual e textual rico',
-        estudo: '3+ aplicações práticas detalhadas + contexto histórico de 300+ caracteres',
-        devocional: 'reflexão de 400+ caracteres com storytelling e aplicação prática',
-        campanha_tematica: '4 semanas completas com posts específicos para cada dia',
-        treino_voluntario: '5+ módulos com teoria sólida + exercícios práticos concretos',
-        resumo_breve: '300+ palavras capturando essência e aplicação prática da mensagem',
-        reel: 'hook impactante + desenvolvimento claro + CTA forte com texto na tela',
-        esboco: '3+ pontos principais com subtópicos desenvolvidos e aplicações'
-      };
-      
-      const requirement = specificRequirements[detectedType] || 'conteúdo rico e profundo';
-      
-      const expandedPrompt = `${processedPrompt}
-
-⚠️ IMPORTANTE: O conteúdo anterior ficou muito superficial. 
-
-POR FAVOR, EXPANDA SIGNIFICATIVAMENTE com:
-✅ Exemplos práticos CONCRETOS (não genéricos como "ore mais", mas ações específicas)
-✅ Aplicações ESPECÍFICAS e detalhadas para situações reais
-✅ Contexto histórico/cultural COMPLETO quando relevante
-✅ Linguagem pastoral e HUMANIZADA (não robótica)
-✅ Mínimo de: ${requirement}
-
-Imagine que você está conversando com um líder de mídia que precisa de material RICO para usar com a igreja.
-Não seja superficial. Seja PROFUNDO, PRÁTICO e INSPIRADOR.`;
-
-      const retryResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: expandedPrompt }
-          ],
-          response_format: { type: 'json_object' },
-          max_tokens: maxTokens,
-          temperature: temperature
-        }),
-      });
-      
-      if (retryResponse.ok) {
-        const retryData = await retryResponse.json();
-        const retryContent = retryData.choices[0].message.content;
-        const retryJsonMatch = retryContent.match(/\{[\s\S]*\}/);
-        if (retryJsonMatch) {
-          const retryGeneratedContent = JSON.parse(retryJsonMatch[0]);
-          const retryDepthOk = contentDepthCheck(retryGeneratedContent, detectedType);
-          if (retryDepthOk) {
-            console.log('✅ Retry successful - content depth improved!');
-            generatedContent = retryGeneratedContent;
-            depthOk = true;
-          } else {
-            console.warn('⚠️ Retry still shallow, using original content');
-          }
-        } else {
-          console.error('❌ Retry failed - invalid JSON in response');
-        }
-      } else {
-        console.error('❌ Retry API call failed:', retryResponse.status);
-      }
-    }
-      
     // Validate structure based on content type
-    const operationalTypesValidation = [
-      'calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 'versiculos_citados', 'ideia_estrategica',
-      'treino_voluntario', 'campanha_tematica', 'roteiro_reels', 'checklist_culto', 'kit_basico', 'manual_etica', 'estrategia_social'
-    ];
-    const requiresBiblicalFoundationValidation = !operationalTypesValidation.includes(detectedType);
+    const operationalTypes = ['calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 'versiculos_citados', 'ideia_estrategica'];
+    const requiresBiblicalFoundation = !operationalTypes.includes(detectedType);
     
     // Only require fundamento_biblico for biblical/spiritual content
-    if (requiresBiblicalFoundationValidation && !generatedContent.fundamento_biblico) {
+    if (requiresBiblicalFoundation && !generatedContent.fundamento_biblico) {
       console.error('Invalid structure:', generatedContent);
       throw new Error('IA retornou estrutura incompleta - falta fundamento_biblico');
     }
@@ -1312,13 +738,6 @@ Não seja superficial. Seja PROFUNDO, PRÁTICO e INSPIRADOR.`;
       (detectedType === 'perguntas' && generatedContent.perguntas_celula) ||
       (detectedType === 'devocional' && generatedContent.devocional) ||
       (detectedType === 'stories' && generatedContent.stories) ||
-      (detectedType === 'treino_voluntario' && generatedContent.treino) ||
-      (detectedType === 'campanha_tematica' && generatedContent.campanha) ||
-      (detectedType === 'roteiro_reels' && generatedContent.roteiro) ||
-      (detectedType === 'checklist_culto' && generatedContent.checklist) ||
-      (detectedType === 'kit_basico' && generatedContent.kit) ||
-      (detectedType === 'manual_etica' && generatedContent.manual) ||
-      (detectedType === 'estrategia_social' && generatedContent.estrategia) ||
       (['post', 'carrossel', 'reel'].includes(detectedType) && generatedContent.conteudo);
 
     if (!hasCorrectStructure) {
@@ -1342,18 +761,24 @@ Não seja superficial. Seja PROFUNDO, PRÁTICO e INSPIRADOR.`;
       });
     }
 
-    // Salvar na tabela unificada: content_library
+    // Salvar na tabela content_planners
+    const today = new Date();
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay());
+
     const { data: savedContent, error: saveError } = await supabase
-      .from('content_library')
+      .from('content_planners')
       .insert({
         user_id: user.id,
-        source_type: 'ai-creator',
-        content_type: detectedType, // tipo de conteúdo (estudo, post, etc)
-        pilar: 'EDIFICAR', // Uppercase para consistência com constraints
-        prompt_original: prompt.replace(/^TIPO_SOLICITADO:\s*\w+\s*/i, '').trim(),
-        title: generatedContent.title || 'Conteúdo Gerado',
-        content: generatedContent,
-        status: 'draft'
+        week_start_date: weekStart.toISOString().split('T')[0],
+        content: [
+          {
+            ...generatedContent,
+            prompt_original: prompt,
+            created_at: new Date().toISOString(),
+            tipo: 'ai-generated'
+          }
+        ]
       })
       .select()
       .single();
@@ -1365,38 +790,10 @@ Não seja superficial. Seja PROFUNDO, PRÁTICO e INSPIRADOR.`;
 
     console.log('Content saved successfully with id:', savedContent.id);
 
-    // ============================================
-    // FASE 5: LOGGING DE QUALIDADE
-    // ============================================
-    const qualityMetrics = {
-      content_id: savedContent.id,
-      detected_type: detectedType,
-      tokens_system_estimated: Math.round(systemPrompt.length / 4),
-      tokens_response_estimated: Math.round(JSON.stringify(generatedContent).length / 4),
-      temperature_used: temperature,
-      max_tokens_used: maxTokens,
-      depth_check_passed: depthOk,
-      retry_needed: retryCount > 0,
-      retry_successful: retryCount > 0 && depthOk,
-      prompt_length: processedPrompt.length,
-      is_long_transcript: isLongTranscript,
-      timestamp: new Date().toISOString()
-    };
-    
-    console.log('📊 QUALITY_METRICS:', JSON.stringify(qualityMetrics, null, 2));
-    
-    // Log de qualidade resumido para análise rápida
-    if (!depthOk) {
-      console.warn(`⚠️ SHALLOW_CONTENT: ${detectedType} - depth check failed${retryCount > 0 ? ' even after retry' : ''}`);
-    } else if (retryCount > 0) {
-      console.log(`✅ DEPTH_IMPROVED: ${detectedType} - retry successful`);
-    }
-
     return new Response(JSON.stringify({ 
       success: true,
       content_id: savedContent.id,
-      content: generatedContent,
-      _metrics: qualityMetrics // Para debugging
+      content: generatedContent
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

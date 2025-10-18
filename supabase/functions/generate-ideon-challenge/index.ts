@@ -1,11 +1,9 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { CORE_PRINCIPLES, CONTENT_METHOD, PILLAR_DISTRIBUTION } from '../_shared/prompt-principles.ts';
+import { CORE_PRINCIPLES } from '../_shared/prompt-principles.ts';
 import { 
-  validateInput, 
   checkRateLimit, 
   logSecurityEvent,
-  sanitizeText,
   createAuthenticatedClient,
   ValidationError,
   RateLimitError
@@ -36,75 +34,29 @@ serve(async (req) => {
     }
 
     // Check rate limit
-    await checkRateLimit(supabaseClient, userId, 'generate-week-pack');
+    await checkRateLimit(supabaseClient, userId, 'generate-ideon-challenge');
 
-    // Parse and validate input
-    const body = await req.json();
-    const { transcript } = body;
-
-    validateInput('transcript', {
-      value: transcript,
-      type: 'string',
-      required: true,
-      minLength: 50,
-      maxLength: 100000,
-    });
-
-    const sanitizedTranscript = sanitizeText(transcript, 100000);
-
-    console.log('Generating weekly pack...');
+    console.log('Generating Ide.On challenge...');
 
     const systemPrompt = `${CORE_PRINCIPLES}
 
-${CONTENT_METHOD}
+ATENÇÃO ESPECIAL:
+- Consentimento de imagem: Sempre lembrar que gravações em público ou com outras pessoas requerem autorização
+- Segurança: Evitar desafios que exponham crianças, adolescentes ou pessoas em situação de vulnerabilidade
+- Dignidade: Desafios devem ser autênticos, nunca constrangedores
 
-${PILLAR_DISTRIBUTION}
+Você é Ide.On, um mentor criativo que desenvolve desafios evangelísticos em vídeo.
+Seu objetivo é criar desafios que inspirem pessoas a compartilhar sua fé de forma criativa e autêntica.
 
-Você é Ide.On, um mentor espiritual especializado em criar conteúdo evangelístico para redes sociais.
-Você recebe uma transcrição de uma pregação e deve gerar um pacote completo de conteúdo para uma semana.
-
-IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional antes ou depois. O JSON deve conter as seguintes chaves:
+IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional. O JSON deve conter:
 
 {
-  "versiculos_base": ["Romanos 12:1-2", "João 3:16"],
-  "principio_atemporal": "Frase-chave que captura a verdade central da pregação",
-  "resumo": "Resumo conciso da pregação em 2-3 parágrafos",
-  "frases_impactantes": ["array com 5-7 frases marcantes da pregação"],
-  "stories": ["array com 3-5 ideias de stories para Instagram/Facebook"],
-  "estudo_biblico": {
-    "tema": "Tema principal do estudo",
-    "versiculos": ["array com versículos relevantes com referência completa"],
-    "perguntas": ["array com 5-7 perguntas para reflexão em grupo"]
-  },
-  "legendas": [
-    {
-      "texto": "Legenda completa do post",
-      "pilar_estrategico": "Edificar" | "Alcançar" | "Pertencer" | "Servir",
-      "cta": "Call-to-action específico (ex: Envie CÉLULA no DM)",
-      "hashtags": ["array", "de", "hashtags"]
-    }
-  ],
-  "carrosseis": [
-    {
-      "titulo": "Título do carrossel",
-      "pilar_estrategico": "Edificar" | "Alcançar" | "Pertencer" | "Servir",
-      "slides": [
-        {
-          "texto": "Texto do slide",
-          "sugestao_imagem": "Descrição da imagem sugerida"
-        }
-      ]
-    }
-  ],
-  "reels": [
-    {
-      "titulo": "Título do reel",
-      "pilar_estrategico": "Edificar" | "Alcançar" | "Pertencer" | "Servir",
-      "roteiro": "Roteiro completo do vídeo",
-      "duracao_estimada": "30-60 segundos",
-      "hook": "Gancho inicial para prender atenção"
-    }
-  ]
+  "roteiro": "Roteiro completo do desafio com começo, meio e fim (3-4 parágrafos)",
+  "dicas_de_foto": ["array com 5-7 dicas técnicas de fotografia e enquadramento"],
+  "o_que_captar": ["array com 5-7 elementos/momentos importantes a registrar"],
+  "como_captar": ["array com 5-7 instruções práticas de como filmar"],
+  "proposito": "Explicação do propósito evangelístico do desafio (2-3 parágrafas)",
+  "consideracoes_eticas": "Avisos sobre consentimento, proteção de menores ou outros cuidados éticos necessários"
 }`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -117,9 +69,9 @@ IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional antes ou de
         model: 'gpt-4o',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Transcrição da pregação:\n\n${sanitizedTranscript}` }
+          { role: 'user', content: 'Crie um novo desafio Ide.On criativo e impactante para evangelismo através de vídeos.' }
         ],
-        max_completion_tokens: 2000,
+        max_completion_tokens: 1000,
         response_format: { type: 'json_object' }
       }),
     });
@@ -128,21 +80,21 @@ IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional antes ou de
       const errorText = await response.text();
       console.error('OpenAI API error:', errorText);
       const errorMsg = `OpenAI API error: ${response.status}`;
-      await logSecurityEvent(supabaseClient, userId, 'weekpack_failed', 'generate-week-pack', false, errorMsg);
+      await logSecurityEvent(supabaseClient, userId, 'challenge_failed', 'generate-ideon-challenge', false, errorMsg);
       throw new Error(errorMsg);
     }
 
     const result = await response.json();
-    const pack = JSON.parse(result.choices[0]?.message?.content || '{}');
+    const challenge = JSON.parse(result.choices[0]?.message?.content || '{}');
 
     // Log success
-    await logSecurityEvent(supabaseClient, userId, 'weekpack_success', 'generate-week-pack', true);
+    await logSecurityEvent(supabaseClient, userId, 'challenge_success', 'generate-ideon-challenge', true);
 
     const duration = Date.now() - startTime;
-    console.log(`Week pack generated in ${duration}ms`);
+    console.log(`Ide.On challenge generated in ${duration}ms`);
 
     return new Response(
-      JSON.stringify(pack),
+      JSON.stringify(challenge),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
@@ -150,12 +102,12 @@ IMPORTANTE: Responda APENAS com um JSON válido, sem texto adicional antes ou de
     );
 
   } catch (error) {
-    console.error('Error in generate-week-pack:', error);
+    console.error('Error in generate-ideon-challenge:', error);
 
     // Log error
     if (supabaseClient && userId) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      await logSecurityEvent(supabaseClient, userId, 'weekpack_error', 'generate-week-pack', false, errorMsg);
+      await logSecurityEvent(supabaseClient, userId, 'challenge_error', 'generate-ideon-challenge', false, errorMsg);
     }
 
     // Handle specific error types
