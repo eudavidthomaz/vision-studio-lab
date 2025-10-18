@@ -78,7 +78,7 @@ const Dashboard = () => {
     }
   }, [loading, user, navigate]);
 
-  const handleTranscriptionComplete = async (transcriptText: string, sermonId?: string) => {
+  const handleTranscriptionComplete = async (transcriptText: string) => {
     if (!canUse('weekly_packs')) {
       toast({
         title: 'Limite atingido',
@@ -98,43 +98,44 @@ const Dashboard = () => {
     try {
       // Step 1: Transcription complete (25%)
       setGenerationProgress(25);
+      // Save sermon to database
+      const { data: sermonData, error: sermonError } = await supabase
+        .from('sermons')
+        .insert({
+          user_id: user.id,
+          transcript: transcriptText,
+          status: 'completed'
+        })
+        .select()
+        .single();
+
+      if (sermonError) throw sermonError;
 
       // Step 2: Analyzing sermon (50%)
       setGenerationProgress(50);
 
-      // Construir prompt contextualizado para áudio
-      const audioPrompt = `Com base nesta transcrição de pregação, crie um pacote completo de conteúdo para redes sociais:
-
-${transcriptText}
-
-Inclua:
-- Fundamento bíblico com versículos completos
-- Resumo pastoral da mensagem
-- 5-7 frases impactantes da pregação
-- Ideias de stories para a semana
-- Legendas prontas com CTAs
-- Estrutura de carrossel/reel
-- Estudo bíblico para células`;
-
-      // Generate content using generate-ai-content with Lovable AI (Gemini)
-      const result = await invokeFunction<any>('generate-ai-content', {
-        prompt: audioPrompt
+      // Generate weekly pack using secure API
+      const pack = await invokeFunction<any>('generate-week-pack', {
+        transcript: transcriptText
       });
 
-      if (!result || !result.content_id) {
-        throw new Error('Erro ao gerar conteúdo');
+      if (!pack) {
+        throw new Error('Erro ao gerar pacote semanal');
       }
       
       // Step 3: Content generated (75%)
       setGenerationProgress(75);
+      
+      setWeeklyPack(pack);
 
-      // Update content_planners with sermon_id if provided
-      if (sermonId) {
-        await supabase
-          .from('content_planners')
-          .update({ sermon_id: sermonId })
-          .eq('id', result.content_id);
-      }
+      // Save weekly pack to database
+      await supabase
+        .from('weekly_packs')
+        .insert({
+          user_id: user.id,
+          sermon_id: sermonData.id,
+          pack: pack
+        });
 
       // Step 4: Complete (100%)
       setGenerationProgress(100);
@@ -160,11 +161,8 @@ Inclua:
 
       toast({
         title: "Sucesso! 🎉",
-        description: "Conteúdo gerado com sucesso!",
+        description: "Pacote semanal gerado com sucesso!",
       });
-
-      // Navigate to result page
-      navigate(`/conteudo/${result.content_id}`);
     } catch (error) {
       console.error('Error generating pack:', error);
       
@@ -173,7 +171,7 @@ Inclua:
       
       toast({
         title: "Erro",
-        description: "Não foi possível gerar o conteúdo. Tente novamente.",
+        description: "Não foi possível gerar o pacote semanal. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -258,15 +256,11 @@ Inclua:
       // Navigate to result page
       setShowAIModal(false);
       navigate(`/conteudo/${result.content_id}`);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error generating AI content:', error);
-      
-      const errorMessage = error?.message || 
-        'Não foi possível gerar o conteúdo. Tente novamente com um prompt mais específico.';
-      
       toast({
-        title: "Erro na geração",
-        description: errorMessage,
+        title: "Erro",
+        description: "Não foi possível gerar o conteúdo. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -307,7 +301,6 @@ Inclua:
           {/* Hero Header */}
           <HeroHeader 
             onNavigateToContent={() => navigate('/meus-conteudos')}
-            onNavigateToProfile={() => navigate('/profile')}
             onLogout={handleLogout}
           />
 

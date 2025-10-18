@@ -19,7 +19,6 @@ export type Database = {
           content: Json
           created_at: string | null
           id: string
-          sermon_id: string | null
           updated_at: string | null
           user_id: string
           week_start_date: string
@@ -28,7 +27,6 @@ export type Database = {
           content?: Json
           created_at?: string | null
           id?: string
-          sermon_id?: string | null
           updated_at?: string | null
           user_id: string
           week_start_date: string
@@ -37,20 +35,11 @@ export type Database = {
           content?: Json
           created_at?: string | null
           id?: string
-          sermon_id?: string | null
           updated_at?: string | null
           user_id?: string
           week_start_date?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "content_planners_sermon_id_fkey"
-            columns: ["sermon_id"]
-            isOneToOne: false
-            referencedRelation: "sermons"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       content_templates: {
         Row: {
@@ -94,42 +83,6 @@ export type Database = {
         }
         Relationships: []
       }
-      generated_contents: {
-        Row: {
-          content: Json
-          content_format: string | null
-          created_at: string | null
-          id: string
-          pilar: string | null
-          prompt_original: string | null
-          source_type: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          content?: Json
-          content_format?: string | null
-          created_at?: string | null
-          id?: string
-          pilar?: string | null
-          prompt_original?: string | null
-          source_type: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          content?: Json
-          content_format?: string | null
-          created_at?: string | null
-          id?: string
-          pilar?: string | null
-          prompt_original?: string | null
-          source_type?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       ideon_challenges: {
         Row: {
           challenge: Json | null
@@ -148,75 +101,6 @@ export type Database = {
           created_at?: string | null
           id?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      notifications: {
-        Row: {
-          created_at: string
-          id: string
-          is_read: boolean
-          message: string
-          related_content_id: string | null
-          related_content_type: string | null
-          title: string
-          type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          message: string
-          related_content_id?: string | null
-          related_content_type?: string | null
-          title: string
-          type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_read?: boolean
-          message?: string
-          related_content_id?: string | null
-          related_content_type?: string | null
-          title?: string
-          type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          church: string | null
-          city: string | null
-          created_at: string | null
-          full_name: string | null
-          id: string
-          instagram: string | null
-          phone: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          church?: string | null
-          city?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id: string
-          instagram?: string | null
-          phone?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          church?: string | null
-          city?: string | null
-          created_at?: string | null
-          full_name?: string | null
-          id?: string
-          instagram?: string | null
-          phone?: string | null
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -307,60 +191,6 @@ export type Database = {
           status?: string | null
           transcript?: string | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      shared_content: {
-        Row: {
-          approval_status: string
-          content_id: string
-          content_type: string
-          created_at: string
-          expires_at: string
-          id: string
-          is_public: boolean
-          requires_approval: boolean
-          review_token: string | null
-          reviewed_at: string | null
-          reviewer_comment: string | null
-          share_token: string | null
-          updated_at: string
-          user_id: string
-          views_count: number
-        }
-        Insert: {
-          approval_status?: string
-          content_id: string
-          content_type: string
-          created_at?: string
-          expires_at?: string
-          id?: string
-          is_public?: boolean
-          requires_approval?: boolean
-          review_token?: string | null
-          reviewed_at?: string | null
-          reviewer_comment?: string | null
-          share_token?: string | null
-          updated_at?: string
-          user_id: string
-          views_count?: number
-        }
-        Update: {
-          approval_status?: string
-          content_id?: string
-          content_type?: string
-          created_at?: string
-          expires_at?: string
-          id?: string
-          is_public?: boolean
-          requires_approval?: boolean
-          review_token?: string | null
-          reviewed_at?: string | null
-          reviewer_comment?: string | null
-          share_token?: string | null
-          updated_at?: string
-          user_id?: string
-          views_count?: number
         }
         Relationships: []
       }
@@ -565,10 +395,6 @@ export type Database = {
           _window_minutes: number
         }
         Returns: Json
-      }
-      generate_random_token: {
-        Args: { length: number }
-        Returns: string
       }
       get_user_role: {
         Args: { _user_id: string }

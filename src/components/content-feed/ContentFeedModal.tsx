@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { NormalizedContent } from "@/hooks/useContentFeed";
 import { ContentResultDisplay } from "@/components/ContentResultDisplay";
@@ -7,8 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, Sparkles, Image } from "lucide-react";
-import ImageGenerationModal from "@/components/ImageGenerationModal";
+import { Copy, Sparkles } from "lucide-react";
 
 interface ContentFeedModalProps {
   content: NormalizedContent | null;
@@ -18,15 +16,8 @@ interface ContentFeedModalProps {
 
 export function ContentFeedModal({ content, open, onOpenChange }: ContentFeedModalProps) {
   const navigate = useNavigate();
-  const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [selectedContent, setSelectedContent] = useState<{ copy: string; pilar: string } | null>(null);
 
   if (!content) return null;
-
-  const openImageModal = (copy: string, pilar: string) => {
-    setSelectedContent({ copy, pilar });
-    setImageModalOpen(true);
-  };
 
   const handleSave = () => {
     toast({
@@ -135,24 +126,14 @@ export function ContentFeedModal({ content, open, onOpenChange }: ContentFeedMod
                     <li key={i} className="flex items-start gap-2">
                       <span className="text-primary">•</span>
                       <span className="text-sm text-muted-foreground flex-1">{frase}</span>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => handleCopy(frase)}
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => openImageModal(frase, content.pilar)}
-                        >
-                          <Image className="h-3 w-3" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleCopy(frase)}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
                     </li>
                   ))}
                 </ul>
@@ -171,24 +152,14 @@ export function ContentFeedModal({ content, open, onOpenChange }: ContentFeedMod
                   <div key={i} className="p-4 border rounded-lg space-y-2">
                     <div className="flex items-center justify-between">
                       <Badge>{post.formato}</Badge>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => handleCopy(`${post.titulo}\n\n${post.legenda}`)}
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => openImageModal(post.legenda, content.pilar)}
-                        >
-                          <Image className="h-3 w-3" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => handleCopy(`${post.titulo}\n\n${post.legenda}`)}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
                     </div>
                     <h4 className="font-semibold">{post.titulo}</h4>
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">
@@ -235,16 +206,6 @@ export function ContentFeedModal({ content, open, onOpenChange }: ContentFeedMod
           </div>
         </div>
       </DialogContent>
-
-      {/* Image Generation Modal */}
-      {selectedContent && (
-        <ImageGenerationModal
-          open={imageModalOpen}
-          onOpenChange={setImageModalOpen}
-          copy={selectedContent.copy}
-          pilar={selectedContent.pilar}
-        />
-      )}
     </Dialog>
   );
 }

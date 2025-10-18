@@ -18,6 +18,7 @@ const corsHeaders = {
 
 const ALLOWED_FORMATOS = ['feed_square', 'feed_portrait', 'story', 'reel_cover'];
 const ALLOWED_ESTILOS = ['minimalista', 'tipografico', 'fotografico', 'ilustrativo'];
+const ALLOWED_PILARES = ['Edificar', 'Alcançar', 'Pertencer', 'Servir'];
 
 serve(async (req) => {
   const startTime = Date.now();
@@ -71,6 +72,7 @@ serve(async (req) => {
       value: pilar,
       type: 'string',
       required: true,
+      allowedValues: ALLOWED_PILARES,
     });
 
     validateInput('contexto_adicional', {
@@ -85,28 +87,28 @@ serve(async (req) => {
 
     console.log('Generating image with params:', { formato, estilo, pilar });
 
-    // Define dimensions based on format - Instagram optimized resolutions
+    // Define dimensions based on format
     const formatoDimensoes: Record<string, { width: number; height: number }> = {
-      'feed_square': { width: 1080, height: 1080 },
-      'feed_portrait': { width: 1080, height: 1350 },
-      'story': { width: 1080, height: 1920 },
-      'reel_cover': { width: 1080, height: 1920 }
+      'feed_square': { width: 1024, height: 1024 },
+      'feed_portrait': { width: 1024, height: 1536 },
+      'story': { width: 1024, height: 1536 },
+      'reel_cover': { width: 1024, height: 1536 }
     };
     const dimensoes = formatoDimensoes[formato] || { width: 1024, height: 1024 };
 
     // Build intelligent prompt based on pilar and estilo
     const pilarStyles = {
-      'Edificar': 'sophisticated pastel color palette, elegant serif typography with hierarchy, contemplative and serene imagery with depth, soft cinematic lighting, peaceful atmosphere, premium editorial feel',
-      'Alcançar': 'vibrant energetic color scheme with contrast, bold impactful typography, dynamic and action-oriented imagery, bright studio lighting, motivational energy, modern advertising quality',
-      'Pertencer': 'warm inviting color tones, friendly humanist typography, authentic community connection imagery, welcoming ambient lighting, inclusive atmosphere, lifestyle photography quality',
-      'Servir': 'organic earthy color palette, clean simple typography, genuine hands-on action imagery, natural authentic lighting, purposeful feel, documentary-style quality'
+      'Edificar': 'pastel tones, serif typography, contemplative and peaceful imagery, soft lighting',
+      'Alcançar': 'vibrant colors, bold typography, dynamic and energetic imagery, bright lighting',
+      'Pertencer': 'warm tones, humanist typography, community and connection imagery, welcoming atmosphere',
+      'Servir': 'earthy tones, simple typography, action and hands-on imagery, authentic feel'
     };
 
     const estiloDescriptions = {
-      'minimalista': 'ultra-minimalist design with premium aesthetics, clean geometric lines, abundant strategic white space, sophisticated simplicity, balanced negative space, professional magazine-style layout',
-      'tipografico': 'typography-driven design with premium font pairings, text as the hero element, creative typographic hierarchy, professional kerning and spacing, modern font treatments, editorial quality',
-      'fotografico': 'high-end photographic style with professional lighting, cinematic composition, authentic human moments, premium photo treatment, professional color grading, magazine-quality photography',
-      'ilustrativo': 'premium illustrated style with custom artwork, sophisticated graphics, professional illustration techniques, cohesive visual storytelling, modern artistic approach, gallery-quality illustrations'
+      'minimalista': 'minimalist design, clean lines, lots of white space, simple composition',
+      'tipografico': 'typography-focused, text as main visual element, creative font usage',
+      'fotografico': 'photographic style, realistic imagery, human-centered',
+      'ilustrativo': 'illustrated style, artistic, creative graphics and drawings'
     };
 
     const pilarStyle = pilarStyles[pilar as keyof typeof pilarStyles] || pilarStyles['Edificar'];
@@ -115,42 +117,14 @@ serve(async (req) => {
     // Truncate copy if too long
     const truncatedCopy = sanitizedCopy.length > 200 ? sanitizedCopy.substring(0, 200) + '...' : sanitizedCopy;
 
-    // Adaptar descrições de estilo ao novo prompt
-    const estiloAdaptacoes = {
-      'minimalista': 'fundo liso ou leve gradiente escuro; foco total no título grande; poucos elementos gráficos; subtítulo pequeno "handwritten" sutil.',
-      'tipografico': 'sem foto. Fundo sólido/texturizado (papel). Título branco em grotesk bold/condensed; use um realce de caneta (sublinhar ou oval) em 1–2 palavras-chave; assinatura manuscrita no cantinho.',
-      'fotografico': 'cena cinematográfica com luz dramática (culto contemporâneo, campo de trigo, milharal, deserto ao entardecer). Profundidade de campo realista; grade tipo Kodak Portra; texto ocupando terço esquerdo/baixo com fundo limpo.',
-      'ilustrativo': 'colagem/estêncil sobre papel texturizado; paleta terrosa/retrô; bordas orgânicas; ruído fino. Evitar cartoon infantil.'
-    };
-
-    const estiloAdaptacao = estiloAdaptacoes[estilo as keyof typeof estiloAdaptacoes] || estiloAdaptacoes['minimalista'];
-
-    const prompt = `Tarefa: Gerar um pôster para redes sociais no formato ${dimensoes.width}x${dimensoes.height}px (respeite a proporção e margens de segurança), com estética editorial cristã/cinemática e acabamento profissional.
-
-CRÍTICO - TEXTO PERMITIDO:
-* Use EXCLUSIVAMENTE o texto fornecido: "${truncatedCopy}"
-* NÃO invente ou adicione: placeholders como "Nome da comunidade", logos genéricos, assinaturas fictícias, códigos de cor (como #F2552B), ou qualquer texto não fornecido pelo usuário.
-* Se o texto tiver apenas 1 linha, use apenas como título (sem subtítulo inventado).
-
-Texto a renderizar (exato, em PT-BR, sem traduzir ou reescrever):
-* Título: primeira linha do texto fornecido (aplique visualmente CAIXA-ALTA, grotesk bold/condensed, alinhado à esquerda, tracking levemente negativo, linhas compactas).
-* Subtítulo/assinatura (opcional): linhas seguintes do texto fornecido (estilo handwritten/brush fino, podendo ter sublinhado discreto ou setas desenhadas à mão).
-
-Diretrizes comuns (sempre):
-* Composição: layout limpo, forte hierarquia, espaço negativo para respiro; grid 12 col / 24pt baseline; margens mín. 6% do lado menor.
-* Legibilidade: alto contraste texto/fundo; não distorcer letras; evitar fundo poluído atrás do título.
-* Tratamento de imagem: granulação de filme 6–8%, matte finish, halation suave nas altas luzes; nitidez profissional sem oversharpen.
-* Cores sugeridas: paleta quente (âmbar/ocre/sépia) ou neutros elegantes (preto carvão, off-white), com possibilidade de acento em tom laranja vibrante (não renderize códigos de cor).
-* Respeito: retratar pessoas de forma digna, natural, sem caricatura.
-
-Adapte ao ESTILO "${estilo}":
-${estiloAdaptacao}
-
-${sanitizedContexto ? `Contexto adicional: ${sanitizedContexto}` : ''}
-
-NUNCA fazer: baixa resolução, clip-art, 3D/cartoon, neon, bevel/emboss, sombras duras, textos errados/omitidos, deformações de mão/rosto, marcas d'água, molduras, excesso de elementos, texto não fornecido pelo usuário (como "Nome da comunidade", códigos hex, ou placeholders genéricos).
-
-Entrega: imagem final pronta para social no formato ${dimensoes.width}x${dimensoes.height}px, texto nítido e legível, sem bordas, usando SOMENTE o texto fornecido pelo usuário.`;
+    const prompt = `Create a professional Instagram post image for a church social media.
+Style: ${estiloDesc}
+Visual theme: ${pilarStyle}
+Text content to feature: "${truncatedCopy}"
+${sanitizedContexto ? `Additional context: ${sanitizedContexto}` : ''}
+The image should be suitable for Christian content, inspiring, and visually appealing.
+Aspect ratio: ${dimensoes.width}x${dimensoes.height}px
+High quality, professional design.`;
 
     console.log('Calling Lovable AI...');
 
@@ -169,10 +143,7 @@ Entrega: imagem final pronta para social no formato ${dimensoes.width}x${dimenso
             content: prompt
           }
         ],
-        modalities: ['image', 'text'],
-        quality: 'high',
-        output_format: 'png',
-        output_compression: 100
+        modalities: ['image', 'text']
       }),
     });
 

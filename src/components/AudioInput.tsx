@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSecureApi } from "@/hooks/useSecureApi";
 
 interface AudioInputProps {
-  onTranscriptionComplete: (transcript: string, sermonId?: string) => void;
+  onTranscriptionComplete: (transcript: string) => void;
 }
 
 const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
@@ -39,8 +39,8 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
       setIsRecording(true);
 
       toast({
-        title: "Sua voz está sendo registrada",
-        description: "Compartilhe a mensagem que Deus colocou em seu coração. Pare quando terminar.",
+        title: "Gravação iniciada",
+        description: "Fale sua pregação. Clique em parar quando terminar.",
       });
     } catch (error) {
       console.error('Error accessing microphone:', error);
@@ -68,7 +68,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
         setIsProcessing(false);
         toast({
           title: "Erro",
-          description: "Não foi possível processar o áudio. Tente novamente.",
+          description: "Erro ao processar o áudio.",
           variant: "destructive",
         });
       }
@@ -118,7 +118,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
       console.error('Error uploading file:', error);
       toast({
         title: "Erro",
-        description: "Houve uma dificuldade ao processar o arquivo. Por favor, tente novamente.",
+        description: "Erro ao processar o arquivo.",
         variant: "destructive",
       });
       setIsProcessing(false);
@@ -133,12 +133,12 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
         const base64Audio = (reader.result as string).split(',')[1];
         
         toast({
-          title: "Preparando sua mensagem",
-          description: "Cada palavra está sendo cuidadosamente registrada para alcançar mais vidas.",
+          title: "Processando...",
+          description: "Transcrevendo sua pregação. Isso pode levar alguns minutos.",
         });
 
         try {
-          const result = await invokeFunction<{ transcript: string; sermon_id?: string }>('transcribe-sermon', {
+          const result = await invokeFunction<{ transcript: string }>('transcribe-sermon', {
             audio_base64: base64Audio
           });
 
@@ -149,11 +149,11 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
           }
           
           toast({
-            title: "Mensagem capturada!",
-            description: "Sua pregação está pronta para impactar vidas através de cada plataforma.",
+            title: "Sucesso!",
+            description: "Pregação transcrita com sucesso.",
           });
 
-          onTranscriptionComplete(result.transcript, result.sermon_id);
+          onTranscriptionComplete(result.transcript);
           setSelectedFile(null);
         } catch (error) {
           console.error('Unexpected error:', error);
@@ -212,9 +212,9 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
         )}
 
         <p className="text-sm text-muted-foreground text-center max-w-xs">
-          {!isRecording && !isProcessing && "Comece a compartilhar a palavra"}
-          {isRecording && "Registrando sua mensagem... Clique para finalizar"}
-          {isProcessing && "Preservando cada palavra da sua pregação..."}
+          {!isRecording && !isProcessing && "Clique para iniciar a gravação da pregação"}
+          {isRecording && "Gravando... Clique para parar"}
+          {isProcessing && "Transcrevendo sua pregação..."}
         </p>
       </TabsContent>
 
@@ -262,7 +262,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
                       onClick={handleFileUpload}
                       className="flex-1"
                     >
-                      Transformar em Conteúdo
+                      Transcrever
                     </Button>
                     <Button
                       onClick={() => setSelectedFile(null)}
@@ -277,7 +277,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
               {isProcessing && (
                 <div className="w-full flex flex-col items-center gap-4 p-8">
                   <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                  <p className="text-sm text-muted-foreground">Processando a mensagem do seu coração...</p>
+                  <p className="text-sm text-muted-foreground">Transcrevendo sua pregação...</p>
                 </div>
               )}
             </div>
