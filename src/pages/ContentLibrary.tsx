@@ -6,6 +6,7 @@ import { useInView } from "react-intersection-observer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -388,80 +389,107 @@ export default function ContentLibrary() {
             </div>
           </div>
 
-          {/* Filtros */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            {/* Busca - ocupa 2 colunas no lg */}
-            <div className="sm:col-span-2 lg:col-span-2 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar..."
-                value={filters.search}
-                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                className="pl-10 h-9"
-              />
-            </div>
+          {/* Barra compacta com contador + botão de filtros */}
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {displayedItems.length} {displayedItems.length === 1 ? 'conteúdo' : 'conteúdos'}
+            </p>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9 gap-2">
+                  <Search className="h-4 w-4" />
+                  Filtros
+                  {(filters.search || filters.type !== 'all' || filters.source !== 'all' || filters.pilar !== 'all') && (
+                    <Badge variant="secondary" className="ml-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                      {[filters.search, filters.type !== 'all', filters.source !== 'all', filters.pilar !== 'all'].filter(Boolean).length}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-4" align="end">
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-medium mb-1.5 block">Buscar</label>
+                    <div className="relative">
+                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                      <Input
+                        placeholder="Digite para buscar..."
+                        value={filters.search}
+                        onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                        className="pl-8 h-9 text-sm"
+                      />
+                    </div>
+                  </div>
 
-            {/* Tipo */}
-            <Select
-              value={filters.type}
-              onValueChange={(value) => setFilters({ ...filters, type: value })}
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os tipos</SelectItem>
-                <SelectItem value="carrossel">Carrossel</SelectItem>
-                <SelectItem value="reel">Reels</SelectItem>
-                <SelectItem value="stories">Stories</SelectItem>
-                <SelectItem value="post">Post</SelectItem>
-                <SelectItem value="devocional">Devocional</SelectItem>
-                <SelectItem value="estudo">Estudo Bíblico</SelectItem>
-                <SelectItem value="esboco">Esboço</SelectItem>
-              </SelectContent>
-            </Select>
+                  <div>
+                    <label className="text-xs font-medium mb-1.5 block">Tipo de Conteúdo</label>
+                    <Select value={filters.type} onValueChange={(value) => setFilters({ ...filters, type: value })}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Todos os tipos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os tipos</SelectItem>
+                        <SelectItem value="carrossel">Carrossel</SelectItem>
+                        <SelectItem value="reel">Reels</SelectItem>
+                        <SelectItem value="stories">Stories</SelectItem>
+                        <SelectItem value="post">Post</SelectItem>
+                        <SelectItem value="devocional">Devocional</SelectItem>
+                        <SelectItem value="estudo">Estudo Bíblico</SelectItem>
+                        <SelectItem value="esboco">Esboço</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            {/* Fonte */}
-            <Select
-              value={filters.source}
-              onValueChange={(value) => setFilters({ ...filters, source: value })}
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Fonte" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas as fontes</SelectItem>
-                <SelectItem value="ai-creator">IA Creator</SelectItem>
-                <SelectItem value="audio-pack">Pack Semanal</SelectItem>
-                <SelectItem value="manual">Manual</SelectItem>
-              </SelectContent>
-            </Select>
+                  <div>
+                    <label className="text-xs font-medium mb-1.5 block">Fonte</label>
+                    <Select value={filters.source} onValueChange={(value) => setFilters({ ...filters, source: value })}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Todas as fontes" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas as fontes</SelectItem>
+                        <SelectItem value="ai-creator">IA Creator</SelectItem>
+                        <SelectItem value="audio-pack">Pack Semanal</SelectItem>
+                        <SelectItem value="manual">Manual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            {/* Pilar */}
-            <Select
-              value={filters.pilar}
-              onValueChange={(value) => setFilters({ ...filters, pilar: value })}
-            >
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Pilar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os pilares</SelectItem>
-                <SelectItem value="ALCANÇAR">ALCANÇAR</SelectItem>
-                <SelectItem value="EDIFICAR">EDIFICAR</SelectItem>
-                <SelectItem value="ENVIAR">ENVIAR</SelectItem>
-                <SelectItem value="EXALTAR">EXALTAR</SelectItem>
-              </SelectContent>
-            </Select>
+                  <div>
+                    <label className="text-xs font-medium mb-1.5 block">Pilar</label>
+                    <Select value={filters.pilar} onValueChange={(value) => setFilters({ ...filters, pilar: value })}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="Todos os pilares" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os pilares</SelectItem>
+                        <SelectItem value="ALCANÇAR">ALCANÇAR</SelectItem>
+                        <SelectItem value="EDIFICAR">EDIFICAR</SelectItem>
+                        <SelectItem value="ENVIAR">ENVIAR</SelectItem>
+                        <SelectItem value="EXALTAR">EXALTAR</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {(filters.search || filters.type !== 'all' || filters.source !== 'all' || filters.pilar !== 'all') && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFilters({ search: '', type: 'all', source: 'all', pilar: 'all', status: 'all' })}
+                      className="w-full h-9"
+                    >
+                      Limpar Filtros
+                    </Button>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
-          {/* Contador e ações */}
+          {/* Ações adicionais */}
           <div className="mt-3 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <p className="text-sm text-muted-foreground">
-                {displayedItems.length} {displayedItems.length === 1 ? 'conteúdo' : 'conteúdos'}
-              </p>
-              
+            <div className="flex items-center gap-2">
               {displayedItems.length > 0 && (
                 <Button
                   variant="outline"
@@ -481,7 +509,7 @@ export default function ContentLibrary() {
                 onClick={() => navigate('/biblioteca')}
                 className="h-9"
               >
-                Ver Todos os Conteúdos
+                Ver Todos
               </Button>
             )}
           </div>

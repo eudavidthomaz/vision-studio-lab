@@ -47,25 +47,24 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
       {/* Texto do Post */}
       {actualConteudo?.texto && (
         <Card>
-          <CardHeader className="p-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Texto do Post
+          <CardHeader className="p-2">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-xs font-semibold flex items-center gap-1.5 flex-1 min-w-0">
+                <FileText className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate">Texto do Post</span>
               </CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(conteudo.texto!, "Texto")}
-                className="h-9"
+                onClick={() => copyToClipboard(actualConteudo.texto!, "Texto")}
+                className="h-7 w-7 p-0 flex-shrink-0"
               >
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar
+                <Copy className="h-3.5 w-3.5" />
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <p className="whitespace-pre-line text-sm">{conteudo.texto}</p>
+          <CardContent className="p-2 pt-0">
+            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{actualConteudo.texto}</p>
           </CardContent>
         </Card>
       )}
@@ -73,22 +72,21 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
       {/* Legenda */}
       {actualConteudo?.legenda && (
         <Card>
-          <CardHeader className="p-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Legenda</CardTitle>
+          <CardHeader className="p-2">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-xs font-semibold flex-1 min-w-0 truncate">Legenda</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(conteudo.legenda!, "Legenda")}
-                className="h-9"
+                onClick={() => copyToClipboard(actualConteudo.legenda!, "Legenda")}
+                className="h-7 w-7 p-0 flex-shrink-0"
               >
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar
+                <Copy className="h-3.5 w-3.5" />
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-3 pt-0">
-            <p className="whitespace-pre-line text-sm">{conteudo.legenda}</p>
+          <CardContent className="p-2 pt-0">
+            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{actualConteudo.legenda}</p>
           </CardContent>
         </Card>
       )}
@@ -96,17 +94,17 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
       {/* Sugestão de Imagem */}
       {actualImagem?.descricao && (
         <Card>
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm font-semibold">Sugestão de Imagem</CardTitle>
+          <CardHeader className="p-2">
+            <CardTitle className="text-xs font-semibold">Sugestão de Imagem</CardTitle>
           </CardHeader>
-          <CardContent className="p-3 pt-0 space-y-2">
-            <p className="text-sm text-muted-foreground">{imagem.descricao}</p>
-            {imagem.elementos && imagem.elementos.length > 0 && (
+          <CardContent className="p-2 pt-0 space-y-2">
+            <p className="text-xs text-muted-foreground break-words">{actualImagem.descricao}</p>
+            {actualImagem.elementos && actualImagem.elementos.length > 0 && (
               <div>
-                <strong className="text-sm">Elementos visuais:</strong>
+                <strong className="text-xs">Elementos visuais:</strong>
                 <ul className="list-disc list-inside mt-2 space-y-1">
-                  {imagem.elementos.map((elemento, i) => (
-                    <li key={i} className="text-sm text-muted-foreground">{elemento}</li>
+                  {actualImagem.elementos.map((elemento, i) => (
+                    <li key={i} className="text-xs text-muted-foreground break-words">{elemento}</li>
                   ))}
                 </ul>
               </div>
@@ -118,24 +116,23 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
       {/* Hashtags */}
       {actualConteudo?.hashtags && actualConteudo.hashtags.length > 0 && (
         <Card>
-          <CardHeader className="p-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">Hashtags</CardTitle>
+          <CardHeader className="p-2">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-xs font-semibold flex-1 min-w-0 truncate">Hashtags</CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(conteudo.hashtags!.join(" "), "Hashtags")}
-                className="h-9"
+                onClick={() => copyToClipboard(actualConteudo.hashtags!.join(" "), "Hashtags")}
+                className="h-7 w-7 p-0 flex-shrink-0"
               >
-                <Copy className="h-4 w-4 mr-2" />
-                Copiar
+                <Copy className="h-3.5 w-3.5" />
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="p-3 pt-0">
+          <CardContent className="p-2 pt-0">
             <div className="flex flex-wrap gap-2">
               {actualConteudo.hashtags.map((tag, i) => (
-                <span key={i} className="text-sm text-primary">
+                <span key={i} className="text-xs text-primary break-all">
                   {tag}
                 </span>
               ))}
@@ -146,20 +143,18 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
 
       {/* Geração de Imagem Opcional */}
       <Card>
-        <CardHeader className="p-3">
-          <CardTitle className="text-sm font-semibold">Imagem (Opcional)</CardTitle>
-          <div className="flex flex-col sm:flex-row gap-2 pt-2">
-            <Button
-              variant={generatedImage ? "outline" : "default"}
-              size="sm"
-              onClick={handleGenerateImage}
-              disabled={isGenerating}
-              className="w-full sm:w-auto h-9"
-            >
-              <ImageIcon className="h-4 w-4 mr-2" />
-              {isGenerating ? "Gerando..." : generatedImage ? "Regerar Imagem" : "Gerar Imagem"}
-            </Button>
-          </div>
+        <CardHeader className="p-2">
+          <CardTitle className="text-xs font-semibold mb-2">Imagem (Opcional)</CardTitle>
+          <Button
+            variant={generatedImage ? "outline" : "default"}
+            size="sm"
+            onClick={handleGenerateImage}
+            disabled={isGenerating}
+            className="w-full h-8 text-xs"
+          >
+            <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+            {isGenerating ? "Gerando..." : generatedImage ? "Regerar" : "Gerar Imagem"}
+          </Button>
         </CardHeader>
         {generatedImage && (
           <CardContent className="p-3 pt-0">

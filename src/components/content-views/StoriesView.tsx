@@ -56,41 +56,41 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
 
         return (
           <Card key={slideNum} data-slide={slideNum}>
-            <CardHeader className="p-3">
-              <CardTitle className="text-sm font-semibold flex items-center justify-between gap-2">
-                <span className="line-clamp-1">Story {slideNum}: {slide.titulo}</span>
+            <CardHeader className="p-2">
+              <CardTitle className="text-xs font-semibold flex items-center justify-between gap-2">
+                <span className="line-clamp-2 leading-tight flex-1 min-w-0">Story {slideNum}: {slide.titulo}</span>
                 {slide.timing && <Badge variant="secondary" className="text-xs flex-shrink-0">{slide.timing}</Badge>}
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-3 pt-0 space-y-2">
-              <p className="text-sm text-muted-foreground whitespace-pre-line">
+            <CardContent className="p-2 pt-0 space-y-2">
+              <p className="text-xs text-muted-foreground break-words whitespace-pre-wrap leading-relaxed">
                 {slide.texto}
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="space-y-1.5">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleGenerateImage(slide)}
                   disabled={isLoadingImage}
-                  className="flex items-center gap-2 h-9"
+                  className="w-full h-8 text-xs"
                 >
                   {isLoadingImage ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
                   ) : (
-                    <Image className="h-4 w-4" />
+                    <Image className="h-3.5 w-3.5 mr-1.5" />
                   )}
-                  {isLoadingImage ? "Gerando..." : hasImage ? "Regerar Imagem" : "Gerar Imagem"}
+                  {isLoadingImage ? "Gerando..." : hasImage ? "Regerar" : "Gerar Imagem"}
                 </Button>
 
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => copyToClipboard(slide.texto, `Story ${slideNum}`, slideNum)}
-                  className="flex items-center gap-2 h-9"
+                  className="w-full h-8 text-xs"
                 >
-                  {copiedSlide === slideNum ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  Copiar
+                  {copiedSlide === slideNum ? <Check className="h-3.5 w-3.5 mr-1.5" /> : <Copy className="h-3.5 w-3.5 mr-1.5" />}
+                  {copiedSlide === slideNum ? "Copiado!" : "Copiar"}
                 </Button>
               </div>
 

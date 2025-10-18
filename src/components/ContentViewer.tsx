@@ -133,8 +133,17 @@ export function ContentViewer({ content }: ContentViewerProps) {
   }
   
   return (
-    <div className="space-y-6">
+    <div className="
+      w-full min-w-0 max-w-full overflow-x-hidden
+      [&_*]:max-w-full
+      [&_button]:max-w-full
+      [&_img]:w-full [&_img]:h-auto
+      [&_video]:w-full [&_video]:h-auto
+      [&_iframe]:w-full [&_iframe]:aspect-video
+      [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto
+    ">
       <ViewComponent 
+        {...content.content}
         data={content.content}
         contentType={content.content_type}
       />

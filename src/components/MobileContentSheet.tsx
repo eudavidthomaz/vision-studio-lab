@@ -66,12 +66,13 @@ export function MobileContentSheet({ content, open, onClose }: MobileContentShee
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent 
         side="bottom" 
-        className="h-[min(95svh,95dvh)] w-screen max-w-full p-0 rounded-t-2xl overflow-hidden pb-[env(safe-area-inset-bottom)]"
+        className="h-[95dvh] w-screen max-w-full p-0 rounded-t-2xl overflow-hidden"
       >
-        <div className="flex flex-col h-full w-full min-w-0 overflow-x-clip">
-          {/* Header fixo */}
-          <SheetHeader className="px-4 py-3 border-b sticky top-0 bg-background z-10 space-y-2">
-            <SheetTitle className="text-base font-semibold line-clamp-2 text-left">
+        {/* Container com altura fixa e overflow controlado */}
+        <div className="flex flex-col h-full w-full">
+          {/* Header fixo - não rola */}
+          <SheetHeader className="flex-shrink-0 px-3 py-3 border-b bg-background z-10 space-y-2">
+            <SheetTitle className="text-sm font-semibold line-clamp-1 text-left pr-8">
               {content.title}
             </SheetTitle>
             
@@ -87,7 +88,7 @@ export function MobileContentSheet({ content, open, onClose }: MobileContentShee
               {content.source_type && (
                 <Badge variant="secondary" className="text-xs">
                   {content.source_type === 'ai-creator' ? '🤖 IA' : 
-                   content.source_type === 'audio-pack' ? '🎙️ Pack Semanal' : 
+                   content.source_type === 'audio-pack' ? '🎙️ Pack' : 
                    '✍️ Manual'}
                 </Badge>
               )}
@@ -106,16 +107,21 @@ export function MobileContentSheet({ content, open, onClose }: MobileContentShee
             )}
           </SheetHeader>
 
-          {/* Conteúdo scrollável */}
-          <ScrollArea className="flex-1 min-w-0">
-            <div className="p-4 w-full min-w-0 break-words overflow-x-hidden
-                            [&_img]:max-w-full [&_img]:h-auto
-                            [&_video]:max-w-full [&_video]:h-auto
-                            [&_iframe]:w-full [&_iframe]:aspect-video
-                            [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto">
+          {/* Conteúdo scrollável - cresce para preencher espaço */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="
+              p-3 w-full min-w-0 
+              [&_*]:max-w-full
+              [&_img]:w-full [&_img]:h-auto
+              [&_video]:w-full [&_video]:h-auto
+              [&_iframe]:w-full [&_iframe]:aspect-video
+              [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto
+              [&_pre]:text-xs [&_pre]:overflow-x-auto
+              [&_code]:text-xs [&_code]:break-all
+            ">
               <ContentViewer content={content} />
             </div>
-          </ScrollArea>
+          </div>
         </div>
       </SheetContent>
     </Sheet>

@@ -34,35 +34,33 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
   return (
     <div className="space-y-4">
       <Card className="border-primary/20">
-        <CardHeader className="text-center p-3">
-          <CardTitle className="text-base font-semibold">{convite.titulo_evento}</CardTitle>
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-3">
-            <Badge variant="outline" className="gap-2 text-xs">
+        <CardHeader className="text-center p-2">
+          <CardTitle className="text-sm font-semibold line-clamp-2 leading-tight">{convite.titulo_evento}</CardTitle>
+          <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
+            <Badge variant="outline" className="gap-1.5 text-xs">
               <Calendar className="h-3 w-3" />
               {convite.data}
             </Badge>
-            <Badge variant="outline" className="gap-2 text-xs">
+            <Badge variant="outline" className="gap-1.5 text-xs">
               <Clock className="h-3 w-3" />
               {convite.horario}
             </Badge>
-            <Badge variant="outline" className="gap-2 text-xs">
+            <Badge variant="outline" className="gap-1.5 text-xs">
               <MapPin className="h-3 w-3" />
-              {convite.local}
+              <span className="truncate max-w-[120px]">{convite.local}</span>
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3 p-3">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              variant={generatedImage ? "outline" : "default"}
-              onClick={handleGenerateImage}
-              disabled={isGenerating}
-              className="w-full sm:w-auto h-9"
-            >
-              <ImageIcon className="h-4 w-4 mr-2" />
-              {isGenerating ? "Gerando..." : generatedImage ? "Regerar Arte" : "Gerar Arte do Convite"}
-            </Button>
-          </div>
+        <CardContent className="space-y-2 p-2">
+          <Button
+            variant={generatedImage ? "outline" : "default"}
+            onClick={handleGenerateImage}
+            disabled={isGenerating}
+            className="w-full h-8 text-xs"
+          >
+            <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+            {isGenerating ? "Gerando..." : generatedImage ? "Regerar" : "Gerar Arte"}
+          </Button>
 
           {generatedImage && (
             <div id="generated-invite-image" className="rounded-lg overflow-hidden bg-muted">
@@ -75,40 +73,40 @@ export const ConviteView = ({ convite }: ConviteViewProps) => {
           )}
 
           <div>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{convite.descricao}</p>
+            <p className="text-xs text-muted-foreground break-words whitespace-pre-wrap leading-relaxed">{convite.descricao}</p>
           </div>
 
           <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="p-3">
-              <div className="flex items-start gap-3">
-                <Users className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-sm">Para quem é?</p>
-                  <p className="text-sm text-muted-foreground mt-1">{convite.publico_alvo}</p>
+            <CardContent className="p-2">
+              <div className="flex items-start gap-2">
+                <Users className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-xs">Para quem é?</p>
+                  <p className="text-xs text-muted-foreground mt-1 break-words">{convite.publico_alvo}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <div className="space-y-2">
-            <h4 className="font-semibold text-sm">Como participar:</h4>
-            <p className="text-sm text-muted-foreground">{convite.como_participar}</p>
+          <div className="space-y-1.5">
+            <h4 className="font-semibold text-xs">Como participar:</h4>
+            <p className="text-xs text-muted-foreground break-words">{convite.como_participar}</p>
           </div>
 
           {convite.contato && (
             <Card className="bg-muted/50">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-2 text-sm">
+              <CardContent className="p-2">
+                <div className="flex items-center gap-2 text-xs">
                   <Phone className="h-3 w-3 text-primary flex-shrink-0" />
                   <span className="font-medium">Contato:</span>
-                  <span className="text-muted-foreground">{convite.contato}</span>
+                  <span className="text-muted-foreground break-all">{convite.contato}</span>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          <div className="text-center p-3 bg-primary text-primary-foreground rounded-lg">
-            <p className="text-sm font-semibold">{convite.chamado_acao}</p>
+          <div className="text-center p-2 bg-primary text-primary-foreground rounded-lg">
+            <p className="text-xs font-semibold break-words">{convite.chamado_acao}</p>
           </div>
         </CardContent>
       </Card>

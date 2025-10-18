@@ -101,14 +101,14 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
       {/* Estrutura Visual - Cards/Slides do Carrossel */}
       {items.length > 0 && (
         <Card>
-          <CardHeader className="p-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <ImageIcon className="h-4 w-4" />
-              Estrutura Visual - {items.length} Cards
+          <CardHeader className="p-2">
+            <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
+              <ImageIcon className="h-3.5 w-3.5" />
+              {items.length} Cards
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-0">
-            <Carousel className="w-full max-w-2xl mx-auto">
+            <Carousel className="w-full max-w-full mx-auto px-8">
               <CarouselContent>
                 {items.map((item: any, index) => {
                   const titulo = item.titulo_slide || item.titulo;
@@ -119,11 +119,13 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                   return (
                     <CarouselItem key={index}>
                       <Card className="border-2" data-card={index + 1}>
-                        <CardHeader className="bg-primary/5 p-3">
-                          <CardTitle className="text-sm font-semibold line-clamp-1">
+                        <CardHeader className="bg-primary/5 p-2">
+                          <CardTitle className="text-xs font-semibold line-clamp-2 leading-tight mb-2">
                             Card {index + 1}: {titulo}
                           </CardTitle>
-                          <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                          
+                          {/* Botões SEMPRE empilhados verticalmente no mobile */}
+                          <div className="space-y-1.5">
                             <Button
                               variant={generatedImages[index + 1] ? "outline" : "default"}
                               size="sm"
@@ -133,11 +135,12 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                                 texto 
                               })}
                               disabled={loadingCard === index + 1}
-                              className="w-full sm:w-auto h-9"
+                              className="w-full h-8 text-xs"
                             >
-                              <ImageIcon className="h-4 w-4 mr-2" />
+                              <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
                               {loadingCard === index + 1 ? "Gerando..." : generatedImages[index + 1] ? "Regerar" : "Gerar Imagem"}
                             </Button>
+                            
                             <Button
                               variant="outline"
                               size="sm"
@@ -146,10 +149,10 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                                 `Card ${index + 1}`,
                                 index + 1
                               )}
-                              className="w-full sm:w-auto h-9"
+                              className="w-full h-8 text-xs"
                             >
-                              <Copy className="h-4 w-4 mr-2" />
-                              Copiar
+                              <Copy className="h-3.5 w-3.5 mr-1.5" />
+                              {copiedCard === index + 1 ? "Copiado!" : "Copiar"}
                             </Button>
                           </div>
                         </CardHeader>
@@ -163,7 +166,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                               />
                             </div>
                           )}
-                          <p className="text-sm whitespace-pre-wrap break-words">{texto}</p>
+                          <p className="text-xs leading-relaxed break-words whitespace-pre-wrap">{texto}</p>
                           {imagemSugerida && (
                             <div className="p-3 bg-muted rounded-md">
                               <strong className="text-sm">Sugestão de Imagem:</strong>
