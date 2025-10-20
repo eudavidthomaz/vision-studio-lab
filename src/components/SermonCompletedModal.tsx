@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
-import { Sparkles, BookOpen } from "lucide-react";
+import { Sparkles, BookOpen, Library } from "lucide-react";
 import confetti from "canvas-confetti";
 
 interface SermonCompletedModalProps {
@@ -15,6 +15,7 @@ interface SermonCompletedModalProps {
   };
   contentsCount?: number;
   onViewContents: (sermonId: string) => void;
+  onCreateContents: (sermonId: string) => void;
 }
 
 export const SermonCompletedModal = ({
@@ -23,6 +24,7 @@ export const SermonCompletedModal = ({
   sermon,
   contentsCount = 0,
   onViewContents,
+  onCreateContents,
 }: SermonCompletedModalProps) => {
   useEffect(() => {
     if (open) {
@@ -59,27 +61,62 @@ export const SermonCompletedModal = ({
         </ScrollArea>
 
         <div className="space-y-4 pt-4 border-t">
-          {contentsCount > 0 && (
-            <div className="p-4 bg-primary/10 rounded-lg text-center">
-              <p className="text-sm font-semibold text-primary mb-1">
-                ✨ {contentsCount} conteúdos criados automaticamente!
+          {contentsCount > 0 ? (
+            // Se JÁ tem conteúdos gerados
+            <>
+              <div className="p-4 bg-primary/10 rounded-lg text-center">
+                <p className="text-sm font-semibold text-primary mb-1">
+                  ✨ {contentsCount} conteúdos criados!
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Posts, stories, reels e mais foram gerados com base na sua pregação
+                </p>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="flex-1"
+                >
+                  Fechar
+                </Button>
+                <Button
+                  onClick={() => onViewContents(sermon.id)}
+                  className="flex-1"
+                >
+                  <Library className="w-4 h-4 mr-2" />
+                  Ver Conteúdos
+                </Button>
+              </div>
+            </>
+          ) : (
+            // Se NÃO tem conteúdos ainda
+            <>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="flex-1"
+                >
+                  Fazer Depois
+                </Button>
+                <Button
+                  onClick={() => {
+                    onOpenChange(false);
+                    onCreateContents(sermon.id);
+                  }}
+                  className="flex-1"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Criar Conteúdos
+                </Button>
+              </div>
+              <p className="text-xs text-center text-muted-foreground">
+                Use a IA para criar posts, stories, reels e mais baseados na sua pregação
               </p>
-              <p className="text-xs text-muted-foreground">
-                Posts, stories, reels e mais foram gerados com base na sua pregação
-              </p>
-            </div>
+            </>
           )}
-          
-          <Button onClick={() => onViewContents(sermon.id)} size="lg" className="w-full">
-            <Sparkles className="w-4 h-4 mr-2" />
-            {contentsCount > 0 ? 'Ver Meus Conteúdos' : 'Criar Conteúdos Agora'}
-          </Button>
-          
-          <p className="text-xs text-center text-muted-foreground">
-            {contentsCount > 0 
-              ? 'Visualize, edite e publique seus conteúdos gerados'
-              : 'Acesse sua pregação e comece a criar conteúdos baseados nela'}
-          </p>
         </div>
       </DialogContent>
     </Dialog>

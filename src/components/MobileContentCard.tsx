@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, Image as ImageIcon, MoreVertical, Move, Star, Pin } from "lucide-react";
+import { Copy, Image as ImageIcon, MoreVertical, Move, Star, Pin, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import ImageGenerationModal from "./ImageGenerationModal";
@@ -119,7 +119,7 @@ export default function MobileContentCard({
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1">
               <CardTitle className="text-foreground text-base leading-tight mb-2">
-                {content.title}
+                {content.title || "Conteúdo sem título"}
               </CardTitle>
               <div className="flex gap-2 flex-wrap">
                 <Badge variant="secondary" className="text-xs">{content.content_type}</Badge>
@@ -235,35 +235,50 @@ export default function MobileContentCard({
         </CardHeader>
         
         <CardContent className="space-y-3">
-          {/* Image Preview */}
-          {imagem_url && (
-            <div 
-              className="relative rounded-md overflow-hidden active:opacity-80 transition-opacity"
-              onClick={() => setShowImagePreview(true)}
-            >
-              <img
-                src={imagem_url}
-                alt={content.title}
-                className="w-full h-40 object-cover"
-                loading="lazy"
-              />
+          {/* VALIDAÇÃO */}
+          {!copy || copy.length === 0 ? (
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+              <p className="text-sm text-yellow-600 flex items-center gap-2">
+                <AlertCircle className="h-4 w-4" />
+                Conteúdo vazio
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Este conteúdo pode ter falhado. Tente regenerar ou excluir.
+              </p>
             </div>
-          )}
+          ) : (
+            <>
+              {/* Image Preview */}
+              {imagem_url && (
+                <div 
+                  className="relative rounded-md overflow-hidden active:opacity-80 transition-opacity"
+                  onClick={() => setShowImagePreview(true)}
+                >
+                  <img
+                    src={imagem_url}
+                    alt={content.title}
+                    className="w-full h-40 object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              )}
 
-          {/* Preview Text */}
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-            {copy}
-          </p>
-          
-          {/* Hashtags Preview */}
-          <div className="flex flex-wrap gap-1">
-            {Array.isArray(hashtags) && hashtags.slice(0, 3).map((tag, i) => (
-              <span key={i} className="text-xs text-primary">{tag}</span>
-            ))}
-            {Array.isArray(hashtags) && hashtags.length > 3 && (
-              <span className="text-xs text-muted-foreground">+{hashtags.length - 3}</span>
-            )}
-          </div>
+              {/* Preview Text */}
+              <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                {copy}
+              </p>
+              
+              {/* Hashtags Preview */}
+              <div className="flex flex-wrap gap-1">
+                {Array.isArray(hashtags) && hashtags.slice(0, 3).map((tag, i) => (
+                  <span key={i} className="text-xs text-primary">{tag}</span>
+                ))}
+                {Array.isArray(hashtags) && hashtags.length > 3 && (
+                  <span className="text-xs text-muted-foreground">+{hashtags.length - 3}</span>
+                )}
+              </div>
+            </>
+          )}
           
           {/* Primary Actions - Large Touch Targets */}
           <div className="grid grid-cols-2 gap-2 pt-2">

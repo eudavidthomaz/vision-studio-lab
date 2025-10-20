@@ -93,85 +93,43 @@ const Dashboard = () => {
       if (sermonId) {
         const { data: sermon } = await supabase
           .from('sermons')
-          .select('id, transcript')
+          .select('id, transcript, summary')
           .eq('id', sermonId)
           .single();
 
         if (sermon) {
           setCurrentSermonId(sermon.id);
           
-          // Check if summary already exists in database
-          const { data: sermonData } = await supabase
-            .from('sermons')
-            .select('summary')
-            .eq('id', sermon.id)
-            .single();
-          
-          if (sermonData?.summary) {
-            // Use cached summary
-            setCurrentSermonSummary(sermonData.summary);
+          // Se já tem resumo, usa; senão gera
+          if (sermon.summary) {
+            setCurrentSermonSummary(sermon.summary);
           } else {
-            // Generate new summary with AI
-            toast({
-              title: "📝 Gerando resumo...",
-              description: "Criando resumo executivo da pregação",
-            });
-
-            try {
-              const { data: summaryData, error: summaryError } = await supabase.functions.invoke(
-                'generate-sermon-summary',
-                { body: { transcript: sermon.transcript } }
-              );
-
-              if (summaryError) throw summaryError;
-
-              const generatedSummary = summaryData?.summary || 'Resumo não disponível';
-              setCurrentSermonSummary(generatedSummary);
-
-              // Cache summary in database
-              await supabase
-                .from('sermons')
-                .update({ summary: generatedSummary })
-                .eq('id', sermon.id);
-
-            } catch (err) {
-              console.error('Error generating summary:', err);
-              // Fallback: use first 500 characters
-              const fallback = sermon.transcript.substring(0, 500) + '...';
-              setCurrentSermonSummary(fallback);
-            }
+            // Gerar resumo (NÃO pack completo)
+            const { data: summaryData } = await supabase.functions.invoke(
+              'generate-sermon-summary',
+              { body: { transcript: sermon.transcript } }
+            );
+            
+            const generatedSummary = summaryData?.summary || sermon.transcript.substring(0, 500) + '...';
+            setCurrentSermonSummary(generatedSummary);
+            
+            await supabase
+              .from('sermons')
+              .update({ summary: generatedSummary })
+              .eq('id', sermon.id);
           }
           
-          // Automaticamente gerar pack de conteúdos
-          toast({
-            title: "🤖 Gerando Conteúdos...",
-            description: "Estamos criando posts, stories e reels para você!",
-          });
-
-          try {
-            const { data, error } = await supabase.functions.invoke('generate-sermon-pack', {
-              body: { sermon_id: sermon.id }
-            });
-
-            if (error) throw error;
-
-            const contentsCount = data?.data?.contents_count || 0;
-            setGeneratedContentsCount(contentsCount);
-            
-            console.log(`✅ Pack gerado: ${contentsCount} conteúdos criados`);
-          } catch (packError) {
-            console.error('Error generating pack:', packError);
-            // Não bloqueia o fluxo se falhar - usuário pode criar manualmente
-            setGeneratedContentsCount(0);
-          }
+          // Não gera conteúdos automaticamente mais
+          setGeneratedContentsCount(0);
         }
       }
 
+      // Abrir modal de conclusão (SEM conteúdos gerados)
       setShowSermonCompletedModal(true);
 
       toast({
-        title: "✅ Transcrição Completa! 🎉",
-        description: "Sua pregação foi transcrita com sucesso e está pronta para gerar conteúdos.",
+        title: "✅ Sua Pregação Foi Salva!",
+        description: "Transcrição completa. Agora você pode criar posts, stories, reels e muito mais!",
         duration: 5000,
       });
 
@@ -186,8 +144,8 @@ const Dashboard = () => {
       await trackEvent('sermon_processing_failed', { error: String(error) });
       
       toast({
-        title: "Erro",
-        description: "Não foi possível processar o sermão. Tente novamente.",
+        title: "Ops! Algo deu errado",
+        description: "Não conseguimos processar o áudio. Tente novamente ou contate o suporte.",
         variant: "destructive",
       });
     }
@@ -350,6 +308,7 @@ const Dashboard = () => {
           }}
           contentsCount={generatedContentsCount}
           onViewContents={handleViewContents}
+          onCreateContents={handleOpenContentCreator}
         />
 
         {/* AI Modal */}

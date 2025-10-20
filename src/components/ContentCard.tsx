@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2, Star, Archive, RefreshCw, Pin } from "lucide-react";
+import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2, Star, Archive, RefreshCw, Pin, AlertCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import ContentStatusBadge from "./ContentStatusBadge";
 import TagManagerDialog from "./TagManagerDialog";
@@ -189,9 +189,11 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
                 onChange={(e) => setEditedTitulo(e.target.value)}
                 className="mb-2"
               />
-            ) : (
-              <CardTitle className="text-foreground text-base">{content.title}</CardTitle>
-            )}
+          ) : (
+            <CardTitle className="text-foreground text-base line-clamp-2">
+              {content.title || "Conteúdo sem título"}
+            </CardTitle>
+          )}
             <div className="flex flex-wrap gap-2 mt-2">
               <Badge variant="secondary" className="text-xs">{content.content_type}</Badge>
               <Badge className={`${pillarColors[content.pilar] || 'bg-gray-500'} text-white text-xs`}>
@@ -242,53 +244,68 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {/* Image Preview with Lazy Loading */}
-        {imagem_url && !isEditing && (
-          <div className="relative group">
-            <img
-              src={imagem_url}
-              alt={content.title}
-              className="w-full h-32 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => setShowImagePreview(true)}
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setShowImagePreview(true)}
-              >
-                Ver Imagem
-              </Button>
-            </div>
+        {/* VALIDAÇÃO PARA CONTEÚDO VAZIO */}
+        {!copy || copy.length === 0 ? (
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+            <p className="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              Conteúdo vazio ou em processamento
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Este conteúdo pode ter falhado ao ser gerado. Tente regenerar ou excluir.
+            </p>
           </div>
-        )}
-
-        {isEditing ? (
-          <>
-            <Textarea
-              value={editedCopy}
-              onChange={(e) => setEditedCopy(e.target.value)}
-              rows={6}
-              className="mb-2"
-            />
-            <Input
-              value={editedHashtags}
-              onChange={(e) => setEditedHashtags(e.target.value)}
-              placeholder="Hashtags separadas por espaço"
-            />
-          </>
         ) : (
           <>
-            <p className="text-sm text-muted-foreground line-clamp-3">{copy}</p>
-            <div className="flex flex-wrap gap-1">
-              {Array.isArray(hashtags) && hashtags.slice(0, 3).map((tag, i) => (
-                <span key={i} className="text-xs text-primary">{tag}</span>
-              ))}
-              {Array.isArray(hashtags) && hashtags.length > 3 && (
-                <span className="text-xs text-muted-foreground">+{hashtags.length - 3}</span>
-              )}
-            </div>
+            {/* Image Preview with Lazy Loading */}
+            {imagem_url && !isEditing && (
+              <div className="relative group">
+                <img
+                  src={imagem_url}
+                  alt={content.title}
+                  className="w-full h-32 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setShowImagePreview(true)}
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setShowImagePreview(true)}
+                  >
+                    Ver Imagem
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {isEditing ? (
+              <>
+                <Textarea
+                  value={editedCopy}
+                  onChange={(e) => setEditedCopy(e.target.value)}
+                  rows={6}
+                  className="mb-2"
+                />
+                <Input
+                  value={editedHashtags}
+                  onChange={(e) => setEditedHashtags(e.target.value)}
+                  placeholder="Hashtags separadas por espaço"
+                />
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground line-clamp-3">{copy}</p>
+                <div className="flex flex-wrap gap-1">
+                  {Array.isArray(hashtags) && hashtags.slice(0, 3).map((tag, i) => (
+                    <span key={i} className="text-xs text-primary">{tag}</span>
+                  ))}
+                  {Array.isArray(hashtags) && hashtags.length > 3 && (
+                    <span className="text-xs text-muted-foreground">+{hashtags.length - 3}</span>
+                  )}
+                </div>
+              </>
+            )}
           </>
         )}
         

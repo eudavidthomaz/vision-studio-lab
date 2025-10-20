@@ -125,10 +125,46 @@ function DefaultView({ data, type }: { data: any; type: string }) {
 }
 
 export function ContentViewer({ content }: ContentViewerProps) {
-  const ViewComponent = CONTENT_VIEWS[content.content_type];
+  // Normalizar tipo de conteúdo (remover underscores, lowercase)
+  const normalizedType = content.content_type
+    .toLowerCase()
+    .replace(/_/g, ''); // "post_simples" → "postsimples"
+  
+  // Tentar buscar view com tipo normalizado E original
+  let ViewComponent = CONTENT_VIEWS[content.content_type] || 
+                      CONTENT_VIEWS[normalizedType] ||
+                      null;
+  
+  // Se ainda não achou, tentar mapeamento manual de aliases
+  if (!ViewComponent) {
+    const typeAliases: Record<string, string> = {
+      'postsimples': 'post',
+      'post_simples': 'post',
+      'postsimple': 'post',
+      'resumopregacao': 'resumo',
+      'resumo_pregacao': 'resumo',
+      'estudobiblico': 'estudo',
+      'estudo_biblico': 'estudo',
+      'roteiroReels': 'roteiro_reels',
+      'roteiroreels': 'roteiro_reels',
+    };
+    
+    const aliasKey = typeAliases[normalizedType];
+    if (aliasKey) {
+      ViewComponent = CONTENT_VIEWS[aliasKey];
+    }
+  }
+  
+  // Log para debug (TEMPORÁRIO - remover depois)
+  if (!ViewComponent) {
+    console.warn(`❌ No view found for: "${content.content_type}"`, {
+      original: content.content_type,
+      normalized: normalizedType,
+      availableViews: Object.keys(CONTENT_VIEWS)
+    });
+  }
   
   if (!ViewComponent) {
-    console.warn(`No view found for content_type: ${content.content_type}`);
     return <DefaultView data={content.content} type={content.content_type} />;
   }
   
