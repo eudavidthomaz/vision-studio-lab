@@ -588,7 +588,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
           </Card>
         )}
 
-        <DevocionalView devocional={parsedContent.devocional} />
+        <DevocionalView {...parsedContent.devocional} data={parsedContent.devocional} />
 
         <div className="flex gap-3 mt-6">
           <Button onClick={onSave} disabled={isSaving} size="lg">

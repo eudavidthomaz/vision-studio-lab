@@ -2,16 +2,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Book, MessageSquare, Target } from "lucide-react";
 
 interface DevocionalViewProps {
-  devocional: {
-    titulo: string;
-    reflexao: string;
-    perguntas_pessoais: string[];
-    oracao: string;
-    desafio_do_dia: string;
-  };
+  titulo?: string;
+  reflexao?: string;
+  perguntas_pessoais?: string[];
+  oracao?: string;
+  desafio_do_dia?: string;
+  data?: any;
 }
 
-export const DevocionalView = ({ devocional }: DevocionalViewProps) => {
+export const DevocionalView = ({ 
+  titulo = "Devocional",
+  reflexao = "",
+  perguntas_pessoais = [],
+  oracao = "",
+  desafio_do_dia = "",
+  data
+}: DevocionalViewProps) => {
+  // Se os dados vierem no objeto 'data', usar esses
+  const devocional = data || {
+    titulo,
+    reflexao,
+    perguntas_pessoais,
+    oracao,
+    desafio_do_dia
+  };
   return (
     <div className="space-y-4">
       <Card className="bg-gradient-to-br from-purple-500/10 to-blue-500/10">
