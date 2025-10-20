@@ -49,45 +49,51 @@ export const DevocionalView = ({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className="p-3">
-          <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-            <MessageSquare className="h-4 w-4" />
-            Perguntas para Reflexão
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 pt-0">
-          <ol className="space-y-2 list-decimal list-inside text-sm text-muted-foreground">
-            {devocional.perguntas_pessoais.map((p, i) => (
-              <li key={i}>{p}</li>
-            ))}
-          </ol>
-        </CardContent>
-      </Card>
+      {devocional.perguntas_pessoais && devocional.perguntas_pessoais.length > 0 && (
+        <Card>
+          <CardHeader className="p-3">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <MessageSquare className="h-4 w-4" />
+              Perguntas para Reflexão
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <ol className="space-y-2 list-decimal list-inside text-sm text-muted-foreground">
+              {devocional.perguntas_pessoais.map((p, i) => (
+                <li key={i}>{p}</li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+      )}
 
-      <Card className="bg-amber-500/5 border-amber-500/20">
-        <CardHeader className="p-3">
-          <CardTitle className="flex items-center gap-2 text-amber-600 text-sm font-semibold">
-            <Heart className="h-4 w-4" />
-            Oração
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 pt-0">
-          <p className="italic text-sm text-muted-foreground">{devocional.oracao}</p>
-        </CardContent>
-      </Card>
+      {devocional.oracao && (
+        <Card className="bg-amber-500/5 border-amber-500/20">
+          <CardHeader className="p-3">
+            <CardTitle className="flex items-center gap-2 text-amber-600 text-sm font-semibold">
+              <Heart className="h-4 w-4" />
+              Oração
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <p className="italic text-sm text-muted-foreground">{devocional.oracao}</p>
+          </CardContent>
+        </Card>
+      )}
 
-      <Card className="bg-green-500/10 border-green-500/20">
-        <CardHeader className="p-3">
-          <CardTitle className="flex items-center gap-2 text-green-600 text-sm font-semibold">
-            <Target className="h-4 w-4" />
-            Desafio do Dia
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-3 pt-0">
-          <p className="font-medium text-sm text-muted-foreground">{devocional.desafio_do_dia}</p>
-        </CardContent>
-      </Card>
+      {devocional.desafio_do_dia && (
+        <Card className="bg-green-500/10 border-green-500/20">
+          <CardHeader className="p-3">
+            <CardTitle className="flex items-center gap-2 text-green-600 text-sm font-semibold">
+              <Target className="h-4 w-4" />
+              Desafio do Dia
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 pt-0">
+            <p className="font-medium text-sm text-muted-foreground">{devocional.desafio_do_dia}</p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
