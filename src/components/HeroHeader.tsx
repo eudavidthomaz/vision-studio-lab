@@ -1,15 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Library, User } from "lucide-react";
-
 interface HeroHeaderProps {
   onNavigateToContent: () => void;
   onNavigateToProfile: () => void;
   onLogout: () => void;
 }
-
-export const HeroHeader = ({ onNavigateToContent, onNavigateToProfile, onLogout }: HeroHeaderProps) => {
-  return (
-    <header className="relative overflow-hidden mb-12 sm:mb-16">
+export const HeroHeader = ({
+  onNavigateToContent,
+  onNavigateToProfile,
+  onLogout
+}: HeroHeaderProps) => {
+  return <header className="relative overflow-hidden mb-12 sm:mb-16">
       {/* Background Gradient Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/5 to-background rounded-3xl blur-3xl -z-10" />
       
@@ -28,33 +29,17 @@ export const HeroHeader = ({ onNavigateToContent, onNavigateToProfile, onLogout 
           
           {/* Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onNavigateToProfile}
-              className="gap-2 hover:bg-primary/10 hover:border-primary/50 transition-all"
-            >
+            <Button variant="outline" size="sm" onClick={onNavigateToProfile} className="gap-2 hover:bg-primary/10 hover:border-primary/50 transition-all">
               <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Perfil</span>
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onNavigateToContent}
-              className="gap-2 hover:bg-primary/10 hover:border-primary/50 transition-all"
-              data-tour="conteudos-button"
-            >
+            <Button variant="outline" size="sm" onClick={onNavigateToContent} className="gap-2 hover:bg-primary/10 hover:border-primary/50 transition-all" data-tour="conteudos-button">
               <Library className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">Meus Conteúdos</span>
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onLogout}
-              className="hover:bg-destructive/10 hover:border-destructive/50 transition-all"
-            >
+            <Button variant="outline" size="sm" onClick={onLogout} className="hover:bg-destructive/10 hover:border-destructive/50 transition-all">
               <span>Sair</span>
             </Button>
           </div>
@@ -64,7 +49,7 @@ export const HeroHeader = ({ onNavigateToContent, onNavigateToProfile, onLogout 
       {/* Layer 2 - Hero Message */}
       <div className="relative bg-card/50 backdrop-blur-sm border border-t-0 border-border/50 rounded-b-2xl px-6 sm:px-8 lg:px-12 py-8 sm:py-12 lg:py-16">
         <div className="text-center space-y-4 animate-fade-in animation-delay-200">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight">
+          <h2 className="sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight text-2xl">
             <span className="inline-block animate-fade-in bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient_6s_ease_infinite]">
               Ide por todo o mundo,
             </span>
@@ -110,6 +95,5 @@ export const HeroHeader = ({ onNavigateToContent, onNavigateToProfile, onLogout 
           animation-delay: 1000ms;
         }
       `}</style>
-    </header>
-  );
+    </header>;
 };
