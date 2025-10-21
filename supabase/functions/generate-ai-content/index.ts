@@ -115,14 +115,36 @@ serve(async (req) => {
       });
     }
 
+  // Extrair especificações do usuário do prompt
+  const extractUserSpecs = (text: string) => {
+    const specs: any = {};
+    
+    const quantMatch = text.match(/QUANTIDADE_OBRIGATÓRIA:\s*(\d+)/i);
+    if (quantMatch) specs.quantidade = parseInt(quantMatch[1]);
+    
+    const tomMatch = text.match(/TOM_OBRIGATÓRIO:\s*(\w+)/i);
+    if (tomMatch) specs.tom = tomMatch[1];
+    
+    const duracaoMatch = text.match(/DURAÇÃO:\s*([\d\w]+)/i);
+    if (duracaoMatch) specs.duracao = duracaoMatch[1];
+    
+    const publicoMatch = text.match(/PÚBLICO_ALVO:\s*(\w+)/i);
+    if (publicoMatch) specs.publico = publicoMatch[1];
+    
+    return specs;
+  };
+
+  const userSpecs = extractUserSpecs(processedPrompt);
+  console.log('📋 User specifications extracted:', userSpecs);
+
   // Detectar tipo de conteúdo solicitado
   let detectedType = 'post'; // default
 
   // PRIORIDADE 1: Verificar se há marcador explícito
-  const explicitTypeMatch = processedPrompt.match(/^TIPO_SOLICITADO:\s*(\w+)/i);
+  const explicitTypeMatch = processedPrompt.match(/TIPO_SOLICITADO:\s*(\w+)/i);
   if (explicitTypeMatch) {
     detectedType = explicitTypeMatch[1].toLowerCase();
-    console.log(`Explicit type detected: ${detectedType}`);
+    console.log(`✅ Explicit type detected: ${detectedType}`);
   } else {
     // PRIORIDADE 2: Detecção por regex (formatos específicos primeiro)
     const contentTypeDetection = {
@@ -864,34 +886,97 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     // FASE 2: CONSTRUIR SYSTEM PROMPT OTIMIZADO (HIERÁRQUICO)
     // ============================================
     
-    // NÍVEL 1: IDENTIDADE (sempre)
-    let systemPrompt = mentorContext;
+    // ============================================
+    // SYSTEM PROMPT MINIMALISTA + LAYERED
+    // ============================================
     
-    // NÍVEL 2: PRINCÍPIOS (completo para estratégicos, condensado para outros)
-    if (strategicTypes.includes(detectedType)) {
-      systemPrompt += `\n\n${CORE_PRINCIPLES}`;
-    } else {
-      // Versão condensada (~70% mais curta)
-      systemPrompt += `\n\nPRINCÍPIOS ESSENCIAIS:
+    // LAYER 1: CORE IDENTITY (sempre - ~800 chars)
+    let systemPrompt = `Você é um especialista em criação de conteúdo pastoral para redes sociais.
+
+PRINCÍPIOS INEGOCIÁVEIS:
 - Cristocentrismo e fidelidade bíblica
-- Dignidade humana e consentimento (LGPD/ECA)
-- Vulnerabilidade com respeito (sem exploração)
-- Verdade + Esperança (sem sensacionalismo)
-- Medição com propósito (pessoas > números)`;
-    }
+- Linguagem clara e acessível (8º ano)
+- Respeito à dignidade humana (sem exploração)
+- Conteúdo prático e aplicável
+
+FORMATO DE RESPOSTA:
+- Retorne APENAS JSON válido
+- Sem texto antes ou depois do JSON
+- Siga EXATAMENTE a estrutura solicitada
+`;
+
+    // LAYER 2: TYPE-SPECIFIC INSTRUCTIONS (só o essencial)
+    const typeInstructions: Record<string, string> = {
+      carrossel: `
+INSTRUÇÕES CARROSSEL:
+1. Gere EXATAMENTE ${userSpecs.quantidade || '8-10'} slides
+2. Cada slide DEVE ter:
+   - titulo_slide: Título impactante (máx 60 caracteres)
+   - conteudo: Texto para leitura rápida (80-150 caracteres)
+   - chamada_para_acao: CTA específico (opcional)
+   - imagem_sugerida: Descrição visual (uso interno, NÃO exibir ao usuário)
+
+3. PROGRESSÃO OBRIGATÓRIA:
+   - Slide 1: Hook que gera curiosidade (pergunta ou dado surpreendente)
+   - Slides intermediários: Desenvolvimento com exemplos práticos
+   - Último slide: CTA claro e mensurável
+
+4. TOM: ${userSpecs.tom ? userSpecs.tom.toUpperCase() : 'Adapte ao contexto'}
+
+EXEMPLO SLIDE PERFEITO:
+{
+  "numero_slide": 1,
+  "titulo_slide": "Você já se sentiu invisível?",
+  "conteudo": "Aquela sensação de que ninguém te vê, te ouve ou te entende? Hoje vamos descobrir como Deus enxerga além das aparências.",
+  "imagem_sugerida": "Pessoa sozinha olhando horizonte, luz suave",
+  "chamada_para_acao": "Deslize para descobrir →"
+}
+`,
+
+      reel: `
+INSTRUÇÕES REEL:
+1. Crie roteiro DETALHADO com 3-5 cenas${userSpecs.duracao ? ` (total: ${userSpecs.duracao})` : ''}
+2. Cada cena DEVE ter:
+   - numero: Ordem sequencial
+   - duracao: Tempo exato (ex: "0-3s", "3-8s")
+   - visual: Descrição específica do que filmar/mostrar
+   - audio: Script palavra-por-palavra do que falar
+   - texto_overlay: Texto exato para aparecer na tela
+
+3. ESTRUTURA OBRIGATÓRIA:
+   - Cena 1 (0-3s): HOOK impactante (pergunta/fato/problema)
+   - Cenas 2-4: Desenvolvimento (solução, ensino, exemplo)
+   - Última cena: CTA claro (comentar, salvar, compartilhar)
+
+4. LEGENDA: Deve complementar (não repetir) o vídeo
+
+EXEMPLO CENA:
+{
+  "numero": 1,
+  "duracao": "0-3s",
+  "visual": "Close no rosto falando direto pra câmera, fundo desfocado",
+  "audio": "Você sabia que 78% das pessoas se sentem sozinhas mesmo estando acompanhadas?",
+  "texto_overlay": "78% SE SENTEM SOZINHAS"
+}
+`,
+
+      estudo: `
+INSTRUÇÕES ESTUDO BÍBLICO:
+1. Contexto histórico/cultural DETALHADO (mínimo 200 caracteres)
+2. Mínimo de 3 aplicações práticas CONCRETAS com exemplos reais
+3. Perguntas reflexivas profundas (não genéricas)
+4. Linguagem pastoral mas acessível
+
+APLICAÇÃO PRÁTICA BOA:
+❌ Ruim: "Ore mais esta semana"
+✅ Boa: "Escolha um momento fixo (ex: 7h ou 22h) e converse com Deus por 10min sobre uma decisão específica. Anote o que sentiu."
+`
+    };
     
-    // NÍVEL 3: MÉTODO DE CONTEÚDO (só quando relevante)
-    if (['estudo', 'devocional', 'resumo', 'esboco', 'resumo_breve'].includes(detectedType)) {
-      systemPrompt += `\n\n${CONTENT_METHOD}`;
-    }
+    systemPrompt += `\n\n${typeInstructions[detectedType] || ''}`;
     
-    // NÍVEL 4: DISTRIBUIÇÃO DE PILARES (só para calendários)
-    if (detectedType === 'calendario') {
-      systemPrompt += `\n\n${PILLAR_DISTRIBUTION}`;
-    }
-    
-    // NÍVEL 5: BASE DE ESTUDOS (só para conteúdo bíblico)
-    if (requiresBiblicalFoundation.includes(detectedType)) {
+    // LAYER 3: BASE DE ESTUDOS (só para conteúdo bíblico profundo)
+    if (['estudo', 'devocional', 'esboco', 'discipulado'].includes(detectedType)) {
       systemPrompt += `\n\n${STUDY_BASE}`;
     }
     
@@ -1059,15 +1144,26 @@ Retorne APENAS o JSON válido.`;
     const deepBiblicalTypes = ['estudo', 'esboco', 'discipulado', 'qa_estruturado'];
     const operationalTypesTemp = ['aviso', 'convite', 'versiculos_citados', 'checklist_culto'];
     
-    const maxTokens = complexTypes.includes(detectedType) 
+    // Ajustar max_tokens baseado em quantidade especificada
+    let maxTokens = complexTypes.includes(detectedType) 
       ? 8000  // Conteúdo complexo/estratégico
       : deepBiblicalTypes.includes(detectedType)
       ? 6000  // Conteúdo bíblico profundo
       : 4000; // Outros tipos
     
-    const temperature = operationalTypesTemp.includes(detectedType)
-      ? 0.5   // Operacional - mais conservador e preciso
-      : 0.85; // Criativo/Pastoral - mais humano e natural
+    // Se usuário especificou quantidade grande, aumentar tokens
+    if (detectedType === 'carrossel' && userSpecs.quantidade && userSpecs.quantidade > 8) {
+      maxTokens = 10000;
+    }
+    
+    // ✅ Temperature ajustada para seguir instruções precisas
+    const temperature = ['carrossel', 'reel', 'stories', 'calendario'].includes(detectedType)
+      ? 0.4   // ✅ Estruturado - segue instruções precisas
+      : ['estudo', 'devocional', 'resumo'].includes(detectedType)
+      ? 0.6   // ✅ Pastoral - equilibrado
+      : operationalTypesTemp.includes(detectedType)
+      ? 0.3   // ✅ Operacional - muito preciso
+      : 0.5;  // ✅ Default conservador
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -1118,18 +1214,62 @@ Retorne APENAS o JSON válido.`;
     // ============================================
     // FASE 4: VALIDAÇÃO DE PROFUNDIDADE + RETRY AUTOMÁTICO
     // ============================================
-    const contentDepthCheck = (content: any, type: string): boolean => {
-      // Carrossel: deve ter 8-10 slides com conteúdo substancial
+    const contentDepthCheck = (content: any, type: string, specs: any): boolean => {
+      // Carrossel: validações completas
       if (type === 'carrossel') {
-        const slides = content.carrossel?.slides || [];
-        if (slides.length < 8) {
-          console.warn('Carrossel raso: menos de 8 slides');
+        const slides = content.carrossel?.slides || content.estrutura_visual?.slides || [];
+        
+        // ✅ VALIDAÇÃO 1: Quantidade exata se especificado
+        if (specs.quantidade && slides.length !== specs.quantidade) {
+          console.warn(`❌ Carrossel: esperado ${specs.quantidade} slides, gerado ${slides.length}`);
           return false;
         }
-        const avgLength = slides.reduce((sum: number, s: any) => sum + (s.conteudo?.length || 0), 0) / slides.length;
-        if (avgLength < 100) {
-          console.warn('Carrossel raso: conteúdo médio < 100 chars por slide');
+        
+        // ✅ VALIDAÇÃO 2: Mínimo 8 slides se não especificado
+        if (!specs.quantidade && slides.length < 8) {
+          console.warn('❌ Carrossel: menos de 8 slides');
           return false;
+        }
+        
+        // ✅ VALIDAÇÃO 3: Conteúdo no range ideal (80-200 chars)
+        for (const slide of slides) {
+          const conteudoLength = (slide.conteudo || '').length;
+          if (conteudoLength < 80 || conteudoLength > 250) {
+            console.warn(`❌ Slide ${slide.numero_slide} fora do padrão: ${conteudoLength} chars (ideal: 80-200)`);
+            return false;
+          }
+        }
+        
+        // ✅ VALIDAÇÃO 4: Semântica - primeiro slide deve ser hook
+        const primeiroSlide = slides[0]?.conteudo || '';
+        const isHook = /\?|você|sabia|imagine|já|pense/i.test(primeiroSlide);
+        if (!isHook) {
+          console.warn('❌ Primeiro slide não é um hook forte');
+          return false;
+        }
+        
+        // ✅ VALIDAÇÃO 5: Último slide deve ter CTA
+        const ultimoSlide = slides[slides.length - 1];
+        if (!ultimoSlide.chamada_para_acao) {
+          console.warn('❌ Último slide sem CTA');
+          return false;
+        }
+      }
+      
+      // Reel: validação de script detalhado
+      if (type === 'reel') {
+        const cenas = content.roteiro?.cenas || content.estrutura_visual?.cenas || [];
+        
+        // ✅ Cada cena deve ter script específico
+        for (const cena of cenas) {
+          if (!cena.audio || cena.audio.length < 30) {
+            console.warn(`❌ Cena ${cena.numero} sem script detalhado`);
+            return false;
+          }
+          if (!cena.visual || cena.visual.includes('genérico') || cena.visual.length < 20) {
+            console.warn(`❌ Cena ${cena.numero} sem visual específico`);
+            return false;
+          }
         }
       }
       
@@ -1200,7 +1340,7 @@ Retorne APENAS o JSON válido.`;
       return true; // Passou nos checks
     };
 
-    depthOk = contentDepthCheck(generatedContent, detectedType);
+    depthOk = contentDepthCheck(generatedContent, detectedType, userSpecs);
     
     // Se conteúdo raso E tipo que deveria ser profundo, fazer retry
     const typesRequiringDepth = [
@@ -1208,38 +1348,62 @@ Retorne APENAS o JSON válido.`;
       'treino_voluntario', 'resumo_breve', 'reel', 'esboco'
     ];
     
-    if (!depthOk && typesRequiringDepth.includes(detectedType) && retryCount < 1) {
-      console.warn(`⚠️ Content too shallow for type ${detectedType}, retrying with expanded prompt...`);
+    // ✅ RETRY INTELIGENTE COM FEEDBACK ESPECÍFICO
+    const MAX_RETRIES = 2;
+    
+    const buildRetryFeedback = (content: any, type: string, specs: any) => {
+      const problemas = [];
+      
+      if (type === 'carrossel') {
+        const slides = content.carrossel?.slides || content.estrutura_visual?.slides || [];
+        
+        if (specs.quantidade && slides.length !== specs.quantidade) {
+          problemas.push(`ERRO CRÍTICO: Você gerou ${slides.length} slides, mas eu pedi EXATAMENTE ${specs.quantidade}.`);
+        }
+        
+        const slidesLongos = slides.filter((s: any) => (s.conteudo || '').length > 200);
+        if (slidesLongos.length > 0) {
+          problemas.push(`ERRO: ${slidesLongos.length} slides têm texto muito longo. Máximo 150 caracteres por slide.`);
+        }
+        
+        const slidesCurtos = slides.filter((s: any) => (s.conteudo || '').length < 80);
+        if (slidesCurtos.length > 0) {
+          problemas.push(`ERRO: ${slidesCurtos.length} slides têm texto muito curto. Mínimo 80 caracteres por slide.`);
+        }
+        
+        if (!slides[slides.length - 1]?.chamada_para_acao) {
+          problemas.push(`ERRO: Último slide DEVE ter "chamada_para_acao" específica.`);
+        }
+        
+        const primeiroSlide = slides[0]?.conteudo || '';
+        const isHook = /\?|você|sabia|imagine|já|pense/i.test(primeiroSlide);
+        if (!isHook) {
+          problemas.push(`ERRO: Primeiro slide deve ser um HOOK (pergunta, fato surpreendente, desafio).`);
+        }
+      }
+      
+      if (type === 'reel') {
+        const cenas = content.roteiro?.cenas || [];
+        const cenasProblematicas = cenas.filter((c: any) => !c.audio || c.audio.length < 30);
+        if (cenasProblematicas.length > 0) {
+          problemas.push(`ERRO: ${cenasProblematicas.length} cenas sem script detalhado. Cada cena precisa de áudio específico (palavra por palavra).`);
+        }
+      }
+      
+      if (problemas.length === 0) {
+        return 'Refaça o conteúdo seguindo EXATAMENTE as instruções especificadas com mais profundidade e qualidade.';
+      }
+      
+      return `O conteúdo anterior NÃO atende aos requisitos:\n\n${problemas.join('\n')}\n\nREGERE o JSON corrigindo TODOS esses erros. Siga as especificações À RISCA.`;
+    };
+    
+    if (!depthOk && typesRequiringDepth.includes(detectedType) && retryCount < MAX_RETRIES) {
+      console.warn(`⚠️ Content too shallow for type ${detectedType}, retrying with specific feedback...`);
       retryCount++;
       
-      // Prompt expandido específico por tipo
-      const specificRequirements: Record<string, string> = {
-        carrossel: '10 slides com 150+ caracteres cada, conteúdo visual e textual rico',
-        estudo: '3+ aplicações práticas detalhadas + contexto histórico de 300+ caracteres',
-        devocional: 'reflexão de 400+ caracteres com storytelling e aplicação prática',
-        campanha_tematica: '4 semanas completas com posts específicos para cada dia',
-        treino_voluntario: '5+ módulos com teoria sólida + exercícios práticos concretos',
-        resumo_breve: '300+ palavras capturando essência e aplicação prática da mensagem',
-        reel: 'hook impactante + desenvolvimento claro + CTA forte com texto na tela',
-        esboco: '3+ pontos principais com subtópicos desenvolvidos e aplicações'
-      };
+      const feedbackPrompt = buildRetryFeedback(generatedContent, detectedType, userSpecs);
+      console.log('📝 Retry feedback:', feedbackPrompt);
       
-      const requirement = specificRequirements[detectedType] || 'conteúdo rico e profundo';
-      
-      const expandedPrompt = `${processedPrompt}
-
-⚠️ IMPORTANTE: O conteúdo anterior ficou muito superficial. 
-
-POR FAVOR, EXPANDA SIGNIFICATIVAMENTE com:
-✅ Exemplos práticos CONCRETOS (não genéricos como "ore mais", mas ações específicas)
-✅ Aplicações ESPECÍFICAS e detalhadas para situações reais
-✅ Contexto histórico/cultural COMPLETO quando relevante
-✅ Linguagem pastoral e HUMANIZADA (não robótica)
-✅ Mínimo de: ${requirement}
-
-Imagine que você está conversando com um líder de mídia que precisa de material RICO para usar com a igreja.
-Não seja superficial. Seja PROFUNDO, PRÁTICO e INSPIRADOR.`;
-
       const retryResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -1250,11 +1414,13 @@ Não seja superficial. Seja PROFUNDO, PRÁTICO e INSPIRADOR.`;
           model: 'google/gemini-2.5-flash',
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: expandedPrompt }
+            { role: 'user', content: processedPrompt },
+            { role: 'assistant', content: JSON.stringify(generatedContent) },
+            { role: 'user', content: feedbackPrompt }
           ],
           response_format: { type: 'json_object' },
           max_tokens: maxTokens,
-          temperature: temperature
+          temperature: temperature - 0.1  // ✅ Reduz criatividade no retry
         }),
       });
       
@@ -1264,7 +1430,7 @@ Não seja superficial. Seja PROFUNDO, PRÁTICO e INSPIRADOR.`;
         const retryJsonMatch = retryContent.match(/\{[\s\S]*\}/);
         if (retryJsonMatch) {
           const retryGeneratedContent = JSON.parse(retryJsonMatch[0]);
-          const retryDepthOk = contentDepthCheck(retryGeneratedContent, detectedType);
+          const retryDepthOk = contentDepthCheck(retryGeneratedContent, detectedType, userSpecs);
           if (retryDepthOk) {
             console.log('✅ Retry successful - content depth improved!');
             generatedContent = retryGeneratedContent;

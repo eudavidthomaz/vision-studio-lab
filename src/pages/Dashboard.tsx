@@ -170,8 +170,25 @@ const Dashboard = () => {
 
   const handleGenerateAIContent = async (prompt: string) => {
     setIsGeneratingAI(true);
+    
+    // ✅ Feedback progressivo ao usuário
+    toast({
+      title: "🤖 Analisando seu pedido...",
+      description: "Preparando a geração de conteúdo",
+      duration: 2000,
+    });
+    
     try {
       console.log('🚀 Gerando conteúdo com prompt:', prompt.substring(0, 100));
+      
+      // Atualizar toast após 1 segundo
+      setTimeout(() => {
+        toast({
+          title: "✨ Criando conteúdo...",
+          description: "Nossa IA está trabalhando nisso",
+          duration: Infinity,
+        });
+      }, 1000);
       
       const contentId = await createContent(prompt, preselectedSermonId);
       
@@ -179,9 +196,11 @@ const Dashboard = () => {
 
       await trackEvent('ai_content_generated', { prompt: prompt.substring(0, 50) });
 
+      // Feedback de sucesso
       toast({
-        title: "Conteúdo criado! 🎉",
+        title: "🎉 Conteúdo criado!",
         description: "Redirecionando para visualização...",
+        duration: 3000,
       });
 
       setShowAIModal(false);
@@ -198,9 +217,10 @@ const Dashboard = () => {
         'Não foi possível gerar o conteúdo. Tente novamente com um prompt mais específico.';
       
       toast({
-        title: "Erro na geração",
+        title: "❌ Erro na geração",
         description: errorMessage,
         variant: "destructive",
+        duration: 5000,
       });
     } finally {
       setIsGeneratingAI(false);

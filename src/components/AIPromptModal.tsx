@@ -39,31 +39,67 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
     }
   }, [open, preselectedSermonId]);
 
+  // Nova função para extrair especificações do usuário
+  const extractUserSpecifications = (text: string) => {
+    const specs: any = {};
+    
+    // Quantidade (slides, páginas, cards, dias, etc.)
+    const quantidadeMatch = text.match(/(\d+)\s*(slides?|páginas?|cards?|dias?|semanas?|pontos?|cenas?)/i);
+    if (quantidadeMatch) {
+      specs.quantidade = parseInt(quantidadeMatch[1]);
+      specs.unidade = quantidadeMatch[2].toLowerCase();
+    }
+    
+    // Tom emocional
+    const tons = ['emocional', 'inspirador', 'reflexivo', 'prático', 'profundo', 'leve', 'sério', 'motivador', 'urgente'];
+    const tomMatch = tons.find(t => new RegExp(`\\b${t}\\b`, 'i').test(text));
+    if (tomMatch) {
+      specs.tom = tomMatch;
+    }
+    
+    // Duração (para vídeos)
+    const duracaoMatch = text.match(/(\d+)\s*(segundos?|minutos?|seg|min)/i);
+    if (duracaoMatch) {
+      specs.duracao = `${duracaoMatch[1]}${duracaoMatch[2][0]}`;
+    }
+    
+    // Público-alvo
+    const publicoOptions = ['jovens', 'adolescentes', 'crianças', 'adultos', 'idosos', 'casais', 'solteiros'];
+    const publicoMatch = publicoOptions.find(p => new RegExp(`\\b${p}\\b`, 'i').test(text));
+    if (publicoMatch) {
+      specs.publico = publicoMatch;
+    }
+    
+    return specs;
+  };
+
   // Função para detectar tipo de conteúdo (formatos específicos primeiro)
   const detectContentType = (text: string): string => {
+    const lowerText = text.toLowerCase();
+    
     // FORMATOS ORGANIZACIONAIS (prioridade alta)
-    if (/calendário|cronograma|planejamento|plano editorial|grade de posts/i.test(text)) return 'calendario';
-    if (/aviso|comunicado|lembrete|atenção/i.test(text)) return 'aviso';
-    if (/guia|manual|passo a passo|tutorial/i.test(text)) return 'guia';
-    if (/esboço|outline|tópicos|estrutura/i.test(text)) return 'esboco';
-    if (/versículos citados|referências bíblicas|passagens mencionadas/i.test(text)) return 'versiculos_citados';
-    if (/trilha de oração|roteiro de oração|guia de intercessão/i.test(text)) return 'trilha_oracao';
-    if (/perguntas e respostas|q&a|dúvidas frequentes|faq/i.test(text)) return 'qa_estruturado';
-    if (/convite para grupo|chamado para célula|junte-se ao|entre no grupo/i.test(text)) return 'convite_grupos';
-    if (/discipulado|mentoria|acompanhamento espiritual/i.test(text)) return 'discipulado';
-    if (/convite|convidar|chamado para|venha para/i.test(text)) return 'convite';
+    if (/calendário|cronograma|planejamento|plano editorial|grade de posts/i.test(lowerText)) return 'calendario';
+    if (/aviso|comunicado|lembrete|atenção/i.test(lowerText)) return 'aviso';
+    if (/guia|manual|passo a passo|tutorial/i.test(lowerText)) return 'guia';
+    if (/esboço|outline|tópicos|estrutura/i.test(lowerText)) return 'esboco';
+    if (/versículos citados|referências bíblicas|passagens mencionadas/i.test(lowerText)) return 'versiculos_citados';
+    if (/trilha de oração|roteiro de oração|guia de intercessão/i.test(lowerText)) return 'trilha_oracao';
+    if (/perguntas e respostas|q&a|dúvidas frequentes|faq/i.test(lowerText)) return 'qa_estruturado';
+    if (/convite para grupo|chamado para célula|junte-se ao|entre no grupo/i.test(lowerText)) return 'convite_grupos';
+    if (/discipulado|mentoria|acompanhamento espiritual/i.test(lowerText)) return 'discipulado';
+    if (/convite|convidar|chamado para|venha para/i.test(lowerText)) return 'convite';
     
     // FORMATOS BÍBLICOS/CRIATIVOS
-    if (/desafio|challenge|compromisso semanal|missão|jornada/i.test(text)) return 'desafio_semanal';
-    if (/estudo|estudo bíblico|análise bíblica|exegese/i.test(text)) return 'estudo';
-    if (/resumo|resumir|sintetize|principais pontos|síntese/i.test(text)) return 'resumo';
-    if (/devocional|meditação|reflexão diária/i.test(text)) return 'devocional';
-    if (/carrossel|slides|cards/i.test(text)) return 'carrossel';
-    if (/reel|vídeo|roteiro|script/i.test(text)) return 'reel';
-    if (/stories|story|storys/i.test(text)) return 'stories';
-    if (/perguntas|questões|discussão|célula/i.test(text)) return 'perguntas';
-    if (/post|publicação|legenda/i.test(text)) return 'post';
-    if (/ideia|viral|campanha|estratégia|plano de conteúdo|série/i.test(text)) return 'ideia_estrategica';
+    if (/desafio|challenge|compromisso semanal|missão|jornada/i.test(lowerText)) return 'desafio_semanal';
+    if (/estudo|estudo bíblico|análise bíblica|exegese/i.test(lowerText)) return 'estudo';
+    if (/resumo|resumir|sintetize|principais pontos|síntese/i.test(lowerText)) return 'resumo';
+    if (/devocional|meditação|reflexão diária/i.test(lowerText)) return 'devocional';
+    if (/carrossel|slides|cards/i.test(lowerText)) return 'carrossel';
+    if (/reel|vídeo|roteiro|script/i.test(lowerText)) return 'reel';
+    if (/stories|story|storys/i.test(lowerText)) return 'stories';
+    if (/perguntas|questões|discussão|célula/i.test(lowerText)) return 'perguntas';
+    if (/post|publicação|legenda/i.test(lowerText)) return 'post';
+    if (/ideia|viral|campanha|estratégia|plano de conteúdo|série/i.test(lowerText)) return 'ideia_estrategica';
     
     return 'post';
   };
@@ -71,12 +107,34 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
   const handleSubmit = async () => {
     if (!prompt.trim()) return;
     
-    // Detectar intenção ANTES de combinar com transcrição
-    const userIntent = detectContentType(prompt.trim());
+    // PASSO 1: Analisar prompt do usuário para extrair TODAS especificações
+    const userSpecs = extractUserSpecifications(prompt.trim());
     
-    let finalPrompt = prompt.trim();
+    // PASSO 2: Detectar tipo base
+    const baseType = detectContentType(prompt.trim());
     
-    // Se usuário selecionou uma pregação, buscar transcrição
+    // PASSO 3: Construir prompt estruturado HIERARQUICAMENTE
+    let finalPrompt = '';
+    
+    // Nível 1: Metadados (lidos primeiro pela IA)
+    finalPrompt += `TIPO_SOLICITADO: ${baseType}\n\n`;
+    
+    if (userSpecs.quantidade) {
+      finalPrompt += `QUANTIDADE_OBRIGATÓRIA: ${userSpecs.quantidade} ${userSpecs.unidade || 'itens'} (EXATAMENTE)\n`;
+    }
+    if (userSpecs.tom) {
+      finalPrompt += `TOM_OBRIGATÓRIO: ${userSpecs.tom}\n`;
+    }
+    if (userSpecs.duracao) {
+      finalPrompt += `DURAÇÃO: ${userSpecs.duracao}\n`;
+    }
+    if (userSpecs.publico) {
+      finalPrompt += `PÚBLICO_ALVO: ${userSpecs.publico}\n`;
+    }
+    
+    finalPrompt += `\n---\n\n`;
+    
+    // Nível 2: Contexto (se houver pregação selecionada)
     if (selectedSermonId && selectedSermonId !== "none") {
       const { data: sermon } = await supabase
         .from('sermons')
@@ -85,18 +143,15 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
         .single();
       
       if (sermon?.transcript) {
-        finalPrompt = `TIPO_SOLICITADO: ${userIntent}
-
-Com base nesta transcrição de pregação:
-
-${sermon.transcript}
-
----
-
-Pedido específico do usuário:
-${prompt.trim()}`;
+        finalPrompt += `CONTEXTO BASE (Transcrição de Pregação):\n\n${sermon.transcript}\n\n---\n\n`;
       }
     }
+    
+    // Nível 3: Pedido específico do usuário (SEMPRE no final)
+    finalPrompt += `INSTRUÇÃO PRINCIPAL DO USUÁRIO:\n${prompt.trim()}`;
+    
+    console.log('📋 Especificações extraídas:', userSpecs);
+    console.log('🎯 Tipo detectado:', baseType);
     
     onGenerate(finalPrompt);
   };

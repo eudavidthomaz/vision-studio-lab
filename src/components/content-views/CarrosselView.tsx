@@ -167,12 +167,6 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                             </div>
                           )}
                           <p className="text-xs leading-relaxed break-words whitespace-pre-wrap">{texto}</p>
-                          {imagemSugerida && (
-                            <div className="p-3 bg-muted rounded-md">
-                              <strong className="text-sm">Sugestão de Imagem:</strong>
-                              <p className="text-sm text-muted-foreground mt-1">{imagemSugerida}</p>
-                            </div>
-                          )}
                           {cta && (
                             <div className="p-3 bg-primary/5 rounded-md border-l-4 border-primary">
                               <strong className="text-sm">CTA:</strong>
