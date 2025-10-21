@@ -30,6 +30,21 @@ const getPillarColor = (pilar: string) => {
 };
 
 export const CalendarioView = ({ calendario }: CalendarioViewProps) => {
+  // Validação defensiva para evitar erros quando dados estão ausentes
+  if (!calendario || !calendario.postagens || calendario.postagens.length === 0) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-primary/20">
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground text-center">
+              Dados do calendário não disponíveis ou incompletos.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card className="border-primary/20">
@@ -38,16 +53,20 @@ export const CalendarioView = ({ calendario }: CalendarioViewProps) => {
             <Calendar className="h-5 w-5 text-primary" />
             <CardTitle>Calendário Editorial</CardTitle>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">{calendario.periodo}</p>
+          {calendario.periodo && (
+            <p className="text-sm text-muted-foreground mt-2">{calendario.periodo}</p>
+          )}
         </CardHeader>
         <CardContent>
-          <div className="flex items-start gap-2 p-4 bg-primary/5 rounded-lg mb-6">
-            <Target className="h-5 w-5 text-primary mt-0.5" />
-            <div>
-              <p className="font-medium text-sm">Objetivo do Período</p>
-              <p className="text-sm text-muted-foreground mt-1">{calendario.objetivo}</p>
+          {calendario.objetivo && (
+            <div className="flex items-start gap-2 p-4 bg-primary/5 rounded-lg mb-6">
+              <Target className="h-5 w-5 text-primary mt-0.5" />
+              <div>
+                <p className="font-medium text-sm">Objetivo do Período</p>
+                <p className="text-sm text-muted-foreground mt-1">{calendario.objetivo}</p>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="space-y-4">
             {calendario.postagens.map((post, index) => (
