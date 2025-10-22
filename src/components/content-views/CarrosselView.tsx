@@ -108,6 +108,9 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
             </CardTitle>
           </CardHeader>
           <CardContent className="p-3 pt-0">
+            <div className="flex items-center justify-center gap-2 mb-2 text-xs text-muted-foreground">
+              <span>← Arraste para ver mais cards →</span>
+            </div>
             <Carousel className="w-full max-w-full mx-auto px-8">
               <CarouselContent>
                 {items.map((item: any, index) => {

@@ -159,12 +159,16 @@ serve(async (req) => {
       
       // Resumo breve (for sermon summaries)
       resumo_breve: /resumo_breve|resumo breve/i,
-      // FORMATOS DE CONTEÚDO (PRIORIDADE ALTA)
-      carrossel: /carrossel|slides|cards/i,
+      
+      // PRIORIDADE ABSOLUTA: Carrossel (slides/páginas sequenciais)
+      carrossel: /carrossel|carousel|slides?|páginas?|sequência|cards?\s*\d+/i,
+      
+      // FORMATOS DE CONTEÚDO
       reel: /reel|vídeo(?!\s+para)|roteiro|script/i,
       stories: /stories|story|storys/i,
-      // Organizational formats
-      calendario: /calendário|cronograma|planejamento|plano editorial|grade de posts/i,
+      
+      // Organizacionais
+      calendario: /calendário|calendario|cronograma|planejamento|plano editorial|grade de posts|planner/i,
       aviso: /aviso|comunicado|lembrete|atenção/i,
       guia: /guia|manual|passo a passo|tutorial/i,
       esboco: /esboço|outline|tópicos|estrutura/i,
@@ -173,7 +177,8 @@ serve(async (req) => {
       qa_estruturado: /perguntas e respostas|q&a|dúvidas frequentes|faq/i,
       convite_grupos: /convite para grupo|chamado para célula|junte-se ao|entre no grupo/i,
       discipulado: /discipulado|mentoria|acompanhamento espiritual/i,
-      // Biblical/creative formats
+      
+      // Bíblicos/Criativos
       desafio_semanal: /desafio|challenge|compromisso semanal|missão|jornada/i,
       estudo: /estudo|estudo bíblico|análise bíblica|exegese/i,
       resumo: /resumo|resumir|sintetize|principais pontos|síntese/i,
@@ -181,8 +186,9 @@ serve(async (req) => {
       perguntas: /perguntas|questões|discussão|célula/i,
       post: /post|publicação|legenda/i,
       ideia_estrategica: /ideia|viral|campanha|estratégia|plano de conteúdo|série/i,
+      
       // TIPOS DE EVENTO (PRIORIDADE BAIXA - verificar por último)
-      convite: /\b(convite|convidar|chamado para|venha para)\b(?!\s+para\s+grupo)/i
+      convite: /\b(convite|convidar|chamado para|venha para|participe)\b(?!\s+para\s+grupo)/i
     };
 
     // Apenas analisar os primeiros 2000 caracteres para evitar falsos positivos
@@ -898,6 +904,19 @@ PRINCÍPIOS INEGOCIÁVEIS:
 - Linguagem clara e acessível (8º ano)
 - Respeito à dignidade humana (sem exploração)
 - Conteúdo prático e aplicável
+- NUNCA invente dados falsos, endereços, telefones, horários ou informações específicas
+
+🚫 PROIBIDO ABSOLUTAMENTE:
+- Inventar endereços (ex: "Rua da Fé, 123")
+- Inventar telefones (ex: "(XX) 9XXXX-XXXX" ou números genéricos)
+- Inventar horários específicos sem contexto (ex: "19h00" sem ser solicitado)
+- Inventar frequências falsas (ex: "Todo domingo" sem confirmação)
+- Dados genéricos ou placeholders
+
+✅ PERMITIDO:
+- Deixar campos como [INSERIR ENDEREÇO] quando não souber
+- Sugerir que o usuário preencha informações específicas
+- Criar conteúdo estratégico SEM dados factuais inventados
 
 FORMATO DE RESPOSTA:
 - Retorne APENAS JSON válido
@@ -912,7 +931,7 @@ INSTRUÇÕES CARROSSEL:
 1. Gere EXATAMENTE ${userSpecs.quantidade || '8-10'} slides
 2. Cada slide DEVE ter:
    - titulo_slide: Título impactante (máx 60 caracteres)
-   - conteudo: Texto para leitura rápida (80-150 caracteres)
+   - conteudo: Texto criativo e estratégico (80-150 caracteres)
    - chamada_para_acao: CTA específico (opcional)
    - imagem_sugerida: Descrição visual (uso interno, NÃO exibir ao usuário)
 
@@ -923,6 +942,9 @@ INSTRUÇÕES CARROSSEL:
 
 4. TOM: ${userSpecs.tom ? userSpecs.tom.toUpperCase() : 'Adapte ao contexto'}
 
+5. 🚫 NUNCA INVENTE: endereços, telefones, horários, dados factuais
+   - Se precisar de informações específicas, use [INSERIR INFORMAÇÃO]
+
 EXEMPLO SLIDE PERFEITO:
 {
   "numero_slide": 1,
@@ -930,6 +952,63 @@ EXEMPLO SLIDE PERFEITO:
   "conteudo": "Aquela sensação de que ninguém te vê, te ouve ou te entende? Hoje vamos descobrir como Deus enxerga além das aparências.",
   "imagem_sugerida": "Pessoa sozinha olhando horizonte, luz suave",
   "chamada_para_acao": "Deslize para descobrir →"
+}
+`,
+
+      convite: `
+INSTRUÇÕES CONVITE (diferente de CARROSSEL):
+1. Convite é um formato ÚNICO de informação de evento
+2. NUNCA invente dados: endereços, horários, telefones, frequências
+3. Se não tiver informação específica, use placeholders: [INSERIR ENDEREÇO], [INSERIR HORÁRIO], [INSERIR CONTATO]
+4. Seja claro e direto na descrição do evento
+5. Foco na mensagem de convite, não em detalhes falsos
+
+ESTRUTURA:
+{
+  "convite": {
+    "titulo_evento": "Nome do evento",
+    "data": "[INSERIR DATA]" ou data mencionada,
+    "horario": "[INSERIR HORÁRIO]" ou horário mencionado,
+    "local": "[INSERIR LOCAL]" ou local mencionado,
+    "descricao": "Descrição criativa e convidativa",
+    "publico_alvo": "Para quem é o evento",
+    "como_participar": "Instruções claras",
+    "contato": "[INSERIR CONTATO]" se não souber
+  }
+}
+`,
+
+      calendario: `
+INSTRUÇÕES CALENDÁRIO (Planner Semanal):
+1. Crie um planner ESTRATÉGICO com posts distribuídos ao longo de dias
+2. Para CADA post, especifique:
+   - Dia da semana
+   - Formato (Post, Carrossel, Reel, Stories)
+   - Tema específico e detalhado
+   - Pilar estratégico (ALCANÇAR, EDIFICAR, PERTENCER, SERVIR)
+   - Horário sugerido (baseado em engajamento)
+   - Objetivo do post
+
+3. NÃO gere apenas legendas genéricas
+4. Varie formatos e pilares estrategicamente
+5. Cada post deve ter propósito claro
+
+EXEMPLO:
+{
+  "calendario": {
+    "periodo": "Semana de [data] a [data]",
+    "objetivo": "Objetivo estratégico do período",
+    "postagens": [
+      {
+        "dia": "Segunda-feira",
+        "horario_sugerido": "18h",
+        "formato": "Carrossel",
+        "tema": "5 passos para oração eficaz",
+        "pilar": "EDIFICAR",
+        "objetivo_do_post": "Ensinar método prático de oração"
+      }
+    ]
+  }
 }
 `,
 

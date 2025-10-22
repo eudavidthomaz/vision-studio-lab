@@ -134,10 +134,6 @@ const ContentItemCard = memo(({
       </CardHeader>
       
       <CardContent>
-        {item.prompt_original && <p className="text-sm text-muted-foreground line-clamp-2 break-words mb-4">
-            {item.prompt_original}
-          </p>}
-        
         <div className="flex gap-2">
           <Button size="sm" className="flex-1" onClick={onView}>
             <Eye className="h-4 w-4 mr-2" />

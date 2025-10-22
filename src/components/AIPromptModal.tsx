@@ -77,8 +77,13 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
   const detectContentType = (text: string): string => {
     const lowerText = text.toLowerCase();
     
+    // PRIORIDADE ABSOLUTA: Carrossel (slides/páginas sequenciais)
+    if (/carrossel|carousel|slides?|páginas?|sequência|cards?\s*\d+/i.test(lowerText)) {
+      return 'carrossel';
+    }
+    
     // FORMATOS ORGANIZACIONAIS (prioridade alta)
-    if (/calendário|cronograma|planejamento|plano editorial|grade de posts/i.test(lowerText)) return 'calendario';
+    if (/calendário|calendario|cronograma|planejamento|plano editorial|grade de posts|planner/i.test(lowerText)) return 'calendario';
     if (/aviso|comunicado|lembrete|atenção/i.test(lowerText)) return 'aviso';
     if (/guia|manual|passo a passo|tutorial/i.test(lowerText)) return 'guia';
     if (/esboço|outline|tópicos|estrutura/i.test(lowerText)) return 'esboco';
@@ -87,14 +92,15 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
     if (/perguntas e respostas|q&a|dúvidas frequentes|faq/i.test(lowerText)) return 'qa_estruturado';
     if (/convite para grupo|chamado para célula|junte-se ao|entre no grupo/i.test(lowerText)) return 'convite_grupos';
     if (/discipulado|mentoria|acompanhamento espiritual/i.test(lowerText)) return 'discipulado';
-    if (/convite|convidar|chamado para|venha para/i.test(lowerText)) return 'convite';
+    
+    // Convite (verificar DEPOIS de carrossel)
+    if (/convite|convidar|chamado para|venha para|participe/i.test(lowerText)) return 'convite';
     
     // FORMATOS BÍBLICOS/CRIATIVOS
     if (/desafio|challenge|compromisso semanal|missão|jornada/i.test(lowerText)) return 'desafio_semanal';
     if (/estudo|estudo bíblico|análise bíblica|exegese/i.test(lowerText)) return 'estudo';
     if (/resumo|resumir|sintetize|principais pontos|síntese/i.test(lowerText)) return 'resumo';
     if (/devocional|meditação|reflexão diária/i.test(lowerText)) return 'devocional';
-    if (/carrossel|slides|cards/i.test(lowerText)) return 'carrossel';
     if (/reel|vídeo|roteiro|script/i.test(lowerText)) return 'reel';
     if (/stories|story|storys/i.test(lowerText)) return 'stories';
     if (/perguntas|questões|discussão|célula/i.test(lowerText)) return 'perguntas';
