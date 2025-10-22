@@ -918,6 +918,13 @@ PRINCÍPIOS INEGOCIÁVEIS:
 - Sugerir que o usuário preencha informações específicas
 - Criar conteúdo estratégico SEM dados factuais inventados
 
+🧠 PENSAMENTO ESTRATÉGICO:
+- "3 pontos principais" = UM conteúdo destacando 3 pontos (NÃO 3 posts separados)
+- "5 dicas" = UM post listando 5 dicas (NÃO 5 posts)
+- "carrossel com 3 pontos" = UM carrossel com múltiplos cards sobre os 3 temas
+- Pense na INTENÇÃO do usuário, não interprete literalmente
+- Formate o conteúdo apropriadamente para o tipo solicitado
+
 FORMATO DE RESPOSTA:
 - Retorne APENAS JSON válido
 - Sem texto antes ou depois do JSON
@@ -927,77 +934,103 @@ FORMATO DE RESPOSTA:
     // LAYER 2: TYPE-SPECIFIC INSTRUCTIONS (só o essencial)
     const typeInstructions: Record<string, string> = {
       carrossel: `
-INSTRUÇÕES CARROSSEL:
-1. Gere EXATAMENTE ${userSpecs.quantidade || '8-10'} slides
-2. Cada slide DEVE ter:
-   - titulo_slide: Título impactante (máx 60 caracteres)
-   - conteudo: Texto criativo e estratégico (80-150 caracteres)
-   - chamada_para_acao: CTA específico (opcional)
-   - imagem_sugerida: Descrição visual (uso interno, NÃO exibir ao usuário)
+INSTRUÇÕES CARROSSEL (CRITICAL - READ CAREFULLY):
+1. Create 5-8 separate cards/slides for Instagram carousel
+2. Each card text = ONE SHORT phrase (10-20 words MAX - NO paragraphs!)
+3. Card titles = SHORT and impactful (3-5 words MAX)
+4. NO invented data (addresses, phones, times, dates, frequencies)
+5. Each card must be visual-ready content (concise, creative, strategic)
+6. Use creative Christian messaging
+7. Structure: Card 1 = Hook → Cards 2-6 = Key points → Last card = CTA
+8. Think INSTAGRAM VISUAL: people scroll fast, text must be SHORT and impactful
 
-3. PROGRESSÃO OBRIGATÓRIA:
-   - Slide 1: Hook que gera curiosidade (pergunta ou dado surpreendente)
-   - Slides intermediários: Desenvolvimento com exemplos práticos
-   - Último slide: CTA claro e mensurável
+EXAMPLES OF GOOD CARD TEXTS (SHORT):
+✅ "Sua fé não depende das circunstâncias"
+✅ "Deus tem um plano maior do que você imagina"  
+✅ "A tempestade passa, mas Sua presença permanece"
 
-4. TOM: ${userSpecs.tom ? userSpecs.tom.toUpperCase() : 'Adapte ao contexto'}
+EXAMPLES OF BAD CARD TEXTS (TOO LONG - DON'T DO THIS):
+❌ "A dor é inevitável. Perdas, desilusões, doenças... Elas nos atingem e nos deixam sem chão. Você não está sozinho nessa jornada de angústia."
 
-5. 🚫 NUNCA INVENTE: endereços, telefones, horários, dados factuais
-   - Se precisar de informações específicas, use [INSERIR INFORMAÇÃO]
+Each slide MUST have:
+- numero_slide: Sequential number
+- titulo_slide: Short impactful title (3-5 words)
+- conteudo: ONE short phrase (10-20 words MAX)
+- imagem_sugerida: Visual description (internal use, NOT shown to user)
+- chamada_para_acao: CTA if applicable
 
-EXEMPLO SLIDE PERFEITO:
+PROGRESSION:
+- Slide 1: Hook (question or surprising fact)
+- Middle slides: Key points with SHORT phrases
+- Last slide: Clear CTA
+
+TONE: ${userSpecs.tom ? userSpecs.tom.toUpperCase() : 'Adapt to context'}
+
+🚫 NEVER INVENT: addresses, phones, times, factual data
+   - If you need specific info, use [INSERT INFO]
+
+EXAMPLE PERFECT SLIDE:
 {
   "numero_slide": 1,
-  "titulo_slide": "Você já se sentiu invisível?",
-  "conteudo": "Aquela sensação de que ninguém te vê, te ouve ou te entende? Hoje vamos descobrir como Deus enxerga além das aparências.",
+  "titulo_slide": "Você se sente invisível?",
+  "conteudo": "Deus te vê. Ele enxerga além das aparências.",
   "imagem_sugerida": "Pessoa sozinha olhando horizonte, luz suave",
-  "chamada_para_acao": "Deslize para descobrir →"
+  "chamada_para_acao": "Deslize →"
 }
 `,
 
       convite: `
-INSTRUÇÕES CONVITE (diferente de CARROSSEL):
-1. Convite é um formato ÚNICO de informação de evento
-2. NUNCA invente dados: endereços, horários, telefones, frequências
-3. Se não tiver informação específica, use placeholders: [INSERIR ENDEREÇO], [INSERIR HORÁRIO], [INSERIR CONTATO]
-4. Seja claro e direto na descrição do evento
-5. Foco na mensagem de convite, não em detalhes falsos
+INSTRUÇÕES CONVITE (different from CAROUSEL):
+1. Invitation is a SINGLE POST format (not a carousel unless user explicitly says "carrossel de convite")
+2. ABSOLUTELY NO INVENTED DATA
+   - NO fake addresses (❌ "Rua das Flores, 123")
+   - NO fake phone numbers (❌ "(11) 98765-4321")
+   - NO fake times (❌ "19h")
+   - NO fake dates (❌ "Todo domingo")
+   - NO fake names (❌ "Pastor João")
+3. Use ONLY generic placeholders: [DATA], [HORÁRIO], [LOCAL], [CONTATO], [NOME DO EVENTO]
+4. If user provides specific details, use ONLY those exact details
+5. Create warm, welcoming, engaging copy
+6. Focus on the MESSAGE and FEELING, not on inventing logistics
 
-ESTRUTURA:
+STRUCTURE:
 {
   "convite": {
-    "titulo_evento": "Nome do evento",
-    "data": "[INSERIR DATA]" ou data mencionada,
-    "horario": "[INSERIR HORÁRIO]" ou horário mencionado,
-    "local": "[INSERIR LOCAL]" ou local mencionado,
-    "descricao": "Descrição criativa e convidativa",
-    "publico_alvo": "Para quem é o evento",
-    "como_participar": "Instruções claras",
-    "contato": "[INSERIR CONTATO]" se não souber
+    "titulo_evento": "Event title (if provided by user) or [NOME DO EVENTO]",
+    "data": "[DATA]" unless user specified,
+    "horario": "[HORÁRIO]" unless user specified,
+    "local": "[LOCAL]" unless user specified,
+    "descricao": "Welcoming invitation text focusing on message, not fake data",
+    "publico_alvo": "Target audience",
+    "como_participar": "How to participate",
+    "contato": "[CONTATO]" unless user specified
   }
 }
 `,
 
       calendario: `
-INSTRUÇÕES CALENDÁRIO (Planner Semanal):
-1. Crie um planner ESTRATÉGICO com posts distribuídos ao longo de dias
-2. Para CADA post, especifique:
-   - Dia da semana
-   - Formato (Post, Carrossel, Reel, Stories)
-   - Tema específico e detalhado
-   - Pilar estratégico (ALCANÇAR, EDIFICAR, PERTENCER, SERVIR)
-   - Horário sugerido (baseado em engajamento)
-   - Objetivo do post
+INSTRUÇÕES CALENDÁRIO (Strategic Weekly Planner):
+1. Create a STRATEGIC planner with posts distributed across days
+2. For EACH post, specify:
+   - Day of week
+   - Format (Specific: Reel/Carrossel/Post/Stories)
+   - Specific detailed theme
+   - Strategic pillar (ALCANÇAR, EDIFICAR, PERTENCER, SERVIR)
+   - Suggested posting time
+   - Post objective
+   - DETAILED description (NOT generic like "post sobre tema")
 
-3. NÃO gere apenas legendas genéricas
-4. Varie formatos e pilares estrategicamente
-5. Cada post deve ter propósito claro
+3. DO NOT generate generic captions
+4. Vary formats and pillars strategically
+5. Each post must have clear purpose
+6. If based on sermon/theme, create complementary content for each day
+7. Be SPECIFIC about what to post, key message, visual suggestions
 
-EXEMPLO:
+EXAMPLE:
 {
   "calendario": {
     "periodo": "Semana de [data] a [data]",
-    "objetivo": "Objetivo estratégico do período",
+    "objetivo": "Strategic objective for the period",
     "postagens": [
       {
         "dia": "Segunda-feira",
@@ -1310,11 +1343,11 @@ Retorne APENAS o JSON válido.`;
           return false;
         }
         
-        // ✅ VALIDAÇÃO 3: Conteúdo no range ideal (80-200 chars)
+        // ✅ VALIDAÇÃO 3: Conteúdo no range ideal (agora mais curto para carrosséis visuais: 50-150 chars)
         for (const slide of slides) {
           const conteudoLength = (slide.conteudo || '').length;
-          if (conteudoLength < 80 || conteudoLength > 250) {
-            console.warn(`❌ Slide ${slide.numero_slide} fora do padrão: ${conteudoLength} chars (ideal: 80-200)`);
+          if (conteudoLength < 50 || conteudoLength > 200) {
+            console.warn(`❌ Slide ${slide.numero_slide} fora do padrão: ${conteudoLength} chars (ideal: 50-150 para frases curtas)`);
             return false;
           }
         }
@@ -1587,6 +1620,67 @@ Retorne APENAS o JSON válido.`;
       });
     }
 
+    // ============================================
+    // GERAR TÍTULO DESCRITIVO
+    // ============================================
+    let generatedTitle = "Conteúdo Gerado";
+    
+    try {
+      // Create contextual title based on content type and actual generated content
+      const contentPreview = typeof generatedContent === 'string' 
+        ? generatedContent.substring(0, 100)
+        : JSON.stringify(generatedContent).substring(0, 150);
+      
+      const titlePrompt = `Create a short, descriptive title (max 50 chars) in Portuguese for this ${detectedType}:
+
+Context: ${prompt.substring(0, 150)}
+Generated content preview: ${contentPreview}
+
+Rules:
+- Be specific and descriptive (not generic like "Conteúdo Gerado")
+- Use the content type naturally (e.g., "Carrossel: [tema]", "Stories: [tema]", "[tema] - Post")
+- Capture the main theme/message
+- Max 50 characters
+- Return ONLY the title
+
+Title:`;
+      
+      const titleResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "user", content: titlePrompt }],
+          temperature: 0.7,
+          max_tokens: 60
+        })
+      });
+
+      if (titleResponse.ok) {
+        const titleData = await titleResponse.json();
+        const rawTitle = titleData.choices[0]?.message?.content?.trim() || "";
+        
+        // Clean up title (remove quotes, extra text)
+        generatedTitle = rawTitle
+          .replace(/^["']|["']$/g, '')
+          .replace(/^Título:\s*/i, '')
+          .replace(/^Title:\s*/i, '')
+          .substring(0, 50)
+          .trim() || `${detectedType} - ${new Date().toLocaleDateString('pt-BR')}`;
+      } else {
+        // Fallback: create title from content type + date
+        generatedTitle = `${detectedType} - ${new Date().toLocaleDateString('pt-BR')}`;
+      }
+      
+    } catch (titleError) {
+      console.error("Error generating title:", titleError);
+      // Fallback: create title from content type + date
+      generatedTitle = `${detectedType} - ${new Date().toLocaleDateString('pt-BR')}`;
+    }
+
     // Salvar na tabela unificada: content_library
     const { data: savedContent, error: saveError } = await supabase
       .from('content_library')
@@ -1596,7 +1690,7 @@ Retorne APENAS o JSON válido.`;
         content_type: detectedType, // tipo de conteúdo (estudo, post, etc)
         pilar: 'EDIFICAR', // Uppercase para consistência com constraints
         prompt_original: prompt.replace(/^TIPO_SOLICITADO:\s*\w+\s*/i, '').trim(),
-        title: generatedContent.title || 'Conteúdo Gerado',
+        title: generatedTitle,
         content: generatedContent,
         status: 'draft'
       })

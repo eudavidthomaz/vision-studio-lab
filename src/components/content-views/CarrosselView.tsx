@@ -169,13 +169,15 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                               />
                             </div>
                           )}
-                          <p className="text-xs leading-relaxed break-words whitespace-pre-wrap">{texto}</p>
-                          {cta && (
-                            <div className="p-3 bg-primary/5 rounded-md border-l-4 border-primary">
-                              <strong className="text-sm">CTA:</strong>
-                              <p className="text-sm mt-1">{cta}</p>
-                            </div>
-                          )}
+                          {/* Texto + CTA integrados para facilitar geração de imagem */}
+                          <div className="text-xs leading-relaxed break-words whitespace-pre-wrap">
+                            <p>{texto}</p>
+                            {cta && (
+                              <p className="mt-2 pt-2 border-t border-primary/20 font-medium text-primary">
+                                {cta}
+                              </p>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     </CarouselItem>

@@ -34,6 +34,12 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
   const [loadingSlide, setLoadingSlide] = useState<number | null>(null);
   const [copiedSlide, setCopiedSlide] = useState<number | null>(null);
 
+  // Validação: verificar se há slides disponíveis
+  const slides = actualEstrutura?.slides;
+  const hasSlides = slides && Array.isArray(slides) && slides.length > 0;
+
+  console.log("StoriesView data:", { estrutura, conteudo, data, hasSlides, slides });
+
   const copyToClipboard = (text: string, label: string, slideNum: number) => {
     navigator.clipboard.writeText(text);
     setCopiedSlide(slideNum);
@@ -49,7 +55,20 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
 
   return (
     <div className="space-y-4">
-      {actualEstrutura?.slides && actualEstrutura.slides.map((slide) => {
+      {!hasSlides ? (
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-muted-foreground mb-2">❌ Nenhum conteúdo de Stories encontrado</p>
+            <p className="text-sm text-muted-foreground">
+              Os dados podem estar vazios ou mal formatados. Tente regenerar o conteúdo.
+            </p>
+            <pre className="mt-4 text-xs text-left bg-muted p-3 rounded overflow-auto">
+              {JSON.stringify({ estrutura, data }, null, 2)}
+            </pre>
+          </CardContent>
+        </Card>
+      ) : (
+        slides.map((slide) => {
         const slideNum = slide.numero;
         const hasImage = generatedImages[slideNum];
         const isLoadingImage = loadingSlide === slideNum;
@@ -102,7 +121,8 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
             </CardContent>
           </Card>
         );
-      })}
+      })
+      )}
 
       {actualConteudo && (
         <Card>
