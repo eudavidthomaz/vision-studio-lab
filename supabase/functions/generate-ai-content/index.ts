@@ -682,23 +682,28 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
 
       stories: `{
   "fundamento_biblico": {
-    "versiculos": ["Versículo tema"],
-    "contexto": "Contexto semanal",
-    "principio": "Princípio da semana"
+    "versiculos": [{"referencia": "João 1:1", "texto": "...", "aplicacao": "..."}],
+    "contexto": "Contexto semanal dos stories",
+    "reflexao": "Reflexão geral"
   },
-  "stories": [
-    {
-      "dia": "Segunda",
-      "texto": "Mensagem inspiradora curta",
-      "versiculo": "Versículo do dia",
-      "call_to_action": "O que fazer hoje"
-    }
-  ],
+  "stories": {
+    "slides": [
+      {
+        "numero": 1,
+        "titulo": "Título do Story",
+        "texto": "Mensagem principal (50-100 palavras)",
+        "versiculo": "Referência bíblica",
+        "call_to_action": "Pergunta ou desafio",
+        "timing": "5s",
+        "sugestao_visual": "Descrição visual"
+      }
+    ]
+  },
   "dica_producao": {
-    "formato": "1080x1920px",
     "estilo": "Clean e legível",
+    "formato": "1080x1920px",
     "horario": "Manhã (7h-9h) ou noite (20h-22h)",
-    "hashtags": []
+    "hashtags": ["#fe", "#devocional"]
   }
 }`,
 
@@ -943,14 +948,17 @@ INSTRUÇÕES CARROSSEL (CRITICAL - READ CAREFULLY):
 6. Use creative Christian messaging
 7. Structure: Card 1 = Hook → Cards 2-6 = Key points → Last card = CTA
 8. Think INSTAGRAM VISUAL: people scroll fast, text must be SHORT and impactful
+9. When user says "3 main points", create ONE carousel with 8+ cards highlighting those 3 points (NOT 3 separate carousels!)
 
-EXAMPLES OF GOOD CARD TEXTS (SHORT):
+EXAMPLES OF GOOD CARD TEXTS (SHORT - ALWAYS do this):
 ✅ "Sua fé não depende das circunstâncias"
 ✅ "Deus tem um plano maior do que você imagina"  
 ✅ "A tempestade passa, mas Sua presença permanece"
+✅ "Você foi criado com propósito divino"
 
 EXAMPLES OF BAD CARD TEXTS (TOO LONG - DON'T DO THIS):
 ❌ "A dor é inevitável. Perdas, desilusões, doenças... Elas nos atingem e nos deixam sem chão. Você não está sozinho nessa jornada de angústia."
+❌ "Jesus nos ensina através de suas ações que devemos sempre buscar a Deus em primeiro lugar"
 
 Each slide MUST have:
 - numero_slide: Sequential number
@@ -1011,36 +1019,41 @@ STRUCTURE:
       calendario: `
 INSTRUÇÕES CALENDÁRIO (Strategic Weekly Planner):
 1. Create a STRATEGIC planner with posts distributed across days
-2. For EACH post, specify:
+2. NEVER leave calendar empty - ALWAYS generate posts for ALL days
+3. For EACH post, specify:
    - Day of week
    - Format (Specific: Reel/Carrossel/Post/Stories)
-   - Specific detailed theme
+   - SPECIFIC DETAILED theme (not generic)
    - Strategic pillar (ALCANÇAR, EDIFICAR, PERTENCER, SERVIR)
-   - Suggested posting time
+   - Suggested posting time with justification
    - Post objective
-   - DETAILED description (NOT generic like "post sobre tema")
+   - DETAILED description explaining EXACTLY what content to create
 
-3. DO NOT generate generic captions
-4. Vary formats and pillars strategically
-5. Each post must have clear purpose
-6. If based on sermon/theme, create complementary content for each day
-7. Be SPECIFIC about what to post, key message, visual suggestions
+4. BE EXTREMELY SPECIFIC:
+   ❌ BAD: "Segunda: Post sobre oração"
+   ✅ GOOD: "Segunda: Carrossel - '5 Verdades sobre Oração que Transformam' - Criar 8 cards com frases curtas destacando: 1) Deus sempre ouve (Salmos 34:17), 2) Oração muda circunstâncias, 3) Persistência é essencial (Lucas 18:1-8), 4) Não há horário errado, 5) Transparência é bem-vinda. Último card com CTA: 'Qual dessas verdades te impacta mais?'"
+
+5. Vary formats and pillars strategically across the week
+6. Each post must have clear purpose
+7. If based on sermon/theme, create complementary content for each day
 
 EXAMPLE:
 {
-  "calendario": {
+  "calendario_editorial": {
     "periodo": "Semana de [data] a [data]",
     "objetivo": "Strategic objective for the period",
     "postagens": [
       {
         "dia": "Segunda-feira",
-        "horario_sugerido": "18h",
+        "horario_sugerido": "18h (hora de pico de engajamento)",
         "formato": "Carrossel",
         "tema": "5 passos para oração eficaz",
         "pilar": "EDIFICAR",
-        "objetivo_do_post": "Ensinar método prático de oração"
+        "versiculo_base": "Mateus 6:5-15",
+        "objetivo_do_post": "Ensinar método prático de oração baseado no Pai Nosso, com passo a passo aplicável. Criar 8 cards com instruções claras: 1) Encontre lugar tranquilo, 2) Comece adorando, 3) Confesse pecados, 4) Interceda por outros, 5) Termine em gratidão. Cada card com frase curta e visual atraente."
       }
-    ]
+    ],
+    "observacoes": "Strategic observations for the week"
   }
 }
 `,
@@ -1589,7 +1602,7 @@ Retorne APENAS o JSON válido.`;
       (detectedType === 'resumo' && generatedContent.resumo_pregacao) ||
       (detectedType === 'perguntas' && generatedContent.perguntas_celula) ||
       (detectedType === 'devocional' && generatedContent.devocional) ||
-      (detectedType === 'stories' && generatedContent.stories) ||
+      (detectedType === 'stories' && (generatedContent.stories?.slides || generatedContent.stories)) ||
       (detectedType === 'treino_voluntario' && generatedContent.treino) ||
       (detectedType === 'campanha_tematica' && generatedContent.campanha) ||
       (detectedType === 'roteiro_reels' && generatedContent.roteiro) ||
@@ -1631,17 +1644,34 @@ Retorne APENAS o JSON válido.`;
         ? generatedContent.substring(0, 100)
         : JSON.stringify(generatedContent).substring(0, 150);
       
+      // Extrair tema do conteúdo gerado
+      let temaExtraido = "";
+      if (detectedType === 'carrossel' && generatedContent.estrutura_visual?.slides?.[0]) {
+        temaExtraido = generatedContent.estrutura_visual.slides[0].titulo || "";
+      } else if (detectedType === 'stories' && generatedContent.stories?.slides?.[0]) {
+        temaExtraido = generatedContent.stories.slides[0].titulo || "";
+      } else if (detectedType === 'devocional' && generatedContent.devocional?.titulo) {
+        temaExtraido = generatedContent.devocional.titulo;
+      } else if (detectedType === 'estudo' && generatedContent.fundamento_biblico?.versiculos?.[0]) {
+        temaExtraido = generatedContent.fundamento_biblico.versiculos[0].referencia;
+      }
+      
       const titlePrompt = `Create a short, descriptive title (max 50 chars) in Portuguese for this ${detectedType}:
 
-Context: ${prompt.substring(0, 150)}
-Generated content preview: ${contentPreview}
+User request: ${prompt.substring(0, 100)}
+Theme extracted: ${temaExtraido}
+Content preview: ${contentPreview}
 
 Rules:
-- Be specific and descriptive (not generic like "Conteúdo Gerado")
-- Use the content type naturally (e.g., "Carrossel: [tema]", "Stories: [tema]", "[tema] - Post")
-- Capture the main theme/message
+- NEVER use generic titles like "Conteúdo Gerado"
+- Use the actual theme/topic from the content
+- For carrossel: "Carrossel: [tema específico]"
+- For stories: "Stories: [tema específico]"  
+- For devocional: "Devocional: [tema]"
+- For posts: "[tema] - Post"
+- Be specific and descriptive
 - Max 50 characters
-- Return ONLY the title
+- Return ONLY the title, no quotes
 
 Title:`;
       

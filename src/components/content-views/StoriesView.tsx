@@ -25,6 +25,7 @@ interface StoriesViewProps {
 }
 
 export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesViewProps) {
+  // Extrair slides de múltiplas estruturas possíveis
   const actualEstrutura = estrutura || data?.estrutura;
   const actualConteudo = conteudo || data?.conteudo;
   
@@ -34,11 +35,25 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
   const [loadingSlide, setLoadingSlide] = useState<number | null>(null);
   const [copiedSlide, setCopiedSlide] = useState<number | null>(null);
 
-  // Validação: verificar se há slides disponíveis
-  const slides = actualEstrutura?.slides;
+  // Normalizar dados: converter stories array em slides
+  let slides = actualEstrutura?.slides;
+  
+  if (!slides && data?.stories && Array.isArray(data.stories)) {
+    // Converter formato antigo (data.stories) para novo formato
+    slides = data.stories.map((story: any, index: number) => ({
+      numero: index + 1,
+      titulo: story.dia || `Story ${index + 1}`,
+      texto: story.texto || story.conteudo || '',
+      timing: story.timing,
+      sugestao_visual: story.sugestao_visual,
+      versiculo: story.versiculo,
+      call_to_action: story.call_to_action
+    }));
+  }
+  
   const hasSlides = slides && Array.isArray(slides) && slides.length > 0;
 
-  console.log("StoriesView data:", { estrutura, conteudo, data, hasSlides, slides });
+  console.log("StoriesView normalized data:", { hasSlides, slidesCount: slides?.length });
 
   const copyToClipboard = (text: string, label: string, slideNum: number) => {
     navigator.clipboard.writeText(text);
@@ -68,7 +83,7 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
           </CardContent>
         </Card>
       ) : (
-        slides.map((slide) => {
+        slides.map((slide: any) => {
         const slideNum = slide.numero;
         const hasImage = generatedImages[slideNum];
         const isLoadingImage = loadingSlide === slideNum;
@@ -85,6 +100,18 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
               <p className="text-xs text-muted-foreground break-words whitespace-pre-wrap leading-relaxed">
                 {slide.texto}
               </p>
+              
+              {slide.versiculo && (
+                <div className="text-xs text-primary font-medium pt-1 border-t border-border">
+                  📖 {slide.versiculo}
+                </div>
+              )}
+              
+              {slide.call_to_action && (
+                <div className="text-xs text-muted-foreground italic pt-1">
+                  💬 {slide.call_to_action}
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <Button

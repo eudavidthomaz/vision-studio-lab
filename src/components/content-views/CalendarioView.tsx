@@ -30,20 +30,25 @@ const getPillarColor = (pilar: string) => {
 };
 
 export const CalendarioView = ({ calendario }: CalendarioViewProps) => {
-  // Validação defensiva para evitar erros quando dados estão ausentes
-  if (!calendario || !calendario.postagens || calendario.postagens.length === 0) {
+  // Validação defensiva - suporte para múltiplas estruturas
+  const calData = calendario || (calendario as any)?.calendario_editorial || (calendario as any)?.data?.calendario;
+  
+  if (!calData || !calData.postagens || calData.postagens.length === 0) {
     return (
       <div className="space-y-6">
-        <Card className="border-primary/20">
-          <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground text-center">
-              Dados do calendário não disponíveis ou incompletos.
+        <Card className="border-yellow-500/50">
+          <CardContent className="pt-6 text-center">
+            <p className="text-muted-foreground mb-2">⚠️ Calendário vazio ou incompleto</p>
+            <p className="text-sm text-muted-foreground">
+              Nenhuma postagem foi planejada. Tente regenerar o conteúdo com mais detalhes sobre o que você precisa para cada dia da semana.
             </p>
           </CardContent>
         </Card>
       </div>
     );
   }
+
+  const { periodo, objetivo, postagens, observacoes } = calData;
 
   return (
     <div className="space-y-6">
@@ -53,23 +58,23 @@ export const CalendarioView = ({ calendario }: CalendarioViewProps) => {
             <Calendar className="h-5 w-5 text-primary" />
             <CardTitle>Calendário Editorial</CardTitle>
           </div>
-          {calendario.periodo && (
-            <p className="text-sm text-muted-foreground mt-2">{calendario.periodo}</p>
+          {periodo && (
+            <p className="text-sm text-muted-foreground mt-2">{periodo}</p>
           )}
         </CardHeader>
         <CardContent>
-          {calendario.objetivo && (
+          {objetivo && (
             <div className="flex items-start gap-2 p-4 bg-primary/5 rounded-lg mb-6">
               <Target className="h-5 w-5 text-primary mt-0.5" />
               <div>
                 <p className="font-medium text-sm">Objetivo do Período</p>
-                <p className="text-sm text-muted-foreground mt-1">{calendario.objetivo}</p>
+                <p className="text-sm text-muted-foreground mt-1">{objetivo}</p>
               </div>
             </div>
           )}
 
           <div className="space-y-4">
-            {calendario.postagens.map((post, index) => (
+            {postagens.map((post, index) => (
               <Card key={index} className="border-l-4 border-l-primary">
                 <CardContent className="pt-6">
                   <div className="space-y-3">
@@ -103,11 +108,11 @@ export const CalendarioView = ({ calendario }: CalendarioViewProps) => {
             ))}
           </div>
 
-          {calendario.observacoes && (
+          {observacoes && (
             <Card className="mt-6 bg-muted/50">
               <CardContent className="pt-6">
                 <p className="text-sm font-medium mb-2">💡 Observações Estratégicas</p>
-                <p className="text-sm text-muted-foreground">{calendario.observacoes}</p>
+                <p className="text-sm text-muted-foreground">{observacoes}</p>
               </CardContent>
             </Card>
           )}
