@@ -66,27 +66,27 @@ export function MobileContentSheet({ content, open, onClose }: MobileContentShee
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent 
         side="bottom" 
-        className="h-[95dvh] w-screen max-w-full p-0 rounded-t-2xl overflow-hidden"
+        className="h-[96dvh] w-screen max-w-full p-0 rounded-t-2xl overflow-hidden shadow-2xl border-t border-border/50"
       >
         {/* Container com altura fixa e overflow controlado */}
         <div className="flex flex-col h-full w-full">
           {/* Header fixo - não rola */}
-          <SheetHeader className="flex-shrink-0 px-3 py-3 border-b bg-background z-10 space-y-2">
-            <SheetTitle className="text-sm font-semibold line-clamp-1 text-left pr-8">
+          <SheetHeader className="flex-shrink-0 px-3 py-2.5 border-b border-border/50 bg-background/95 backdrop-blur-xl z-10 space-y-2">
+            <SheetTitle className="text-sm font-semibold line-clamp-2 text-left pr-8 leading-tight">
               {content.title}
             </SheetTitle>
             
-            <div className="flex gap-1.5 flex-wrap">
-              <Badge variant="outline" className="text-xs">
+            <div className="flex gap-1 flex-wrap">
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
                 {getContentTypeLabel(content.content_type)}
               </Badge>
               
-              <Badge className={`${getPilarColor(content.pilar)} text-white text-xs`}>
+              <Badge className={`${getPilarColor(content.pilar)} text-white text-[10px] px-1.5 py-0.5`}>
                 {content.pilar}
               </Badge>
 
               {content.source_type && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
                   {content.source_type === 'ai-creator' ? '🤖 IA' : 
                    content.source_type === 'audio-pack' ? '🎙️ Pack' : 
                    '✍️ Manual'}
@@ -96,10 +96,10 @@ export function MobileContentSheet({ content, open, onClose }: MobileContentShee
 
             {/* Tags */}
             {content.tags && content.tags.length > 0 && (
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <Tag className="h-3 w-3 text-muted-foreground" />
+              <div className="flex items-center gap-1 flex-wrap">
+                <Tag className="h-2.5 w-2.5 text-muted-foreground" />
                 {content.tags.map((tag, i) => (
-                  <Badge key={i} variant="outline" className="text-xs">
+                  <Badge key={i} variant="outline" className="text-[10px] px-1.5 py-0.5">
                     {tag}
                   </Badge>
                 ))}
@@ -108,16 +108,24 @@ export function MobileContentSheet({ content, open, onClose }: MobileContentShee
           </SheetHeader>
 
           {/* Conteúdo scrollável - cresce para preencher espaço */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
             <div className="
               p-3 w-full min-w-0 
+              text-xs leading-relaxed
               [&_*]:max-w-full
-              [&_img]:w-full [&_img]:h-auto
-              [&_video]:w-full [&_video]:h-auto
-              [&_iframe]:w-full [&_iframe]:aspect-video
-              [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto
-              [&_pre]:text-xs [&_pre]:overflow-x-auto
-              [&_code]:text-xs [&_code]:break-all
+              [&_img]:w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-2
+              [&_video]:w-full [&_video]:h-auto [&_video]:rounded-lg [&_video]:my-2
+              [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-lg [&_iframe]:my-2
+              [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto [&_table]:text-[10px]
+              [&_pre]:text-[10px] [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:p-2
+              [&_code]:text-[10px] [&_code]:break-all
+              [&_h1]:text-base [&_h1]:font-bold [&_h1]:mb-2.5
+              [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:mb-2
+              [&_h3]:text-xs [&_h3]:font-semibold [&_h3]:mb-1.5
+              [&_p]:mb-2 [&_p]:leading-relaxed
+              [&_ul]:mb-2 [&_ul]:pl-3
+              [&_ol]:mb-2 [&_ol]:pl-3
+              [&_li]:mb-1
             ">
               <ContentViewer content={content} />
             </div>

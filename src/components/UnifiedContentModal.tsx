@@ -85,39 +85,40 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
   // Desktop: usa Dialog
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="w-[min(92vw,42rem)] max-w-none max-h-[90dvh] overflow-hidden p-0">
-        <DialogHeader className="px-4 py-3 border-b sticky top-0 bg-background z-10 space-y-2">
-          <h2 className="text-base font-semibold line-clamp-2 leading-tight">{content.title}</h2>
+      <DialogContent className="w-[min(95vw,48rem)] max-w-none max-h-[92dvh] overflow-hidden p-0 rounded-xl shadow-2xl border-border/50">
+        <DialogHeader className="px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 border-b border-border/50 sticky top-0 bg-background/95 backdrop-blur-xl z-10 space-y-2">
+          <h2 className="text-sm sm:text-base font-semibold line-clamp-2 leading-tight pr-8">{content.title}</h2>
             
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="outline" className="text-xs">
+          <div className="flex flex-wrap gap-1.5">
+            <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5">
               {getContentTypeLabel(content.content_type)}
             </Badge>
             
-            <Badge className={`${getPilarColor(content.pilar)} text-white text-xs`}>
+            <Badge className={`${getPilarColor(content.pilar)} text-white text-[10px] sm:text-xs px-1.5 py-0.5`}>
               {content.pilar}
             </Badge>
 
             {content.source_type && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 py-0.5">
                 {content.source_type === 'ai-creator' ? '🤖 IA' : 
-                 content.source_type === 'audio-pack' ? '🎙️ Pack Semanal' : 
+                 content.source_type === 'audio-pack' ? '🎙️ Pack' : 
                  '✍️ Manual'}
               </Badge>
             )}
 
-            <Badge variant="outline" className="flex items-center gap-1 text-xs">
-              <Calendar className="h-3 w-3" />
-              {formatDate(content.created_at)}
+            <Badge variant="outline" className="flex items-center gap-1 text-[10px] sm:text-xs px-1.5 py-0.5">
+              <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+              <span className="hidden sm:inline">{formatDate(content.created_at)}</span>
+              <span className="sm:hidden">{format(new Date(content.created_at), "dd/MM/yy", { locale: ptBR })}</span>
             </Badge>
           </div>
 
           {/* Tags */}
           {content.tags && content.tags.length > 0 && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <Tag className="h-3 w-3 text-muted-foreground" />
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Tag className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-muted-foreground" />
               {content.tags.map((tag, i) => (
-                <Badge key={i} variant="outline" className="text-xs">
+                <Badge key={i} variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5">
                   {tag}
                 </Badge>
               ))}
@@ -126,26 +127,26 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
         </DialogHeader>
 
         {/* Conteúdo scrollável */}
-        <ScrollArea className="max-h-[calc(90dvh-120px)]">
+        <ScrollArea className="max-h-[calc(92dvh-110px)]">
           <div className="
-            px-3 sm:px-4 md:px-6 
+            px-3 sm:px-4 md:px-5 lg:px-6 
             py-3 sm:py-4 md:py-5 
             w-full min-w-0 
             break-words overflow-x-hidden
-            text-sm sm:text-base
-            [&_img]:max-w-full [&_img]:h-auto [&_img]:object-contain
-            [&_video]:max-w-full [&_video]:h-auto [&_video]:object-contain
-            [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:max-h-[60vh]
-            [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto [&_table]:text-xs [&_table]:sm:text-sm
-            [&_pre]:text-xs [&_pre]:sm:text-sm [&_pre]:overflow-x-auto [&_pre]:max-w-full
-            [&_code]:text-xs [&_code]:sm:text-sm [&_code]:break-all
-            [&_h1]:text-xl [&_h1]:sm:text-2xl [&_h1]:md:text-3xl [&_h1]:font-bold [&_h1]:mb-4
-            [&_h2]:text-lg [&_h2]:sm:text-xl [&_h2]:md:text-2xl [&_h2]:font-semibold [&_h2]:mb-3
-            [&_h3]:text-base [&_h3]:sm:text-lg [&_h3]:md:text-xl [&_h3]:font-semibold [&_h3]:mb-2
-            [&_p]:mb-3 [&_p]:leading-relaxed
-            [&_ul]:mb-3 [&_ul]:pl-4 [&_ul]:sm:pl-6
-            [&_ol]:mb-3 [&_ol]:pl-4 [&_ol]:sm:pl-6
-            [&_li]:mb-2
+            text-xs sm:text-sm md:text-base
+            [&_img]:max-w-full [&_img]:h-auto [&_img]:object-contain [&_img]:rounded-lg
+            [&_video]:max-w-full [&_video]:h-auto [&_video]:object-contain [&_video]:rounded-lg
+            [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:max-h-[60vh] [&_iframe]:rounded-lg
+            [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto [&_table]:text-[10px] [&_table]:sm:text-xs [&_table]:md:text-sm
+            [&_pre]:text-[10px] [&_pre]:sm:text-xs [&_pre]:md:text-sm [&_pre]:overflow-x-auto [&_pre]:max-w-full [&_pre]:rounded-lg [&_pre]:p-3
+            [&_code]:text-[10px] [&_code]:sm:text-xs [&_code]:md:text-sm [&_code]:break-all
+            [&_h1]:text-base [&_h1]:sm:text-lg [&_h1]:md:text-xl [&_h1]:lg:text-2xl [&_h1]:font-bold [&_h1]:mb-3 [&_h1]:sm:mb-4
+            [&_h2]:text-sm [&_h2]:sm:text-base [&_h2]:md:text-lg [&_h2]:lg:text-xl [&_h2]:font-semibold [&_h2]:mb-2.5 [&_h2]:sm:mb-3
+            [&_h3]:text-xs [&_h3]:sm:text-sm [&_h3]:md:text-base [&_h3]:lg:text-lg [&_h3]:font-semibold [&_h3]:mb-2
+            [&_p]:mb-2.5 [&_p]:sm:mb-3 [&_p]:leading-relaxed
+            [&_ul]:mb-2.5 [&_ul]:sm:mb-3 [&_ul]:pl-3 [&_ul]:sm:pl-4 [&_ul]:md:pl-5
+            [&_ol]:mb-2.5 [&_ol]:sm:mb-3 [&_ol]:pl-3 [&_ol]:sm:pl-4 [&_ol]:md:pl-5
+            [&_li]:mb-1.5 [&_li]:sm:mb-2
           ">
             <ContentViewer content={content} />
           </div>

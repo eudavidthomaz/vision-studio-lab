@@ -170,28 +170,28 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[650px] max-h-[92vh] overflow-y-auto rounded-xl shadow-2xl border-border/50">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl">
-            <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl">
+            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-pulse" />
             O que você quer criar hoje?
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm leading-relaxed">
             Descreva o conteúdo que você precisa e deixe a IA criar para você
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
+        <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
           {/* Select de pregações (opcional) */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">
+            <label className="text-xs sm:text-sm font-medium">
               📖 Usar pregação anterior (opcional)
             </label>
             <Select value={selectedSermonId} onValueChange={setSelectedSermonId}>
-              <SelectTrigger>
+              <SelectTrigger className="h-10 sm:h-11">
                 <SelectValue placeholder="Selecione uma pregação..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-popover max-h-[300px]">
                 <SelectItem value="none">Nenhuma (criar do zero)</SelectItem>
                 {sermons.map((sermon) => (
                   <SelectItem key={sermon.id} value={sermon.id}>
@@ -211,9 +211,9 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
 
           {/* Badge indicador quando pregação selecionada */}
           {selectedSermonId && selectedSermonId !== "none" && (
-            <div className="flex items-center gap-2 p-2 bg-primary/10 rounded-md text-sm">
-              <BookOpen className="w-4 h-4 text-primary" />
-              <span className="text-primary font-medium">
+            <div className="flex items-center gap-2 p-2.5 bg-primary/10 rounded-lg text-xs sm:text-sm backdrop-blur-sm border border-primary/20">
+              <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
+              <span className="text-primary font-medium leading-tight">
                 Gerando com base em pregação selecionada
               </span>
             </div>
@@ -228,14 +228,14 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
-            className="min-h-[150px] resize-none"
+            className="min-h-[140px] sm:min-h-[160px] resize-none text-xs sm:text-sm"
             disabled={isLoading}
             autoFocus
           />
           
-          <div className="text-xs text-muted-foreground space-y-1">
-            <p className="font-medium">💡 Dicas:</p>
-            <ul className="list-disc list-inside space-y-0.5 ml-2">
+          <div className="text-[10px] sm:text-xs text-muted-foreground space-y-1 bg-muted/30 rounded-lg p-2.5 sm:p-3">
+            <p className="font-semibold text-foreground">💡 Dicas para melhores resultados:</p>
+            <ul className="list-disc list-inside space-y-0.5 ml-1 sm:ml-2 leading-relaxed">
               {selectedSermonId && selectedSermonId !== "none" ? (
                 <>
                   <li>Peça conteúdos específicos baseados na pregação selecionada</li>

@@ -239,8 +239,8 @@ export default function ContentLibrary() {
   };
   return <div className="min-h-screen bg-background overflow-x-clip">
       {/* Header fixo no topo */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="mx-auto px-4 py-3 max-w-7xl">
+      <div className="sticky top-0 z-50 bg-background/98 backdrop-blur-xl supports-[backdrop-filter]:bg-background/95 border-b border-border/50 shadow-sm">
+        <div className="mx-auto px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 max-w-7xl">
           {/* Bulk Actions Bar */}
           <BulkActionsBar selectedCount={selectedCount} onExport={handleExport} onDelete={handleBulkDelete} onEditTags={() => setTagDialogOpen(true)} onToggleFavorite={() => bulkToggleFavorite(Array.from(selectedIds))} onDuplicate={() => {
           const ids = Array.from(selectedIds);
@@ -248,26 +248,28 @@ export default function ContentLibrary() {
         }} onClearSelection={clearSelection} />
 
           {/* Header */}
-          <div className="mb-4">
+          <div className="mb-3 sm:mb-4">
             {/* Linha 1: Botão Voltar + Título */}
-            <div className="flex items-start gap-3 mb-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="flex-shrink-0 h-9 w-9">
-                <ArrowLeft className="h-4 w-4" />
+            <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate("/dashboard")} 
+                className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 hover:scale-110 transition-transform"
+              >
+                <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent flex items-center gap-2">
-                  <Sparkles className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-primary" />
+                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent flex items-center gap-1.5 sm:gap-2 animate-[gradient_6s_ease_infinite] bg-[length:200%_auto]">
+                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 text-primary animate-pulse" />
                   <span className="truncate">Biblioteca de Conteúdo</span>
                 </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                  {sermonId ? '✨ Conteúdos gerados do seu sermão' : 'Todos os seus conteúdos unificados em um só lugar'}
+                <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 leading-relaxed">
+                  {sermonId ? '✨ Conteúdos gerados do seu sermão' : 'Todos os seus conteúdos em um só lugar'}
                 </p>
               </div>
             </div>
-
-            {/* Linha 2: Botões de ação */}
-            
           </div>
 
           {/* Barra compacta com contador + botão de filtros */}
@@ -279,36 +281,37 @@ export default function ContentLibrary() {
       </div>
 
       {/* Conteúdo scrollável */}
-      <div className="mx-auto px-4 py-6 max-w-7xl">
+      <div className="mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-5 md:py-6 max-w-7xl">
 
         {/* Conteúdo */}
-        {loading && displayedItems.length === 0 ? <div className={viewMode === 'cards' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
-            {[1, 2, 3, 4, 5, 6].map(i => <Card key={i}>
+        {loading && displayedItems.length === 0 ? <div className={viewMode === 'cards' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6' : 'space-y-3 sm:space-y-4'}>
+            {[1, 2, 3, 4, 5, 6].map(i => <Card key={i} className="animate-pulse">
                 <CardHeader>
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-5 sm:h-6 w-3/4" />
+                  <Skeleton className="h-3 sm:h-4 w-1/2 mt-2" />
                 </CardHeader>
                 <CardContent>
-                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-16 sm:h-20 w-full" />
                 </CardContent>
               </Card>)}
-          </div> : displayedItems.length === 0 ? <Card className="p-12 text-center">
-            <div className="flex flex-col items-center gap-4">
-              <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center">
-                <Sparkles className="h-10 w-10 text-muted-foreground" />
+          </div> : displayedItems.length === 0 ? <Card className="p-8 sm:p-10 md:p-12 text-center shadow-lg border-border/50">
+            <div className="flex flex-col items-center gap-3 sm:gap-4">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center animate-pulse">
+                <Sparkles className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2">Nenhum conteúdo encontrado</h3>
-                <p className="text-muted-foreground mb-4">
-                  {filters.search || filters.type !== 'all' || filters.source !== 'all' || filters.pilar !== 'all' ? 'Tente ajustar os filtros' : 'Comece criando seu primeiro conteúdo!'}
+                <h3 className="text-base sm:text-lg font-semibold mb-2">Nenhum conteúdo encontrado</h3>
+                <p className="text-sm text-muted-foreground mb-3 sm:mb-4 max-w-md mx-auto leading-relaxed">
+                  {filters.search || filters.type !== 'all' || filters.source !== 'all' || filters.pilar !== 'all' ? 'Tente ajustar os filtros para encontrar o que procura' : 'Comece criando seu primeiro conteúdo incrível!'}
                 </p>
-                <Button onClick={() => navigate('/dashboard')}>
+                <Button onClick={() => navigate('/dashboard')} className="shadow-lg hover:shadow-xl transition-shadow">
+                  <Sparkles className="mr-2 h-4 w-4" />
                   Criar Conteúdo
                 </Button>
               </div>
             </div>
           </Card> : <>
-            {viewMode === 'cards' && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {viewMode === 'cards' && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
                 {displayedItems.map(item => <ContentItemCard key={item.id} item={item} onView={() => setSelectedContent(item)} onDelete={() => handleDelete(item.id, item.title)} onDuplicate={() => handleDuplicate(item.id)} isSelected={selectedIds.has(item.id)} onToggleSelection={() => toggleSelection(item.id)} onToggleFavorite={() => handleToggleFavorite(item.id, item.is_favorite || false)} onTogglePin={() => handleTogglePin(item.id, item.is_pinned || false)} />)}
               </div>}
 

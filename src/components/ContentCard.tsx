@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2, Star, Archive, RefreshCw, Pin, AlertCircle } from "lucide-react";
+import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2, Star, Archive, RefreshCw, Pin, AlertCircle, Eye } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import ContentStatusBadge from "./ContentStatusBadge";
 import TagManagerDialog from "./TagManagerDialog";
@@ -157,46 +157,46 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
     <Card 
       ref={setNodeRef} 
       style={style}
-      className={`bg-card/50 backdrop-blur-sm border-border/50 hover:border-primary/50 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg ${
-        isSelected ? 'ring-2 ring-primary' : ''
+      className={`group relative bg-card/60 backdrop-blur-md border-border/60 hover:border-primary/40 transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl hover:shadow-primary/10 ${
+        isSelected ? 'ring-2 ring-primary shadow-lg shadow-primary/20' : ''
       }`}
     >
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-2 flex-1">
+      <CardHeader className="pb-2.5 sm:pb-3">
+        <div className="flex items-start justify-between gap-1.5 sm:gap-2">
+          <div className="flex items-start gap-1.5 sm:gap-2 flex-1 min-w-0">
             {onToggleSelect && (
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={onToggleSelect}
-                className="mt-1"
+                className="mt-0.5 sm:mt-1 flex-shrink-0"
               />
             )}
             {isDraggable && !isEditing && (
               <button
-                className="cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-muted rounded animate-pulse"
+                className="cursor-grab active:cursor-grabbing touch-none p-0.5 sm:p-1 hover:bg-muted/80 rounded transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
                 {...attributes}
                 {...listeners}
                 title="Arraste para mover"
               >
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                <GripVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
               </button>
             )}
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {isEditing ? (
               <Input
                 value={editedTitulo}
                 onChange={(e) => setEditedTitulo(e.target.value)}
-                className="mb-2"
+                className="mb-2 text-sm"
               />
           ) : (
-            <CardTitle className="text-foreground text-base line-clamp-2">
+            <CardTitle className="text-foreground text-sm sm:text-base leading-tight line-clamp-2 mb-1.5 sm:mb-2">
               {content.title || "Conteúdo sem título"}
             </CardTitle>
           )}
-            <div className="flex flex-wrap gap-2 mt-2">
-              <Badge variant="secondary" className="text-xs">{content.content_type}</Badge>
-              <Badge className={`${pillarColors[content.pilar] || 'bg-gray-500'} text-white text-xs`}>
+            <div className="flex flex-wrap gap-1 sm:gap-1.5">
+              <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 py-0.5">{content.content_type}</Badge>
+              <Badge className={`${pillarColors[content.pilar] || 'bg-gray-500'} text-white text-[10px] sm:text-xs px-1.5 py-0.5`}>
                 {content.pilar}
               </Badge>
               {content.status && (
@@ -206,52 +206,52 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
                 />
               )}
               {content.is_favorite && (
-                <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-xs">
-                  <Star className="h-3 w-3 fill-current" />
+                <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-[10px] sm:text-xs px-1.5 py-0.5">
+                  <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-current" />
                 </Badge>
               )}
               {content.is_pinned && (
-                <Badge variant="outline" className="text-primary border-primary text-xs">
-                  <Pin className="h-3 w-3 fill-current" />
+                <Badge variant="outline" className="text-primary border-primary text-[10px] sm:text-xs px-1.5 py-0.5">
+                  <Pin className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-current" />
                 </Badge>
               )}
             </div>
           </div>
-          <div className="flex gap-1 items-center">
+          <div className="flex gap-0.5 sm:gap-1 items-center flex-shrink-0">
             {isSaving && (
-              <Loader2 className="h-3 w-3 text-muted-foreground animate-spin" />
+              <Loader2 className="h-3 w-3 text-primary animate-spin" />
             )}
             {showSavedCheck && (
-              <CheckCircle2 className="h-3 w-3 text-green-500 animate-scale-in" />
+              <CheckCircle2 className="h-3 w-3 text-green-500 animate-bounce" />
             )}
             <Button
               variant="ghost"
               size="icon"
               onClick={() => isEditing ? handleSave() : setIsEditing(true)}
-              className="transition-transform hover:scale-110"
+              className="h-7 w-7 sm:h-8 sm:w-8 transition-all duration-300 hover:scale-110 hover:bg-primary/10"
             >
-              {isEditing ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+              {isEditing ? <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500" /> : <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onDelete(content.id)}
-              className="transition-transform hover:scale-110 hover:text-destructive"
+              className="h-7 w-7 sm:h-8 sm:w-8 transition-all duration-300 hover:scale-110 hover:text-destructive hover:bg-destructive/10"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2.5 sm:space-y-3">
         {/* VALIDAÇÃO PARA CONTEÚDO VAZIO */}
         {!copy || copy.length === 0 ? (
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
-            <p className="text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" />
-              Conteúdo vazio ou em processamento
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2.5 sm:p-3 backdrop-blur-sm">
+            <p className="text-xs sm:text-sm text-yellow-600 dark:text-yellow-400 flex items-center gap-1.5 sm:gap-2 font-medium">
+              <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span>Conteúdo vazio ou em processamento</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-relaxed">
               Este conteúdo pode ter falhado ao ser gerado. Tente regenerar ou excluir.
             </p>
           </div>
@@ -259,20 +259,22 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
           <>
             {/* Image Preview with Lazy Loading */}
             {imagem_url && !isEditing && (
-              <div className="relative group">
+              <div className="relative group overflow-hidden rounded-lg">
                 <img
                   src={imagem_url}
                   alt={content.title}
-                  className="w-full h-32 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+                  className="w-full h-28 sm:h-32 md:h-36 object-cover cursor-pointer transition-all duration-500 group-hover:scale-110 group-hover:brightness-75"
                   onClick={() => setShowImagePreview(true)}
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => setShowImagePreview(true)}
+                    className="shadow-lg backdrop-blur-sm scale-90 group-hover:scale-100 transition-transform"
                   >
+                    <Eye className="mr-1.5 h-3.5 w-3.5" />
                     Ver Imagem
                   </Button>
                 </div>
@@ -295,13 +297,13 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
               </>
             ) : (
               <>
-                <p className="text-sm text-muted-foreground line-clamp-3">{copy}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-3 leading-relaxed">{copy}</p>
                 <div className="flex flex-wrap gap-1">
                   {Array.isArray(hashtags) && hashtags.slice(0, 3).map((tag, i) => (
-                    <span key={i} className="text-xs text-primary">{tag}</span>
+                    <span key={i} className="text-[10px] sm:text-xs text-primary font-medium">{tag}</span>
                   ))}
                   {Array.isArray(hashtags) && hashtags.length > 3 && (
-                    <span className="text-xs text-muted-foreground">+{hashtags.length - 3}</span>
+                    <span className="text-[10px] sm:text-xs text-muted-foreground font-medium">+{hashtags.length - 3} mais</span>
                   )}
                 </div>
               </>
@@ -313,22 +315,22 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
         {content.tags && content.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {content.tags.map((tag, i) => (
-              <Badge key={i} variant="outline" className="text-xs">
+              <Badge key={i} variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5">
                 {tag}
               </Badge>
             ))}
           </div>
         )}
         
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-1.5 sm:gap-2 pt-2">
           <Button
             variant="outline"
             size="sm"
             onClick={copyAll}
-            className="flex-1"
+            className="flex-1 text-xs hover:bg-primary/10 hover:border-primary/50 hover:scale-105 transition-all"
           >
             <Copy className="h-3 w-3 mr-1" />
-            Copiar tudo
+            <span className="hidden sm:inline">Copiar </span>tudo
           </Button>
           <Button
             variant="outline"

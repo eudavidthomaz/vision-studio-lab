@@ -106,34 +106,34 @@ export default function MobileContentCard({
   return (
     <>
       <Card 
-        className={`bg-card/50 backdrop-blur-sm border-border/50 active:scale-[0.98] transition-all duration-300 ${
-          isDeleting ? 'animate-swipe-delete' : ''
+        className={`bg-card/60 backdrop-blur-md border-border/60 active:scale-[0.97] transition-all duration-300 shadow-lg hover:shadow-xl hover:border-primary/30 ${
+          isDeleting ? 'animate-swipe-delete opacity-0' : ''
         }`}
         style={{
           transform: `translateX(${swipeOffset}px)`,
-          transition: swipeOffset === 0 ? 'transform 0.3s ease-out' : 'none',
+          transition: swipeOffset === 0 ? 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
         }}
         {...handlers}
       >
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2.5">
           <div className="flex items-start justify-between gap-2">
-            <div className="flex-1">
-              <CardTitle className="text-foreground text-base leading-tight mb-2">
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-foreground text-sm leading-tight mb-2 line-clamp-2">
                 {content.title || "Conteúdo sem título"}
               </CardTitle>
-              <div className="flex gap-2 flex-wrap">
-                <Badge variant="secondary" className="text-xs">{content.content_type}</Badge>
-                <Badge className={`${pillarColors[content.pilar] || 'bg-gray-500'} text-white text-xs`}>
+              <div className="flex gap-1.5 flex-wrap">
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">{content.content_type}</Badge>
+                <Badge className={`${pillarColors[content.pilar] || 'bg-gray-500'} text-white text-[10px] px-1.5 py-0.5`}>
                   {content.pilar}
                 </Badge>
                 {content.is_favorite && (
-                  <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-xs">
-                    <Star className="h-3 w-3 fill-current" />
+                  <Badge variant="outline" className="text-yellow-500 border-yellow-500 text-[10px] px-1.5 py-0.5">
+                    <Star className="h-2.5 w-2.5 fill-current" />
                   </Badge>
                 )}
                 {content.is_pinned && (
-                  <Badge variant="outline" className="text-primary border-primary text-xs">
-                    <Pin className="h-3 w-3 fill-current" />
+                  <Badge variant="outline" className="text-primary border-primary text-[10px] px-1.5 py-0.5">
+                    <Pin className="h-2.5 w-2.5 fill-current" />
                   </Badge>
                 )}
               </div>
@@ -145,9 +145,9 @@ export default function MobileContentCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 shrink-0"
+                  className="h-9 w-9 shrink-0 hover:bg-primary/10 transition-colors"
                 >
-                  <MoreVertical className="h-5 w-5" />
+                  <MoreVertical className="h-4.5 w-4.5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="bottom" className="h-auto">
@@ -234,15 +234,15 @@ export default function MobileContentCard({
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2.5">
           {/* VALIDAÇÃO */}
           {!copy || copy.length === 0 ? (
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
-              <p className="text-sm text-yellow-600 flex items-center gap-2">
-                <AlertCircle className="h-4 w-4" />
-                Conteúdo vazio
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2.5 backdrop-blur-sm">
+              <p className="text-xs text-yellow-600 flex items-center gap-1.5 font-medium">
+                <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                <span>Conteúdo vazio</span>
               </p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
                 Este conteúdo pode ter falhado. Tente regenerar ou excluir.
               </p>
             </div>
@@ -251,30 +251,31 @@ export default function MobileContentCard({
               {/* Image Preview */}
               {imagem_url && (
                 <div 
-                  className="relative rounded-md overflow-hidden active:opacity-80 transition-opacity"
+                  className="relative rounded-lg overflow-hidden active:scale-[0.98] transition-transform shadow-md"
                   onClick={() => setShowImagePreview(true)}
                 >
                   <img
                     src={imagem_url}
                     alt={content.title}
-                    className="w-full h-40 object-cover"
+                    className="w-full h-36 object-cover"
                     loading="lazy"
                   />
+                  <div className="absolute inset-0 bg-black/0 active:bg-black/20 transition-colors" />
                 </div>
               )}
 
               {/* Preview Text */}
-              <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                 {copy}
               </p>
               
               {/* Hashtags Preview */}
               <div className="flex flex-wrap gap-1">
                 {Array.isArray(hashtags) && hashtags.slice(0, 3).map((tag, i) => (
-                  <span key={i} className="text-xs text-primary">{tag}</span>
+                  <span key={i} className="text-[10px] text-primary font-medium">{tag}</span>
                 ))}
                 {Array.isArray(hashtags) && hashtags.length > 3 && (
-                  <span className="text-xs text-muted-foreground">+{hashtags.length - 3}</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">+{hashtags.length - 3} mais</span>
                 )}
               </div>
             </>
@@ -286,18 +287,18 @@ export default function MobileContentCard({
               variant="default"
               size="lg"
               onClick={copyAll}
-              className="h-12"
+              className="h-11 text-sm shadow-lg hover:shadow-xl transition-all"
             >
-              <Copy className="h-4 w-4 mr-2" />
+              <Copy className="h-3.5 w-3.5 mr-1.5" />
               Copiar tudo
             </Button>
             <Button
               variant="outline"
               size="lg"
               onClick={() => setImageModalOpen(true)}
-              className="h-12"
+              className="h-11 text-sm hover:bg-primary/10 hover:border-primary/50 transition-all"
             >
-              <ImageIcon className="h-4 w-4 mr-2" />
+              <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
               {imagem_url ? "Editar" : "Gerar"}
             </Button>
           </div>

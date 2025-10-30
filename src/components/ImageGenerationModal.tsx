@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Download, RefreshCw } from "lucide-react";
+import { Loader2, Download, RefreshCw, ImageIcon, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSecureApi } from "@/hooks/useSecureApi";
 import { useQuota } from "@/hooks/useQuota";
@@ -139,66 +139,69 @@ const ImageGenerationModal = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto rounded-xl shadow-2xl border-border/50">
         <DialogHeader>
-          <DialogTitle>Gerar Imagem para Post</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
+            <ImageIcon className="h-5 w-5 text-primary" />
+            Gerar Imagem para Post
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
+        <div className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
           {!generatedImage ? (
             <>
               {!isStoryMode && (
                 <div className="space-y-2">
-                  <Label htmlFor="formato">Formato</Label>
+                  <Label htmlFor="formato" className="text-sm font-medium">Formato</Label>
                   <Select value={formato} onValueChange={setFormato}>
-                    <SelectTrigger id="formato">
+                    <SelectTrigger id="formato" className="h-10">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="feed_square">Feed Quadrado (1:1)</SelectItem>
-                      <SelectItem value="feed_portrait">Feed Vertical (4:5)</SelectItem>
-                      <SelectItem value="story">Story (9:16)</SelectItem>
-                      <SelectItem value="reel_cover">Capa de Reel (9:16)</SelectItem>
+                    <SelectContent className="bg-popover">
+                      <SelectItem value="feed_square">📱 Feed Quadrado (1:1)</SelectItem>
+                      <SelectItem value="feed_portrait">📱 Feed Vertical (4:5)</SelectItem>
+                      <SelectItem value="story">📱 Story (9:16)</SelectItem>
+                      <SelectItem value="reel_cover">🎬 Capa de Reel (9:16)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="estilo">Estilo</Label>
+                <Label htmlFor="estilo" className="text-sm font-medium">Estilo</Label>
                 <Select value={estilo} onValueChange={setEstilo}>
-                  <SelectTrigger id="estilo">
+                  <SelectTrigger id="estilo" className="h-10">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="minimalista">Minimalista</SelectItem>
-                    <SelectItem value="tipografico">Tipográfico</SelectItem>
-                    <SelectItem value="fotografico">Fotográfico</SelectItem>
-                    <SelectItem value="ilustrativo">Ilustrativo</SelectItem>
+                  <SelectContent className="bg-popover">
+                    <SelectItem value="minimalista">✨ Minimalista</SelectItem>
+                    <SelectItem value="tipografico">📝 Tipográfico</SelectItem>
+                    <SelectItem value="fotografico">📸 Fotográfico</SelectItem>
+                    <SelectItem value="ilustrativo">🎨 Ilustrativo</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
           <div className="space-y-2">
-            <Label htmlFor="copy">Texto do Post</Label>
+            <Label htmlFor="copy" className="text-sm font-medium">Texto do Post</Label>
             <Textarea
               id="copy"
               value={editedCopy}
               onChange={(e) => setEditedCopy(e.target.value)}
               rows={6}
-              className="resize-none"
+              className="resize-none text-sm"
               placeholder="Digite o texto do seu post aqui..."
             />
-            <p className="text-xs text-muted-foreground">
-              Você pode editar o texto se desejar
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              💡 Você pode editar o texto antes de gerar
             </p>
           </div>
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex gap-2 pt-3 sm:pt-4">
                 <Button
                   onClick={handleGenerate}
                   disabled={isGenerating}
-                  className="flex-1"
+                  className="flex-1 h-10 sm:h-11 shadow-lg hover:shadow-xl transition-all"
                 >
                   {isGenerating ? (
                     <>
@@ -206,13 +209,17 @@ const ImageGenerationModal = ({
                       Gerando...
                     </>
                   ) : (
-                    "Gerar Imagem"
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Gerar Imagem
+                    </>
                   )}
                 </Button>
                 <Button
                   onClick={handleClose}
                   variant="outline"
                   disabled={isGenerating}
+                  className="h-10 sm:h-11"
                 >
                   Cancelar
                 </Button>
@@ -220,8 +227,8 @@ const ImageGenerationModal = ({
             </>
           ) : (
             <>
-              <div className="space-y-4">
-                <div className="relative rounded-lg overflow-hidden bg-muted">
+              <div className="space-y-3 sm:space-y-4">
+                <div className="relative rounded-xl overflow-hidden bg-muted shadow-2xl">
                   <img
                     src={generatedImage}
                     alt="Imagem gerada"
@@ -232,7 +239,7 @@ const ImageGenerationModal = ({
                 <div className="flex gap-2">
                   <Button
                     onClick={handleDownload}
-                    className="flex-1"
+                    className="flex-1 h-10 sm:h-11 shadow-lg hover:shadow-xl transition-all"
                   >
                     <Download className="mr-2 h-4 w-4" />
                     Download
@@ -240,16 +247,17 @@ const ImageGenerationModal = ({
                   <Button
                     onClick={handleRegenerate}
                     variant="outline"
+                    className="h-10 sm:h-11 hover:bg-primary/10 hover:border-primary/50 transition-all"
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Regenerar
+                    <span className="hidden sm:inline">Regenerar</span>
                   </Button>
                 </div>
 
                 <Button
                   onClick={handleClose}
                   variant="ghost"
-                  className="w-full"
+                  className="w-full h-10 hover:bg-muted transition-colors"
                 >
                   Fechar
                 </Button>
