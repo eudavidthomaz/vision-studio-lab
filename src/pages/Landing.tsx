@@ -105,14 +105,6 @@ const Landing = () => {
               A missão continua.
             </span>
           </h1>
-          {/* Headline alternativa V2 para A/B test:
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 animate-scale-in leading-tight">
-            Prega no domingo.<br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
-              Posta a semana inteira. Sem sofrimento.
-            </span>
-          </h1>
-          */}
           
           <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-3xl mx-auto px-2">
             Do altar ao feed: o Ide.On transforma sua pregação em uma semana de conteúdo. 
@@ -185,7 +177,7 @@ const Landing = () => {
                 </div>
                 <div className="text-primary font-bold text-sm mb-2">PASSO 1</div>
                 <h3 className="text-lg md:text-xl font-bold text-white mb-3">Grave ou Envie o Áudio</h3>
-                <p className="text-muted-foreground text-sm md:text-base line-clamp-4 md:line-clamp-none">
+                <p className="text-muted-foreground text-sm md:text-base">
                   Grave ao vivo no Ide.On ou faça upload do arquivo. A IA transcreve e identifica versículos, temas, ênfases e chamadas da sua pregação.
                 </p>
               </CardContent>
@@ -199,7 +191,7 @@ const Landing = () => {
                 </div>
                 <div className="text-primary font-bold text-sm mb-2">PASSO 2</div>
                 <h3 className="text-lg md:text-xl font-bold text-white mb-3">Gere o Pack da Semana</h3>
-                <p className="text-muted-foreground text-sm md:text-base line-clamp-4 md:line-clamp-none">
+                <p className="text-muted-foreground text-sm md:text-base">
                   Em minutos, você recebe estudo bíblico, resumo, frases de impacto, carrossel, roteiros de reels/shorts, legendas e hashtags — tudo coerente com a doutrina cristã histórica.
                 </p>
               </CardContent>
@@ -213,7 +205,7 @@ const Landing = () => {
                 </div>
                 <div className="text-primary font-bold text-sm mb-2">PASSO 3</div>
                 <h3 className="text-lg md:text-xl font-bold text-white mb-3">Organize e Publique</h3>
-                <p className="text-muted-foreground text-sm md:text-base line-clamp-4 md:line-clamp-none">
+                <p className="text-muted-foreground text-sm md:text-base">
                   Use o planner visual para ajustar o tom, escolher os dias e exportar em PDF/Imagem ou direto para seus fluxos (Canva/CapCut/agenda de posts).
                 </p>
               </CardContent>
@@ -245,7 +237,7 @@ const Landing = () => {
                     <CardContent className="pt-4 md:pt-6">
                       <feature.icon className="w-8 h-8 md:w-10 md:h-10 text-primary mb-3 md:mb-4" />
                       <h3 className="text-base md:text-lg font-bold text-white mb-2">{feature.title}</h3>
-                      <p className="text-muted-foreground text-xs md:text-sm line-clamp-3 md:line-clamp-none">{feature.description}</p>
+                      <p className="text-muted-foreground text-xs md:text-sm">{feature.description}</p>
                     </CardContent>
                   </Card>
                 ))}
@@ -290,10 +282,10 @@ const Landing = () => {
                     </div>
                     <div className="min-w-0">
                       <p className="text-white font-semibold text-sm md:text-base truncate">{testimonial.name}</p>
-                      <p className="text-muted-foreground text-xs md:text-sm line-clamp-1">{testimonial.role}</p>
+                      <p className="text-muted-foreground text-xs md:text-sm">{testimonial.role}</p>
                     </div>
                   </div>
-                  <p className="text-muted-foreground text-xs md:text-sm italic line-clamp-4 md:line-clamp-none">"{testimonial.content}"</p>
+                  <p className="text-muted-foreground text-xs md:text-sm italic">"{testimonial.content}"</p>
                 </CardContent>
               </Card>
             ))}
