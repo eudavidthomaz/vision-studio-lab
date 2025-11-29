@@ -20,10 +20,7 @@ export const AICreatorCard = ({
           Crie para o reino com apenas um clique...
         </h2>
         
-        <p className="text-muted-foreground mb-6 max-w-lg mx-auto text-xs">
-          Use inteligência artificial para gerar conteúdo bíblico completo, 
-          com fundamento teológico e criatividade pastoral
-        </p>
+        <p className="text-muted-foreground mb-6 max-w-lg mx-auto text-xs">Gere conteúdo bíblico completo, com fundamento teológico e criatividade pastoral</p>
         
         <Button onClick={onClick} size="lg" className="group/btn relative overflow-hidden bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/50 transition-all duration-300">
           <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
