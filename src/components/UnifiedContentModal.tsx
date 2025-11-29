@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Tag } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { StructuredContentTabs } from "./StructuredContentTabs";
 
 interface UnifiedContentModalProps {
   content: ContentLibraryItem | null;
@@ -20,8 +19,6 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
   const isMobile = useIsMobile();
   
   if (!content) return null;
-
-  const hasStructuredBlocks = Boolean(content.modalidades && Object.keys(content.modalidades || {}).length);
 
   // Mobile: usa Sheet
   if (isMobile) {
@@ -127,10 +124,6 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
               ))}
             </div>
           )}
-
-          {hasStructuredBlocks && (
-            <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 py-0.5">Estruturado multimodal</Badge>
-          )}
         </DialogHeader>
 
         {/* Conteúdo scrollável */}
@@ -155,11 +148,7 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
             [&_ol]:mb-2.5 [&_ol]:sm:mb-3 [&_ol]:pl-3 [&_ol]:sm:pl-4 [&_ol]:md:pl-5
             [&_li]:mb-1.5 [&_li]:sm:mb-2
           ">
-            {hasStructuredBlocks ? (
-              <StructuredContentTabs modalidades={content.modalidades || {}} />
-            ) : (
-              <ContentViewer content={content} />
-            )}
+            <ContentViewer content={content} />
           </div>
         </ScrollArea>
       </DialogContent>
