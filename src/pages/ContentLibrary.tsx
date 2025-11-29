@@ -361,16 +361,22 @@ export default function ContentLibrary() {
           {/* Barra compacta com contador + botão de filtros */}
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-              
+              <div className="flex flex-wrap items-center gap-2">
+                <ViewSwitcher viewMode={viewMode} onViewModeChange={setViewMode} />
+              </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                
-
-                
-
-                
-
-                <ViewSwitcher viewMode={viewMode} onViewModeChange={setViewMode} />
+                <Button
+                  variant="secondary"
+                  className="gap-2"
+                  onClick={() => navigate("/creator")}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Criar conteúdo estruturado
+                </Button>
+                <Button onClick={handleSelectDisplayed} variant="outline" size="sm" className="hidden sm:inline-flex">
+                  Selecionar listados
+                </Button>
               </div>
             </div>
 

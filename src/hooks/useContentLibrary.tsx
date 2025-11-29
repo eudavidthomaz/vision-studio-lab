@@ -12,6 +12,9 @@ export interface ContentLibraryItem {
   pilar: string;
   status: string;
   content: any;
+  modalidades?: Record<string, any>;
+  formats?: string[];
+  is_structured?: boolean;
   tags: string[];
   sermon_id?: string;
   prompt_original?: string;
