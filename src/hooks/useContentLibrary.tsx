@@ -189,8 +189,9 @@ export function useContentLibrary() {
     });
   }, []);
 
-  const selectAll = useCallback(() => {
-    setSelectedIds(new Set(filteredItems.map(item => item.id)));
+  const selectAll = useCallback((ids?: string[]) => {
+    const idsToSelect = ids ?? filteredItems.map(item => item.id);
+    setSelectedIds(new Set(idsToSelect));
   }, [filteredItems]);
 
   const clearSelection = useCallback(() => {

@@ -1,12 +1,11 @@
 import { useState, useEffect, memo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useContentLibrary, ContentLibraryItem } from "@/hooks/useContentLibrary";
+import { useContentLibrary, ContentLibraryItem, type ContentFilters } from "@/hooks/useContentLibrary";
 import { UnifiedContentModal } from "@/components/UnifiedContentModal";
 import { useInView } from "react-intersection-observer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +21,49 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+
+const DEFAULT_FILTERS: ContentFilters = {
+  search: "",
+  type: "all",
+  source: "all",
+  pilar: "all",
+  status: "all",
+};
+
+const contentTypeOptions = [
+  { value: "all", label: "Todos os formatos" },
+  { value: "carrossel", label: "Carrossel" },
+  { value: "reel", label: "Reels" },
+  { value: "stories", label: "Stories" },
+  { value: "post", label: "Post" },
+  { value: "devocional", label: "Devocional" },
+  { value: "estudo", label: "Estudo" },
+  { value: "esboco", label: "Esboço" },
+  { value: "desafio_semanal", label: "Desafio" },
+  { value: "roteiro_video", label: "Roteiro" },
+];
+
+const sourceOptions = [
+  { value: "all", label: "Todas as fontes" },
+  { value: "sermon", label: "Sermão" },
+  { value: "manual", label: "Manual" },
+  { value: "ai", label: "Gerado por IA" },
+];
+
+const pilarOptions = [
+  { value: "all", label: "Todos os pilares" },
+  { value: "ALCANÇAR", label: "Alcançar" },
+  { value: "EDIFICAR", label: "Edificar" },
+  { value: "ENVIAR", label: "Enviar" },
+  { value: "EXALTAR", label: "Exaltar" },
+];
+
+const statusOptions = [
+  { value: "all", label: "Todos os status" },
+  { value: "draft", label: "Rascunho" },
+  { value: "published", label: "Publicado" },
+  { value: "scheduled", label: "Agendado" },
+];
 
 // Memoized content card component for grid view
 const ContentItemCard = memo(({
@@ -187,6 +229,18 @@ export default function ContentLibrary() {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [globalTagDialogOpen, setGlobalTagDialogOpen] = useState(false);
   const sermonId = searchParams.get('sermon_id');
+  const isDefaultFilter = filters.search === DEFAULT_FILTERS.search && filters.type === DEFAULT_FILTERS.type && filters.source === DEFAULT_FILTERS.source && filters.pilar === DEFAULT_FILTERS.pilar && filters.status === DEFAULT_FILTERS.status;
+
+  const handleFilterChange = <K extends keyof ContentFilters>(key: K, value: ContentFilters[K]) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+  };
 
   // Infinite scroll observer
   const {
@@ -220,11 +274,13 @@ export default function ContentLibrary() {
     const ids = Array.from(selectedIds);
     if (format === 'pdf') exportToPDF(ids);else if (format === 'txt') exportToTXT(ids);else if (format === 'json') exportToJSON(ids);
   };
+  const handleSelectDisplayed = () => {
+    selectAll(displayedItems.map(item => item.id));
+  };
   const handleToggleFavorite = async (id: string, current: boolean) => {
     await updateContent(id, {
       is_favorite: !current
     });
-    refresh();
   };
   const handleTogglePin = async (id: string, current: boolean) => {
     const pinnedCount = items.filter(i => i.is_pinned).length;
@@ -273,10 +329,111 @@ export default function ContentLibrary() {
           </div>
 
           {/* Barra compacta com contador + botão de filtros */}
-          
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative w-full sm:w-72 md:w-80">
+                  <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={filters.search}
+                    onChange={e => handleFilterChange('search', e.target.value)}
+                    placeholder="Buscar por título ou prompt"
+                    className="pl-9"
+                  />
+                </div>
+
+                <Select value={filters.type} onValueChange={value => handleFilterChange('type', value)}>
+                  <SelectTrigger className="w-[170px]">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contentTypeOptions.map(option => <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>)}
+                  </SelectContent>
+                </Select>
+
+                <Select value={filters.source} onValueChange={value => handleFilterChange('source', value)}>
+                  <SelectTrigger className="w-[170px]">
+                    <SelectValue placeholder="Origem" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sourceOptions.map(option => <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>)}
+                  </SelectContent>
+                </Select>
+
+                <Select value={filters.pilar} onValueChange={value => handleFilterChange('pilar', value)}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Pilar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {pilarOptions.map(option => <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>)}
+                  </SelectContent>
+                </Select>
+
+                <Select value={filters.status} onValueChange={value => handleFilterChange('status', value)}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map(option => <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="outline" size="sm" onClick={handleSelectDisplayed} disabled={displayedItems.length === 0}>
+                  Selecionar filtrados
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setGlobalTagDialogOpen(true)}
+                  className="gap-2"
+                >
+                  <TagsIcon className="h-4 w-4" />
+                  Gerenciar tags
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={refresh}
+                  disabled={loading}
+                  className="gap-2"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Atualizar
+                </Button>
+
+                <ViewSwitcher viewMode={viewMode} onViewModeChange={setViewMode} />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="px-3 py-1">
+                  {displayedItems.length} resultado{displayedItems.length === 1 ? '' : 's'}
+                </Badge>
+                {!isDefaultFilter && <span className="text-xs sm:text-sm">Filtros ativos.</span>}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={handleClearFilters} disabled={isDefaultFilter}>
+                  Limpar filtros
+                </Button>
+              </div>
+            </div>
+          </div>
 
           {/* Ações adicionais */}
-          
         </div>
       </div>
 
