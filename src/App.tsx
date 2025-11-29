@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Welcome from "./pages/Welcome";
 import ContentLibrary from "./pages/ContentLibrary";
 import ContentLibraryDetail from "./pages/ContentLibraryDetail";
+import Creator from "./pages/Creator";
 import Metrics from "./pages/Metrics";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
@@ -48,6 +49,7 @@ const App = () => (
           {/* New unified routes */}
           <Route path="/biblioteca" element={<ContentLibrary />} />
           <Route path="/biblioteca/:id" element={<ContentLibraryDetail />} />
+          <Route path="/creator" element={<Creator />} />
           <Route path="/metrics" element={<Metrics />} />
           <Route path="/security" element={<SecurityDashboard />} />
           <Route path="/usage" element={<UsageDashboard />} />
