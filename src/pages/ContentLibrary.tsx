@@ -21,49 +21,86 @@ import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-
 const DEFAULT_FILTERS: ContentFilters = {
   search: "",
   type: "all",
   source: "all",
   pilar: "all",
-  status: "all",
+  status: "all"
 };
-
-const contentTypeOptions = [
-  { value: "all", label: "Todos os formatos" },
-  { value: "carrossel", label: "Carrossel" },
-  { value: "reel", label: "Reels" },
-  { value: "stories", label: "Stories" },
-  { value: "post", label: "Post" },
-  { value: "devocional", label: "Devocional" },
-  { value: "estudo", label: "Estudo" },
-  { value: "esboco", label: "Esboço" },
-  { value: "desafio_semanal", label: "Desafio" },
-  { value: "roteiro_video", label: "Roteiro" },
-];
-
-const sourceOptions = [
-  { value: "all", label: "Todas as fontes" },
-  { value: "sermon", label: "Sermão" },
-  { value: "manual", label: "Manual" },
-  { value: "ai", label: "Gerado por IA" },
-];
-
-const pilarOptions = [
-  { value: "all", label: "Todos os pilares" },
-  { value: "ALCANÇAR", label: "Alcançar" },
-  { value: "EDIFICAR", label: "Edificar" },
-  { value: "ENVIAR", label: "Enviar" },
-  { value: "EXALTAR", label: "Exaltar" },
-];
-
-const statusOptions = [
-  { value: "all", label: "Todos os status" },
-  { value: "draft", label: "Rascunho" },
-  { value: "published", label: "Publicado" },
-  { value: "scheduled", label: "Agendado" },
-];
+const contentTypeOptions = [{
+  value: "all",
+  label: "Todos os formatos"
+}, {
+  value: "carrossel",
+  label: "Carrossel"
+}, {
+  value: "reel",
+  label: "Reels"
+}, {
+  value: "stories",
+  label: "Stories"
+}, {
+  value: "post",
+  label: "Post"
+}, {
+  value: "devocional",
+  label: "Devocional"
+}, {
+  value: "estudo",
+  label: "Estudo"
+}, {
+  value: "esboco",
+  label: "Esboço"
+}, {
+  value: "desafio_semanal",
+  label: "Desafio"
+}, {
+  value: "roteiro_video",
+  label: "Roteiro"
+}];
+const sourceOptions = [{
+  value: "all",
+  label: "Todas as fontes"
+}, {
+  value: "sermon",
+  label: "Sermão"
+}, {
+  value: "manual",
+  label: "Manual"
+}, {
+  value: "ai",
+  label: "Gerado por IA"
+}];
+const pilarOptions = [{
+  value: "all",
+  label: "Todos os pilares"
+}, {
+  value: "ALCANÇAR",
+  label: "Alcançar"
+}, {
+  value: "EDIFICAR",
+  label: "Edificar"
+}, {
+  value: "ENVIAR",
+  label: "Enviar"
+}, {
+  value: "EXALTAR",
+  label: "Exaltar"
+}];
+const statusOptions = [{
+  value: "all",
+  label: "Todos os status"
+}, {
+  value: "draft",
+  label: "Rascunho"
+}, {
+  value: "published",
+  label: "Publicado"
+}, {
+  value: "scheduled",
+  label: "Agendado"
+}];
 
 // Memoized content card component for grid view
 const ContentItemCard = memo(({
@@ -230,14 +267,12 @@ export default function ContentLibrary() {
   const [globalTagDialogOpen, setGlobalTagDialogOpen] = useState(false);
   const sermonId = searchParams.get('sermon_id');
   const isDefaultFilter = filters.search === DEFAULT_FILTERS.search && filters.type === DEFAULT_FILTERS.type && filters.source === DEFAULT_FILTERS.source && filters.pilar === DEFAULT_FILTERS.pilar && filters.status === DEFAULT_FILTERS.status;
-
-  const handleFilterChange = <K extends keyof ContentFilters>(key: K, value: ContentFilters[K]) => {
+  const handleFilterChange = <K extends keyof ContentFilters,>(key: K, value: ContentFilters[K]) => {
     setFilters(prev => ({
       ...prev,
-      [key]: value,
+      [key]: value
     }));
   };
-
   const handleClearFilters = () => {
     setFilters(DEFAULT_FILTERS);
   };
@@ -307,12 +342,7 @@ export default function ContentLibrary() {
           <div className="mb-3 sm:mb-4">
             {/* Linha 1: Botão Voltar + Título */}
             <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => navigate("/dashboard")} 
-                className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 hover:scale-110 transition-transform"
-              >
+              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")} className="flex-shrink-0 h-8 w-8 sm:h-9 sm:w-9 hover:scale-110 transition-transform">
                 <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
               
@@ -331,87 +361,14 @@ export default function ContentLibrary() {
           {/* Barra compacta com contador + botão de filtros */}
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative w-full sm:w-72 md:w-80">
-                  <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={filters.search}
-                    onChange={e => handleFilterChange('search', e.target.value)}
-                    placeholder="Buscar por título ou prompt"
-                    className="pl-9"
-                  />
-                </div>
-
-                <Select value={filters.type} onValueChange={value => handleFilterChange('type', value)}>
-                  <SelectTrigger className="w-[170px]">
-                    <SelectValue placeholder="Tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {contentTypeOptions.map(option => <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-
-                <Select value={filters.source} onValueChange={value => handleFilterChange('source', value)}>
-                  <SelectTrigger className="w-[170px]">
-                    <SelectValue placeholder="Origem" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sourceOptions.map(option => <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-
-                <Select value={filters.pilar} onValueChange={value => handleFilterChange('pilar', value)}>
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Pilar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {pilarOptions.map(option => <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-
-                <Select value={filters.status} onValueChange={value => handleFilterChange('status', value)}>
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {statusOptions.map(option => <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+              
 
               <div className="flex flex-wrap items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleSelectDisplayed} disabled={displayedItems.length === 0}>
-                  Selecionar filtrados
-                </Button>
+                
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setGlobalTagDialogOpen(true)}
-                  className="gap-2"
-                >
-                  <TagsIcon className="h-4 w-4" />
-                  Gerenciar tags
-                </Button>
+                
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={refresh}
-                  disabled={loading}
-                  className="gap-2"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  Atualizar
-                </Button>
+                
 
                 <ViewSwitcher viewMode={viewMode} onViewModeChange={setViewMode} />
               </div>
