@@ -8,10 +8,9 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Separator } from "./ui/separator";
 import { cn } from "@/lib/utils";
-import type { StructuredModalidades } from "@/hooks/useContentGeneration";
 
 interface StructuredContentTabsProps {
-  modalidades: StructuredModalidades;
+  modalidades: Record<string, any>;
   checklist?: Record<string, any>;
   compact?: boolean;
 }
@@ -22,12 +21,8 @@ function copyText(text: string) {
 
 function renderBlock(label: string, content?: string | string[] | Record<string, any>) {
   if (!content) return null;
-
   const normalized = Array.isArray(content)
-    ? content
-        .filter(Boolean)
-        .map((item, index) => `${index + 1}. ${item}`)
-        .join("\n")
+    ? content.join("\n")
     : typeof content === "object"
       ? JSON.stringify(content, null, 2)
       : content;
@@ -84,70 +79,19 @@ export function StructuredContentTabs({ modalidades, checklist, compact }: Struc
         const bloco = modalidades[tab];
         if (!bloco) return null;
 
-        const renderFormatBlocks = () => {
-          switch (tab) {
-            case "email":
-              return (
-                <div className="space-y-3">
-                  {renderBlock("Assunto", bloco.assunto || bloco.titulo || bloco.headline)}
-                  {renderBlock("Pré-header", bloco.preheader || bloco.resumo)}
-                  {renderBlock("Corpo", bloco.corpo || bloco.texto)}
-                  {renderBlock("CTA", bloco.cta || bloco.ctas)}
-                  {renderBlock("Metadados", bloco.metadados || bloco.hashtags)}
-                  {renderBlock("Suposições", bloco.suposicoes || bloco.assumptions)}
-                </div>
-              );
-            case "carrossel":
-              return (
-                <div className="space-y-3">
-                  {renderBlock("Estratégia", bloco.estrategia || bloco.gancho)}
-                  {renderBlock("Slides", bloco.slides || bloco.corpo)}
-                  {renderBlock("CTA", bloco.cta || bloco.ctas)}
-                  {renderBlock("Metadados", bloco.metadados || bloco.hashtags)}
-                  {renderBlock("Suposições", bloco.suposicoes || bloco.assumptions)}
-                </div>
-              );
-            case "roteiro_video":
-              return (
-                <div className="space-y-3">
-                  {renderBlock("Gancho", bloco.gancho || bloco.headline)}
-                  {renderBlock("Apresentação", bloco.apresentacao || bloco.introducao)}
-                  {renderBlock("Pontos-chave", bloco.pontos_chave || bloco.corpo)}
-                  {renderBlock("Fechamento", bloco.fechamento || bloco.conclusao)}
-                  {renderBlock("CTA", bloco.cta || bloco.ctas)}
-                  {renderBlock("Sugestões de cena", bloco.sugestoes_cena)}
-                  {renderBlock("Metadados", bloco.metadados || bloco.hashtags)}
-                  {renderBlock("Suposições", bloco.suposicoes || bloco.assumptions)}
-                </div>
-              );
-            case "post_curto":
-              return (
-                <div className="space-y-3">
-                  {renderBlock("Headline", bloco.headline || bloco.titulo)}
-                  {renderBlock("Corpo", bloco.corpo || bloco.texto)}
-                  {renderBlock("CTA", bloco.cta || bloco.ctas)}
-                  {renderBlock("Metadados", bloco.metadados || bloco.hashtags)}
-                  {renderBlock("Suposições", bloco.suposicoes || bloco.assumptions)}
-                </div>
-              );
-            default:
-              return (
-                <div className="space-y-3">
-                  {renderBlock("Estratégia", bloco.estrategia || bloco.estrategia_geral)}
-                  {renderBlock("Título/Headline", bloco.titulo || bloco.headline)}
-                  {renderBlock("Resumo", bloco.resumo)}
-                  {renderBlock("Corpo", bloco.corpo || bloco.secoes)}
-                  {renderBlock("CTA x3", bloco.ctas || bloco.cta)}
-                  {renderBlock("Metadados", bloco.metadados || bloco.hashtags)}
-                  {renderBlock("Suposições", bloco.suposicoes || bloco.assumptions)}
-                </div>
-              );
-          }
-        };
-
         return (
           <TabsContent key={tab} value={tab} className="space-y-3">
-            <ScrollArea className="max-h-[70vh] pr-2">{renderFormatBlocks()}</ScrollArea>
+            <ScrollArea className="max-h-[70vh] pr-2">
+              <div className="space-y-3">
+                {renderBlock("Estratégia", bloco.estrategia || bloco.estrategia_geral)}
+                {renderBlock("Título/Headline", bloco.titulo || bloco.headline)}
+                {renderBlock("Resumo", bloco.resumo)}
+                {renderBlock("Corpo", bloco.corpo || bloco.secoes || bloco.slides)}
+                {renderBlock("CTA x3", bloco.ctas || bloco.cta)}
+                {renderBlock("Metadados", bloco.metadados || bloco.hashtags)}
+                {renderBlock("Suposições", bloco.suposicoes || bloco.assumptions)}
+              </div>
+            </ScrollArea>
             {checklist && (
               <div className="rounded-lg border p-3 space-y-2">
                 <p className="text-sm font-semibold">Checklist de qualidade</p>

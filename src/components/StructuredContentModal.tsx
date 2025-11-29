@@ -1,11 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { StructuredContentTabs } from "./StructuredContentTabs";
-import { StructuredModalidades } from "@/hooks/useContentGeneration";
 
 interface StructuredContentModalProps {
   open: boolean;
   onClose: () => void;
-  modalidades: StructuredModalidades;
+  modalidades: Record<string, any>;
   checklist?: Record<string, any>;
   title?: string;
 }
