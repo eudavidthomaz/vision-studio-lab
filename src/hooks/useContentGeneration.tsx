@@ -4,53 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ContentFormat } from "./useContentTemplates";
 
-export type StructuredModalidades = {
-  blog?: {
-    estrategia: string;
-    titulo: string;
-    resumo: string;
-    corpo: string;
-    ctas: string[];
-    metadados: string[];
-    suposicoes: string;
-  };
-  carrossel?: {
-    estrategia: string;
-    slides: string[];
-    ctas: string[];
-    metadados: string[];
-    suposicoes: string;
-  };
-  email?: {
-    assunto: string;
-    preheader: string;
-    corpo: string;
-    cta: string;
-    metadados: string[];
-    suposicoes: string;
-  };
-  roteiro_video?: {
-    gancho: string;
-    apresentacao: string;
-    pontos_chave: string[];
-    fechamento: string;
-    cta: string;
-    sugestoes_cena: string | string[];
-    metadados: string[];
-    suposicoes: string;
-  };
-  post_curto?: {
-    headline: string;
-    corpo: string;
-    cta: string;
-    metadados: string[];
-    suposicoes: string;
-  };
-  [key: string]: any;
-};
-
 export interface StructuredContentPayload {
-  modalidades: StructuredModalidades;
+  modalidades: Record<string, any>;
   checklist?: Record<string, any>;
   formats?: ContentFormat[];
 }
