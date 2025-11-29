@@ -14,7 +14,7 @@ import NPSModal from "@/components/NPSModal";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useSecureApi } from "@/hooks/useSecureApi";
 import { useQuota } from "@/hooks/useQuota";
-import { useContentLibrary, type ContentLibraryItem } from "@/hooks/useContentLibrary";
+import { useContentLibrary } from "@/hooks/useContentLibrary";
 import { RateLimitIndicator } from "@/components/RateLimitIndicator";
 import { QuotaIndicator } from "@/components/QuotaIndicator";
 import { AICreatorCard } from "@/components/AICreatorCard";
@@ -22,8 +22,6 @@ import { AIPromptModal } from "@/components/AIPromptModal";
 import { RecentContentSection } from "@/components/RecentContentSection";
 import { HeroHeader } from "@/components/HeroHeader";
 import { SermonCompletedModal } from "@/components/SermonCompletedModal";
-import { AIContentStatusModal } from "@/components/AIContentStatusModal";
-import { AIContentSuccessModal } from "@/components/AIContentSuccessModal";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -37,16 +35,11 @@ const Dashboard = () => {
   const [showNPSModal, setShowNPSModal] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
-  const [showStatusModal, setShowStatusModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [statusStep, setStatusStep] = useState<"briefing" | "context" | "generation" | "saving">("briefing");
-  const [lastCreatedContent, setLastCreatedContent] = useState<ContentLibraryItem | null>(null);
   const [showSermonCompletedModal, setShowSermonCompletedModal] = useState(false);
   const [currentSermonSummary, setCurrentSermonSummary] = useState("");
   const [currentSermonId, setCurrentSermonId] = useState("");
   const [generatedContentsCount, setGeneratedContentsCount] = useState(0);
   const [preselectedSermonId, setPreselectedSermonId] = useState<string | undefined>();
-  const [promptResetKey, setPromptResetKey] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -175,36 +168,19 @@ const Dashboard = () => {
     navigate(`/biblioteca?sermon_id=${sermonId}`);
   };
 
-  const handleViewLastContent = () => {
-    setShowSuccessModal(false);
-    if (lastCreatedContent?.id) {
-      navigate(`/biblioteca/${lastCreatedContent.id}`);
-    } else {
-      navigate('/biblioteca');
-    }
-  };
-
-  const handleCreateAnotherContent = () => {
-    setShowSuccessModal(false);
-    setPromptResetKey((prev) => prev + 1);
-    setShowAIModal(true);
-  };
-
   const handleGenerateAIContent = async (prompt: string) => {
     setIsGeneratingAI(true);
-    setShowStatusModal(true);
-    setStatusStep("briefing");
-
+    
     // ✅ Feedback progressivo ao usuário
     toast({
       title: "🤖 Analisando seu pedido...",
       description: "Preparando a geração de conteúdo",
       duration: 2000,
     });
-
+    
     try {
       console.log('🚀 Gerando conteúdo com prompt:', prompt.substring(0, 100));
-
+      
       // Atualizar toast após 1 segundo
       setTimeout(() => {
         toast({
@@ -213,25 +189,9 @@ const Dashboard = () => {
           duration: Infinity,
         });
       }, 1000);
-
-      setStatusStep(preselectedSermonId ? "context" : "generation");
-
-      const contentId = await createContent(prompt, {
-        sermonId: preselectedSermonId,
-        sourceType: "ai-creator",
-        metadata: { origin: "dashboard" },
-      });
-
-      setStatusStep("saving");
-
-      const { data: createdContent } = await supabase
-        .from('content_library')
-        .select('*')
-        .eq('id', contentId)
-        .single();
-
-      setLastCreatedContent((createdContent as ContentLibraryItem) || null);
-
+      
+      const contentId = await createContent(prompt, preselectedSermonId);
+      
       console.log('✅ Conteúdo criado com ID:', contentId);
 
       await trackEvent('ai_content_generated', { prompt: prompt.substring(0, 50) });
@@ -244,14 +204,16 @@ const Dashboard = () => {
       });
 
       setShowAIModal(false);
-      setShowStatusModal(false);
-      setShowSuccessModal(true);
-      setPreselectedSermonId(undefined);
-
+      
+      // Aguardar um pouco para garantir que o banco salvou
+      setTimeout(() => {
+        navigate(`/biblioteca/${contentId}`);
+      }, 300);
+      
     } catch (error: any) {
       console.error('❌ Error generating AI content:', error);
-
-      const errorMessage = error?.message ||
+      
+      const errorMessage = error?.message || 
         'Não foi possível gerar o conteúdo. Tente novamente com um prompt mais específico.';
       
       toast({
@@ -262,8 +224,6 @@ const Dashboard = () => {
       });
     } finally {
       setIsGeneratingAI(false);
-      setStatusStep("briefing");
-      setShowStatusModal(false);
     }
   };
 
@@ -372,9 +332,8 @@ const Dashboard = () => {
         />
 
         {/* AI Modal */}
-        <AIPromptModal
-          key={promptResetKey}
-          open={showAIModal}
+        <AIPromptModal 
+          open={showAIModal} 
           onOpenChange={(open) => {
             setShowAIModal(open);
             if (!open) setPreselectedSermonId(undefined);
@@ -382,20 +341,6 @@ const Dashboard = () => {
           onGenerate={handleGenerateAIContent}
           isLoading={isGeneratingAI}
           preselectedSermonId={preselectedSermonId}
-        />
-
-        <AIContentStatusModal
-          open={showStatusModal}
-          onClose={() => setShowStatusModal(false)}
-          step={statusStep}
-        />
-
-        <AIContentSuccessModal
-          open={showSuccessModal}
-          onClose={() => setShowSuccessModal(false)}
-          content={lastCreatedContent}
-          onViewContent={handleViewLastContent}
-          onCreateAnother={handleCreateAnotherContent}
         />
       </div>
     </>

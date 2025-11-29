@@ -36,17 +36,6 @@ export interface ContentFilters {
 
 const ITEMS_PER_PAGE = 20;
 
-export interface CreateContentOptions {
-  sermonId?: string;
-  sourceType?: string;
-  contentType?: string;
-  title?: string;
-  tags?: string[];
-  metadata?: Record<string, unknown>;
-  denominationalPrefs?: string[];
-  [key: string]: unknown;
-}
-
 export function useContentLibrary() {
   const [items, setItems] = useState<ContentLibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,55 +88,17 @@ export function useContentLibrary() {
   }, [loading, hasMore, page, loadItems]);
 
   // Criar novo conteúdo
-  const createContent = async (prompt: string, options?: CreateContentOptions) => {
+  const createContent = async (prompt: string, options?: any) => {
     try {
-      const body: Record<string, unknown> = { prompt };
-
-      if (options && typeof options === 'object') {
-        const {
-          sermonId,
-          sourceType,
-          contentType,
-          title,
-          tags,
-          metadata,
-          denominationalPrefs,
-          ...rest
-        } = options;
-
-        if (sermonId) body.sermon_id = sermonId;
-        if (sourceType) body.source_type = sourceType;
-        if (contentType) body.content_type = contentType;
-        if (title) body.title = title;
-        if (Array.isArray(tags)) body.tags = tags;
-        if (metadata && typeof metadata === 'object') body.metadata = metadata;
-        if (Array.isArray(denominationalPrefs)) body.denominationalPrefs = denominationalPrefs;
-
-        // Apenas incluir valores primitivos restantes válidos
-        Object.entries(rest).forEach(([key, value]) => {
-          const isPrimitive = ['string', 'number', 'boolean'].includes(typeof value);
-          if (isPrimitive) {
-            body[key] = value;
-          }
-        });
-      }
-
       const { data, error } = await supabase.functions.invoke('generate-ai-content', {
-        body
+        body: { prompt, ...options }
       });
 
       if (error) throw error;
 
       toast.success('✨ Conteúdo criado com sucesso!');
       await loadItems(); // Refresh
-
-      const contentId = data?.content_id || data?.id;
-
-      if (!contentId) {
-        throw new Error('ID do conteúdo não retornado pela função generate-ai-content');
-      }
-
-      return contentId;
+      return data.id;
     } catch (error: any) {
       console.error('Error creating content:', error);
       toast.error(error.message || 'Erro ao criar conteúdo');
