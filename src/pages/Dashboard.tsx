@@ -168,7 +168,7 @@ const Dashboard = () => {
     navigate(`/biblioteca?sermon_id=${sermonId}`);
   };
 
-  const handleGenerateAIContent = async (prompt: string) => {
+  const handleGenerateAIContent = async (prompt: string, metadata?: { contentTypeHint?: string }) => {
     setIsGeneratingAI(true);
     
     // ✅ Feedback progressivo ao usuário
@@ -190,7 +190,10 @@ const Dashboard = () => {
         });
       }, 1000);
       
-      const contentId = await createContent(prompt, preselectedSermonId);
+      const contentId = await createContent(prompt, {
+        sermonId: preselectedSermonId,
+        contentTypeHint: metadata?.contentTypeHint
+      });
       
       console.log('✅ Conteúdo criado com ID:', contentId);
 

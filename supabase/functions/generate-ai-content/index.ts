@@ -44,7 +44,7 @@ serve(async (req) => {
       });
     }
 
-    const { prompt, denominationalPrefs } = await req.json();
+    const { prompt, denominationalPrefs, content_type_hint, sermonId } = await req.json();
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 10) {
       return new Response(JSON.stringify({ 
@@ -138,14 +138,14 @@ serve(async (req) => {
   console.log('📋 User specifications extracted:', userSpecs);
 
   // Detectar tipo de conteúdo solicitado
-  let detectedType = 'post'; // default
+  let detectedType = content_type_hint?.toLowerCase() || 'post'; // default
 
   // PRIORIDADE 1: Verificar se há marcador explícito
   const explicitTypeMatch = processedPrompt.match(/TIPO_SOLICITADO:\s*(\w+)/i);
   if (explicitTypeMatch) {
     detectedType = explicitTypeMatch[1].toLowerCase();
     console.log(`✅ Explicit type detected: ${detectedType}`);
-  } else {
+  } else if (!content_type_hint) {
     // PRIORIDADE 2: Detecção por regex (formatos específicos primeiro)
     const contentTypeDetection = {
       // COMANDOS ESPECIAIS (prioridade máxima)
@@ -1719,6 +1719,7 @@ Title:`;
         source_type: 'ai-creator',
         content_type: detectedType, // tipo de conteúdo (estudo, post, etc)
         pilar: 'EDIFICAR', // Uppercase para consistência com constraints
+        sermon_id: sermonId || null,
         prompt_original: prompt.replace(/^TIPO_SOLICITADO:\s*\w+\s*/i, '').trim(),
         title: generatedTitle,
         content: generatedContent,
