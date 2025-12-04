@@ -62,14 +62,51 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
 
     return parsed;
   })();
+
+  // Unwrap nested content (e.g., { data: { stories: [...] } }) when the outer object has no usable structure
+  const unwrapNestedContent = (input: any) => {
+    if (!input || typeof input !== 'object') return input;
+
+    const nested = input.data;
+    const hasOuterStructure = Boolean(
+      input.estrutura_visual ||
+      input.roteiro_video ||
+      input.estrutura_stories ||
+      input.stories ||
+      input.conteudo
+    );
+    const hasNestedStructure = Boolean(
+      nested && typeof nested === 'object' && (
+        nested.estrutura_visual ||
+        nested.roteiro_video ||
+        nested.estrutura_stories ||
+        nested.stories ||
+        nested.conteudo
+      )
+    );
+
+    if (hasNestedStructure && !hasOuterStructure) {
+      return {
+        ...nested,
+        content_type: nested.content_type || input.content_type,
+        fundamento_biblico: nested.fundamento_biblico || input.fundamento_biblico,
+        conteudo: nested.conteudo || input.conteudo
+      };
+    }
+
+    return input;
+  };
+
+  parsedContent = unwrapNestedContent(parsedContent);
+  parsedContent = unwrapNestedContent(parsedContent);
   
   // Detect content type - prioritize explicit content_type, then infer from structure
-  const contentType = 
+  const contentType =
     parsedContent.content_type ||
     (parsedContent.resumo_pregacao && parsedContent.versiculos_base && parsedContent.legendas_instagram) ? 'pack_semanal' :
     parsedContent.estrutura_visual?.cards ? 'carrossel' :
     parsedContent.roteiro_video?.cenas ? 'reel' :
-    parsedContent.estrutura_stories?.slides ? 'stories' :
+    parsedContent.estrutura_stories?.slides || parsedContent.stories?.length ? 'stories' :
     (parsedContent.conteudo?.texto && !parsedContent.estrutura_visual && !parsedContent.roteiro_video) ? 'post' :
     parsedContent.devocional ? 'devocional' :
     parsedContent.foto_post ? 'foto_post' :
@@ -264,7 +301,11 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
           </Card>
         )}
 
-        <StoriesView estrutura={parsedContent.estrutura_stories} conteudo={parsedContent.conteudo} />
+        <StoriesView
+          estrutura={parsedContent.estrutura_stories}
+          conteudo={parsedContent.conteudo}
+          data={parsedContent}
+        />
 
         <div className="flex gap-3">
           <Button onClick={onSave} disabled={isSaving} size="lg">
