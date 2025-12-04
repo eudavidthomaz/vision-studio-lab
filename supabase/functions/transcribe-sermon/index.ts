@@ -15,6 +15,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Extract file extension from audio URL for Groq API compatibility
+function getFileExtension(audioUrl: string): string {
+  const supportedExtensions = ['.flac', '.mp3', '.mp4', '.mpeg', '.mpga', '.m4a', '.ogg', '.opus', '.wav', '.webm'];
+  const lowerUrl = audioUrl.toLowerCase();
+  
+  for (const ext of supportedExtensions) {
+    if (lowerUrl.endsWith(ext)) {
+      return ext;
+    }
+  }
+  
+  // Default to .mp3 if extension not recognized
+  return '.mp3';
+}
+
 // Cleanup audio from storage after processing
 async function cleanupAudio(supabaseClient: any, audioPath: string) {
   try {
@@ -44,7 +59,8 @@ async function processTranscriptionAsync(
     }
 
     const formData = new FormData();
-    formData.append('file', audioBlob, 'audio');
+    const fileExtension = getFileExtension(audioUrl);
+    formData.append('file', audioBlob, `audio${fileExtension}`);
     formData.append('model', 'whisper-large-v3');
     formData.append('language', 'pt');
     formData.append('response_format', 'text');
@@ -249,7 +265,8 @@ serve(async (req) => {
 
     // Prepare form data for Groq (Whisper Large V3)
     const formData = new FormData();
-    formData.append('file', audioBlob, 'audio');
+    const fileExtension = getFileExtension(audio_url);
+    formData.append('file', audioBlob, `audio${fileExtension}`);
     formData.append('model', 'whisper-large-v3');
     formData.append('language', 'pt');
     formData.append('response_format', 'text');
