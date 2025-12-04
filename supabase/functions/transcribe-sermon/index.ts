@@ -45,21 +45,21 @@ async function processTranscriptionAsync(
 
     const formData = new FormData();
     formData.append('file', audioBlob, 'audio');
-    formData.append('model', 'whisper-1');
+    formData.append('model', 'whisper-large-v3');
     formData.append('language', 'pt');
     formData.append('response_format', 'text');
 
-    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('GROQ_API_KEY')}`,
       },
       body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      throw new Error(`Groq API error: ${response.status} - ${errorText}`);
     }
 
     const transcriptText = await response.text();
@@ -247,24 +247,24 @@ serve(async (req) => {
       throw new Error(`Failed to download audio: ${downloadError?.message}`);
     }
 
-    // Prepare form data for OpenAI
+    // Prepare form data for Groq (Whisper Large V3)
     const formData = new FormData();
     formData.append('file', audioBlob, 'audio');
-    formData.append('model', 'whisper-1');
+    formData.append('model', 'whisper-large-v3');
     formData.append('language', 'pt');
     formData.append('response_format', 'text');
 
-    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('GROQ_API_KEY')}`,
       },
       body: formData,
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      throw new Error(`Groq API error: ${response.status} - ${errorText}`);
     }
 
     const transcriptText = await response.text();
