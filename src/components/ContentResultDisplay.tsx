@@ -43,7 +43,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
 
   // Parse content - handle both string and object, and extract from array if needed
   let parseError: string | null = null;
-  let parsedContent: any = (() => {
+  const parsedContent = (() => {
     let parsed: any = content;
 
     if (typeof content === 'string') {
