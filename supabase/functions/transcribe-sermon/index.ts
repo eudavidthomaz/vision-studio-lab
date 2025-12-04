@@ -61,7 +61,7 @@ async function processTranscriptionAsync(
     const formData = new FormData();
     const fileExtension = getFileExtension(audioUrl);
     formData.append('file', audioBlob, `audio${fileExtension}`);
-    formData.append('model', 'whisper-large-v3');
+    formData.append('model', 'whisper-large-v3-turbo');
     formData.append('language', 'pt');
     formData.append('response_format', 'text');
 
@@ -267,7 +267,7 @@ serve(async (req) => {
     const formData = new FormData();
     const fileExtension = getFileExtension(audio_url);
     formData.append('file', audioBlob, `audio${fileExtension}`);
-    formData.append('model', 'whisper-large-v3');
+    formData.append('model', 'whisper-large-v3-turbo');
     formData.append('language', 'pt');
     formData.append('response_format', 'text');
 
