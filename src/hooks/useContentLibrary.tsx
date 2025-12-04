@@ -85,10 +85,18 @@ export function useContentLibrary() {
   }, [loading, hasMore, page, loadItems]);
 
   // Criar novo conteúdo
-  const createContent = async (prompt: string, options?: any) => {
+  const createContent = async (
+    prompt: string,
+    options?: { sermonId?: string; contentTypeHint?: string }
+  ) => {
     try {
+      const body: Record<string, any> = { prompt };
+
+      if (options?.sermonId) body.sermonId = options.sermonId;
+      if (options?.contentTypeHint) body.content_type_hint = options.contentTypeHint;
+
       const { data, error } = await supabase.functions.invoke('generate-ai-content', {
-        body: { prompt, ...options }
+        body
       });
 
       if (error) throw error;

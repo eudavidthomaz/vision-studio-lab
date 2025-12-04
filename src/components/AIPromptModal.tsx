@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface AIPromptModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onGenerate: (prompt: string) => void;
+  onGenerate: (prompt: string, metadata?: { contentTypeHint?: string }) => void;
   isLoading: boolean;
   preselectedSermonId?: string;
 }
@@ -20,6 +20,8 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
   const [prompt, setPrompt] = useState("");
   const [sermons, setSermons] = useState<any[]>([]);
   const [selectedSermonId, setSelectedSermonId] = useState<string>("");
+  const [detectedType, setDetectedType] = useState<string>("post");
+  const [selectedType, setSelectedType] = useState<string>("auto");
 
   useEffect(() => {
     if (open) {
@@ -110,14 +112,18 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
     return 'post';
   };
 
+  useEffect(() => {
+    setDetectedType(detectContentType(prompt.trim()));
+  }, [prompt]);
+
   const handleSubmit = async () => {
     if (!prompt.trim()) return;
     
     // PASSO 1: Analisar prompt do usuário para extrair TODAS especificações
     const userSpecs = extractUserSpecifications(prompt.trim());
     
-    // PASSO 2: Detectar tipo base
-    const baseType = detectContentType(prompt.trim());
+    // PASSO 2: Detectar tipo base ou usar seleção manual
+    const baseType = selectedType === 'auto' ? detectContentType(prompt.trim()) : selectedType;
     
     // PASSO 3: Construir prompt estruturado HIERARQUICAMENTE
     let finalPrompt = '';
@@ -159,7 +165,7 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
     console.log('📋 Especificações extraídas:', userSpecs);
     console.log('🎯 Tipo detectado:', baseType);
     
-    onGenerate(finalPrompt);
+    onGenerate(finalPrompt, { contentTypeHint: baseType });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -207,6 +213,36 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Formato desejado */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs sm:text-sm font-medium">Formato do conteúdo</label>
+              <Badge variant="outline" className="text-[11px] sm:text-xs">
+                Detectado: {detectedType}
+              </Badge>
+            </div>
+            <Select value={selectedType} onValueChange={setSelectedType}>
+              <SelectTrigger className="h-10 sm:h-11">
+                <SelectValue placeholder="Selecione um formato" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover max-h-[300px]">
+                <SelectItem value="auto">Auto (seguir detecção)</SelectItem>
+                <SelectItem value="post">Post/Legenda</SelectItem>
+                <SelectItem value="reel">Reels/Script de vídeo curto</SelectItem>
+                <SelectItem value="stories">Stories</SelectItem>
+                <SelectItem value="devocional">Devocional</SelectItem>
+                <SelectItem value="estudo">Estudo bíblico</SelectItem>
+                <SelectItem value="resumo">Resumo de pregação</SelectItem>
+                <SelectItem value="calendario">Calendário editorial</SelectItem>
+                <SelectItem value="convite">Convite/Evento</SelectItem>
+                <SelectItem value="desafio_semanal">Desafio semanal</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+              A IA usará esse formato como prioridade. Se deixar em "Auto", usamos a detecção automática baseada no seu texto.
+            </p>
           </div>
 
           {/* Badge indicador quando pregação selecionada */}
