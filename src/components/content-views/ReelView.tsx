@@ -12,30 +12,10 @@ interface ReelViewProps {
       duracao: string;
       visual: string;
       audio: string;
-      texto_overlay?: string;
     }>;
-  };
-  estrutura_visual?: {
-    cenas?: Array<{
-      numero: number;
-      duracao: string;
-      visual: string;
-      audio: string;
-      texto_overlay?: string;
-    }>;
-    hook?: string;
-    desenvolvimento?: string;
-    cta?: string;
-    texto_tela?: string[];
-    duracao_total?: string;
-    audio_sugerido?: string;
-    roteiro?: string;
   };
   conteudo?: {
     legenda?: string;
-    hashtags?: string[];
-  };
-  dica_producao?: {
     hashtags?: string[];
   };
   // Suporte para ContentViewer
@@ -43,7 +23,7 @@ interface ReelViewProps {
   contentType?: string;
 }
 
-export function ReelView({ roteiro, conteudo, data, estrutura_visual, dica_producao, contentType }: ReelViewProps) {
+export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps) {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [generatedCoverImage, setGeneratedCoverImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -51,13 +31,7 @@ export function ReelView({ roteiro, conteudo, data, estrutura_visual, dica_produ
 
   // Extrair valores com fallback para ContentViewer
   const actualRoteiro = roteiro || data?.roteiro || data?.roteiro_video;
-  const actualEstrutura = estrutura_visual || data?.estrutura_visual;
   const actualConteudo = conteudo || data?.conteudo;
-  const hashtags = actualConteudo?.hashtags || dica_producao?.hashtags || data?.dica_producao?.hashtags;
-
-  const roteiroCenas = actualRoteiro?.cenas || actualEstrutura?.cenas;
-  const roteiroBlocos = actualEstrutura && (actualEstrutura.hook || actualEstrutura.desenvolvimento || actualEstrutura.cta);
-  const roteiroTexto = actualEstrutura?.roteiro;
   
   const handleGenerateCover = () => {
     setIsGenerating(true);
@@ -104,16 +78,16 @@ export function ReelView({ roteiro, conteudo, data, estrutura_visual, dica_produ
       </Card>
 
       {/* Roteiro de Vídeo */}
-      {roteiroCenas && roteiroCenas.length > 0 && (
+      {actualRoteiro?.cenas && actualRoteiro.cenas.length > 0 && (
         <Card>
           <CardHeader className="p-2">
             <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
               <Video className="h-3.5 w-3.5" />
-              Roteiro - {roteiroCenas.length} Cenas
+              Roteiro - {actualRoteiro.cenas.length} Cenas
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 p-2 pt-0">
-            {roteiroCenas.map((cena) => (
+            {actualRoteiro.cenas.map((cena) => (
               <Card key={cena.numero} className="border">
                 <CardHeader className="p-2">
                   <div className="flex items-center justify-between gap-2">
@@ -149,97 +123,6 @@ export function ReelView({ roteiro, conteudo, data, estrutura_visual, dica_produ
         </Card>
       )}
 
-      {/* Roteiro resumido (hook/desenvolvimento/CTA) */}
-      {roteiroBlocos && (
-        <Card>
-          <CardHeader className="p-2">
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
-                <Video className="h-3.5 w-3.5" />
-                Roteiro estruturado
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => copyToClipboard(`Hook: ${actualEstrutura?.hook}\n\nDesenvolvimento: ${actualEstrutura?.desenvolvimento}\n\nCTA: ${actualEstrutura?.cta}`.trim(), "Roteiro")}
-                className="h-7 w-7 p-0 flex-shrink-0"
-              >
-                <Copy className="h-3 w-3" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3 p-2 pt-0 text-xs text-muted-foreground">
-            {actualEstrutura?.duracao_total && (
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-foreground">Duração</span>
-                <span>{actualEstrutura.duracao_total}</span>
-              </div>
-            )}
-            {actualEstrutura?.hook && (
-              <div>
-                <p className="font-medium text-foreground">Hook (0-3s)</p>
-                <p className="whitespace-pre-wrap break-words">{actualEstrutura.hook}</p>
-              </div>
-            )}
-            {actualEstrutura?.desenvolvimento && (
-              <div>
-                <p className="font-medium text-foreground">Desenvolvimento</p>
-                <p className="whitespace-pre-wrap break-words">{actualEstrutura.desenvolvimento}</p>
-              </div>
-            )}
-            {actualEstrutura?.cta && (
-              <div>
-                <p className="font-medium text-foreground">CTA Final</p>
-                <p className="whitespace-pre-wrap break-words">{actualEstrutura.cta}</p>
-              </div>
-            )}
-            {actualEstrutura?.texto_tela?.length ? (
-              <div>
-                <p className="font-medium text-foreground">Textos na tela</p>
-                <div className="flex flex-wrap gap-2">
-                  {actualEstrutura.texto_tela.map((texto, index) => (
-                    <span key={index} className="px-2 py-1 rounded bg-muted text-[11px]">
-                      {texto}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            {actualEstrutura?.audio_sugerido && (
-              <div>
-                <p className="font-medium text-foreground">Áudio sugerido</p>
-                <p className="whitespace-pre-wrap break-words">{actualEstrutura.audio_sugerido}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Roteiro textual simples */}
-      {roteiroTexto && !roteiroCenas && !roteiroBlocos && (
-        <Card>
-          <CardHeader className="p-2">
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
-                <Video className="h-3.5 w-3.5" />
-                Roteiro
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => copyToClipboard(roteiroTexto, "Roteiro")}
-                className="h-7 w-7 p-0 flex-shrink-0"
-              >
-                <Copy className="h-3 w-3" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-2 pt-0">
-            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{roteiroTexto}</p>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Legenda */}
       {actualConteudo?.legenda && (
         <Card>
@@ -263,7 +146,7 @@ export function ReelView({ roteiro, conteudo, data, estrutura_visual, dica_produ
       )}
 
       {/* Hashtags */}
-      {hashtags && hashtags.length > 0 && (
+      {actualConteudo?.hashtags && actualConteudo.hashtags.length > 0 && (
         <Card>
           <CardHeader className="p-2">
             <div className="flex items-center justify-between gap-2">
@@ -271,7 +154,7 @@ export function ReelView({ roteiro, conteudo, data, estrutura_visual, dica_produ
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(hashtags!.join(" "), "Hashtags")}
+                onClick={() => copyToClipboard(actualConteudo.hashtags!.join(" "), "Hashtags")}
                 className="h-7 w-7 p-0 flex-shrink-0"
               >
                 <Copy className="h-3.5 w-3.5" />
@@ -280,7 +163,7 @@ export function ReelView({ roteiro, conteudo, data, estrutura_visual, dica_produ
           </CardHeader>
           <CardContent className="p-2 pt-0">
             <div className="flex flex-wrap gap-2">
-              {hashtags.map((tag, i) => (
+              {actualConteudo.hashtags.map((tag, i) => (
                 <span key={i} className="text-xs text-primary break-all">
                   {tag}
                 </span>

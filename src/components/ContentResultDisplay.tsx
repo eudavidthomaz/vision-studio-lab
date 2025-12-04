@@ -42,71 +42,25 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   const [selectedContent, setSelectedContent] = useState<{ copy: string; pilar: string } | null>(null);
 
   // Parse content - handle both string and object, and extract from array if needed
-  let parseError: string | null = null;
   const parsedContent = (() => {
-    let parsed: any = content;
-
-    if (typeof content === 'string') {
-      try {
-        parsed = JSON.parse(content);
-      } catch (error) {
-        parseError = 'Não foi possível interpretar a resposta da IA. Exibindo o texto bruto.';
-        return { rawText: content };
-      }
-    }
-
+    let parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    
     // If it's an array (structure from database), get first item
     if (Array.isArray(parsed)) {
+      console.log('⚠️ Content is array, extracting first item');
       parsed = parsed[0];
     }
-
+    
     return parsed;
   })();
-
-  // Unwrap nested content (e.g., { data: { stories: [...] } }) when the outer object has no usable structure
-  const unwrapNestedContent = (input: any) => {
-    if (!input || typeof input !== 'object') return input;
-
-    const nested = input.data;
-    const hasOuterStructure = Boolean(
-      input.estrutura_visual ||
-      input.roteiro_video ||
-      input.estrutura_stories ||
-      input.stories ||
-      input.conteudo
-    );
-    const hasNestedStructure = Boolean(
-      nested && typeof nested === 'object' && (
-        nested.estrutura_visual ||
-        nested.roteiro_video ||
-        nested.estrutura_stories ||
-        nested.stories ||
-        nested.conteudo
-      )
-    );
-
-    if (hasNestedStructure && !hasOuterStructure) {
-      return {
-        ...nested,
-        content_type: nested.content_type || input.content_type,
-        fundamento_biblico: nested.fundamento_biblico || input.fundamento_biblico,
-        conteudo: nested.conteudo || input.conteudo
-      };
-    }
-
-    return input;
-  };
-
-  parsedContent = unwrapNestedContent(parsedContent);
-  parsedContent = unwrapNestedContent(parsedContent);
   
   // Detect content type - prioritize explicit content_type, then infer from structure
-  const contentType =
+  const contentType = 
     parsedContent.content_type ||
     (parsedContent.resumo_pregacao && parsedContent.versiculos_base && parsedContent.legendas_instagram) ? 'pack_semanal' :
     parsedContent.estrutura_visual?.cards ? 'carrossel' :
     parsedContent.roteiro_video?.cenas ? 'reel' :
-    parsedContent.estrutura_stories?.slides || parsedContent.stories?.length ? 'stories' :
+    parsedContent.estrutura_stories?.slides ? 'stories' :
     (parsedContent.conteudo?.texto && !parsedContent.estrutura_visual && !parsedContent.roteiro_video) ? 'post' :
     parsedContent.devocional ? 'devocional' :
     parsedContent.foto_post ? 'foto_post' :
@@ -136,37 +90,6 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
     setSelectedContent({ copy, pilar: parsedContent.conteudo?.pilar || 'EDIFICAR' });
     setImageModalOpen(true);
   };
-
-  if (parseError) {
-    return (
-      <Card className="border-destructive/40">
-        <CardHeader>
-          <CardTitle className="text-destructive">{parseError}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            O conteúdo retornou em um formato inesperado. Copie o texto abaixo ou peça para gerar novamente.
-          </p>
-          <pre className="bg-muted p-4 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap">
-            {parsedContent.rawText}
-          </pre>
-        </CardContent>
-        <CardFooter className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={() => copyToClipboard(String(parsedContent.rawText), 'Texto bruto')}
-          >
-            <Copy className="w-4 h-4 mr-2" />
-            Copiar texto
-          </Button>
-          <Button onClick={onRegenerate}>
-            <RotateCw className="w-4 h-4 mr-2" />
-            Regenerar
-          </Button>
-        </CardFooter>
-      </Card>
-    );
-  }
 
   // Conteúdos criativos de rede social
   if (contentType === 'carrossel') {
@@ -301,11 +224,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
           </Card>
         )}
 
-        <StoriesView
-          estrutura={parsedContent.estrutura_stories}
-          conteudo={parsedContent.conteudo}
-          data={parsedContent}
-        />
+        <StoriesView estrutura={parsedContent.estrutura_stories} conteudo={parsedContent.conteudo} />
 
         <div className="flex gap-3">
           <Button onClick={onSave} disabled={isSaving} size="lg">
@@ -1194,118 +1113,6 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
     );
   }
 
-  // Fallback para conteúdos simples (ideias ou legendas soltas)
-  if (
-    contentType === 'default' &&
-    (parsedContent.titulo || parsedContent.copy || parsedContent.cta || parsedContent.hashtags)
-  ) {
-    const hashtags = Array.isArray(parsedContent.hashtags)
-      ? parsedContent.hashtags.join(' ')
-      : parsedContent.hashtags;
-
-    return (
-      <Card className="space-y-4">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Ideia rápida de conteúdo
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {parsedContent.titulo && (
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-xs text-muted-foreground">Título</p>
-                <p className="font-semibold leading-snug">{parsedContent.titulo}</p>
-              </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => copyToClipboard(parsedContent.titulo, 'Título')}
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-
-          {parsedContent.copy && (
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-xs text-muted-foreground">Legenda / Roteiro</p>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">{parsedContent.copy}</p>
-              </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => copyToClipboard(parsedContent.copy, 'Legenda')}
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-
-          {parsedContent.cta && (
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-xs text-muted-foreground">CTA sugerido</p>
-                <p className="text-sm leading-relaxed">{parsedContent.cta}</p>
-              </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => copyToClipboard(parsedContent.cta, 'CTA')}
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-
-          {hashtags && (
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-xs text-muted-foreground">Hashtags</p>
-                <p className="text-sm leading-relaxed">{hashtags}</p>
-              </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => copyToClipboard(String(hashtags), 'Hashtags')}
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-
-          {parsedContent.sugestao_visual && (
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-xs text-muted-foreground">Sugestão visual</p>
-                <p className="text-sm leading-relaxed">{parsedContent.sugestao_visual}</p>
-              </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => copyToClipboard(parsedContent.sugestao_visual, 'Sugestão visual')}
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
-        </CardContent>
-        <CardFooter className="flex gap-3">
-          <Button onClick={onSave} disabled={isSaving} size="lg">
-            <Save className="w-4 h-4 mr-2" />
-            {isSaving ? 'Salvando...' : 'Salvar'}
-          </Button>
-          <Button onClick={onRegenerate} variant="outline" size="lg">
-            <RotateCw className="w-4 h-4 mr-2" />
-            Regenerar
-          </Button>
-        </CardFooter>
-      </Card>
-    );
-  }
-
   // Fallback when content type is not recognized
   if (contentType === 'default' && !parsedContent.fundamento_biblico && !parsedContent.conteudo) {
     return (
@@ -1351,7 +1158,7 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
   }
 
   // Validação para formato de redes sociais
-  if (!parsedContent.conteudo) {
+  if (!content.conteudo) {
     return (
       <Card>
         <CardContent className="py-8">
@@ -1367,24 +1174,24 @@ ${hashtags.length > 0 ? `\n#️⃣ HASHTAGS\n${hashtags.join(' ')}` : ''}
     const allText = `
 📖 FUNDAMENTO BÍBLICO
 
-${parsedContent.fundamento_biblico.versiculos.join('\n\n')}
+${content.fundamento_biblico.versiculos.join('\n\n')}
 
-Contexto: ${parsedContent.fundamento_biblico.contexto}
+Contexto: ${content.fundamento_biblico.contexto}
 
-Princípio: ${parsedContent.fundamento_biblico.principio}
+Princípio: ${content.fundamento_biblico.principio}
 
 ---
 
 ✍️ CONTEÚDO
 
-${parsedContent.conteudo.legenda}
+${content.conteudo.legenda}
 
 ---
 
-${parsedContent.estrutura_visual?.cards ? `
+${content.estrutura_visual?.cards ? `
 🎨 CARDS DO CARROSSEL
 
-${parsedContent.estrutura_visual.cards.map((card, i) => `
+${content.estrutura_visual.cards.map((card, i) => `
 Card ${i + 1}:
 ${card.titulo}
 ${card.texto}
@@ -1393,21 +1200,21 @@ ${card.texto}
 ---
 ` : ''}
 
-${parsedContent.estrutura_visual?.roteiro ? `
+${content.estrutura_visual?.roteiro ? `
 🎬 ROTEIRO
 
-${parsedContent.estrutura_visual.roteiro}
+${content.estrutura_visual.roteiro}
 
 ---
 ` : ''}
 
 💡 DICAS DE PRODUÇÃO
 
-Formato: ${parsedContent.dica_producao.formato}
-Estilo: ${parsedContent.dica_producao.estilo}
-Melhor horário: ${parsedContent.dica_producao.horario}
+Formato: ${content.dica_producao.formato}
+Estilo: ${content.dica_producao.estilo}
+Melhor horário: ${content.dica_producao.horario}
 
-Hashtags: ${parsedContent.dica_producao.hashtags.join(' ')}
+Hashtags: ${content.dica_producao.hashtags.join(' ')}
 `;
     copyToClipboard(allText, "Conteúdo completo");
   };
@@ -1424,7 +1231,7 @@ Hashtags: ${parsedContent.dica_producao.hashtags.join(' ')}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
-            {parsedContent.fundamento_biblico.versiculos.map((versiculo, idx) => (
+            {content.fundamento_biblico.versiculos.map((versiculo, idx) => (
               <div key={idx} className="p-4 bg-muted/50 rounded-lg border-l-4 border-primary">
                 <p className="text-sm leading-relaxed italic">{versiculo}</p>
               </div>
@@ -1436,14 +1243,14 @@ Hashtags: ${parsedContent.dica_producao.hashtags.join(' ')}
           <div>
             <h4 className="font-semibold text-sm mb-2">Contexto Histórico</h4>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              {parsedContent.fundamento_biblico.contexto}
+              {content.fundamento_biblico.contexto}
             </p>
           </div>
           
           <div>
             <h4 className="font-semibold text-sm mb-2">Princípio Atemporal</h4>
             <p className="text-sm font-medium text-primary">
-              {parsedContent.fundamento_biblico.principio}
+              {content.fundamento_biblico.principio}
             </p>
           </div>
         </CardContent>
@@ -1458,22 +1265,22 @@ Hashtags: ${parsedContent.dica_producao.hashtags.join(' ')}
               Conteúdo Criativo
             </CardTitle>
             <div className="flex gap-2">
-              <Badge variant="secondary">{parsedContent.conteudo.tipo}</Badge>
-              <Badge>{parsedContent.conteudo.pilar}</Badge>
+              <Badge variant="secondary">{content.conteudo.tipo}</Badge>
+              <Badge>{content.conteudo.pilar}</Badge>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="p-4 bg-muted/50 rounded-lg">
             <p className="text-sm whitespace-pre-wrap leading-relaxed">
-              {parsedContent.conteudo.legenda}
+              {content.conteudo.legenda}
             </p>
           </div>
           <div className="flex gap-2 mt-3">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => copyToClipboard(parsedContent.conteudo.legenda, "Legenda")}
+              onClick={() => copyToClipboard(content.conteudo.legenda, "Legenda")}
             >
               <Copy className="w-4 h-4 mr-2" />
               Copiar Legenda
@@ -1481,7 +1288,7 @@ Hashtags: ${parsedContent.dica_producao.hashtags.join(' ')}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => openImageModal(parsedContent.conteudo.legenda)}
+              onClick={() => openImageModal(content.conteudo.legenda)}
             >
               <Image className="w-4 h-4 mr-2" />
               Gerar Imagem
@@ -1491,7 +1298,7 @@ Hashtags: ${parsedContent.dica_producao.hashtags.join(' ')}
       </Card>
 
       {/* Estrutura Visual */}
-      {(parsedContent.estrutura_visual?.cards || parsedContent.estrutura_visual?.roteiro) && (
+      {(content.estrutura_visual?.cards || content.estrutura_visual?.roteiro) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -1500,9 +1307,9 @@ Hashtags: ${parsedContent.dica_producao.hashtags.join(' ')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {parsedContent.estrutura_visual.cards && (
+            {content.estrutura_visual.cards && (
               <div className="space-y-3">
-                {parsedContent.estrutura_visual.cards.map((card, idx) => (
+                {content.estrutura_visual.cards.map((card, idx) => (
                   <div key={idx} className="p-4 bg-muted/50 rounded-lg border">
                     <div className="flex items-center justify-between mb-2">
                       <Badge variant="outline">Card {idx + 1}</Badge>
@@ -1522,11 +1329,11 @@ Hashtags: ${parsedContent.dica_producao.hashtags.join(' ')}
               </div>
             )}
             
-            {parsedContent.estrutura_visual.roteiro && (
+            {content.estrutura_visual.roteiro && (
               <div className="p-4 bg-muted/50 rounded-lg">
                 <h4 className="font-semibold mb-2">Roteiro do Vídeo</h4>
                 <p className="text-sm whitespace-pre-wrap leading-relaxed">
-                  {parsedContent.estrutura_visual.roteiro}
+                  {content.estrutura_visual.roteiro}
                 </p>
               </div>
             )}
@@ -1546,15 +1353,15 @@ Hashtags: ${parsedContent.dica_producao.hashtags.join(' ')}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h4 className="font-semibold text-sm mb-1">Formato</h4>
-              <p className="text-sm text-muted-foreground">{parsedContent.dica_producao.formato}</p>
+              <p className="text-sm text-muted-foreground">{content.dica_producao.formato}</p>
             </div>
             <div>
               <h4 className="font-semibold text-sm mb-1">Estilo Visual</h4>
-              <p className="text-sm text-muted-foreground">{parsedContent.dica_producao.estilo}</p>
+              <p className="text-sm text-muted-foreground">{content.dica_producao.estilo}</p>
             </div>
             <div>
               <h4 className="font-semibold text-sm mb-1">Melhor Horário</h4>
-              <p className="text-sm text-muted-foreground">{parsedContent.dica_producao.horario}</p>
+              <p className="text-sm text-muted-foreground">{content.dica_producao.horario}</p>
             </div>
           </div>
           
@@ -1563,7 +1370,7 @@ Hashtags: ${parsedContent.dica_producao.hashtags.join(' ')}
           <div>
             <h4 className="font-semibold text-sm mb-2">Hashtags Estratégicas</h4>
             <div className="flex flex-wrap gap-2">
-              {parsedContent.dica_producao.hashtags.map((tag, idx) => (
+              {content.dica_producao.hashtags.map((tag, idx) => (
                 <Badge key={idx} variant="secondary">
                   {tag}
                 </Badge>
@@ -1573,7 +1380,7 @@ Hashtags: ${parsedContent.dica_producao.hashtags.join(' ')}
               variant="outline"
               size="sm"
               className="mt-3"
-              onClick={() => copyToClipboard(parsedContent.dica_producao.hashtags.join(' '), "Hashtags")}
+              onClick={() => copyToClipboard(content.dica_producao.hashtags.join(' '), "Hashtags")}
             >
               <Copy className="w-4 h-4 mr-2" />
               Copiar Hashtags
