@@ -26,7 +26,7 @@ export type Database = {
           pinned_at: string | null
           prompt_original: string | null
           published_at: string | null
-          search_vector: unknown | null
+          search_vector: unknown
           sermon_id: string | null
           source_type: string
           status: string | null
@@ -46,7 +46,7 @@ export type Database = {
           pinned_at?: string | null
           prompt_original?: string | null
           published_at?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           sermon_id?: string | null
           source_type: string
           status?: string | null
@@ -66,7 +66,7 @@ export type Database = {
           pinned_at?: string | null
           prompt_original?: string | null
           published_at?: string | null
-          search_vector?: unknown | null
+          search_vector?: unknown
           sermon_id?: string | null
           source_type?: string
           status?: string | null
@@ -560,10 +560,7 @@ export type Database = {
         }
         Returns: Json
       }
-      generate_random_token: {
-        Args: { length: number }
-        Returns: string
-      }
+      generate_random_token: { Args: { length: number }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -575,10 +572,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      reset_monthly_quotas: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      reset_monthly_quotas: { Args: never; Returns: undefined }
       search_content_by_tags: {
         Args: { _tags: string[]; _user_id: string }
         Returns: {
@@ -600,7 +594,7 @@ export type Database = {
           pinned_at: string | null
           prompt_original: string | null
           published_at: string | null
-          search_vector: unknown | null
+          search_vector: unknown
           sermon_id: string | null
           source_type: string
           status: string | null
@@ -609,6 +603,12 @@ export type Database = {
           updated_at: string | null
           user_id: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "content_library"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       validate_text_input: {
         Args: {
