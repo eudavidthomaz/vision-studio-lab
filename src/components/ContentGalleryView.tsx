@@ -51,7 +51,7 @@ const ContentGalleryView = memo(function ContentGalleryView({
               <Checkbox
                 checked={isSelected}
                 onCheckedChange={() => onToggleSelection(item.id)}
-                className="bg-white shadow-md"
+                className="bg-background shadow-md"
               />
             </div>
 
@@ -60,7 +60,7 @@ const ContentGalleryView = memo(function ContentGalleryView({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 bg-white/80 backdrop-blur-sm shadow-md"
+                className="h-8 w-8 bg-background/80 backdrop-blur-sm shadow-md"
                 onClick={() => onTogglePin(item.id, item.is_pinned || false)}
               >
                 <Pin className={`h-4 w-4 ${item.is_pinned ? 'fill-primary text-primary' : ''}`} />
@@ -85,8 +85,8 @@ const ContentGalleryView = memo(function ContentGalleryView({
             </div>
 
             {/* Overlay with info (visible on hover) */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-              <h3 className="text-white font-semibold text-sm line-clamp-2 mb-2">
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+              <h3 className="text-background font-semibold text-sm line-clamp-2 mb-2">
                 {item.title}
               </h3>
               
@@ -99,7 +99,7 @@ const ContentGalleryView = memo(function ContentGalleryView({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-white hover:text-white hover:bg-white/20"
+                    className="h-8 w-8 text-background hover:text-background hover:bg-background/20"
                     onClick={() => onToggleFavorite(item.id, item.is_favorite || false)}
                   >
                     <Star className={`h-4 w-4 ${item.is_favorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
@@ -107,7 +107,7 @@ const ContentGalleryView = memo(function ContentGalleryView({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-white hover:text-white hover:bg-white/20"
+                    className="h-8 w-8 text-background hover:text-background hover:bg-background/20"
                     onClick={() => onView(item)}
                   >
                     <Eye className="h-4 w-4" />

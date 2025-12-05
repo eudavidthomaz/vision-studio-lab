@@ -5,7 +5,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { 
   X, 
@@ -103,8 +102,6 @@ export default function BulkActionsBar({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
-            <DropdownMenuSeparator />
 
             <Button
               variant="destructive"
