@@ -4,18 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Copy, FileText, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
+import { normalizePostData } from "@/lib/normalizeContentData";
 
 interface PostSimplesViewProps {
-  conteudo?: {
-    texto?: string;
-    legenda?: string;
-    hashtags?: string[];
-  };
-  imagem?: {
-    descricao?: string;
-    elementos?: string[];
-  };
-  // Suporte para ContentViewer
+  conteudo?: any;
+  imagem?: any;
   data?: any;
   contentType?: string;
 }
@@ -24,10 +17,13 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
 
-  // Extrair valores com fallback para ContentViewer
-  const actualConteudo = conteudo || data?.conteudo;
+  // Usar normalizador centralizado
+  const rawData = data || { conteudo };
+  const normalized = normalizePostData(rawData);
+  const { texto, legenda, hashtags } = normalized;
+  
+  // Dados de imagem
   const actualImagem = imagem || data?.imagem;
   
   const handleGenerateImage = () => {
@@ -37,15 +33,13 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    setIsCopied(true);
     toast.success(`${label} copiado!`);
-    setTimeout(() => setIsCopied(false), 2000);
   };
 
   return (
     <div className="space-y-4">
       {/* Texto do Post */}
-      {actualConteudo?.texto && (
+      {texto && (
         <Card>
           <CardHeader className="p-2">
             <div className="flex items-center justify-between gap-2">
@@ -56,7 +50,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(actualConteudo.texto!, "Texto")}
+                onClick={() => copyToClipboard(texto, "Texto")}
                 className="h-7 w-7 p-0 flex-shrink-0"
               >
                 <Copy className="h-3.5 w-3.5" />
@@ -64,13 +58,13 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
             </div>
           </CardHeader>
           <CardContent className="p-2 pt-0">
-            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{actualConteudo.texto}</p>
+            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{texto}</p>
           </CardContent>
         </Card>
       )}
 
-      {/* Legenda */}
-      {actualConteudo?.legenda && (
+      {/* Legenda (se diferente do texto) */}
+      {legenda && legenda !== texto && (
         <Card>
           <CardHeader className="p-2">
             <div className="flex items-center justify-between gap-2">
@@ -78,7 +72,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(actualConteudo.legenda!, "Legenda")}
+                onClick={() => copyToClipboard(legenda, "Legenda")}
                 className="h-7 w-7 p-0 flex-shrink-0"
               >
                 <Copy className="h-3.5 w-3.5" />
@@ -86,7 +80,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
             </div>
           </CardHeader>
           <CardContent className="p-2 pt-0">
-            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{actualConteudo.legenda}</p>
+            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{legenda}</p>
           </CardContent>
         </Card>
       )}
@@ -103,7 +97,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
               <div>
                 <strong className="text-xs">Elementos visuais:</strong>
                 <ul className="list-disc list-inside mt-2 space-y-1">
-                  {actualImagem.elementos.map((elemento, i) => (
+                  {actualImagem.elementos.map((elemento: string, i: number) => (
                     <li key={i} className="text-xs text-muted-foreground break-words">{elemento}</li>
                   ))}
                 </ul>
@@ -114,7 +108,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
       )}
 
       {/* Hashtags */}
-      {actualConteudo?.hashtags && actualConteudo.hashtags.length > 0 && (
+      {hashtags && hashtags.length > 0 && (
         <Card>
           <CardHeader className="p-2">
             <div className="flex items-center justify-between gap-2">
@@ -122,7 +116,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(actualConteudo.hashtags!.join(" "), "Hashtags")}
+                onClick={() => copyToClipboard(hashtags.join(" "), "Hashtags")}
                 className="h-7 w-7 p-0 flex-shrink-0"
               >
                 <Copy className="h-3.5 w-3.5" />
@@ -131,7 +125,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
           </CardHeader>
           <CardContent className="p-2 pt-0">
             <div className="flex flex-wrap gap-2">
-              {actualConteudo.hashtags.map((tag, i) => (
+              {hashtags.map((tag, i) => (
                 <span key={i} className="text-xs text-primary break-all">
                   {tag}
                 </span>
@@ -172,7 +166,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
       <ImageGenerationModal
         open={imageModalOpen}
         onOpenChange={setImageModalOpen}
-        copy={`${actualConteudo?.texto || ""}\n\n${actualConteudo?.legenda || ""}`}
+        copy={`${texto || ""}\n\n${legenda || ""}`}
         pilar="Edificar"
         defaultFormat="feed_square"
         onImageGenerated={(imageUrl) => {

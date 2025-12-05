@@ -1,59 +1,32 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Layers, Image, Check, Loader2 } from "lucide-react";
+import { Copy, Image, Check, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
+import { normalizeStoriesData, NormalizedStory } from "@/lib/normalizeContentData";
 
 interface StoriesViewProps {
-  estrutura?: {
-    slides: Array<{
-      numero: number;
-      titulo: string;
-      texto: string;
-      timing?: string;
-      sugestao_visual?: string;
-    }>;
-  };
-  conteudo?: {
-    legenda?: string;
-    hashtags?: string[];
-  };
+  estrutura?: any;
+  conteudo?: any;
   data?: any;
   contentType?: string;
 }
 
 export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesViewProps) {
-  // Extrair slides de múltiplas estruturas possíveis
-  const actualEstrutura = estrutura || data?.estrutura;
-  const actualConteudo = conteudo || data?.conteudo;
+  // Usar normalizador centralizado - combina todas as fontes de dados
+  const rawData = data || { estrutura, conteudo };
+  const normalized = normalizeStoriesData(rawData);
   
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [selectedSlide, setSelectedSlide] = useState<any>(null);
+  const [selectedSlide, setSelectedSlide] = useState<NormalizedStory | null>(null);
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
   const [loadingSlide, setLoadingSlide] = useState<number | null>(null);
   const [copiedSlide, setCopiedSlide] = useState<number | null>(null);
 
-  // Normalizar dados: converter stories array em slides
-  let slides = actualEstrutura?.slides;
-  
-  if (!slides && data?.stories && Array.isArray(data.stories)) {
-    // Converter formato antigo (data.stories) para novo formato
-    slides = data.stories.map((story: any, index: number) => ({
-      numero: index + 1,
-      titulo: story.dia || `Story ${index + 1}`,
-      texto: story.texto || story.conteudo || '',
-      timing: story.timing,
-      sugestao_visual: story.sugestao_visual,
-      versiculo: story.versiculo,
-      call_to_action: story.call_to_action
-    }));
-  }
-  
-  const hasSlides = slides && Array.isArray(slides) && slides.length > 0;
-
-  console.log("StoriesView normalized data:", { hasSlides, slidesCount: slides?.length });
+  const { slides, hashtags } = normalized;
+  const hasSlides = slides.length > 0;
 
   const copyToClipboard = (text: string, label: string, slideNum: number) => {
     navigator.clipboard.writeText(text);
@@ -62,7 +35,7 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
     setTimeout(() => setCopiedSlide(null), 2000);
   };
 
-  const handleGenerateImage = (slide: typeof actualEstrutura.slides[0]) => {
+  const handleGenerateImage = (slide: NormalizedStory) => {
     setLoadingSlide(slide.numero);
     setSelectedSlide(slide);
     setImageModalOpen(true);
@@ -75,100 +48,106 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
           <CardContent className="p-6 text-center">
             <p className="text-muted-foreground mb-2">❌ Nenhum conteúdo de Stories encontrado</p>
             <p className="text-sm text-muted-foreground">
-              Os dados podem estar vazios ou mal formatados. Tente regenerar o conteúdo.
+              Os dados podem estar vazios ou em formato incompatível. Tente regenerar o conteúdo especificando "stories" no pedido.
             </p>
-            <pre className="mt-4 text-xs text-left bg-muted p-3 rounded overflow-auto">
-              {JSON.stringify({ estrutura, data }, null, 2)}
-            </pre>
           </CardContent>
         </Card>
       ) : (
-        slides.map((slide: any) => {
-        const slideNum = slide.numero;
-        const hasImage = generatedImages[slideNum];
-        const isLoadingImage = loadingSlide === slideNum;
+        slides.map((slide) => {
+          const slideNum = slide.numero;
+          const hasImage = generatedImages[slideNum];
+          const isLoadingImage = loadingSlide === slideNum;
 
-        return (
-          <Card key={slideNum} data-slide={slideNum}>
-            <CardHeader className="p-2">
-              <CardTitle className="text-xs font-semibold flex items-center justify-between gap-2">
-                <span className="line-clamp-2 leading-tight flex-1 min-w-0">Story {slideNum}: {slide.titulo}</span>
-                {slide.timing && <Badge variant="secondary" className="text-xs flex-shrink-0">{slide.timing}</Badge>}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-2 pt-0 space-y-2">
-              <p className="text-xs text-muted-foreground break-words whitespace-pre-wrap leading-relaxed">
-                {slide.texto}
-              </p>
-              
-              {slide.versiculo && (
-                <div className="text-xs text-primary font-medium pt-1 border-t border-border">
-                  📖 {slide.versiculo}
-                </div>
-              )}
-              
-              {slide.call_to_action && (
-                <div className="text-xs text-muted-foreground italic pt-1">
-                  💬 {slide.call_to_action}
-                </div>
-              )}
-
-              <div className="space-y-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleGenerateImage(slide)}
-                  disabled={isLoadingImage}
-                  className="w-full h-8 text-xs"
-                >
-                  {isLoadingImage ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                  ) : (
-                    <Image className="h-3.5 w-3.5 mr-1.5" />
+          return (
+            <Card key={slideNum} data-slide={slideNum}>
+              <CardHeader className="p-2">
+                <CardTitle className="text-xs font-semibold flex items-center justify-between gap-2">
+                  <span className="line-clamp-2 leading-tight flex-1 min-w-0">
+                    Story {slideNum}: {slide.titulo}
+                  </span>
+                  {slide.timing && (
+                    <Badge variant="secondary" className="text-xs flex-shrink-0">
+                      {slide.timing}
+                    </Badge>
                   )}
-                  {isLoadingImage ? "Gerando..." : hasImage ? "Regerar" : "Gerar Imagem"}
-                </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-2 pt-0 space-y-2">
+                <p className="text-xs text-muted-foreground break-words whitespace-pre-wrap leading-relaxed">
+                  {slide.texto}
+                </p>
+                
+                {slide.versiculo && (
+                  <div className="text-xs text-primary font-medium pt-1 border-t border-border">
+                    📖 {slide.versiculo}
+                  </div>
+                )}
+                
+                {slide.call_to_action && (
+                  <div className="text-xs text-muted-foreground italic pt-1">
+                    💬 {slide.call_to_action}
+                  </div>
+                )}
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(slide.texto, `Story ${slideNum}`, slideNum)}
-                  className="w-full h-8 text-xs"
-                >
-                  {copiedSlide === slideNum ? <Check className="h-3.5 w-3.5 mr-1.5" /> : <Copy className="h-3.5 w-3.5 mr-1.5" />}
-                  {copiedSlide === slideNum ? "Copiado!" : "Copiar"}
-                </Button>
-              </div>
+                <div className="space-y-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleGenerateImage(slide)}
+                    disabled={isLoadingImage}
+                    className="w-full h-8 text-xs"
+                  >
+                    {isLoadingImage ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                    ) : (
+                      <Image className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    {isLoadingImage ? "Gerando..." : hasImage ? "Regerar" : "Gerar Imagem"}
+                  </Button>
 
-              {hasImage && (
-                <div className="mt-4">
-                  <img src={generatedImages[slideNum]} alt={`Story ${slideNum}`} className="w-full rounded-lg shadow-md" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(slide.texto, `Story ${slideNum}`, slideNum)}
+                    className="w-full h-8 text-xs"
+                  >
+                    {copiedSlide === slideNum ? (
+                      <Check className="h-3.5 w-3.5 mr-1.5" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    {copiedSlide === slideNum ? "Copiado!" : "Copiar"}
+                  </Button>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        );
-      })
+
+                {hasImage && (
+                  <div className="mt-4">
+                    <img
+                      src={generatedImages[slideNum]}
+                      alt={`Story ${slideNum}`}
+                      className="w-full rounded-lg shadow-md"
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })
       )}
 
-      {actualConteudo && (
+      {hashtags && hashtags.length > 0 && (
         <Card>
           <CardHeader className="p-3">
-            <CardTitle className="text-sm font-semibold">Call to Action</CardTitle>
+            <CardTitle className="text-sm font-semibold">Hashtags</CardTitle>
           </CardHeader>
-          <CardContent className="p-3 pt-0 space-y-2">
-            {actualConteudo.legenda && (
-              <div>
-                <h3 className="font-semibold text-sm mb-2">Legenda</h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{actualConteudo.legenda}</p>
-              </div>
-            )}
-            {actualConteudo.hashtags && (
-              <div>
-                <h3 className="font-semibold text-sm mb-2">Hashtags</h3>
-                <p className="text-sm text-muted-foreground">{actualConteudo.hashtags}</p>
-              </div>
-            )}
+          <CardContent className="p-3 pt-0">
+            <div className="flex flex-wrap gap-2">
+              {hashtags.map((tag, i) => (
+                <span key={i} className="text-xs text-primary">
+                  {tag}
+                </span>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -181,12 +160,12 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
         isStoryMode={true}
         onImageGenerated={(imageUrl) => {
           if (selectedSlide) {
-            setGeneratedImages(prev => ({ ...prev, [selectedSlide.numero]: imageUrl }));
+            setGeneratedImages((prev) => ({ ...prev, [selectedSlide.numero]: imageUrl }));
             setLoadingSlide(null);
             toast.success("Imagem gerada!");
             setTimeout(() => {
               const element = document.querySelector(`[data-slide="${selectedSlide.numero}"]`);
-              element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              element?.scrollIntoView({ behavior: "smooth", block: "nearest" });
             }, 100);
           }
         }}
