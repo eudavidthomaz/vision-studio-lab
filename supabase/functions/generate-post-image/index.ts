@@ -85,14 +85,15 @@ serve(async (req) => {
 
     console.log('Generating image with params:', { formato, estilo, pilar });
 
-    // Define dimensions based on format - Instagram optimized resolutions
-    const formatoDimensoes: Record<string, { width: number; height: number }> = {
-      'feed_square': { width: 1080, height: 1080 },
-      'feed_portrait': { width: 1080, height: 1350 },
-      'story': { width: 1080, height: 1920 },
-      'reel_cover': { width: 1080, height: 1920 }
+    // Map formats to GPT Image 1 supported sizes
+    // GPT Image 1 supports: 1024x1024, 1536x1024, 1024x1536, auto
+    const formatoDimensoes: Record<string, { size: string; width: number; height: number }> = {
+      'feed_square': { size: '1024x1024', width: 1024, height: 1024 },
+      'feed_portrait': { size: '1024x1536', width: 1024, height: 1536 },
+      'story': { size: '1024x1536', width: 1024, height: 1536 },
+      'reel_cover': { size: '1024x1536', width: 1024, height: 1536 }
     };
-    const dimensoes = formatoDimensoes[formato] || { width: 1024, height: 1024 };
+    const dimensaoConfig = formatoDimensoes[formato] || { size: '1024x1024', width: 1024, height: 1024 };
 
     // Build intelligent prompt based on pilar and estilo
     const pilarStyles = {
@@ -147,33 +148,33 @@ NUNCA fazer: baixa resolução, clip-art, 3D/cartoon, neon, bevel/emboss, sombra
 
 Entrega: imagem final pronta para social no formato escolhido, texto nítido e legível, sem bordas.`;
 
-    console.log('Calling Lovable AI...');
+    console.log('Calling OpenAI GPT Image 1...');
 
-    // Call Lovable AI - Gemini 2.5 Flash Image Preview
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
+      throw new Error('OPENAI_API_KEY not configured');
+    }
+
+    // Call OpenAI GPT Image 1 API
+    const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        modalities: ['image', 'text'],
-        quality: 'high',
-        output_format: 'png',
-        output_compression: 100
+        model: 'gpt-image-1',
+        prompt: prompt,
+        n: 1,
+        size: dimensaoConfig.size,
+        quality: 'medium',
+        output_format: 'png'
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       
       const errorMsg = `Image generation failed: ${response.status}`;
       await logSecurityEvent(supabaseClient, userId, 'image_gen_failed', 'generate-post-image', false, errorMsg);
@@ -183,17 +184,30 @@ Entrega: imagem final pronta para social no formato escolhido, texto nítido e l
       }
       
       if (response.status === 402) {
-        throw new ValidationError('Créditos insuficientes. Adicione créditos ao seu workspace.');
+        throw new ValidationError('Créditos insuficientes na conta OpenAI.');
+      }
+
+      if (response.status === 400) {
+        let errorDetail = 'Erro na requisição';
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorDetail = errorJson.error?.message || errorDetail;
+        } catch {}
+        throw new ValidationError(`Erro de conteúdo: ${errorDetail}`);
       }
 
       throw new Error(errorMsg);
     }
 
     const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    console.log('OpenAI response received');
     
-    if (!imageUrl) {
-      throw new Error('No image URL in response');
+    // GPT Image 1 returns base64 in data[0].b64_json
+    const base64Data = data.data?.[0]?.b64_json;
+    
+    if (!base64Data) {
+      console.error('No image data in response:', JSON.stringify(data).substring(0, 500));
+      throw new Error('No image data in response');
     }
 
     // Upload image to Supabase Storage
@@ -202,7 +216,6 @@ Entrega: imagem final pronta para social no formato escolhido, texto nítido e l
     const storageClient = createClient(supabaseUrl, supabaseServiceKey);
 
     // Convert base64 to blob
-    const base64Data = imageUrl.split(',')[1];
     const binaryString = atob(base64Data);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
@@ -230,9 +243,9 @@ Entrega: imagem final pronta para social no formato escolhido, texto nítido e l
       // Fallback to returning base64 if storage fails
       return new Response(
         JSON.stringify({ 
-          image_url: imageUrl,
+          image_url: `data:image/png;base64,${base64Data}`,
           prompt_usado: prompt,
-          dimensoes,
+          dimensoes: { width: dimensaoConfig.width, height: dimensaoConfig.height },
           storage_error: uploadError.message
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -254,7 +267,7 @@ Entrega: imagem final pronta para social no formato escolhido, texto nítido e l
       JSON.stringify({ 
         image_url: publicUrl,
         prompt_usado: prompt,
-        dimensoes
+        dimensoes: { width: dimensaoConfig.width, height: dimensaoConfig.height }
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
