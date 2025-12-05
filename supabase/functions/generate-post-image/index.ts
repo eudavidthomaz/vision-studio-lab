@@ -43,7 +43,7 @@ serve(async (req) => {
 
     // Parse and validate input
     const body = await req.json();
-    const { formato, copy, estilo, pilar, contexto_adicional } = body;
+    const { formato, copy, estilo, pilar, contexto_adicional, referenceImage } = body;
 
     validateInput('formato', {
       value: formato,
@@ -82,8 +82,9 @@ serve(async (req) => {
 
     const sanitizedCopy = sanitizeText(copy, 500);
     const sanitizedContexto = contexto_adicional ? sanitizeText(contexto_adicional, 500) : '';
+    const hasReferenceImage = !!referenceImage;
 
-    console.log('Generating image with params:', { formato, estilo, pilar });
+    console.log('Generating image with params:', { formato, estilo, pilar, hasReferenceImage });
 
     // Map formats to GPT Image 1 supported sizes
     // GPT Image 1 supports: 1024x1024, 1536x1024, 1024x1536, auto
@@ -126,7 +127,20 @@ serve(async (req) => {
 
     const estiloAdaptacao = estiloAdaptacoes[estilo as keyof typeof estiloAdaptacoes] || estiloAdaptacoes['minimalista'];
 
-    const prompt = `Tarefa: Gerar um pôster para redes sociais no formato já selecionado (respeite a proporção e margens de segurança), com estética editorial cristã/cinemática e acabamento profissional.
+    // Build prompt based on whether editing or generating
+    const prompt = hasReferenceImage
+      ? `Edite esta imagem seguindo estas instruções: ${truncatedCopy}
+
+Aplique o estilo ${estilo}: ${estiloAdaptacao}
+
+Mantenha a composição geral mas:
+- Aplique paleta de cores: ${pilarStyle.split(',')[0]}
+- Melhore a qualidade visual com acabamento profissional
+- Adicione tratamento de imagem: granulação de filme 6-8%, matte finish
+${sanitizedContexto ? `- Contexto adicional: ${sanitizedContexto}` : ''}
+
+NUNCA: distorcer rostos/mãos, adicionar textos não solicitados, mudar completamente a imagem original.`
+      : `Tarefa: Gerar um pôster para redes sociais no formato já selecionado (respeite a proporção e margens de segurança), com estética editorial cristã/cinemática e acabamento profissional.
 
 Texto a renderizar (exato, em PT-BR, sem traduzir ou reescrever):
 * Título: primeira linha do input do usuário "${truncatedCopy.split('\n')[0]}" (aplique visualmente CAIXA-ALTA, grotesk bold/condensed, alinhado à esquerda, tracking levemente negativo, linhas compactas).
@@ -148,66 +162,142 @@ NUNCA fazer: baixa resolução, clip-art, 3D/cartoon, neon, bevel/emboss, sombra
 
 Entrega: imagem final pronta para social no formato escolhido, texto nítido e legível, sem bordas.`;
 
-    console.log('Calling OpenAI GPT Image 1...');
-
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openaiApiKey) {
       throw new Error('OPENAI_API_KEY not configured');
     }
 
-    // Call OpenAI GPT Image 1 API
-    const response = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-image-1',
-        prompt: prompt,
-        n: 1,
-        size: dimensaoConfig.size,
-        quality: 'medium',
-        output_format: 'png'
-      }),
-    });
+    let base64Data: string;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
+    if (hasReferenceImage) {
+      // Use image editing endpoint
+      console.log('Using image editing mode with GPT Image 1...');
       
-      const errorMsg = `Image generation failed: ${response.status}`;
-      await logSecurityEvent(supabaseClient, userId, 'image_gen_failed', 'generate-post-image', false, errorMsg);
-      
-      if (response.status === 429) {
-        throw new RateLimitError('Limite de taxa excedido. Tente novamente mais tarde.', 60);
+      // Extract base64 data from data URL
+      const base64Match = referenceImage.match(/^data:image\/\w+;base64,(.+)$/);
+      if (!base64Match) {
+        throw new ValidationError('Formato de imagem inválido. Use PNG, JPG ou WEBP.');
       }
       
-      if (response.status === 402) {
-        throw new ValidationError('Créditos insuficientes na conta OpenAI.');
+      const imageBase64 = base64Match[1];
+      
+      // Determine image mime type
+      const mimeMatch = referenceImage.match(/^data:(image\/\w+);base64,/);
+      const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
+      const extension = mimeType.split('/')[1] || 'png';
+      
+      // Convert base64 to blob for multipart form
+      const binaryString = atob(imageBase64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const imageBlob = new Blob([bytes], { type: mimeType });
+      
+      // Create form data for edit endpoint
+      const formData = new FormData();
+      formData.append('model', 'gpt-image-1');
+      formData.append('image', imageBlob, `image.${extension}`);
+      formData.append('prompt', prompt);
+      formData.append('size', dimensaoConfig.size);
+      formData.append('quality', 'medium');
+
+      const editResponse = await fetch('https://api.openai.com/v1/images/edits', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+        },
+        body: formData,
+      });
+
+      if (!editResponse.ok) {
+        const errorText = await editResponse.text();
+        console.error('OpenAI edit API error:', editResponse.status, errorText);
+        
+        const errorMsg = `Image editing failed: ${editResponse.status}`;
+        await logSecurityEvent(supabaseClient, userId, 'image_edit_failed', 'generate-post-image', false, errorMsg);
+        
+        if (editResponse.status === 429) {
+          throw new RateLimitError('Limite de taxa excedido. Tente novamente mais tarde.', 60);
+        }
+        
+        if (editResponse.status === 402) {
+          throw new ValidationError('Créditos insuficientes na conta OpenAI.');
+        }
+
+        if (editResponse.status === 400) {
+          let errorDetail = 'Erro na requisição';
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorDetail = errorJson.error?.message || errorDetail;
+          } catch {}
+          throw new ValidationError(`Erro de edição: ${errorDetail}`);
+        }
+
+        throw new Error(errorMsg);
       }
 
-      if (response.status === 400) {
-        let errorDetail = 'Erro na requisição';
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorDetail = errorJson.error?.message || errorDetail;
-        } catch {}
-        throw new ValidationError(`Erro de conteúdo: ${errorDetail}`);
+      const editData = await editResponse.json();
+      base64Data = editData.data?.[0]?.b64_json;
+      
+      if (!base64Data) {
+        console.error('No image data in edit response:', JSON.stringify(editData).substring(0, 500));
+        throw new Error('No image data in edit response');
+      }
+    } else {
+      // Use image generation endpoint
+      console.log('Using image generation mode with GPT Image 1...');
+      
+      const response = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-image-1',
+          prompt: prompt,
+          n: 1,
+          size: dimensaoConfig.size,
+          quality: 'medium',
+          output_format: 'png'
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('OpenAI API error:', response.status, errorText);
+        
+        const errorMsg = `Image generation failed: ${response.status}`;
+        await logSecurityEvent(supabaseClient, userId, 'image_gen_failed', 'generate-post-image', false, errorMsg);
+        
+        if (response.status === 429) {
+          throw new RateLimitError('Limite de taxa excedido. Tente novamente mais tarde.', 60);
+        }
+        
+        if (response.status === 402) {
+          throw new ValidationError('Créditos insuficientes na conta OpenAI.');
+        }
+
+        if (response.status === 400) {
+          let errorDetail = 'Erro na requisição';
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorDetail = errorJson.error?.message || errorDetail;
+          } catch {}
+          throw new ValidationError(`Erro de conteúdo: ${errorDetail}`);
+        }
+
+        throw new Error(errorMsg);
       }
 
-      throw new Error(errorMsg);
-    }
-
-    const data = await response.json();
-    console.log('OpenAI response received');
-    
-    // GPT Image 1 returns base64 in data[0].b64_json
-    const base64Data = data.data?.[0]?.b64_json;
-    
-    if (!base64Data) {
-      console.error('No image data in response:', JSON.stringify(data).substring(0, 500));
-      throw new Error('No image data in response');
+      const data = await response.json();
+      base64Data = data.data?.[0]?.b64_json;
+      
+      if (!base64Data) {
+        console.error('No image data in response:', JSON.stringify(data).substring(0, 500));
+        throw new Error('No image data in response');
+      }
     }
 
     // Upload image to Supabase Storage
