@@ -1,20 +1,4 @@
-import { 
-  Heart, 
-  BookOpen, 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Play, 
-  Music, 
-  Users,
-  Church,
-  HandHeart,
-  Sparkles,
-  Star,
-  Sun,
-  Moon
-} from "lucide-react";
-
+// Position classes for overlay positioning
 export const positionClasses: Record<string, string> = {
   'top_left': 'top-6 left-6',
   'top_center': 'top-6 left-1/2 -translate-x-1/2',
@@ -58,22 +42,12 @@ export const filterClasses: Record<string, string> = {
   'sepia': 'sepia',
 };
 
-export const availableIcons: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
-  'heart': Heart,
-  'bible': BookOpen,
-  'calendar': Calendar,
-  'clock': Clock,
-  'location': MapPin,
-  'play': Play,
-  'music': Music,
-  'users': Users,
-  'church': Church,
-  'worship_hands': HandHeart,
-  'sparkles': Sparkles,
-  'star': Star,
-  'sun': Sun,
-  'moon': Moon,
-};
+// Available icon names (components imported separately in EditableOverlay)
+export const availableIconNames = [
+  'heart', 'bible', 'calendar', 'clock', 'location', 
+  'play', 'music', 'users', 'church', 'worship_hands', 
+  'sparkles', 'star', 'sun', 'moon'
+] as const;
 
 export const positionOptions = [
   { value: 'top_left', label: 'Superior Esquerdo' },
@@ -96,11 +70,12 @@ export const fontSizeOptions = [
   { value: '3xl', label: '3x Grande' },
 ];
 
-export const iconOptions = Object.keys(availableIcons).map(key => ({
+export const iconOptions = availableIconNames.map(key => ({
   value: key,
   label: key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' '),
 }));
 
+// Types
 export interface TextOverlay {
   type: 'text';
   content: string;

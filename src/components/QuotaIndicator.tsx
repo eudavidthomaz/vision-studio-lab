@@ -1,35 +1,40 @@
-import { useQuota, QuotaFeature } from '@/hooks/useQuota';
+import { useQuota } from '@/hooks/useQuota';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Image, FileAudio, Video } from 'lucide-react';
+import { AlertCircle, Sparkles, Image, Zap } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const QuotaIndicator = () => {
-  const { quota, limits, userRole, isLoading, getUsagePercentage, isNearLimit, daysUntilReset, getUsage, getLimit } = useQuota();
+  const { quota, limits, userRole, isLoading, getUsagePercentage, isNearLimit, daysUntilReset } = useQuota();
 
   if (isLoading || !quota || !limits) return null;
 
-  const features: { key: QuotaFeature; label: string; icon: typeof Image }[] = [
+  const features = [
     {
-      key: 'images',
+      key: 'sermon_packs' as const,
+      label: 'Packs de Sermões',
+      icon: Sparkles,
+      used: quota.sermon_packs_generated,
+      limit: limits.sermon_packs,
+    },
+    {
+      key: 'challenges' as const,
+      label: 'Desafios Ide.On',
+      icon: Zap,
+      used: quota.challenges_used,
+      limit: limits.challenges,
+    },
+    {
+      key: 'images' as const,
       label: 'Imagens Geradas',
       icon: Image,
-    },
-    {
-      key: 'transcriptions',
-      label: 'Transcrições',
-      icon: FileAudio,
-    },
-    {
-      key: 'live_captures',
-      label: 'Captação ao Vivo',
-      icon: Video,
+      used: quota.images_generated,
+      limit: limits.images,
     },
   ];
 
-  const availableFeatures = features.filter(f => getLimit(f.key) > 0);
-  const hasWarning = availableFeatures.some(f => isNearLimit(f.key));
+  const hasWarning = features.some(f => isNearLimit(f.key));
 
   return (
     <Card className="p-4 space-y-4 animate-fade-in">
@@ -52,12 +57,10 @@ export const QuotaIndicator = () => {
       )}
 
       <div className="space-y-3">
-        {availableFeatures.map((feature) => {
+        {features.map((feature) => {
           const percentage = getUsagePercentage(feature.key);
           const nearLimit = isNearLimit(feature.key);
           const Icon = feature.icon;
-          const used = getUsage(feature.key);
-          const limit = getLimit(feature.key);
           
           return (
             <div key={feature.key} className="space-y-2">
@@ -67,7 +70,7 @@ export const QuotaIndicator = () => {
                   <span className="font-medium">{feature.label}</span>
                 </div>
                 <span className={nearLimit ? 'text-destructive font-medium' : 'text-muted-foreground'}>
-                  {used}/{limit}
+                  {feature.used}/{feature.limit}
                 </span>
               </div>
               <Progress 

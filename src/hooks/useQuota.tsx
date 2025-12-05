@@ -5,59 +5,41 @@ import { useToast } from '@/hooks/use-toast';
 export interface UsageQuota {
   id: string;
   user_id: string;
+  sermon_packs_generated: number;
+  challenges_used: number;
   images_generated: number;
-  transcriptions_used: number;
-  live_captures_used: number;
   reset_date: string;
   created_at: string;
   updated_at: string;
 }
 
 export interface QuotaLimits {
+  sermon_packs: number;
+  challenges: number;
   images: number;
-  transcriptions: number;
-  live_captures: number;
 }
 
-export type QuotaFeature = 'images' | 'transcriptions' | 'live_captures';
-
-// Limites por role
+// Limites padrão por role
 const ROLE_LIMITS: Record<string, QuotaLimits> = {
   free: {
+    sermon_packs: 2,
+    challenges: 5,
     images: 10,
-    transcriptions: 2,
-    live_captures: 0,
   },
   pro: {
+    sermon_packs: 10,
+    challenges: 30,
     images: 50,
-    transcriptions: 5,
-    live_captures: 5,
   },
   team: {
+    sermon_packs: 50,
+    challenges: 100,
     images: 200,
-    transcriptions: 20,
-    live_captures: 20,
   },
   admin: {
-    images: 9999,
-    transcriptions: 9999,
-    live_captures: 9999,
-  },
-};
-
-// Preços dos planos (em centavos BRL)
-export const PLAN_PRICES = {
-  pro: {
-    price_id: 'price_1SarH3LOuknfB6DJBJ7TevZA',
-    product_id: 'prod_TXxBwPsl1XySa6',
-    amount: 2900,
-    name: 'Pro',
-  },
-  team: {
-    price_id: 'price_1SarHILOuknfB6DJfV2aTQ93',
-    product_id: 'prod_TXxBXiibNmpi9j',
-    amount: 7900,
-    name: 'Team',
+    sermon_packs: 999,
+    challenges: 999,
+    images: 999,
   },
 };
 
@@ -78,7 +60,7 @@ export const useQuota = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       return data?.role || 'free';
     },
   });
@@ -96,26 +78,7 @@ export const useQuota = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      
-      // Se não existe, criar quota inicial
-      if (!data) {
-        const { data: newQuota, error: insertError } = await supabase
-          .from('usage_quotas')
-          .insert({
-            user_id: user.id,
-            images_generated: 0,
-            transcriptions_used: 0,
-            live_captures_used: 0,
-            reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          })
-          .select()
-          .single();
-        
-        if (insertError) throw insertError;
-        return newQuota as UsageQuota;
-      }
-      
+      if (error) throw error;
       return data as UsageQuota;
     },
   });
@@ -123,45 +86,39 @@ export const useQuota = () => {
   const limits = ROLE_LIMITS[userRole || 'free'];
 
   // Verificar se pode usar uma feature
-  const canUse = (feature: QuotaFeature): boolean => {
+  const canUse = (feature: 'sermon_packs' | 'challenges' | 'images'): boolean => {
     if (!quota || !limits) return false;
 
-    const usage: Record<QuotaFeature, number> = {
+    const usage = {
+      sermon_packs: quota.sermon_packs_generated,
+      challenges: quota.challenges_used,
       images: quota.images_generated,
-      transcriptions: quota.transcriptions_used,
-      live_captures: quota.live_captures_used,
     };
 
     return usage[feature] < limits[feature];
   };
 
-  // Verificar se feature está disponível no plano
-  const isFeatureAvailable = (feature: QuotaFeature): boolean => {
-    if (!limits) return false;
-    return limits[feature] > 0;
-  };
-
   // Incrementar uso
   const incrementUsage = useMutation({
-    mutationFn: async (feature: QuotaFeature) => {
+    mutationFn: async (feature: 'sermon_packs' | 'challenges' | 'images') => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const field: Record<QuotaFeature, string> = {
+      const field = {
+        sermon_packs: 'sermon_packs_generated',
+        challenges: 'challenges_used',
         images: 'images_generated',
-        transcriptions: 'transcriptions_used',
-        live_captures: 'live_captures_used',
-      };
+      }[feature];
 
-      const currentValue = feature === 'images' 
-        ? quota?.images_generated || 0
-        : feature === 'transcriptions'
-        ? quota?.transcriptions_used || 0
-        : quota?.live_captures_used || 0;
+      const currentValue = feature === 'sermon_packs' 
+        ? quota?.sermon_packs_generated || 0
+        : feature === 'challenges'
+        ? quota?.challenges_used || 0
+        : quota?.images_generated || 0;
 
       const { error } = await supabase
         .from('usage_quotas')
-        .update({ [field[feature]]: currentValue + 1 })
+        .update({ [field]: currentValue + 1 })
         .eq('user_id', user.id);
 
       if (error) throw error;
@@ -179,43 +136,26 @@ export const useQuota = () => {
   });
 
   // Calcular percentual de uso
-  const getUsagePercentage = (feature: QuotaFeature): number => {
-    if (!quota || !limits || limits[feature] === 0) return 0;
+  const getUsagePercentage = (feature: 'sermon_packs' | 'challenges' | 'images'): number => {
+    if (!quota || !limits) return 0;
 
-    const usage: Record<QuotaFeature, number> = {
+    const usage = {
+      sermon_packs: quota.sermon_packs_generated,
+      challenges: quota.challenges_used,
       images: quota.images_generated,
-      transcriptions: quota.transcriptions_used,
-      live_captures: quota.live_captures_used,
-    };
+    }[feature];
 
-    return (usage[feature] / limits[feature]) * 100;
+    return (usage / limits[feature]) * 100;
   };
 
   // Verificar se está próximo do limite (>80%)
-  const isNearLimit = (feature: QuotaFeature): boolean => {
+  const isNearLimit = (feature: 'sermon_packs' | 'challenges' | 'images'): boolean => {
     return getUsagePercentage(feature) > 80;
-  };
-
-  // Obter uso atual de uma feature
-  const getUsage = (feature: QuotaFeature): number => {
-    if (!quota) return 0;
-    const usage: Record<QuotaFeature, number> = {
-      images: quota.images_generated,
-      transcriptions: quota.transcriptions_used,
-      live_captures: quota.live_captures_used,
-    };
-    return usage[feature];
-  };
-
-  // Obter limite de uma feature
-  const getLimit = (feature: QuotaFeature): number => {
-    if (!limits) return 0;
-    return limits[feature];
   };
 
   // Dias até reset
   const daysUntilReset = quota
-    ? Math.max(0, Math.ceil((new Date(quota.reset_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    ? Math.ceil((new Date(quota.reset_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : 0;
 
   return {
@@ -224,12 +164,9 @@ export const useQuota = () => {
     userRole,
     isLoading,
     canUse,
-    isFeatureAvailable,
     incrementUsage: incrementUsage.mutate,
     getUsagePercentage,
     isNearLimit,
-    getUsage,
-    getLimit,
     daysUntilReset,
   };
 };

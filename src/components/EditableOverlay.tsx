@@ -1,15 +1,13 @@
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Trash2, GripVertical } from "lucide-react";
+import { Trash2, GripVertical, Heart, BookOpen, Calendar, Clock, MapPin, Play, Music, Users, Church, Sparkles, Star, Sun, Moon } from "lucide-react";
 import { 
   positionClasses, 
   fontSizeClasses, 
   fontWeightClasses, 
-  availableIcons,
   positionOptions,
   fontSizeOptions,
   iconOptions,
@@ -17,6 +15,24 @@ import {
   type TextOverlay,
   type IconOverlay
 } from "@/lib/overlayPositions";
+
+// Icon mapping
+const iconComponents: Record<string, React.ElementType> = {
+  'heart': Heart,
+  'bible': BookOpen,
+  'calendar': Calendar,
+  'clock': Clock,
+  'location': MapPin,
+  'play': Play,
+  'music': Music,
+  'users': Users,
+  'church': Church,
+  'worship_hands': Heart, // Using Heart as fallback
+  'sparkles': Sparkles,
+  'star': Star,
+  'sun': Sun,
+  'moon': Moon,
+};
 
 interface EditableOverlayProps {
   overlay: Overlay;
@@ -49,12 +65,10 @@ const EditableOverlay = ({
         className={`absolute ${positionClass} z-10 cursor-pointer group max-w-[80%]`}
         onClick={onStartEdit}
       >
-        {/* Background highlight */}
         {textOverlay.background_highlight && (
           <div className="absolute inset-0 bg-black/50 -m-2 rounded-lg blur-sm -z-10" />
         )}
         
-        {/* Text content */}
         <div
           className={`${fontSizeClass} ${fontWeightClass} drop-shadow-lg text-center leading-tight`}
           style={{ 
@@ -65,7 +79,6 @@ const EditableOverlay = ({
           {textOverlay.content}
         </div>
 
-        {/* Edit indicator */}
         {!isEditing && (
           <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <div className="bg-primary text-primary-foreground rounded-full p-1">
@@ -74,7 +87,6 @@ const EditableOverlay = ({
           </div>
         )}
 
-        {/* Edit panel */}
         {isEditing && (
           <div 
             className="absolute top-full left-0 mt-2 bg-popover border border-border rounded-lg p-3 shadow-xl z-50 min-w-[280px]"
@@ -168,9 +180,7 @@ const EditableOverlay = ({
 
   // Icon overlay
   const iconOverlay = overlay as IconOverlay;
-  const IconComponent = availableIcons[iconOverlay.icon_name];
-
-  if (!IconComponent) return null;
+  const IconComponent = iconComponents[iconOverlay.icon_name] || Sparkles;
 
   return (
     <div 
@@ -182,7 +192,6 @@ const EditableOverlay = ({
         style={{ color: iconOverlay.color_hex }}
       />
 
-      {/* Edit indicator */}
       {!isEditing && (
         <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <div className="bg-primary text-primary-foreground rounded-full p-1">
@@ -191,7 +200,6 @@ const EditableOverlay = ({
         </div>
       )}
 
-      {/* Edit panel */}
       {isEditing && (
         <div 
           className="absolute top-full left-0 mt-2 bg-popover border border-border rounded-lg p-3 shadow-xl z-50 min-w-[200px]"
