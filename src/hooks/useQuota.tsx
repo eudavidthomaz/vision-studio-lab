@@ -72,7 +72,7 @@ export const useQuota = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return 'free'; // Return default for unauthenticated users
 
-      const { data, error } = await supabase
+      const { data: roleData, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
@@ -88,13 +88,22 @@ export const useQuota = () => {
   });
 
   // Buscar quotas do usuário
-  const { data: quota, isLoading } = useQuery({
+  const { data: quota, isLoading } = useQuery<UsageQuota | null>({
     queryKey: ['usage-quota'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null; // Return null for unauthenticated users
 
-      const { data, error } = await supabase
+      if (userError) {
+        console.warn('Erro ao recuperar usuário autenticado para quotas:', userError);
+        return null;
+      }
+
+      if (!data?.user) {
+        return null;
+      }
+
+      const { data: quotaData, error } = await supabase
         .from('usage_quotas')
         .select('*')
         .eq('user_id', user.id)
@@ -106,11 +115,11 @@ export const useQuota = () => {
       }
       
       // Se não existe, criar quota inicial
-      if (!data) {
+      if (!quotaData) {
         const { data: newQuota, error: insertError } = await supabase
           .from('usage_quotas')
           .insert({
-            user_id: user.id,
+            user_id: data.user.id,
             images_generated: 0,
             transcriptions_used: 0,
             live_captures_used: 0,
@@ -125,8 +134,8 @@ export const useQuota = () => {
         }
         return newQuota as UsageQuota;
       }
-      
-      return data as UsageQuota;
+
+      return quotaData as UsageQuota;
     },
     retry: false,
   });
