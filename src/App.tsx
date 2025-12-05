@@ -3,24 +3,47 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, ComponentType } from "react";
 
 // Eager load only Landing initially
 import Landing from "./pages/Landing";
 
-// Lazy load all other pages
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Auth = lazy(() => import("./pages/Auth"));
-const Welcome = lazy(() => import("./pages/Welcome"));
-const ContentLibrary = lazy(() => import("./pages/ContentLibrary"));
-const ContentLibraryDetail = lazy(() => import("./pages/ContentLibraryDetail"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const Profile = lazy(() => import("./pages/Profile"));
-const Metrics = lazy(() => import("./pages/Metrics"));
-const SecurityDashboard = lazy(() => import("./pages/SecurityDashboard"));
-const UsageDashboard = lazy(() => import("./pages/UsageDashboard"));
-const Analytics = lazy(() => import("./pages/Analytics"));
-const Pricing = lazy(() => import("./pages/Pricing"));
+// Helper para lazy load com retry (resolve problemas de cache do Vite)
+function lazyWithRetry<T extends ComponentType<any>>(
+  componentImport: () => Promise<{ default: T }>
+): React.LazyExoticComponent<T> {
+  return lazy(async () => {
+    try {
+      return await componentImport();
+    } catch (error) {
+      console.warn("Lazy load failed, retrying with cache bust...", error);
+      // Retry once with cache bust
+      const timestamp = Date.now();
+      try {
+        // Force a page reload if dynamic import fails (Vite HMR issue)
+        window.location.reload();
+        return await componentImport();
+      } catch (retryError) {
+        console.error("Lazy load retry failed:", retryError);
+        throw retryError;
+      }
+    }
+  });
+}
+
+// Lazy load all other pages with retry
+const Dashboard = lazyWithRetry(() => import("./pages/Dashboard"));
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const Welcome = lazyWithRetry(() => import("./pages/Welcome"));
+const ContentLibrary = lazyWithRetry(() => import("./pages/ContentLibrary"));
+const ContentLibraryDetail = lazyWithRetry(() => import("./pages/ContentLibraryDetail"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
+const Profile = lazyWithRetry(() => import("./pages/Profile"));
+const Metrics = lazyWithRetry(() => import("./pages/Metrics"));
+const SecurityDashboard = lazyWithRetry(() => import("./pages/SecurityDashboard"));
+const UsageDashboard = lazyWithRetry(() => import("./pages/UsageDashboard"));
+const Analytics = lazyWithRetry(() => import("./pages/Analytics"));
+const Pricing = lazyWithRetry(() => import("./pages/Pricing"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
