@@ -171,7 +171,6 @@ const Dashboard = () => {
   const handleGenerateAIContent = async (prompt: string) => {
     setIsGeneratingAI(true);
     
-    // ✅ Feedback progressivo ao usuário
     toast({
       title: "🤖 Analisando seu pedido...",
       description: "Preparando a geração de conteúdo",
@@ -181,22 +180,17 @@ const Dashboard = () => {
     try {
       console.log('🚀 Gerando conteúdo com prompt:', prompt.substring(0, 100));
       
-      // Atualizar toast após 1 segundo
-      setTimeout(() => {
-        toast({
-          title: "✨ Criando conteúdo...",
-          description: "Nossa IA está trabalhando nisso",
-          duration: Infinity,
-        });
-      }, 1000);
+      const contentId = await createContent(prompt, { sermonId: preselectedSermonId });
       
-      const contentId = await createContent(prompt, preselectedSermonId);
+      // Validar que temos um ID válido antes de navegar
+      if (!contentId || contentId === 'undefined') {
+        throw new Error('Conteúdo foi criado mas ID não foi retornado');
+      }
       
       console.log('✅ Conteúdo criado com ID:', contentId);
 
       await trackEvent('ai_content_generated', { prompt: prompt.substring(0, 50) });
 
-      // Feedback de sucesso
       toast({
         title: "🎉 Conteúdo criado!",
         description: "Redirecionando para visualização...",
@@ -205,10 +199,8 @@ const Dashboard = () => {
 
       setShowAIModal(false);
       
-      // Aguardar um pouco para garantir que o banco salvou
-      setTimeout(() => {
-        navigate(`/biblioteca/${contentId}`);
-      }, 300);
+      // Navegar para a biblioteca e abrir o conteúdo
+      navigate(`/biblioteca/${contentId}`);
       
     } catch (error: any) {
       console.error('❌ Error generating AI content:', error);
