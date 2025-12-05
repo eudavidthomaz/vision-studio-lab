@@ -928,152 +928,69 @@ export function normalizeContentData(data: any, contentType: string): any {
  * Detecta o tipo real do conteúdo baseado na estrutura dos dados
  */
 export function detectRealContentType(data: any, declaredType: string): string {
-  // Priorizar tipo declarado se tiver campo content_type interno
-  if (data?.content_type && typeof data.content_type === 'string') {
-    return data.content_type;
-  }
-  
-  // Carrossel - múltiplas estruturas possíveis
   if (data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides) {
     const slides = data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides;
     if (Array.isArray(slides) && slides.length > 0) {
-      return 'carrossel';
+      const firstSlide = slides[0];
+      if (firstSlide.conteudo || firstSlide.texto) {
+        return 'carrossel';
+      }
     }
   }
 
-  // Stories
   if (data?.stories?.slides || (Array.isArray(data?.stories) && data.stories.length > 0)) {
     return 'stories';
   }
 
-  // Reel/Video
-  if (data?.roteiro?.cenas || data?.estrutura_visual?.cenas || data?.cenas) {
+  if (data?.roteiro?.cenas || data?.estrutura_visual?.cenas) {
     return 'reel';
   }
 
-  // Devocional
-  if (data?.devocional?.reflexao || data?.devocional?.oracao || data?.devocional?.titulo) {
+  if (data?.devocional?.reflexao || data?.devocional?.oracao) {
     return 'devocional';
   }
 
-  // Estudo Bíblico
-  if (data?.estudo_biblico || data?.estudo?.tema || data?.estudo?.pontos_principais) {
+  if (data?.estudo_biblico || data?.estudo) {
     return 'estudo';
   }
 
-  // Trilha de Oração
-  if (data?.trilha || data?.trilha_oracao?.etapas) {
+  if (data?.trilha || data?.trilha_oracao) {
     return 'trilha_oracao';
   }
 
-  // Convite
-  if (data?.convite?.titulo_evento || data?.convite?.data) {
+  if (data?.convite) {
     return 'convite';
   }
 
-  // Guia
-  if (data?.guia?.passos || data?.guia?.titulo) {
+  if (data?.guia) {
     return 'guia';
   }
 
-  // Aviso
-  if (data?.aviso?.mensagem || data?.aviso?.tipo) {
+  if (data?.aviso) {
     return 'aviso';
   }
 
-  // Calendário
-  if (data?.calendario || data?.calendario_editorial?.postagens) {
+  if (data?.calendario || data?.calendario_editorial) {
     return 'calendario';
   }
 
-  // Desafio Semanal - múltiplas estruturas
-  if (data?.desafio_semanal?.dias || data?.desafio_semanal?.titulo || 
-      data?.desafio?.dias || (data?.pontos_principais && declaredType === 'desafio_semanal')) {
+  if (data?.desafio_semanal || data?.desafio) {
     return 'desafio_semanal';
   }
 
-  // Campanha Temática
-  if (data?.campanha?.semanas || data?.campanha_tematica?.semanas) {
+  if (data?.campanha || data?.campanha_tematica) {
     return 'campanha_tematica';
   }
 
-  // Manual de Ética
-  if (data?.manual?.secoes || data?.manual_etica?.principios_gerais) {
+  if (data?.manual || data?.manual_etica) {
     return 'manual_etica';
   }
 
-  // Q&A Estruturado
-  if (data?.qa?.questoes || data?.perguntas_respostas?.questoes) {
+  if (data?.qa || data?.perguntas_respostas) {
     return 'qa_estruturado';
   }
-  
-  // Estratégia Social
-  if (data?.estrategia?.pilares_conteudo || data?.estrategia_social) {
-    return 'estrategia_social';
-  }
-  
-  // Treino Voluntário
-  if (data?.treino?.modulos || data?.capacitacao) {
-    return 'treino_voluntario';
-  }
-  
-  // Kit Básico
-  if (data?.kit?.equipamentos || data?.kit?.recursos) {
-    return 'kit_basico';
-  }
-  
-  // Checklist Culto
-  if (data?.checklist?.itens || data?.checklist?.tarefas) {
-    return 'checklist_culto';
-  }
-  
-  // Ideia Estratégica
-  if (data?.ideia_estrategica?.proposta || data?.ideia_estrategica?.titulo) {
-    return 'ideia_estrategica';
-  }
-  
-  // Esboço de Pregação
-  if (data?.esboco?.topicos || data?.esboco?.titulo) {
-    return 'esboco';
-  }
-  
-  // Resumo de Pregação
-  if (data?.resumo_pregacao?.pontos_principais || data?.resumo_pregacao?.titulo) {
-    return 'resumo';
-  }
-  
-  // Resumo Breve - string simples
-  if (data?.resumo && typeof data.resumo === 'string' && data.resumo.length > 100) {
-    return 'resumo_breve';
-  }
-  
-  // Perguntas para Célula
-  if (data?.perguntas_celula?.perguntas_reflexao || data?.perguntas_celula?.tema) {
-    return 'perguntas';
-  }
-  
-  // Discipulado
-  if (data?.plano_discipulado?.encontros || data?.discipulado) {
-    return 'discipulado';
-  }
-  
-  // Versículos Citados
-  if (data?.versiculos_citados?.versiculos) {
-    return 'versiculos_citados';
-  }
-  
-  // Convite para Grupos
-  if (data?.convite_grupos?.tipo_grupo || data?.convite_grupos?.nome_grupo) {
-    return 'convite_grupos';
-  }
-  
-  // Roteiro de Reels
-  if (data?.roteiro?.script || data?.roteiro?.cenas_rapidas) {
-    return 'roteiro_reels';
-  }
 
-  // Post simples como fallback
-  if (data?.conteudo?.legenda || data?.texto || data?.legenda) {
+  if (data?.conteudo?.legenda && !data?.estrutura_visual && !data?.stories) {
     return 'post';
   }
 

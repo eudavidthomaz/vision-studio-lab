@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Eager load only Landing initially
 import Landing from "./pages/Landing";
@@ -51,27 +50,25 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <ErrorBoundary>
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/welcome" element={<Welcome />} />
-                <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />
-                <Route path="/conteudo/:id" element={<Navigate to="/biblioteca/:id" replace />} />
-                <Route path="/biblioteca" element={<ContentLibrary />} />
-                <Route path="/biblioteca/:id" element={<ContentLibraryDetail />} />
-                <Route path="/metrics" element={<Metrics />} />
-                <Route path="/security" element={<SecurityDashboard />} />
-                <Route path="/usage" element={<UsageDashboard />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </ErrorBoundary>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/welcome" element={<Welcome />} />
+              <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />
+              <Route path="/conteudo/:id" element={<Navigate to="/biblioteca/:id" replace />} />
+              <Route path="/biblioteca" element={<ContentLibrary />} />
+              <Route path="/biblioteca/:id" element={<ContentLibraryDetail />} />
+              <Route path="/metrics" element={<Metrics />} />
+              <Route path="/security" element={<SecurityDashboard />} />
+              <Route path="/usage" element={<UsageDashboard />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "./ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Badge } from "./ui/badge";
 import { Sparkles, Loader2, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { CONTENT_TYPE_GROUPS, CONTENT_TYPES, ContentType, isValidContentType } from "@/lib/contentTypes";
+import { detectContentTypes } from "@/lib/detectContentTypes";
 
 
 interface AIPromptModalProps {
@@ -21,7 +21,6 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
   const [prompt, setPrompt] = useState("");
   const [sermons, setSermons] = useState<any[]>([]);
   const [selectedSermonId, setSelectedSermonId] = useState<string>("");
-  const [selectedType, setSelectedType] = useState<ContentType | "auto">("auto");
 
   useEffect(() => {
     if (open) {
@@ -41,7 +40,7 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
     }
   }, [open, preselectedSermonId]);
 
-  // Extrair especificações do usuário
+  // Nova função para extrair especificações do usuário
   const extractUserSpecifications = (text: string) => {
     const specs: any = {};
     
@@ -66,7 +65,7 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
     }
     
     // Público-alvo
-    const publicoOptions = ['jovens', 'adolescentes', 'crianças', 'adultos', 'idosos', 'casais', 'solteiros', 'mulheres', 'homens', 'líderes'];
+    const publicoOptions = ['jovens', 'adolescentes', 'crianças', 'adultos', 'idosos', 'casais', 'solteiros'];
     const publicoMatch = publicoOptions.find(p => new RegExp(`\\b${p}\\b`, 'i').test(text));
     if (publicoMatch) {
       specs.publico = publicoMatch;
@@ -78,21 +77,23 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
   const handleSubmit = async () => {
     if (!prompt.trim()) return;
     
-    // PASSO 1: Analisar prompt do usuário para extrair especificações
+    // PASSO 1: Analisar prompt do usuário para extrair TODAS especificações
     const userSpecs = extractUserSpecifications(prompt.trim());
     
-    // PASSO 2: Usar tipo selecionado explicitamente (prioridade máxima)
-    const finalType = selectedType !== "auto" ? selectedType : null;
+    // PASSO 2: Detectar tipo base
+    const detectedTypes = detectContentTypes(prompt.trim());
+    const baseType = detectedTypes[0];
     
     // PASSO 3: Construir prompt estruturado HIERARQUICAMENTE
     let finalPrompt = '';
     
-    // Nível 1: Tipo EXPLÍCITO (se selecionado no dropdown)
-    if (finalType) {
-      finalPrompt += `TIPO_SOLICITADO: ${finalType}\n`;
-      finalPrompt += `TIPO_EXPLICITO: true\n`; // Flag para backend não sobrescrever
+    // Nível 1: Metadados (lidos primeiro pela IA)
+    finalPrompt += `TIPO_SOLICITADO: ${baseType}\n`;
+
+    if (detectedTypes.length > 1) {
+      finalPrompt += `FORMATOS_DETECTADOS: ${detectedTypes.join(", ")}\n`;
     }
-    
+
     finalPrompt += "\n";
     
     if (userSpecs.quantidade) {
@@ -126,8 +127,8 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
     // Nível 3: Pedido específico do usuário (SEMPRE no final)
     finalPrompt += `INSTRUÇÃO PRINCIPAL DO USUÁRIO:\n${prompt.trim()}`;
     
-    console.log('📋 Tipo selecionado:', finalType || 'auto (detecção por regex)');
     console.log('📋 Especificações extraídas:', userSpecs);
+    console.log('🎯 Tipo detectado:', baseType);
     
     onGenerate(finalPrompt);
   };
@@ -152,44 +153,6 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
         </DialogHeader>
         
         <div className="space-y-3 sm:space-y-4 py-3 sm:py-4">
-          {/* Select de TIPO de conteúdo (NOVO - prioridade máxima) */}
-          <div className="space-y-2">
-            <label className="text-xs sm:text-sm font-medium">
-              🎯 Tipo de conteúdo
-            </label>
-            <Select value={selectedType} onValueChange={(v) => setSelectedType(v as ContentType | "auto")}>
-              <SelectTrigger className="h-10 sm:h-11">
-                <SelectValue placeholder="Selecione o tipo..." />
-              </SelectTrigger>
-              <SelectContent className="bg-popover max-h-[350px]">
-                <SelectItem value="auto">
-                  <span className="flex items-center gap-2">
-                    <span>✨</span>
-                    <span>Automático (detectar do texto)</span>
-                  </span>
-                </SelectItem>
-                {CONTENT_TYPE_GROUPS.map((group) => (
-                  <SelectGroup key={group.label}>
-                    <SelectLabel className="text-xs text-muted-foreground">{group.label}</SelectLabel>
-                    {group.types.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        <span className="flex items-center gap-2">
-                          <span>{CONTENT_TYPES[type].icon}</span>
-                          <span>{CONTENT_TYPES[type].label}</span>
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select>
-            {selectedType !== "auto" && (
-              <p className="text-[10px] text-muted-foreground">
-                Tipo fixado em <strong>{CONTENT_TYPES[selectedType].label}</strong>
-              </p>
-            )}
-          </div>
-
           {/* Select de pregações (opcional) */}
           <div className="space-y-2">
             <label className="text-xs sm:text-sm font-medium">
