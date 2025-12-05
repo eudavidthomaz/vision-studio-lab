@@ -80,20 +80,9 @@ serve(async (req) => {
       });
     }
 
-    // Detectar se é uma transcrição longa (provável áudio de pregação)
-    const isLongTranscript = prompt.length > 5000;
-    console.log(`Processing prompt (${prompt.length} chars), isLongTranscript: ${isLongTranscript}`);
-    
-    // Truncar prompts muito longos para evitar erros - NÃO adicionar tag ao conteúdo
-    let processedPrompt = prompt;
-    let wasTranscriptTruncated = false;
-    const originalLength = prompt.length;
-    
-    if (isLongTranscript && prompt.length > 20000) {
-      console.log(`Prompt truncated: ${prompt.length} → 20000 chars`);
-      processedPrompt = prompt.substring(0, 20000);
-      wasTranscriptTruncated = true;
-    }
+    // Processar prompt sem truncamento
+    const processedPrompt = prompt;
+    console.log(`Processing prompt (${prompt.length} chars)`);
 
     // ============================================
     // FASE 4: VALIDAÇÃO ÉTICA - POLÍTICA DE RECUSA
@@ -1265,7 +1254,7 @@ INSTRUÇÕES PARA REDES SOCIAIS:
 ESTRUTURA JSON OBRIGATÓRIA para tipo "${detectedType}":
 ${selectedStructure}
 
-${isLongTranscript ? `
+${prompt.length > 5000 ? `
 ATENÇÃO: Esta é uma transcrição longa de pregação. 
 - Identifique os principais pontos teológicos
 - Extraia versículos-chave mencionados
@@ -1792,7 +1781,7 @@ Title:`;
       retry_needed: retryCount > 0,
       retry_successful: retryCount > 0 && depthOk,
       prompt_length: processedPrompt.length,
-      is_long_transcript: isLongTranscript,
+      is_long_transcript: prompt.length > 5000,
       timestamp: new Date().toISOString()
     };
     
