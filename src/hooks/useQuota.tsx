@@ -70,21 +70,17 @@ export const useQuota = () => {
     queryKey: ['user-role'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return 'free'; // Return default for unauthenticated users
+      if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .single();
 
-      if (error) {
-        console.error('Error fetching user role:', error);
-        return 'free';
-      }
+      if (error && error.code !== 'PGRST116') throw error;
       return data?.role || 'free';
     },
-    retry: false,
   });
 
   // Buscar quotas do usuário
@@ -92,18 +88,15 @@ export const useQuota = () => {
     queryKey: ['usage-quota'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null; // Return null for unauthenticated users
+      if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
         .from('usage_quotas')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle();
+        .single();
 
-      if (error) {
-        console.error('Error fetching quota:', error);
-        return null;
-      }
+      if (error && error.code !== 'PGRST116') throw error;
       
       // Se não existe, criar quota inicial
       if (!data) {
@@ -117,18 +110,14 @@ export const useQuota = () => {
             reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           })
           .select()
-          .maybeSingle();
+          .single();
         
-        if (insertError) {
-          console.error('Error creating quota:', insertError);
-          return null;
-        }
+        if (insertError) throw insertError;
         return newQuota as UsageQuota;
       }
       
       return data as UsageQuota;
     },
-    retry: false,
   });
 
   const limits = ROLE_LIMITS[userRole || 'free'];

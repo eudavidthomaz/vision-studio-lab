@@ -60,15 +60,11 @@ serve(async (req) => {
     const isLongTranscript = prompt.length > 5000;
     console.log(`Processing prompt (${prompt.length} chars), isLongTranscript: ${isLongTranscript}`);
     
-    // Truncar prompts muito longos para evitar erros - mas sinalizar ao frontend
+    // Truncar prompts muito longos para evitar erros
     let processedPrompt = prompt;
-    let wasTranscriptTruncated = false;
-    const originalLength = prompt.length;
-    
     if (isLongTranscript && prompt.length > 20000) {
-      console.log(`Prompt too long (${prompt.length} chars), truncating to 20000 chars`);
+      console.log('Prompt too long, truncating to 20000 chars');
       processedPrompt = prompt.substring(0, 20000) + '\n\n[Transcrição truncada por exceder limite]';
-      wasTranscriptTruncated = true;
     }
 
     // ============================================
@@ -1554,7 +1550,7 @@ Retorne APENAS o JSON válido.`;
       (detectedType === 'trilha_oracao' && generatedContent.fundamento_biblico && generatedContent.trilha_oracao) ||
       (detectedType === 'qa_estruturado' && generatedContent.fundamento_biblico && generatedContent.perguntas_respostas) ||
       (detectedType === 'discipulado' && generatedContent.fundamento_biblico && generatedContent.plano_discipulado) ||
-      (detectedType === 'desafio_semanal' && generatedContent.fundamento_biblico && generatedContent.desafio_semanal?.dias?.length >= 5) ||
+      (detectedType === 'desafio_semanal' && generatedContent.fundamento_biblico && generatedContent.desafio_semanal?.dias?.length === 7) ||
       (detectedType === 'ideia_estrategica' && generatedContent.ideia_estrategica) ||
       (detectedType === 'estudo' && generatedContent.estudo_biblico) ||
       (detectedType === 'resumo' && generatedContent.resumo_pregacao) ||
@@ -1706,9 +1702,7 @@ Title:`;
       retry_needed: retryCount > 0,
       retry_successful: retryCount > 0 && depthOk,
       prompt_length: processedPrompt.length,
-      original_prompt_length: originalLength,
       is_long_transcript: isLongTranscript,
-      was_truncated: wasTranscriptTruncated,
       timestamp: new Date().toISOString()
     };
     
@@ -1720,22 +1714,12 @@ Title:`;
     } else if (retryCount > 0) {
       console.log(`✅ DEPTH_IMPROVED: ${detectedType} - retry successful`);
     }
-    
-    if (wasTranscriptTruncated) {
-      console.warn(`⚠️ TRANSCRIPT_TRUNCATED: Original ${originalLength} chars → 20000 chars`);
-    }
 
     return new Response(JSON.stringify({ 
       success: true,
       content_id: savedContent.id,
       content: generatedContent,
-      warning: wasTranscriptTruncated ? 'transcript_truncated' : undefined,
-      truncation_info: wasTranscriptTruncated ? {
-        original_length: originalLength,
-        truncated_to: 20000,
-        message: 'A transcrição foi resumida para processamento. Alguns detalhes podem ter sido omitidos.'
-      } : undefined,
-      _metrics: qualityMetrics
+      _metrics: qualityMetrics // Para debugging
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
