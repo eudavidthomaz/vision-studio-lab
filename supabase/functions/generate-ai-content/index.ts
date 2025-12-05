@@ -1546,49 +1546,111 @@ Retorne APENAS o JSON válido.`;
       }
     }
       
-    // Validate structure based on content type
+    // Validate structure based on content type - FLEXÍVEL
     const operationalTypesValidation = [
       'calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 'versiculos_citados', 'ideia_estrategica',
       'treino_voluntario', 'campanha_tematica', 'roteiro_reels', 'checklist_culto', 'kit_basico', 'manual_etica', 'estrategia_social'
     ];
+    
+    // Tipos que podem ter fundamento_biblico aninhado em vez de no root
+    const nestedBiblicalFoundationTypes = ['carrossel', 'reel', 'post', 'stories', 'desafio_semanal'];
+    
     const requiresBiblicalFoundationValidation = !operationalTypesValidation.includes(detectedType);
     
-    // Only require fundamento_biblico for biblical/spiritual content
-    if (requiresBiblicalFoundationValidation && !generatedContent.fundamento_biblico) {
-      console.error('Invalid structure:', generatedContent);
-      throw new Error('IA retornou estrutura incompleta - falta fundamento_biblico');
+    // Verificar fundamento_biblico (pode estar no root ou aninhado)
+    if (requiresBiblicalFoundationValidation) {
+      const hasBiblicalFoundation = 
+        generatedContent.fundamento_biblico ||
+        generatedContent.versiculos ||
+        generatedContent.versiculo ||
+        // Verificar em arrays aninhados (comum em carrosséis, desafios)
+        (nestedBiblicalFoundationTypes.includes(detectedType) && (
+          generatedContent.pontos_principais?.some((p: any) => p.fundamento_biblico || p.versiculo || p.versiculo_chave) ||
+          generatedContent.slides?.some((s: any) => s.fundamento_biblico || s.versiculo || s.versiculo_chave) ||
+          generatedContent.desafio_semanal?.dias ||
+          generatedContent.estrutura_visual?.slides
+        ));
+      
+      if (!hasBiblicalFoundation) {
+        console.warn('Missing fundamento_biblico, but continuing with content...', Object.keys(generatedContent));
+        // NÃO lançar erro, permitir conteúdo sem fundamento (frontend pode lidar)
+      }
     }
 
-    // Validate structure based on type
-    const hasCorrectStructure = 
-      (detectedType === 'calendario' && generatedContent.calendario_editorial) ||
-      (detectedType === 'convite' && generatedContent.convite) ||
-      (detectedType === 'aviso' && generatedContent.aviso) ||
-      (detectedType === 'guia' && generatedContent.guia) ||
-      (detectedType === 'convite_grupos' && generatedContent.convite_grupos) ||
-      (detectedType === 'versiculos_citados' && generatedContent.versiculos_citados) ||
-      (detectedType === 'esboco' && generatedContent.fundamento_biblico && generatedContent.esboco) ||
-      (detectedType === 'trilha_oracao' && generatedContent.fundamento_biblico && generatedContent.trilha_oracao) ||
-      (detectedType === 'qa_estruturado' && generatedContent.fundamento_biblico && generatedContent.perguntas_respostas) ||
-      (detectedType === 'discipulado' && generatedContent.fundamento_biblico && generatedContent.plano_discipulado) ||
-      (detectedType === 'desafio_semanal' && generatedContent.fundamento_biblico && generatedContent.desafio_semanal?.dias?.length === 7) ||
-      (detectedType === 'ideia_estrategica' && generatedContent.ideia_estrategica) ||
-      (detectedType === 'estudo' && generatedContent.estudo_biblico) ||
-      (detectedType === 'resumo' && generatedContent.resumo_pregacao) ||
-      (detectedType === 'perguntas' && generatedContent.perguntas_celula) ||
-      (detectedType === 'devocional' && generatedContent.devocional) ||
-      (detectedType === 'stories' && (generatedContent.stories?.slides || generatedContent.stories)) ||
-      (detectedType === 'treino_voluntario' && generatedContent.treino) ||
-      (detectedType === 'campanha_tematica' && generatedContent.campanha) ||
-      (detectedType === 'roteiro_reels' && generatedContent.roteiro) ||
-      (detectedType === 'checklist_culto' && generatedContent.checklist) ||
-      (detectedType === 'kit_basico' && generatedContent.kit) ||
-      (detectedType === 'manual_etica' && generatedContent.manual) ||
-      (detectedType === 'estrategia_social' && generatedContent.estrategia) ||
-      (['post', 'carrossel', 'reel'].includes(detectedType) && generatedContent.conteudo);
+    // Validação de estrutura mais FLEXÍVEL - aceita múltiplas variações
+    const validateStructure = (type: string, content: any): boolean => {
+      const keys = Object.keys(content);
+      
+      switch (type) {
+        case 'calendario':
+          return !!content.calendario_editorial || !!content.calendario || !!content.postagens;
+        case 'convite':
+          return !!content.convite || !!content.evento || !!content.titulo_evento;
+        case 'aviso':
+          return !!content.aviso || !!content.mensagem || !!content.titulo;
+        case 'guia':
+          return !!content.guia || !!content.passos || !!content.titulo;
+        case 'convite_grupos':
+          return !!content.convite_grupos || !!content.grupo || !!content.tipo_grupo;
+        case 'versiculos_citados':
+          return !!content.versiculos_citados || !!content.versiculos;
+        case 'esboco':
+          return !!content.esboco || !!content.topicos || !!content.estrutura;
+        case 'trilha_oracao':
+          return !!content.trilha_oracao || !!content.etapas || !!content.roteiro;
+        case 'qa_estruturado':
+          return !!content.perguntas_respostas || !!content.questoes || !!content.qa;
+        case 'discipulado':
+          return !!content.plano_discipulado || !!content.encontros || !!content.discipulado;
+        case 'desafio_semanal':
+          // Flexível: aceita dias array, pontos_principais, ou desafio object
+          return !!content.desafio_semanal || !!content.desafio || !!content.pontos_principais || !!content.dias;
+        case 'ideia_estrategica':
+          return !!content.ideia_estrategica || !!content.proposta || !!content.ideia;
+        case 'estudo':
+          return !!content.estudo_biblico || !!content.estudo || !!content.pontos_principais;
+        case 'resumo':
+          return !!content.resumo_pregacao || !!content.resumo || !!content.pontos_principais;
+        case 'resumo_breve':
+          return !!content.resumo || typeof content.resumo === 'string';
+        case 'perguntas':
+          return !!content.perguntas_celula || !!content.perguntas || !!content.perguntas_reflexao;
+        case 'devocional':
+          return !!content.devocional || !!content.reflexao || !!content.meditacao;
+        case 'stories':
+          return !!content.stories || !!content.slides || !!content.estrutura;
+        case 'treino_voluntario':
+          return !!content.treino || !!content.modulos || !!content.capacitacao;
+        case 'campanha_tematica':
+          return !!content.campanha || !!content.fases || !!content.planejamento;
+        case 'roteiro_reels':
+          return !!content.roteiro || !!content.cenas || !!content.script;
+        case 'checklist_culto':
+          return !!content.checklist || !!content.itens || !!content.tarefas;
+        case 'kit_basico':
+          return !!content.kit || !!content.equipamentos || !!content.recursos;
+        case 'manual_etica':
+          return !!content.manual || !!content.diretrizes || !!content.politicas;
+        case 'estrategia_social':
+          return !!content.estrategia || !!content.plano || !!content.acoes;
+        case 'post':
+          return !!content.conteudo || !!content.texto || !!content.legenda || !!content.titulo;
+        case 'carrossel':
+          return !!content.slides || !!content.estrutura_visual?.slides || !!content.pontos_principais || !!content.conteudo;
+        case 'reel':
+          return !!content.roteiro || !!content.cenas || !!content.script || !!content.conteudo || !!content.hook;
+        default:
+          // Para tipos desconhecidos, aceitar se tem algum conteúdo
+          return keys.length > 0;
+      }
+    };
+
+    const hasCorrectStructure = validateStructure(detectedType, generatedContent);
 
     if (!hasCorrectStructure) {
       console.error(`Expected ${detectedType} structure, got:`, Object.keys(generatedContent));
+      // Log detalhado para debug
+      console.error('Full content for debug:', JSON.stringify(generatedContent).substring(0, 500));
       throw new Error(`IA retornou estrutura errada - esperava ${detectedType}`);
     }
     

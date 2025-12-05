@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface SubscriptionStatus {
   subscribed: boolean;
@@ -9,34 +9,51 @@ interface SubscriptionStatus {
   subscription_end: string | null;
 }
 
+const DEFAULT_SUBSCRIPTION: SubscriptionStatus = {
+  subscribed: false,
+  role: 'free',
+  product_id: null,
+  subscription_end: null,
+};
+
 export const useSubscription = () => {
   const queryClient = useQueryClient();
+  const [error, setError] = useState<string | null>(null);
 
   const { data: subscription, isLoading, refetch } = useQuery({
     queryKey: ['subscription-status'],
     queryFn: async (): Promise<SubscriptionStatus> => {
       try {
+        setError(null);
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          return { subscribed: false, role: 'free', product_id: null, subscription_end: null };
+          return DEFAULT_SUBSCRIPTION;
         }
 
-        const { data, error } = await supabase.functions.invoke('check-subscription');
+        const { data, error: fnError } = await supabase.functions.invoke('check-subscription');
         
-        if (error) {
-          console.error('Error checking subscription:', error);
-          return { subscribed: false, role: 'free', product_id: null, subscription_end: null };
+        if (fnError) {
+          console.error('Error checking subscription:', fnError);
+          // Não propagar erro, retornar default
+          setError('Não foi possível verificar assinatura');
+          return DEFAULT_SUBSCRIPTION;
+        }
+
+        if (!data) {
+          return DEFAULT_SUBSCRIPTION;
         }
 
         return data as SubscriptionStatus;
       } catch (err) {
         console.error('Subscription check failed:', err);
-        return { subscribed: false, role: 'free', product_id: null, subscription_end: null };
+        setError('Erro ao verificar assinatura');
+        return DEFAULT_SUBSCRIPTION;
       }
     },
     staleTime: 60 * 1000, // 1 minute
     refetchOnWindowFocus: true,
-    retry: false,
+    retry: 1, // Retry once on failure
+    retryDelay: 1000,
   });
 
   // Refresh subscription status periodically and on auth changes
@@ -49,13 +66,16 @@ export const useSubscription = () => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         setTimeout(() => refetch(), 500);
       }
+      if (event === 'SIGNED_OUT') {
+        queryClient.setQueryData(['subscription-status'], DEFAULT_SUBSCRIPTION);
+      }
     });
 
     return () => {
       clearInterval(interval);
       authSub.unsubscribe();
     };
-  }, [refetch]);
+  }, [refetch, queryClient]);
 
   const openCustomerPortal = async () => {
     try {
@@ -76,12 +96,16 @@ export const useSubscription = () => {
     queryClient.invalidateQueries({ queryKey: ['usage-quota'] });
   };
 
+  // Sempre retornar valores seguros
+  const safeSubscription = subscription ?? DEFAULT_SUBSCRIPTION;
+
   return {
-    subscription,
+    subscription: safeSubscription,
     isLoading,
-    isSubscribed: subscription?.subscribed ?? false,
-    role: subscription?.role ?? 'free',
-    subscriptionEnd: subscription?.subscription_end,
+    error,
+    isSubscribed: safeSubscription.subscribed,
+    role: safeSubscription.role,
+    subscriptionEnd: safeSubscription.subscription_end,
     refetch,
     openCustomerPortal,
     invalidateSubscription,

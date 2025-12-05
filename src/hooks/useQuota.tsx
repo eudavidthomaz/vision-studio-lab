@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
 export interface UsageQuota {
   id: string;
@@ -45,6 +46,20 @@ const ROLE_LIMITS: Record<string, QuotaLimits> = {
   },
 };
 
+// Valores default seguros
+const DEFAULT_QUOTA: UsageQuota = {
+  id: '',
+  user_id: '',
+  images_generated: 0,
+  transcriptions_used: 0,
+  live_captures_used: 0,
+  reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
+const DEFAULT_LIMITS = ROLE_LIMITS.free;
+
 // Preços dos planos (em centavos BRL)
 export const PLAN_PRICES = {
   pro: {
@@ -64,83 +79,99 @@ export const PLAN_PRICES = {
 export const useQuota = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [error, setError] = useState<string | null>(null);
 
   // Buscar role do usuário
-  const { data: userRole } = useQuery({
+  const { data: userRole, isLoading: isLoadingRole } = useQuery({
     queryKey: ['user-role'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return 'free'; // Return default for unauthenticated users
+      try {
+        setError(null);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return 'free';
 
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        const { data, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching user role:', error);
+        if (roleError) {
+          console.error('Error fetching user role:', roleError);
+          return 'free';
+        }
+        return data?.role || 'free';
+      } catch (err) {
+        console.error('Role fetch failed:', err);
         return 'free';
       }
-      return data?.role || 'free';
     },
-    retry: false,
+    retry: 1,
+    retryDelay: 1000,
   });
 
   // Buscar quotas do usuário
-  const { data: quota, isLoading } = useQuery({
+  const { data: quota, isLoading: isLoadingQuota } = useQuery({
     queryKey: ['usage-quota'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return null; // Return null for unauthenticated users
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return DEFAULT_QUOTA;
 
-      const { data, error } = await supabase
-        .from('usage_quotas')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching quota:', error);
-        return null;
-      }
-      
-      // Se não existe, criar quota inicial
-      if (!data) {
-        const { data: newQuota, error: insertError } = await supabase
+        const { data, error: quotaError } = await supabase
           .from('usage_quotas')
-          .insert({
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (quotaError) {
+          console.error('Error fetching quota:', quotaError);
+          return DEFAULT_QUOTA;
+        }
+        
+        // Se não existe, criar quota inicial
+        if (!data) {
+          const newQuotaData = {
             user_id: user.id,
             images_generated: 0,
             transcriptions_used: 0,
             live_captures_used: 0,
             reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          })
-          .select()
-          .maybeSingle();
-        
-        if (insertError) {
-          console.error('Error creating quota:', insertError);
-          return null;
+          };
+          
+          const { data: newQuota, error: insertError } = await supabase
+            .from('usage_quotas')
+            .insert(newQuotaData)
+            .select()
+            .maybeSingle();
+          
+          if (insertError) {
+            console.error('Error creating quota:', insertError);
+            return { ...DEFAULT_QUOTA, user_id: user.id };
+          }
+          return (newQuota as UsageQuota) || { ...DEFAULT_QUOTA, user_id: user.id };
         }
-        return newQuota as UsageQuota;
+        
+        return data as UsageQuota;
+      } catch (err) {
+        console.error('Quota fetch failed:', err);
+        return DEFAULT_QUOTA;
       }
-      
-      return data as UsageQuota;
     },
-    retry: false,
+    retry: 1,
+    retryDelay: 1000,
   });
 
-  const limits = ROLE_LIMITS[userRole || 'free'];
+  const isLoading = isLoadingRole || isLoadingQuota;
+  const safeQuota = quota ?? DEFAULT_QUOTA;
+  const limits = ROLE_LIMITS[userRole || 'free'] ?? DEFAULT_LIMITS;
 
   // Verificar se pode usar uma feature
   const canUse = (feature: QuotaFeature): boolean => {
-    if (!quota || !limits) return false;
-
     const usage: Record<QuotaFeature, number> = {
-      images: quota.images_generated,
-      transcriptions: quota.transcriptions_used,
-      live_captures: quota.live_captures_used,
+      images: safeQuota.images_generated,
+      transcriptions: safeQuota.transcriptions_used,
+      live_captures: safeQuota.live_captures_used,
     };
 
     return usage[feature] < limits[feature];
@@ -148,7 +179,6 @@ export const useQuota = () => {
 
   // Verificar se feature está disponível no plano
   const isFeatureAvailable = (feature: QuotaFeature): boolean => {
-    if (!limits) return false;
     return limits[feature] > 0;
   };
 
@@ -165,10 +195,10 @@ export const useQuota = () => {
       };
 
       const currentValue = feature === 'images' 
-        ? quota?.images_generated || 0
+        ? safeQuota.images_generated
         : feature === 'transcriptions'
-        ? quota?.transcriptions_used || 0
-        : quota?.live_captures_used || 0;
+        ? safeQuota.transcriptions_used
+        : safeQuota.live_captures_used;
 
       const { error } = await supabase
         .from('usage_quotas')
@@ -191,12 +221,12 @@ export const useQuota = () => {
 
   // Calcular percentual de uso
   const getUsagePercentage = (feature: QuotaFeature): number => {
-    if (!quota || !limits || limits[feature] === 0) return 0;
+    if (limits[feature] === 0) return 0;
 
     const usage: Record<QuotaFeature, number> = {
-      images: quota.images_generated,
-      transcriptions: quota.transcriptions_used,
-      live_captures: quota.live_captures_used,
+      images: safeQuota.images_generated,
+      transcriptions: safeQuota.transcriptions_used,
+      live_captures: safeQuota.live_captures_used,
     };
 
     return (usage[feature] / limits[feature]) * 100;
@@ -209,31 +239,30 @@ export const useQuota = () => {
 
   // Obter uso atual de uma feature
   const getUsage = (feature: QuotaFeature): number => {
-    if (!quota) return 0;
     const usage: Record<QuotaFeature, number> = {
-      images: quota.images_generated,
-      transcriptions: quota.transcriptions_used,
-      live_captures: quota.live_captures_used,
+      images: safeQuota.images_generated,
+      transcriptions: safeQuota.transcriptions_used,
+      live_captures: safeQuota.live_captures_used,
     };
     return usage[feature];
   };
 
   // Obter limite de uma feature
   const getLimit = (feature: QuotaFeature): number => {
-    if (!limits) return 0;
     return limits[feature];
   };
 
   // Dias até reset
-  const daysUntilReset = quota
-    ? Math.max(0, Math.ceil((new Date(quota.reset_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : 0;
+  const daysUntilReset = safeQuota.reset_date
+    ? Math.max(0, Math.ceil((new Date(safeQuota.reset_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 30;
 
   return {
-    quota,
+    quota: safeQuota,
     limits,
-    userRole,
+    userRole: userRole ?? 'free',
     isLoading,
+    error,
     canUse,
     isFeatureAvailable,
     incrementUsage: incrementUsage.mutate,

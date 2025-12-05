@@ -48,6 +48,7 @@ import { ChecklistCultoView } from "./content-views/ChecklistCultoView";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "./ui/button";
+import { useState } from "react";
 
 interface ContentViewerProps {
   content: ContentLibraryItem;
@@ -99,37 +100,91 @@ const CONTENT_VIEWS: Record<string, any> = {
   'checklist_culto': ChecklistCultoView,
 };
 
-// View de fallback melhorada
+// View de fallback amigável (sem JSON bruto visível)
 function DefaultView({ data, type, onRegenerate }: { data: any; type: string; onRegenerate?: () => void }) {
+  // Tentar extrair texto legível do conteúdo
+  const extractReadableContent = (obj: any): string | null => {
+    if (!obj) return null;
+    
+    // Campos comuns que contêm texto principal
+    const textFields = ['texto', 'conteudo', 'descricao', 'reflexao', 'mensagem', 'resumo', 'introducao', 'titulo'];
+    
+    for (const field of textFields) {
+      if (obj[field] && typeof obj[field] === 'string') {
+        return obj[field];
+      }
+    }
+    
+    // Tentar em objetos aninhados
+    for (const key of Object.keys(obj)) {
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        const found = extractReadableContent(obj[key]);
+        if (found) return found;
+      }
+    }
+    
+    return null;
+  };
+
+  const readableContent = extractReadableContent(data);
+  const hasTitle = data?.titulo || data?.title;
+  const [showDebug, setShowDebug] = useState(false);
+
   return (
-    <Card className="border-yellow-500/50">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-yellow-600">
-          <AlertCircle className="h-5 w-5" />
-          Conteúdo não formatado corretamente
+    <Card className="border-amber-500/30 bg-amber-500/5">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-amber-600 dark:text-amber-400 text-base">
+          <AlertCircle className="h-5 w-5 flex-shrink-0" />
+          {hasTitle ? (
+            <span className="truncate">{hasTitle}</span>
+          ) : (
+            <span>Conteúdo gerado</span>
+          )}
         </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Não foi possível exibir o conteúdo do tipo <strong>{type}</strong> no formato visual esperado.
-          Isso pode acontecer quando a IA retorna uma estrutura diferente da esperada.
+        <p className="text-xs text-muted-foreground">
+          Tipo: <span className="font-medium">{type}</span> • Formato visual não disponível
         </p>
-        
-        {onRegenerate && (
-          <Button onClick={onRegenerate} variant="outline" className="w-full">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Regenerar Conteúdo
-          </Button>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-0">
+        {/* Mostrar conteúdo legível se disponível */}
+        {readableContent && (
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">
+              {readableContent.substring(0, 800)}
+              {readableContent.length > 800 && '...'}
+            </p>
+          </div>
         )}
-        
-        <details className="bg-muted p-4 rounded-lg">
-          <summary className="cursor-pointer font-medium text-sm mb-2">
-            Ver dados brutos (debug)
-          </summary>
-          <pre className="overflow-auto max-h-[400px] text-xs mt-2 whitespace-pre-wrap">
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        </details>
+
+        {/* Ações */}
+        <div className="flex flex-col sm:flex-row gap-2 pt-2">
+          {onRegenerate && (
+            <Button onClick={onRegenerate} variant="default" size="sm" className="flex-1">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Regenerar com outro formato
+            </Button>
+          )}
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => setShowDebug(!showDebug)}
+            className="text-xs text-muted-foreground"
+          >
+            {showDebug ? 'Ocultar detalhes' : 'Ver detalhes técnicos'}
+          </Button>
+        </div>
+
+        {/* Debug colapsado */}
+        {showDebug && (
+          <div className="bg-muted/50 p-3 rounded-lg border border-border/50">
+            <p className="text-[10px] text-muted-foreground mb-2 uppercase tracking-wide">
+              Dados brutos (para suporte técnico)
+            </p>
+            <pre className="overflow-auto max-h-[200px] text-[10px] whitespace-pre-wrap font-mono text-muted-foreground">
+              {JSON.stringify(data, null, 2)}
+            </pre>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
