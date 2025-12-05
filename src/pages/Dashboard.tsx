@@ -86,7 +86,7 @@ const Dashboard = () => {
     await trackEvent('sermon_uploaded');
 
     try {
-      incrementUsage('sermon_packs');
+      incrementUsage('transcriptions');
       await trackEvent('sermon_completed');
 
       // Buscar dados completos do sermão do banco
