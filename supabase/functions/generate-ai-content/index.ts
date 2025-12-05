@@ -138,25 +138,46 @@ serve(async (req) => {
   const userSpecs = extractUserSpecs(processedPrompt);
   console.log('📋 User specifications extracted:', userSpecs);
 
-  // Detectar tipo de conteúdo solicitado
-  const explicitTypeMatch = processedPrompt.match(/TIPO_SOLICITADO:\s*([\w,\s-]+)/i);
+  // ============================================
+  // DETECÇÃO DE TIPO UNIFICADA
+  // Prioridade: TIPO_EXPLICITO > TIPO_SOLICITADO > regex
+  // ============================================
+  
+  // Verificar se tipo foi selecionado EXPLICITAMENTE pelo usuário via dropdown
+  const isExplicitType = /TIPO_EXPLICITO:\s*true/i.test(processedPrompt);
+  const explicitTypeMatch = processedPrompt.match(/TIPO_SOLICITADO:\s*([\w_-]+)/i);
+  
+  let detectedType: ContentType;
+  
+  if (isExplicitType && explicitTypeMatch) {
+    // PRIORIDADE MÁXIMA: Tipo escolhido explicitamente pelo dropdown
+    const explicitValue = explicitTypeMatch[1].trim().toLowerCase();
+    if (isContentType(explicitValue)) {
+      detectedType = explicitValue;
+      console.log(`🎯 TIPO EXPLÍCITO (dropdown): ${detectedType}`);
+    } else {
+      // Fallback se tipo inválido
+      detectedType = detectContentTypes(processedPrompt.substring(0, 2000))[0] || "post";
+      console.log(`⚠️ Tipo explícito inválido, usando regex: ${detectedType}`);
+    }
+  } else if (explicitTypeMatch) {
+    // PRIORIDADE MÉDIA: Tipo solicitado no prompt (sem flag explícita)
+    const explicitValue = explicitTypeMatch[1].trim().toLowerCase();
+    if (isContentType(explicitValue)) {
+      detectedType = explicitValue;
+      console.log(`📝 Tipo do prompt: ${detectedType}`);
+    } else {
+      detectedType = detectContentTypes(processedPrompt.substring(0, 2000))[0] || "post";
+      console.log(`⚠️ Tipo no prompt inválido, usando regex: ${detectedType}`);
+    }
+  } else {
+    // FALLBACK: Detecção por regex do texto
+    const regexTypes = detectContentTypes(processedPrompt.substring(0, 2000));
+    detectedType = regexTypes[0] || "post";
+    console.log(`🔍 Tipo via regex: ${detectedType} (detectados: ${regexTypes.join(", ")})`);
+  }
 
-  const explicitTypes: ContentType[] = explicitTypeMatch
-    ? explicitTypeMatch[1]
-        .split(/[|,]/)
-        .map((value) => value.trim().toLowerCase())
-        .filter(isContentType)
-    : [];
-
-  const detectedTypes = explicitTypes.length > 0
-    ? explicitTypes
-    : detectContentTypes(processedPrompt.substring(0, 2000));
-
-  const detectedType: ContentType = detectedTypes[0] || "post";
-
-  console.log(`✅ Detected type(s): ${detectedTypes.join(", ")}`);
-
-  console.log(`Final detected content type: ${detectedType}`);
+  console.log(`✅ Final detected content type: ${detectedType}`);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
