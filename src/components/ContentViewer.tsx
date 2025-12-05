@@ -122,14 +122,17 @@ function DefaultView({ data, type, onRegenerate }: { data: any; type: string; on
           </Button>
         )}
         
-        <details className="bg-muted p-4 rounded-lg">
-          <summary className="cursor-pointer font-medium text-sm mb-2">
-            Ver dados brutos (debug)
-          </summary>
-          <pre className="overflow-auto max-h-[400px] text-xs mt-2 whitespace-pre-wrap">
-            {JSON.stringify(data, null, 2)}
-          </pre>
-        </details>
+        {/* Debug info apenas em desenvolvimento */}
+        {import.meta.env.DEV && (
+          <details className="bg-muted p-4 rounded-lg">
+            <summary className="cursor-pointer font-medium text-sm mb-2">
+              Ver dados brutos (debug)
+            </summary>
+            <pre className="overflow-auto max-h-[400px] text-xs mt-2 whitespace-pre-wrap">
+              {JSON.stringify(data, null, 2)}
+            </pre>
+          </details>
+        )}
       </CardContent>
     </Card>
   );
