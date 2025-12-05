@@ -12,15 +12,19 @@ export default function ContentLibraryDetail() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) {
-      navigate("/biblioteca");
+    // Validar se o ID é um UUID válido ou pelo menos não é "undefined"
+    if (!id || id === "undefined" || id === "null" || id.length < 10) {
+      console.warn("ID inválido detectado:", id);
+      navigate("/biblioteca", { replace: true });
       return;
     }
 
     loadContent();
-  }, [id]);
+  }, [id, navigate]);
 
   const loadContent = async () => {
+    if (!id) return;
+    
     try {
       const { data, error } = await supabase
         .from("content_library")
@@ -30,21 +34,21 @@ export default function ContentLibraryDetail() {
 
       if (error || !data) {
         console.error("Error loading content:", error);
-        navigate("/biblioteca");
+        navigate("/biblioteca", { replace: true });
         return;
       }
 
       setContent(data as ContentLibraryItem);
     } catch (error) {
       console.error("Error loading content:", error);
-      navigate("/biblioteca");
+      navigate("/biblioteca", { replace: true });
     } finally {
       setLoading(false);
     }
   };
 
   const handleClose = () => {
-    navigate("/biblioteca");
+    navigate("/biblioteca", { replace: true });
   };
 
   if (loading) {
@@ -55,10 +59,14 @@ export default function ContentLibraryDetail() {
     );
   }
 
+  if (!content) {
+    return null;
+  }
+
   return (
     <UnifiedContentModal
       content={content}
-      open={!!content}
+      open={true}
       onClose={handleClose}
     />
   );
