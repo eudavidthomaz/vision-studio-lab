@@ -4,21 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Copy, Video, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
+import { normalizeReelData } from "@/lib/normalizeContentData";
 
 interface ReelViewProps {
-  roteiro?: {
-    cenas: Array<{
-      numero: number;
-      duracao: string;
-      visual: string;
-      audio: string;
-    }>;
-  };
-  conteudo?: {
-    legenda?: string;
-    hashtags?: string[];
-  };
-  // Suporte para ContentViewer
+  roteiro?: any;
+  conteudo?: any;
   data?: any;
   contentType?: string;
 }
@@ -27,11 +17,12 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [generatedCoverImage, setGeneratedCoverImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
 
-  // Extrair valores com fallback para ContentViewer
-  const actualRoteiro = roteiro || data?.roteiro || data?.roteiro_video;
-  const actualConteudo = conteudo || data?.conteudo;
+  // Usar normalizador centralizado - combina todas as fontes de dados
+  const rawData = data || { roteiro, conteudo };
+  const normalized = normalizeReelData(rawData);
+  
+  const { cenas, legenda, hashtags, hook, duracao } = normalized;
   
   const handleGenerateCover = () => {
     setIsGenerating(true);
@@ -40,10 +31,12 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
-    setIsCopied(true);
     toast.success(`${label} copiado!`);
-    setTimeout(() => setIsCopied(false), 2000);
   };
+
+  // Se não tem cenas estruturadas mas tem legenda, mostrar como roteiro simples
+  const hasStructuredContent = cenas.length > 0;
+  const hasSimpleContent = !hasStructuredContent && (legenda || hook);
 
   return (
     <div className="space-y-4">
@@ -77,17 +70,39 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
         )}
       </Card>
 
-      {/* Roteiro de Vídeo */}
-      {actualRoteiro?.cenas && actualRoteiro.cenas.length > 0 && (
+      {/* Hook (se disponível) */}
+      {hook && (
+        <Card>
+          <CardHeader className="p-2">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-xs font-semibold flex-1 min-w-0 truncate">🎯 Hook</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => copyToClipboard(hook, "Hook")}
+                className="h-7 w-7 p-0 flex-shrink-0"
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-2 pt-0">
+            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words font-medium">{hook}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Roteiro de Vídeo - Cenas Estruturadas */}
+      {hasStructuredContent && (
         <Card>
           <CardHeader className="p-2">
             <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
               <Video className="h-3.5 w-3.5" />
-              Roteiro - {actualRoteiro.cenas.length} Cenas
+              Roteiro - {cenas.length} Cenas {duracao && `(${duracao})`}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 p-2 pt-0">
-            {actualRoteiro.cenas.map((cena) => (
+            {cenas.map((cena) => (
               <Card key={cena.numero} className="border">
                 <CardHeader className="p-2">
                   <div className="flex items-center justify-between gap-2">
@@ -116,6 +131,12 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
                     <strong>Áudio/Texto:</strong>
                     <p className="text-muted-foreground break-words">{cena.audio}</p>
                   </div>
+                  {cena.texto_overlay && (
+                    <div>
+                      <strong>Texto na Tela:</strong>
+                      <p className="text-muted-foreground break-words">{cena.texto_overlay}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -123,8 +144,23 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
         </Card>
       )}
 
-      {/* Legenda */}
-      {actualConteudo?.legenda && (
+      {/* Conteúdo Simples (quando não tem cenas estruturadas) */}
+      {hasSimpleContent && !hasStructuredContent && (
+        <Card>
+          <CardHeader className="p-2">
+            <CardTitle className="text-xs font-semibold flex items-center gap-1.5">
+              <Video className="h-3.5 w-3.5" />
+              Roteiro
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-2 pt-0">
+            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{legenda}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Legenda (separada se tem cenas) */}
+      {hasStructuredContent && legenda && (
         <Card>
           <CardHeader className="p-2">
             <div className="flex items-center justify-between gap-2">
@@ -132,7 +168,7 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(actualConteudo.legenda!, "Legenda")}
+                onClick={() => copyToClipboard(legenda, "Legenda")}
                 className="h-7 w-7 p-0 flex-shrink-0"
               >
                 <Copy className="h-3.5 w-3.5" />
@@ -140,13 +176,13 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
             </div>
           </CardHeader>
           <CardContent className="p-2 pt-0">
-            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{actualConteudo.legenda}</p>
+            <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">{legenda}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Hashtags */}
-      {actualConteudo?.hashtags && actualConteudo.hashtags.length > 0 && (
+      {hashtags && hashtags.length > 0 && (
         <Card>
           <CardHeader className="p-2">
             <div className="flex items-center justify-between gap-2">
@@ -154,7 +190,7 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => copyToClipboard(actualConteudo.hashtags!.join(" "), "Hashtags")}
+                onClick={() => copyToClipboard(hashtags.join(" "), "Hashtags")}
                 className="h-7 w-7 p-0 flex-shrink-0"
               >
                 <Copy className="h-3.5 w-3.5" />
@@ -163,7 +199,7 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
           </CardHeader>
           <CardContent className="p-2 pt-0">
             <div className="flex flex-wrap gap-2">
-              {actualConteudo.hashtags.map((tag, i) => (
+              {hashtags.map((tag, i) => (
                 <span key={i} className="text-xs text-primary break-all">
                   {tag}
                 </span>
@@ -176,7 +212,7 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
       <ImageGenerationModal
         open={imageModalOpen}
         onOpenChange={setImageModalOpen}
-        copy={`${data?.titulo || "Reel"}\n\n${actualRoteiro?.cenas?.[0]?.visual || ""}\n\n${actualConteudo?.legenda || ""}`}
+        copy={`${data?.titulo || "Reel"}\n\n${hook || ""}\n\n${cenas[0]?.visual || ""}\n\n${legenda || ""}`}
         pilar="Alcançar"
         defaultFormat="reel_cover"
         onImageGenerated={(imageUrl) => {
