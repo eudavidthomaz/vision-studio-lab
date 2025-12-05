@@ -387,6 +387,42 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
   }
 }`,
 
+      devocional_semanal: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículo base da semana"],
+    "contexto": "Contexto geral da série devocional",
+    "principio": "Princípio central que percorre todos os dias"
+  },
+  "devocional_semanal": {
+    "titulo": "Série Devocional - [Tema Central]",
+    "objetivo_semanal": "Transformação espiritual esperada ao final dos 7 dias",
+    "dias": [
+      {
+        "dia": 1,
+        "titulo": "Título do Dia 1 - [Subtema]",
+        "versiculo_base": "Referência completa - texto do versículo",
+        "reflexao": "Reflexão pastoral profunda em 3-4 parágrafos conectando a Palavra com a vida diária. Deve ser substancial, pessoal e aplicável.",
+        "perguntas_pessoais": [
+          "Pergunta reflexiva 1 para autoexame",
+          "Pergunta reflexiva 2 para aplicação prática"
+        ],
+        "oracao": "Oração sugerida para este dia, personalizada ao tema",
+        "desafio_do_dia": "Desafio prático específico para colocar em ação hoje"
+      },
+      {
+        "dia": 2,
+        "titulo": "Título do Dia 2",
+        "versiculo_base": "Versículo diferente do dia 1",
+        "reflexao": "Reflexão que avança no tema",
+        "perguntas_pessoais": ["Pergunta 1", "Pergunta 2"],
+        "oracao": "Oração do dia 2",
+        "desafio_do_dia": "Desafio progressivo"
+      }
+    ],
+    "conclusao_semanal": "Reflexão final conectando todos os dias e propondo próximos passos de crescimento espiritual"
+  }
+}`,
+
     calendario: `{
   "calendario_editorial": {
     "periodo": "Semana de DD/MM a DD/MM ou Mês de MMM/AAAA",
@@ -915,7 +951,7 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     // Define which types require biblical foundation
     const requiresBiblicalFoundation = [
       'post', 'carrossel', 'reel', 'stories',
-      'estudo', 'resumo', 'devocional', 'desafio_semanal',
+      'estudo', 'resumo', 'devocional', 'devocional_semanal', 'desafio_semanal',
       'perguntas', 'esboco', 'trilha_oracao', 'qa_estruturado', 'discipulado'
     ];
     
@@ -1124,13 +1160,48 @@ INSTRUÇÕES ESTUDO BÍBLICO:
 APLICAÇÃO PRÁTICA BOA:
 ❌ Ruim: "Ore mais esta semana"
 ✅ Boa: "Escolha um momento fixo (ex: 7h ou 22h) e converse com Deus por 10min sobre uma decisão específica. Anote o que sentiu."
+`,
+
+      devocional_semanal: `
+INSTRUÇÕES DEVOCIONAL DE 7 DIAS (CRITICAL):
+1. Crie EXATAMENTE 7 devocionais completos (um para cada dia da semana)
+2. Cada dia DEVE ter TODOS os campos:
+   - dia: número sequencial (1-7)
+   - titulo: título único e atraente para o dia
+   - versiculo_base: versículo completo com referência
+   - reflexao: reflexão pastoral PROFUNDA (mínimo 300 caracteres, 3-4 parágrafos)
+   - perguntas_pessoais: array com 2-3 perguntas reflexivas
+   - oracao: oração sugerida personalizada ao tema do dia
+   - desafio_do_dia: desafio prático específico para colocar em ação
+
+3. PROGRESSÃO TEMÁTICA OBRIGATÓRIA:
+   - Dia 1: Introdução suave ao tema (contextualização)
+   - Dias 2-3: Desenvolvimento inicial (base bíblica)
+   - Dias 4-5: Aprofundamento (desafios maiores)
+   - Dia 6: Aplicação intensa (transformação)
+   - Dia 7: Conclusão com compromisso de transformação contínua
+
+4. VERSÍCULOS: Use versículos DIFERENTES a cada dia (não repita)
+5. LINGUAGEM: Pastoral, acessível e pessoal (como um mentor falando)
+6. REFLEXÕES: Devem conectar a Palavra com situações reais do dia a dia
+
+ESTRUTURA OBRIGATÓRIA:
+{
+  "fundamento_biblico": {...},
+  "devocional_semanal": {
+    "titulo": "Série completa",
+    "objetivo_semanal": "Transformação esperada",
+    "dias": [7 dias completos],
+    "conclusao_semanal": "Fechamento e próximos passos"
+  }
+}
 `
     };
     
     systemPrompt += `\n\n${typeInstructions[detectedType] || ''}`;
     
     // LAYER 3: BASE DE ESTUDOS (só para conteúdo bíblico profundo)
-    if (['estudo', 'devocional', 'esboco', 'discipulado'].includes(detectedType)) {
+    if (['estudo', 'devocional', 'devocional_semanal', 'esboco', 'discipulado'].includes(detectedType)) {
       systemPrompt += `\n\n${STUDY_BASE}`;
     }
     
@@ -1356,8 +1427,8 @@ Retorne APENAS o JSON válido.`;
       console.log('Raw AI response (first 500 chars):', rawContent.substring(0, 500));
       console.log('Response length:', rawContent.length);
       
-      // Extrair apenas o JSON (regex pega primeiro objeto JSON encontrado)
-      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+      // Extrair JSON (arrays OU objetos - importante para devocional_semanal que pode retornar array)
+      const jsonMatch = rawContent.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
       if (!jsonMatch) {
         console.error('Full raw response:', rawContent);
         throw new Error('Nenhum JSON válido encontrado na resposta da IA');
@@ -1459,6 +1530,26 @@ Retorne APENAS o JSON válido.`;
         }
       }
       
+      // Devocional Semanal: deve ter 7 dias completos
+      if (type === 'devocional_semanal') {
+        const dias = content.devocional_semanal?.dias || [];
+        if (dias.length < 7) {
+          console.warn(`❌ Devocional semanal: esperado 7 dias, gerado ${dias.length}`);
+          return false;
+        }
+        // Verificar se cada dia tem reflexão substancial
+        for (const dia of dias) {
+          if (!dia.reflexao || dia.reflexao.length < 200) {
+            console.warn(`❌ Dia ${dia.dia} com reflexão insuficiente (< 200 chars)`);
+            return false;
+          }
+          if (!dia.versiculo_base) {
+            console.warn(`❌ Dia ${dia.dia} sem versículo base`);
+            return false;
+          }
+        }
+      }
+      
       // Treino Voluntário: deve ter mínimo 4 módulos com exercícios práticos
       if (type === 'treino_voluntario') {
         const modulos = content.treino?.modulos || [];
@@ -1498,7 +1589,7 @@ Retorne APENAS o JSON válido.`;
     
     // Se conteúdo raso E tipo que deveria ser profundo, fazer retry
     const typesRequiringDepth = [
-      'carrossel', 'estudo', 'campanha_tematica', 'devocional', 
+      'carrossel', 'estudo', 'campanha_tematica', 'devocional', 'devocional_semanal',
       'treino_voluntario', 'resumo_breve', 'reel', 'esboco'
     ];
     
@@ -1581,7 +1672,7 @@ Retorne APENAS o JSON válido.`;
       if (retryResponse.ok) {
         const retryData = await retryResponse.json();
         const retryContent = retryData.choices[0].message.content;
-        const retryJsonMatch = retryContent.match(/\{[\s\S]*\}/);
+        const retryJsonMatch = retryContent.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
         if (retryJsonMatch) {
           const retryGeneratedContent = JSON.parse(retryJsonMatch[0]);
           const retryDepthOk = contentDepthCheck(retryGeneratedContent, detectedType, userSpecs);
@@ -1644,6 +1735,7 @@ Retorne APENAS o JSON válido.`;
       (detectedType === 'resumo_breve' && generatedContent.resumo) ||
       (detectedType === 'perguntas' && generatedContent.perguntas_celula) ||
       (detectedType === 'devocional' && generatedContent.devocional) ||
+      (detectedType === 'devocional_semanal' && generatedContent.devocional_semanal?.dias?.length >= 5) ||
       (detectedType === 'stories' && (generatedContent.stories?.slides || generatedContent.stories)) ||
       (detectedType === 'treino_voluntario' && generatedContent.treino) ||
       (detectedType === 'campanha_tematica' && generatedContent.campanha) ||

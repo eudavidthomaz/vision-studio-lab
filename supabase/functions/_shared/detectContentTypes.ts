@@ -4,6 +4,7 @@ export type ContentType =
   | "stories"
   | "post"
   | "devocional"
+  | "devocional_semanal"
   | "estudo"
   | "trilha_oracao"
   | "calendario"
@@ -29,6 +30,7 @@ export type ContentType =
   | "resumo_breve";
 
 const patterns: [ContentType, RegExp][] = [
+  // ORDEM IMPORTA: tipos mais específicos primeiro
   ["carrossel", /\b(carros?el|slides?|p(a|á)ginas?|sequ(e|ê)ncia|cards?\s*\d+)\b/],
   ["calendario", /\b(calend(a|á)rio|cronograma|planejamento|plano editorial|planner)\b/],
   ["treino_voluntario", /\b(treino\s+de\s+volunt(a|á)rio|treino-volunt(a|á)rio|onboarding m(i|í)dia)\b/],
@@ -52,6 +54,8 @@ const patterns: [ContentType, RegExp][] = [
   ["desafio_semanal", /\b(desafio|challenge|compromisso semanal|miss(a|ã)o|jornada)\b/],
   ["estudo", /\b(estudo b(i|í)blico|estudo|an(a|á)lise b(i|í)blica|exegese)\b/],
   ["resumo", /\b(resumo|resumir|sintetize|principais pontos|s(i|í)ntese)\b/],
+  // DEVOCIONAL_SEMANAL deve vir ANTES de devocional para capturar "devocional de 7 dias"
+  ["devocional_semanal", /\b(devocional\s*(de\s*)?(7|sete|\d+)\s*dias?|semana\s*(de\s*)?devocional|devocionais?\s+semanais?|devocional\s+semanal)\b/i],
   ["devocional", /\b(devocional|medita(c|ç)(a|ã)o|reflex(a|ã)o di(a|á)ria)\b/],
   ["perguntas", /\b(perguntas|quest(o|õ)es|discuss(a|ã)o|c(e|é)lula)\b/],
   ["post", /\b(post|publica(c|ç)(a|ã)o|legenda)\b/],

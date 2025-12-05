@@ -14,6 +14,7 @@ import { ConviteView } from "./content-views/ConviteView";
 // 2. CONTEÚDO BÍBLICO
 import { EstudoBiblicoView } from "./content-views/EstudoBiblicoView";
 import { DevocionalView } from "./content-views/DevocionalView";
+import { DevocionalSemanalView } from "./content-views/DevocionalSemanalView";
 import { EsbocoView } from "./content-views/EsbocoView";
 import { ResumoPregacaoView } from "./content-views/ResumoPregacaoView";
 import { ResumoBrevView } from "./content-views/ResumoBrevView";
@@ -64,9 +65,10 @@ const CONTENT_VIEWS: Record<string, any> = {
   'foto_post': FotoPostView,
   'convite': ConviteView,
   
-  // Bíblico (7 tipos)
+  // Bíblico (8 tipos)
   'estudo': EstudoBiblicoView,
   'devocional': DevocionalView,
+  'devocional_semanal': DevocionalSemanalView,
   'esboco': EsbocoView,
   'resumo': ResumoPregacaoView,
   'resumo_breve': ResumoBrevView,
