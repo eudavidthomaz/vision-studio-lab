@@ -1,14 +1,14 @@
-import { useQuota, QuotaFeature } from '@/hooks/useQuota';
+import { useQuota } from '@/hooks/useQuota';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Image, FileAudio, Video, TrendingUp, Calendar } from 'lucide-react';
+import { Sparkles, Image, Zap, TrendingUp, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
 export default function UsageDashboard() {
   const navigate = useNavigate();
-  const { quota, limits, userRole, isLoading, getUsagePercentage, daysUntilReset, getUsage, getLimit } = useQuota();
+  const { quota, limits, userRole, isLoading, getUsagePercentage, daysUntilReset } = useQuota();
 
   if (isLoading) {
     return (
@@ -32,34 +32,40 @@ export default function UsageDashboard() {
     );
   }
 
-  const features: { key: QuotaFeature; label: string; description: string; icon: typeof Image; color: string }[] = [
+  const features = [
     {
-      key: 'images',
-      label: 'Imagens Geradas',
-      description: 'Imagens criadas com IA',
-      icon: Image,
-      color: 'text-blue-500',
-    },
-    {
-      key: 'transcriptions',
-      label: 'Transcrições',
-      description: 'Uploads de áudio transcritos',
-      icon: FileAudio,
+      key: 'sermon_packs' as const,
+      label: 'Packs de Sermões',
+      description: 'Gerações completas de conteúdo a partir de sermões',
+      icon: Sparkles,
+      used: quota.sermon_packs_generated,
+      limit: limits.sermon_packs,
       color: 'text-purple-500',
     },
     {
-      key: 'live_captures',
-      label: 'Captação ao Vivo',
-      description: 'Sessões de captação (60min cada)',
-      icon: Video,
-      color: 'text-green-500',
+      key: 'challenges' as const,
+      label: 'Desafios Ide.On',
+      description: 'Desafios de evangelização criados',
+      icon: Zap,
+      used: quota.challenges_used,
+      limit: limits.challenges,
+      color: 'text-yellow-500',
+    },
+    {
+      key: 'images' as const,
+      label: 'Imagens Geradas',
+      description: 'Imagens criadas com IA',
+      icon: Image,
+      used: quota.images_generated,
+      limit: limits.images,
+      color: 'text-blue-500',
     },
   ];
 
-  const availableFeatures = features.filter(f => getLimit(f.key) > 0);
-  const totalUsagePercentage = availableFeatures.length > 0 
-    ? availableFeatures.reduce((acc, f) => acc + getUsagePercentage(f.key), 0) / availableFeatures.length
-    : 0;
+  const totalUsagePercentage = features.reduce(
+    (acc, f) => acc + getUsagePercentage(f.key),
+    0
+  ) / features.length;
 
   return (
     <div className="container mx-auto p-6 space-y-6 animate-fade-in">
@@ -105,11 +111,9 @@ export default function UsageDashboard() {
           </div>
         </Card>
 
-        {availableFeatures.slice(0, 2).map((feature) => {
+        {features.slice(0, 2).map((feature) => {
           const Icon = feature.icon;
           const percentage = getUsagePercentage(feature.key);
-          const used = getUsage(feature.key);
-          const limit = getLimit(feature.key);
 
           return (
             <Card key={feature.key} className="p-4">
@@ -119,7 +123,7 @@ export default function UsageDashboard() {
                   <Icon className={`h-4 w-4 ${feature.color}`} />
                 </div>
                 <p className="text-2xl font-bold">
-                  {used}/{limit}
+                  {feature.used}/{feature.limit}
                 </p>
                 <Progress value={percentage} className="h-2" />
               </div>
@@ -135,13 +139,10 @@ export default function UsageDashboard() {
           {features.map((feature) => {
             const Icon = feature.icon;
             const percentage = getUsagePercentage(feature.key);
-            const used = getUsage(feature.key);
-            const limit = getLimit(feature.key);
-            const remaining = limit - used;
-            const isAvailable = limit > 0;
+            const remaining = feature.limit - feature.used;
 
             return (
-              <div key={feature.key} className={`space-y-3 ${!isAvailable ? 'opacity-50' : ''}`}>
+              <div key={feature.key} className="space-y-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     <div className={`p-2 rounded-lg bg-muted ${feature.color}`}>
@@ -155,21 +156,15 @@ export default function UsageDashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    {isAvailable ? (
-                      <>
-                        <p className="text-sm font-medium">
-                          {used} de {limit}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {remaining} restantes
-                        </p>
-                      </>
-                    ) : (
-                      <Badge variant="secondary">Não disponível</Badge>
-                    )}
+                    <p className="text-sm font-medium">
+                      {feature.used} de {feature.limit}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {remaining} restantes
+                    </p>
                   </div>
                 </div>
-                {isAvailable && <Progress value={percentage} className="h-2" />}
+                <Progress value={percentage} className="h-2" />
               </div>
             );
           })}

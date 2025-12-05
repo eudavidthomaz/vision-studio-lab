@@ -32,6 +32,3 @@ verify_jwt = true
 
 [functions.content-engine]
 verify_jwt = true
-
-[functions.generate-image-overlay]
-verify_jwt = true
