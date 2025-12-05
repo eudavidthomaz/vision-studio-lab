@@ -47,9 +47,33 @@ serve(async (req) => {
 
     const { prompt, denominationalPrefs } = await req.json();
 
-    if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 10) {
+    // Validação robusta de entrada
+    if (!prompt || typeof prompt !== 'string') {
       return new Response(JSON.stringify({ 
-        error: 'Prompt inválido. Por favor, descreva o que você quer criar.' 
+        error: 'Prompt inválido. Por favor, descreva o que você quer criar.',
+        code: 'INVALID_PROMPT_TYPE'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    const trimmedPrompt = prompt.trim();
+    if (trimmedPrompt.length < 20) {
+      return new Response(JSON.stringify({ 
+        error: 'Prompt muito curto. Descreva com mais detalhes o conteúdo que deseja criar (mínimo 20 caracteres).',
+        code: 'PROMPT_TOO_SHORT'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Verificar se é apenas whitespace ou caracteres repetidos
+    if (/^(.)\1*$/.test(trimmedPrompt) || !/\w{3,}/.test(trimmedPrompt)) {
+      return new Response(JSON.stringify({ 
+        error: 'Prompt inválido. Por favor, descreva o conteúdo de forma clara.',
+        code: 'INVALID_PROMPT_CONTENT'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -60,11 +84,15 @@ serve(async (req) => {
     const isLongTranscript = prompt.length > 5000;
     console.log(`Processing prompt (${prompt.length} chars), isLongTranscript: ${isLongTranscript}`);
     
-    // Truncar prompts muito longos para evitar erros
+    // Truncar prompts muito longos para evitar erros - NÃO adicionar tag ao conteúdo
     let processedPrompt = prompt;
+    let wasTranscriptTruncated = false;
+    const originalLength = prompt.length;
+    
     if (isLongTranscript && prompt.length > 20000) {
-      console.log('Prompt too long, truncating to 20000 chars');
-      processedPrompt = prompt.substring(0, 20000) + '\n\n[Transcrição truncada por exceder limite]';
+      console.log(`Prompt truncated: ${prompt.length} → 20000 chars`);
+      processedPrompt = prompt.substring(0, 20000);
+      wasTranscriptTruncated = true;
     }
 
     // ============================================
@@ -153,10 +181,43 @@ serve(async (req) => {
     : detectContentTypes(processedPrompt.substring(0, 2000));
 
   const detectedType: ContentType = detectedTypes[0] || "post";
+  const wasTypeInferred = detectedTypes.length === 1 && detectedTypes[0] === "post" && explicitTypes.length === 0;
 
-  console.log(`✅ Detected type(s): ${detectedTypes.join(", ")}`);
-
+  console.log(`✅ Detected type(s): ${detectedTypes.join(", ")}${wasTypeInferred ? ' (fallback)' : ''}`);
   console.log(`Final detected content type: ${detectedType}`);
+  
+  // Detectar pilar baseado no tipo e contexto do prompt
+  const detectPilar = (type: ContentType, promptText: string): string => {
+    const lowerPrompt = promptText.toLowerCase();
+    
+    // Tipos que são claramente de SERVIR
+    if (['aviso', 'convite', 'convite_grupos', 'calendario', 'checklist_culto'].includes(type)) {
+      return 'SERVIR';
+    }
+    
+    // Tipos que são claramente de EDIFICAR
+    if (['estudo', 'devocional', 'esboco', 'trilha_oracao', 'discipulado'].includes(type)) {
+      return 'EDIFICAR';
+    }
+    
+    // Verificar contexto do prompt para outros tipos
+    if (/evangel|alcan[çc]ar|perdido|n[ãa]o.?crente|mundo|testemunho/i.test(lowerPrompt)) {
+      return 'ALCANÇAR';
+    }
+    
+    if (/comunidade|família|grupo|c[ée]lula|pertencer|integra[çc]/i.test(lowerPrompt)) {
+      return 'PERTENCER';
+    }
+    
+    if (/servir|volunt[áa]rio|equipe|minist[ée]rio|trein/i.test(lowerPrompt)) {
+      return 'SERVIR';
+    }
+    
+    // Default para conteúdo reflexivo/espiritual
+    return 'EDIFICAR';
+  };
+  
+  const detectedPilar = detectPilar(detectedType, processedPrompt);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -1671,8 +1732,8 @@ Title:`;
       .insert({
         user_id: user.id,
         source_type: 'ai-creator',
-        content_type: detectedType, // tipo de conteúdo (estudo, post, etc)
-        pilar: 'EDIFICAR', // Uppercase para consistência com constraints
+        content_type: detectedType,
+        pilar: detectedPilar, // Pilar detectado dinamicamente baseado no contexto
         prompt_original: prompt.replace(/^TIPO_SOLICITADO:\s*\w+\s*/i, '').trim(),
         title: generatedTitle,
         content: generatedContent,
