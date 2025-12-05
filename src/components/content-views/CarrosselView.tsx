@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Image as ImageIcon } from "lucide-react";
+import { Copy, Image as ImageIcon, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
@@ -14,9 +14,10 @@ interface CarrosselViewProps {
   dica_producao?: any;
   data?: any;
   contentType?: string;
+  onRegenerate?: () => void;
 }
 
-export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_producao, data, contentType }: CarrosselViewProps) {
+export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_producao, data, contentType, onRegenerate }: CarrosselViewProps) {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<{ numero: number; titulo: string; texto: string } | null>(null);
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
@@ -28,6 +29,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
   const normalized = normalizeCarrosselData(rawData);
   
   const { slides, legenda, dicaProducao } = normalized;
+  const hasContent = slides.length > 0 || legenda;
   
   const handleGenerateImage = (cardData: { numero: number; titulo: string; texto: string }) => {
     setLoadingCard(cardData.numero);
@@ -63,6 +65,25 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
     navigator.clipboard.writeText(fullText);
     toast.success("Conteúdo completo copiado!");
   };
+
+  if (!hasContent) {
+    return (
+      <Card className="border-yellow-500/50">
+        <CardContent className="pt-6 text-center">
+          <p className="text-muted-foreground mb-2">⚠️ Carrossel vazio</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Nenhum slide foi gerado. Tente regenerar o conteúdo.
+          </p>
+          {onRegenerate && (
+            <Button onClick={onRegenerate} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Regenerar
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6 overflow-x-clip">

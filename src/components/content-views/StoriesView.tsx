@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Image, Check, Loader2 } from "lucide-react";
+import { Copy, Image, Check, Loader2, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
@@ -12,9 +12,10 @@ interface StoriesViewProps {
   conteudo?: any;
   data?: any;
   contentType?: string;
+  onRegenerate?: () => void;
 }
 
-export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesViewProps) {
+export function StoriesView({ estrutura, conteudo, data, contentType, onRegenerate }: StoriesViewProps) {
   // Usar normalizador centralizado - combina todas as fontes de dados
   const rawData = data || { estrutura, conteudo };
   const normalized = normalizeStoriesData(rawData);
@@ -44,12 +45,18 @@ export function StoriesView({ estrutura, conteudo, data, contentType }: StoriesV
   return (
     <div className="space-y-4">
       {!hasSlides ? (
-        <Card>
+        <Card className="border-yellow-500/50">
           <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground mb-2">❌ Nenhum conteúdo de Stories encontrado</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground mb-2">⚠️ Nenhum conteúdo de Stories encontrado</p>
+            <p className="text-sm text-muted-foreground mb-4">
               Os dados podem estar vazios ou em formato incompatível. Tente regenerar o conteúdo especificando "stories" no pedido.
             </p>
+            {onRegenerate && (
+              <Button onClick={onRegenerate} variant="outline">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Regenerar
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
