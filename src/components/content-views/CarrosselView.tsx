@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
 import { normalizeCarrosselData } from "@/lib/normalizeContentData";
+import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
+import { StrategicIdeaCard } from "./shared/StrategicIdeaCard";
 
 interface CarrosselViewProps {
   estrutura?: any;
@@ -28,7 +30,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
   const rawData = data || { estrutura, estrutura_visual, conteudo, dica_producao };
   const normalized = normalizeCarrosselData(rawData);
   
-  const { slides, legenda, dicaProducao } = normalized;
+  const { slides, legenda, dicaProducao, fundamento, estrategia } = normalized;
   const hasContent = slides.length > 0 || legenda;
   
   const handleGenerateImage = (cardData: { numero: number; titulo: string; texto: string }) => {
@@ -196,6 +198,10 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
           </CardContent>
         </Card>
       )}
+
+      {estrategia && <StrategicIdeaCard ideia={estrategia} />}
+
+      {fundamento && <FundamentoBiblicoCard fundamento={fundamento} />}
 
       {/* Hashtags */}
       {dicaProducao?.hashtags && dicaProducao.hashtags.length > 0 && (

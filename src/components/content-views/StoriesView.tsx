@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
 import { normalizeStoriesData, NormalizedStory } from "@/lib/normalizeContentData";
+import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
+import { StrategicIdeaCard } from "./shared/StrategicIdeaCard";
 
 interface StoriesViewProps {
   estrutura?: any;
@@ -26,7 +28,7 @@ export function StoriesView({ estrutura, conteudo, data, contentType, onRegenera
   const [loadingSlide, setLoadingSlide] = useState<number | null>(null);
   const [copiedSlide, setCopiedSlide] = useState<number | null>(null);
 
-  const { slides, hashtags } = normalized;
+  const { slides, hashtags, fundamento, estrategia } = normalized;
   const hasSlides = slides.length > 0;
 
   const copyToClipboard = (text: string, label: string, slideNum: number) => {
@@ -158,6 +160,10 @@ export function StoriesView({ estrutura, conteudo, data, contentType, onRegenera
           </CardContent>
         </Card>
       )}
+
+      {estrategia && <StrategicIdeaCard ideia={estrategia} />}
+
+      {fundamento && <FundamentoBiblicoCard fundamento={fundamento} />}
 
       <ImageGenerationModal
         open={imageModalOpen}

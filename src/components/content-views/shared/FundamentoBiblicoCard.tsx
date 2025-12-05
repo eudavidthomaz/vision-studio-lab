@@ -5,7 +5,8 @@ interface FundamentoBiblicoCardProps {
   fundamento: {
     versiculos: string[];
     contexto: string;
-    principio_atemporal: string;
+    principio_atemporal?: string;
+    principio?: string;
   };
 }
 
@@ -47,13 +48,13 @@ export function FundamentoBiblicoCard({ fundamento }: FundamentoBiblicoCardProps
         )}
         
         {/* Princípio */}
-        {fundamento.principio_atemporal && (
+        {(fundamento.principio_atemporal || fundamento.principio) && (
           <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-lg border-l-4 border-l-amber-500">
             <h4 className="font-semibold text-sm mb-2 text-amber-900 dark:text-amber-100">
               💡 Princípio Atemporal:
             </h4>
             <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-              {fundamento.principio_atemporal}
+              {fundamento.principio_atemporal || fundamento.principio}
             </p>
           </div>
         )}

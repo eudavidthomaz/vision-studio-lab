@@ -123,9 +123,19 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
         finalPrompt += `CONTEXTO BASE (Transcrição de Pregação):\n\n${sermon.transcript}\n\n---\n\n`;
       }
     }
-    
+
     // Nível 3: Pedido específico do usuário (SEMPRE no final)
     finalPrompt += `INSTRUÇÃO PRINCIPAL DO USUÁRIO:\n${prompt.trim()}`;
+
+    // Nível 4: Camada estratégica obrigatória para redes sociais
+    finalPrompt += `\n\n---\n\n`;
+    finalPrompt += `RESPONDA COMO UM ESTRATEGISTA DE MARKETING PARA IGREJAS. MESMO QUE O PEDIDO SEJA GENÉRICO, INTERPRETE E DEFINA O FORMATO MAIS ADEQUADO PARA REDES SOCIAIS (PRIORIZE INSTAGRAM).\n`;
+    finalPrompt += `SEM RESUMIR NADA, ENTREGUE SEMPRE AS SEÇÕES A SEGUIR EM PORTUGUÊS: \n`;
+    finalPrompt += `1) "ideia_estrategica": { titulo, objetivo, publico_alvo, promessa, chamada_para_acao, tom, formato_prioritario, proximos_passos } focada em atrair e engajar a audiência cristã.\n`;
+    finalPrompt += `2) "fundamento_biblico": { versiculos: [lista], contexto, principio_atemporal } explicando o porquê bíblico da mensagem. Use referências completas.\n`;
+    finalPrompt += `3) "conteudo": inclua o formato solicitado (carrossel, post, reel, stories etc.) com textos completos, legenda, CTA e hashtags sugeridas. Nunca devolva textos cortados ou abreviados.\n`;
+    finalPrompt += `4) Inclua também "dica_producao" ou detalhes visuais quando fizer sentido para facilitar a execução.\n`;
+    finalPrompt += `Garanta coerência entre a ideia estratégica, o fundamento bíblico e os textos gerados.`;
     
     console.log('📋 Especificações extraídas:', userSpecs);
     console.log('🎯 Tipo detectado:', baseType);
