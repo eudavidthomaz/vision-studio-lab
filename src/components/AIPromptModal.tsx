@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Badge } from "./ui/badge";
 import { Sparkles, Loader2, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { detectContentTypes, type ContentType } from "@/lib/detectContentTypes";
+import { detectContentTypes } from "@/lib/detectContentTypes";
 
 
 interface AIPromptModalProps {
@@ -21,8 +21,6 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
   const [prompt, setPrompt] = useState("");
   const [sermons, setSermons] = useState<any[]>([]);
   const [selectedSermonId, setSelectedSermonId] = useState<string>("");
-  const [selectedType, setSelectedType] = useState<ContentType | "">("");
-  const [typeError, setTypeError] = useState<string>("");
 
   useEffect(() => {
     if (open) {
@@ -76,41 +74,15 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
     return specs;
   };
 
-  const contentTypeOptions: { value: ContentType; label: string; description: string }[] = [
-    { value: "carrossel", label: "Carrossel", description: "Sequência de slides ou cards" },
-    { value: "stories", label: "Stories", description: "Sequência para stories" },
-    { value: "reel", label: "Reel / Vídeo curto", description: "Roteiro ou legenda para vídeo" },
-    { value: "post", label: "Post simples", description: "Legenda curta ou texto único" },
-    { value: "devocional", label: "Devocional", description: "Reflexão bíblica com aplicação" },
-    { value: "estudo", label: "Estudo bíblico", description: "Análise estruturada com tópicos" },
-    { value: "resumo", label: "Resumo de pregação", description: "Síntese dos principais pontos" },
-    { value: "resumo_breve", label: "Resumo breve", description: "Síntese super curta" },
-    { value: "trilha_oracao", label: "Trilha de oração", description: "Guia passo a passo de oração" },
-    { value: "calendario", label: "Calendário", description: "Planejamento de posts ou séries" },
-    { value: "guia", label: "Guia / Manual", description: "Passo a passo ou tutorial" },
-    { value: "ideia_estrategica", label: "Ideia estratégica", description: "Campanha, série ou plano" },
-    { value: "roteiro_reels", label: "Roteiro para reels", description: "Script detalhado para vídeo" },
-    { value: "convite", label: "Convite / Chamada", description: "Convites para eventos ou grupos" },
-  ];
-
-  const inferredTypes: ContentType[] = prompt.trim() ? detectContentTypes(prompt.trim()) : [];
-
   const handleSubmit = async () => {
     if (!prompt.trim()) return;
-
-    if (!selectedType && inferredTypes.length > 1) {
-      setTypeError("Selecione o formato desejado para evitar misturar instruções.");
-      return;
-    }
-
-    const chosenType = selectedType || inferredTypes[0] || "post";
-
+    
     // PASSO 1: Analisar prompt do usuário para extrair TODAS especificações
     const userSpecs = extractUserSpecifications(prompt.trim());
-
+    
     // PASSO 2: Detectar tipo base
     const detectedTypes = detectContentTypes(prompt.trim());
-    const baseType = chosenType;
+    const baseType = detectedTypes[0];
     
     // PASSO 3: Construir prompt estruturado HIERARQUICAMENTE
     let finalPrompt = '';
@@ -157,7 +129,7 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
     
     console.log('📋 Especificações extraídas:', userSpecs);
     console.log('🎯 Tipo detectado:', baseType);
-
+    
     onGenerate(finalPrompt);
   };
 
@@ -218,54 +190,6 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
             </div>
           )}
           
-          <div className="space-y-2">
-            <label className="text-xs sm:text-sm font-medium">
-              🎯 Formato do conteúdo (evita confusões)
-            </label>
-            <Select
-              value={selectedType || ""}
-              onValueChange={(value) => {
-                setSelectedType(value as ContentType);
-                setTypeError("");
-              }}
-            >
-              <SelectTrigger className="h-10 sm:h-11">
-                <SelectValue placeholder="Selecione ou deixe que a IA detecte" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover max-h-[320px]">
-                {contentTypeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-muted-foreground">{option.description}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <div className="flex flex-wrap gap-2 items-center text-[11px] sm:text-xs text-muted-foreground">
-              {inferredTypes.length > 0 ? (
-                <>
-                  <span className="font-medium text-foreground">Formatos detectados automaticamente:</span>
-                  {inferredTypes.map((type) => (
-                    <Badge key={type} variant="secondary" className="font-normal">
-                      {type}
-                    </Badge>
-                  ))}
-                </>
-              ) : (
-                <span className="text-muted-foreground">Digite seu pedido para detectar o formato automaticamente.</span>
-              )}
-            </div>
-
-            {typeError && (
-              <div className="text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-md px-3 py-2">
-                {typeError}
-              </div>
-            )}
-          </div>
-
           <Textarea
             placeholder={
               selectedSermonId && selectedSermonId !== "none"

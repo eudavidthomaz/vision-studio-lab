@@ -1,6 +1,6 @@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileContentSheet } from "./MobileContentSheet";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ContentViewer } from "./ContentViewer";
 import { ContentLibraryItem } from "@/hooks/useContentLibrary";
@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Tag } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { VisuallyHidden } from "@/components/ui/visually-hidden";
 
 interface UnifiedContentModalProps {
   content: ContentLibraryItem | null;
@@ -88,9 +87,7 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="w-[min(95vw,48rem)] max-w-none max-h-[92dvh] overflow-hidden p-0 rounded-xl shadow-2xl border-border/50">
         <DialogHeader className="px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 border-b border-border/50 sticky top-0 bg-background/95 backdrop-blur-xl z-10 space-y-2">
-          <DialogTitle className="text-sm sm:text-base font-semibold line-clamp-2 leading-tight pr-8">
-            {content.title}
-          </DialogTitle>
+          <h2 className="text-sm sm:text-base font-semibold line-clamp-2 leading-tight pr-8">{content.title}</h2>
             
           <div className="flex flex-wrap gap-1.5">
             <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0.5">
