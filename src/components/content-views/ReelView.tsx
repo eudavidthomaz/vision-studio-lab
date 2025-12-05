@@ -5,6 +5,8 @@ import { Copy, Video, Image as ImageIcon, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
 import { normalizeReelData } from "@/lib/normalizeContentData";
+import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
+import { StrategicIdeaCard } from "./shared/StrategicIdeaCard";
 
 interface ReelViewProps {
   roteiro?: any;
@@ -23,7 +25,7 @@ export function ReelView({ roteiro, conteudo, data, contentType, onRegenerate }:
   const rawData = data || { roteiro, conteudo };
   const normalized = normalizeReelData(rawData);
   
-  const { cenas, legenda, hashtags, hook, duracao } = normalized;
+  const { cenas, legenda, hashtags, hook, duracao, fundamento, estrategia } = normalized;
   
   const handleGenerateCover = () => {
     setIsGenerating(true);
@@ -229,6 +231,10 @@ export function ReelView({ roteiro, conteudo, data, contentType, onRegenerate }:
           </CardContent>
         </Card>
       )}
+
+      {estrategia && <StrategicIdeaCard ideia={estrategia} />}
+
+      {fundamento && <FundamentoBiblicoCard fundamento={fundamento} />}
 
       <ImageGenerationModal
         open={imageModalOpen}

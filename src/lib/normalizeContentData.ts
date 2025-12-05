@@ -40,6 +40,8 @@ export interface NormalizedPost {
   texto: string;
   legenda?: string;
   hashtags?: string[];
+  fundamento?: NormalizedFundamentoBiblico;
+  estrategia?: NormalizedStrategicIdea;
 }
 
 export interface NormalizedDicaProducao {
@@ -54,7 +56,18 @@ export interface NormalizedDicaProducao {
 export interface NormalizedFundamentoBiblico {
   versiculos: string[];
   contexto: string;
-  principio: string;
+  principio_atemporal: string;
+}
+
+export interface NormalizedStrategicIdea {
+  titulo: string;
+  objetivo: string;
+  publico_alvo: string;
+  promessa: string;
+  chamada_para_acao: string;
+  tom: string;
+  formato_prioritario: string;
+  proximos_passos: string;
 }
 
 // ============================================
@@ -64,11 +77,30 @@ export interface NormalizedFundamentoBiblico {
 /**
  * Normaliza dados de carrossel de múltiplas estruturas possíveis
  */
+function normalizeStrategicIdea(data: any): NormalizedStrategicIdea | undefined {
+  const idea = data?.ideia_estrategica || data?.estrategia || data?.ideia;
+  if (!idea) return undefined;
+
+  return {
+    titulo: idea.titulo || idea.headline || 'Ideia Estratégica',
+    objetivo: idea.objetivo || idea.objetivo_estrategico || idea.alvo || '',
+    publico_alvo: idea.publico_alvo || idea.persona || idea.audiencia || '',
+    promessa: idea.promessa || idea.proposta_valor || idea.beneficio || '',
+    chamada_para_acao: idea.chamada_para_acao || idea.cta || idea.convite || '',
+    tom: idea.tom || idea.tono || idea.estilo || '',
+    formato_prioritario: idea.formato_prioritario || idea.formato || '',
+    proximos_passos: Array.isArray(idea.proximos_passos)
+      ? idea.proximos_passos.join('\n')
+      : idea.proximos_passos || idea.proxima_acao || '',
+  };
+}
+
 export function normalizeCarrosselData(data: any): {
   slides: NormalizedSlide[];
   legenda?: string;
   dicaProducao?: NormalizedDicaProducao;
   fundamento?: NormalizedFundamentoBiblico;
+  estrategia?: NormalizedStrategicIdea;
 } {
   const rawSlides = 
     data?.estrutura_visual?.slides ||
@@ -103,14 +135,14 @@ export function normalizeCarrosselData(data: any): {
 
   const rawFundamento = data?.fundamento_biblico || data?.fundamento || {};
   const fundamento: NormalizedFundamentoBiblico | undefined = rawFundamento.versiculos ? {
-    versiculos: Array.isArray(rawFundamento.versiculos) 
-      ? rawFundamento.versiculos 
+    versiculos: Array.isArray(rawFundamento.versiculos)
+      ? rawFundamento.versiculos
       : [rawFundamento.versiculos],
     contexto: rawFundamento.contexto || '',
-    principio: rawFundamento.principio || rawFundamento.principio_atemporal || '',
+    principio_atemporal: rawFundamento.principio || rawFundamento.principio_atemporal || '',
   } : undefined;
 
-  return { slides, legenda, dicaProducao, fundamento };
+  return { slides, legenda, dicaProducao, fundamento, estrategia: normalizeStrategicIdea(data) };
 }
 
 /**
@@ -120,6 +152,8 @@ export function normalizeStoriesData(data: any): {
   slides: NormalizedStory[];
   legenda?: string;
   hashtags?: string[];
+  fundamento?: NormalizedFundamentoBiblico;
+  estrategia?: NormalizedStrategicIdea;
 } {
   const rawSlides = 
     data?.stories?.slides ||
@@ -155,10 +189,19 @@ export function normalizeStoriesData(data: any): {
     sugestao_visual: story.sugestao_visual || story.visual,
   }));
 
+  const rawFundamento = data?.fundamento_biblico || data?.fundamento;
+  const fundamento = rawFundamento?.versiculos ? {
+    versiculos: Array.isArray(rawFundamento.versiculos) ? rawFundamento.versiculos : [rawFundamento.versiculos],
+    contexto: rawFundamento.contexto || '',
+    principio_atemporal: rawFundamento.principio_atemporal || rawFundamento.principio || '',
+  } : undefined;
+
   return {
     slides,
     legenda: data?.conteudo?.legenda,
     hashtags: data?.conteudo?.hashtags || data?.dica_producao?.hashtags,
+    fundamento,
+    estrategia: normalizeStrategicIdea(data),
   };
 }
 
@@ -171,6 +214,8 @@ export function normalizeReelData(data: any): {
   hashtags?: string[];
   hook?: string;
   duracao?: string;
+  fundamento?: NormalizedFundamentoBiblico;
+  estrategia?: NormalizedStrategicIdea;
 } {
   const rawCenas = 
     data?.roteiro?.cenas ||
@@ -208,12 +253,21 @@ export function normalizeReelData(data: any): {
     texto_overlay: cena.texto_overlay || cena.texto_tela,
   }));
 
+  const rawFundamento = data?.fundamento_biblico || data?.fundamento;
+  const fundamento = rawFundamento?.versiculos ? {
+    versiculos: Array.isArray(rawFundamento.versiculos) ? rawFundamento.versiculos : [rawFundamento.versiculos],
+    contexto: rawFundamento.contexto || '',
+    principio_atemporal: rawFundamento.principio_atemporal || rawFundamento.principio || '',
+  } : undefined;
+
   return {
     cenas,
     legenda: data?.conteudo?.legenda,
     hashtags: data?.conteudo?.hashtags || data?.dica_producao?.hashtags,
     hook: data?.hook || data?.conteudo?.hook,
     duracao: data?.estrutura_visual?.duracao_total || data?.duracao,
+    fundamento,
+    estrategia: normalizeStrategicIdea(data),
   };
 }
 
@@ -221,10 +275,19 @@ export function normalizeReelData(data: any): {
  * Normaliza dados de post simples
  */
 export function normalizePostData(data: any): NormalizedPost {
+  const rawFundamento = data?.fundamento_biblico || data?.fundamento;
+  const fundamento = rawFundamento?.versiculos ? {
+    versiculos: Array.isArray(rawFundamento.versiculos) ? rawFundamento.versiculos : [rawFundamento.versiculos],
+    contexto: rawFundamento.contexto || '',
+    principio_atemporal: rawFundamento.principio_atemporal || rawFundamento.principio || '',
+  } : undefined;
+
   return {
     texto: data?.conteudo?.texto || data?.conteudo?.legenda || data?.texto || data?.legenda || '',
     legenda: data?.conteudo?.legenda || data?.legenda,
     hashtags: data?.conteudo?.hashtags || data?.dica_producao?.hashtags || data?.hashtags,
+    fundamento,
+    estrategia: normalizeStrategicIdea(data),
   };
 }
 
@@ -345,7 +408,7 @@ export function normalizeDesafioSemanalData(data: any): {
     fundamento_biblico: fundamento ? {
       versiculos: Array.isArray(fundamento.versiculos) ? fundamento.versiculos : [fundamento.versiculos || ''],
       contexto: fundamento.contexto || '',
-      principio: fundamento.principio || fundamento.principio_atemporal || '',
+      principio_atemporal: fundamento.principio || fundamento.principio_atemporal || '',
     } : undefined,
   };
 }
@@ -616,11 +679,11 @@ export function normalizeDevocionalSemanalData(data: any): {
       conclusao_semanal: ds?.conclusao_semanal || ds?.conclusao || '',
     },
     fundamento_biblico: data?.fundamento_biblico ? {
-      versiculos: Array.isArray(data.fundamento_biblico.versiculos) 
-        ? data.fundamento_biblico.versiculos 
+      versiculos: Array.isArray(data.fundamento_biblico.versiculos)
+        ? data.fundamento_biblico.versiculos
         : [data.fundamento_biblico.versiculos || ''],
       contexto: data.fundamento_biblico.contexto || '',
-      principio: data.fundamento_biblico.principio || '',
+      principio_atemporal: data.fundamento_biblico.principio || data.fundamento_biblico.principio_atemporal || '',
     } : undefined,
   };
 }

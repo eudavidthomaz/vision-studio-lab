@@ -5,6 +5,8 @@ import { Copy, FileText, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
 import { normalizePostData } from "@/lib/normalizeContentData";
+import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
+import { StrategicIdeaCard } from "./shared/StrategicIdeaCard";
 
 interface PostSimplesViewProps {
   conteudo?: any;
@@ -21,7 +23,7 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
   // Usar normalizador centralizado
   const rawData = data || { conteudo };
   const normalized = normalizePostData(rawData);
-  const { texto, legenda, hashtags } = normalized;
+  const { texto, legenda, hashtags, fundamento, estrategia } = normalized;
   
   // Dados de imagem
   const actualImagem = imagem || data?.imagem;
@@ -134,6 +136,10 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
           </CardContent>
         </Card>
       )}
+
+      {estrategia && <StrategicIdeaCard ideia={estrategia} />}
+
+      {fundamento && <FundamentoBiblicoCard fundamento={fundamento} />}
 
       {/* Geração de Imagem Opcional */}
       <Card>
