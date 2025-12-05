@@ -3,70 +3,72 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Landing from "./pages/Landing";
-import Dashboard from "./pages/Dashboard";
-import Auth from "./pages/Auth";
-import Welcome from "./pages/Welcome";
-import ContentLibrary from "./pages/ContentLibrary";
-import ContentLibraryDetail from "./pages/ContentLibraryDetail";
-import Metrics from "./pages/Metrics";
-import SecurityDashboard from "./pages/SecurityDashboard";
-import NotFound from "./pages/NotFound";
-import Profile from "./pages/Profile";
 import { lazy, Suspense } from "react";
 
+// Eager load only Landing initially
+import Landing from "./pages/Landing";
+
+// Lazy load all other pages
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Welcome = lazy(() => import("./pages/Welcome"));
+const ContentLibrary = lazy(() => import("./pages/ContentLibrary"));
+const ContentLibraryDetail = lazy(() => import("./pages/ContentLibraryDetail"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Metrics = lazy(() => import("./pages/Metrics"));
+const SecurityDashboard = lazy(() => import("./pages/SecurityDashboard"));
 const UsageDashboard = lazy(() => import("./pages/UsageDashboard"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 
-// Optimized React Query configuration for performance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes - data stays fresh longer
-      gcTime: 30 * 60 * 1000, // 30 minutes - cache persists longer
-      refetchOnWindowFocus: false, // Don't refetch on window focus
-      refetchOnMount: false, // Don't refetch on component mount
-      retry: 1, // Only retry once on failure
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      retry: 1,
     },
   },
 });
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
-    Carregando...
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+      <p>Carregando...</p>
+    </div>
   </div>
 );
 
 const App = () => {
-  console.log("App component rendering");
-  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/welcome" element={<Welcome />} />
-            {/* Redirects - Old routes */}
-            <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />
-            <Route path="/conteudo/:id" element={<Navigate to="/biblioteca/:id" replace />} />
-            {/* New unified routes */}
-            <Route path="/biblioteca" element={<ContentLibrary />} />
-            <Route path="/biblioteca/:id" element={<ContentLibraryDetail />} />
-            <Route path="/metrics" element={<Metrics />} />
-            <Route path="/security" element={<SecurityDashboard />} />
-            <Route path="/usage" element={<Suspense fallback={<LoadingFallback />}><UsageDashboard /></Suspense>} />
-            <Route path="/analytics" element={<Suspense fallback={<LoadingFallback />}><Analytics /></Suspense>} />
-            <Route path="/pricing" element={<Suspense fallback={<LoadingFallback />}><Pricing /></Suspense>} />
-            <Route path="/profile" element={<Profile />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/welcome" element={<Welcome />} />
+              <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />
+              <Route path="/conteudo/:id" element={<Navigate to="/biblioteca/:id" replace />} />
+              <Route path="/biblioteca" element={<ContentLibrary />} />
+              <Route path="/biblioteca/:id" element={<ContentLibraryDetail />} />
+              <Route path="/metrics" element={<Metrics />} />
+              <Route path="/security" element={<SecurityDashboard />} />
+              <Route path="/usage" element={<UsageDashboard />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
