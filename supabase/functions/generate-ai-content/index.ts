@@ -1530,10 +1530,18 @@ Retorne APENAS o JSON válido.`;
       'calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 'versiculos_citados', 'ideia_estrategica',
       'treino_voluntario', 'campanha_tematica', 'roteiro_reels', 'checklist_culto', 'kit_basico', 'manual_etica', 'estrategia_social'
     ];
-    const requiresBiblicalFoundationValidation = !operationalTypesValidation.includes(detectedType);
+    // Types that have fundamento_biblico inside nested structures (not at root level)
+    const nestedBiblicalFoundationTypes = ['post', 'carrossel', 'reel'];
+    const requiresBiblicalFoundationValidation = !operationalTypesValidation.includes(detectedType) && !nestedBiblicalFoundationTypes.includes(detectedType);
+    
+    // Check for biblical foundation - either at root level or nested in pontos_principais/slides
+    const hasBiblicalFoundation = 
+      generatedContent.fundamento_biblico || 
+      generatedContent.pontos_principais?.some((p: any) => p.fundamento_biblico) ||
+      generatedContent.slides?.some((s: any) => s.fundamento_biblico || s.versiculo);
     
     // Only require fundamento_biblico for biblical/spiritual content
-    if (requiresBiblicalFoundationValidation && !generatedContent.fundamento_biblico) {
+    if (requiresBiblicalFoundationValidation && !hasBiblicalFoundation) {
       console.error('Invalid structure:', generatedContent);
       throw new Error('IA retornou estrutura incompleta - falta fundamento_biblico');
     }
@@ -1564,7 +1572,7 @@ Retorne APENAS o JSON válido.`;
       (detectedType === 'kit_basico' && generatedContent.kit) ||
       (detectedType === 'manual_etica' && generatedContent.manual) ||
       (detectedType === 'estrategia_social' && generatedContent.estrategia) ||
-      (['post', 'carrossel', 'reel'].includes(detectedType) && generatedContent.conteudo);
+      (['post', 'carrossel', 'reel'].includes(detectedType) && (generatedContent.conteudo || generatedContent.pontos_principais || generatedContent.slides));
 
     if (!hasCorrectStructure) {
       console.error(`Expected ${detectedType} structure, got:`, Object.keys(generatedContent));
