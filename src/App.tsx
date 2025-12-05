@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { lazy, Suspense } from "react";
 
 // Eager load only Landing initially
@@ -43,6 +43,12 @@ const LoadingFallback = () => (
   </div>
 );
 
+// Componente para redirecionar rotas legadas com parâmetro dinâmico
+function LegacyContentRedirect() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={`/biblioteca/${id}`} replace />;
+}
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -57,7 +63,7 @@ const App = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/welcome" element={<Welcome />} />
               <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />
-              <Route path="/conteudo/:id" element={<Navigate to="/biblioteca/:id" replace />} />
+              <Route path="/conteudo/:id" element={<LegacyContentRedirect />} />
               <Route path="/biblioteca" element={<ContentLibrary />} />
               <Route path="/biblioteca/:id" element={<ContentLibraryDetail />} />
               <Route path="/metrics" element={<Metrics />} />

@@ -5,13 +5,7 @@ import { ContentLibraryItem } from "@/hooks/useContentLibrary";
 import { UnifiedContentModal } from "@/components/UnifiedContentModal";
 import { Loader2 } from "lucide-react";
 
-/**
- * Valida se uma string é um UUID v4 válido
- */
-function isValidUUID(str: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(str);
-}
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export default function ContentLibraryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -21,53 +15,37 @@ export default function ContentLibraryDetail() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Validar ID antes de fazer qualquer requisição
-    if (!id || id === "undefined" || id === "null" || !isValidUUID(id)) {
-      console.warn("[ContentLibraryDetail] ID inválido:", id);
+    if (!id || id === "undefined" || id === "null" || !UUID_REGEX.test(id)) {
       navigate("/biblioteca", { replace: true });
       return;
     }
 
-    loadContent(id);
-  }, [id, navigate]);
-
-  async function loadContent(contentId: string) {
     setLoading(true);
     setError(null);
 
-    try {
-      const { data, error: fetchError } = await supabase
-        .from("content_library")
-        .select("*")
-        .eq("id", contentId)
-        .maybeSingle();
+    supabase
+      .from("content_library")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle()
+      .then(({ data, error: fetchError }) => {
+        if (fetchError) {
+          setError("Erro ao carregar conteúdo");
+          setLoading(false);
+          return;
+        }
 
-      if (fetchError) {
-        console.error("[ContentLibraryDetail] Erro ao buscar:", fetchError);
-        setError("Erro ao carregar conteúdo");
-        return;
-      }
+        if (!data) {
+          setError("Conteúdo não encontrado");
+          setLoading(false);
+          return;
+        }
 
-      if (!data) {
-        console.warn("[ContentLibraryDetail] Conteúdo não encontrado:", contentId);
-        setError("Conteúdo não encontrado");
-        return;
-      }
+        setContent(data as ContentLibraryItem);
+        setLoading(false);
+      });
+  }, [id, navigate]);
 
-      setContent(data as ContentLibraryItem);
-    } catch (err) {
-      console.error("[ContentLibraryDetail] Exceção:", err);
-      setError("Erro inesperado ao carregar conteúdo");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function handleClose() {
-    navigate("/biblioteca");
-  }
-
-  // Estado de carregamento
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -79,7 +57,6 @@ export default function ContentLibraryDetail() {
     );
   }
 
-  // Estado de erro
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -96,7 +73,6 @@ export default function ContentLibraryDetail() {
     );
   }
 
-  // Sem conteúdo (não deveria chegar aqui, mas por segurança)
   if (!content) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -113,12 +89,11 @@ export default function ContentLibraryDetail() {
     );
   }
 
-  // Renderizar modal com conteúdo
   return (
     <UnifiedContentModal
       content={content}
       open={true}
-      onClose={handleClose}
+      onClose={() => navigate("/biblioteca")}
     />
   );
 }
