@@ -47,9 +47,33 @@ serve(async (req) => {
 
     const { prompt, denominationalPrefs } = await req.json();
 
-    if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 10) {
+    // Validação robusta de entrada
+    if (!prompt || typeof prompt !== 'string') {
       return new Response(JSON.stringify({ 
-        error: 'Prompt inválido. Por favor, descreva o que você quer criar.' 
+        error: 'Prompt inválido. Por favor, descreva o que você quer criar.',
+        code: 'INVALID_PROMPT_TYPE'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    const trimmedPrompt = prompt.trim();
+    if (trimmedPrompt.length < 20) {
+      return new Response(JSON.stringify({ 
+        error: 'Prompt muito curto. Descreva com mais detalhes o conteúdo que deseja criar (mínimo 20 caracteres).',
+        code: 'PROMPT_TOO_SHORT'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Verificar se é apenas whitespace ou caracteres repetidos
+    if (/^(.)\1*$/.test(trimmedPrompt) || !/\w{3,}/.test(trimmedPrompt)) {
+      return new Response(JSON.stringify({ 
+        error: 'Prompt inválido. Por favor, descreva o conteúdo de forma clara.',
+        code: 'INVALID_PROMPT_CONTENT'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -60,11 +84,15 @@ serve(async (req) => {
     const isLongTranscript = prompt.length > 5000;
     console.log(`Processing prompt (${prompt.length} chars), isLongTranscript: ${isLongTranscript}`);
     
-    // Truncar prompts muito longos para evitar erros
+    // Truncar prompts muito longos para evitar erros - NÃO adicionar tag ao conteúdo
     let processedPrompt = prompt;
+    let wasTranscriptTruncated = false;
+    const originalLength = prompt.length;
+    
     if (isLongTranscript && prompt.length > 20000) {
-      console.log('Prompt too long, truncating to 20000 chars');
-      processedPrompt = prompt.substring(0, 20000) + '\n\n[Transcrição truncada por exceder limite]';
+      console.log(`Prompt truncated: ${prompt.length} → 20000 chars`);
+      processedPrompt = prompt.substring(0, 20000);
+      wasTranscriptTruncated = true;
     }
 
     // ============================================
@@ -138,25 +166,59 @@ serve(async (req) => {
   const userSpecs = extractUserSpecs(processedPrompt);
   console.log('📋 User specifications extracted:', userSpecs);
 
-  // Detectar tipo de conteúdo solicitado
-  const explicitTypeMatch = processedPrompt.match(/TIPO_SOLICITADO:\s*([\w,\s-]+)/i);
+  // Detectar tipo de conteúdo solicitado - captura até newline ou fim
+  const explicitTypeMatch = processedPrompt.match(/TIPO_SOLICITADO:\s*([a-z_]+)/i);
 
   const explicitTypes: ContentType[] = explicitTypeMatch
-    ? explicitTypeMatch[1]
-        .split(/[|,]/)
-        .map((value) => value.trim().toLowerCase())
-        .filter(isContentType)
+    ? [explicitTypeMatch[1].trim().toLowerCase()]
+        .filter(isContentType) as ContentType[]
     : [];
 
+  console.log(`📌 Explicit type from prompt: ${explicitTypes.length > 0 ? explicitTypes.join(", ") : 'none'}`);
+
+  // Se tipo explícito foi encontrado, usar apenas ele (prioridade máxima)
   const detectedTypes = explicitTypes.length > 0
     ? explicitTypes
     : detectContentTypes(processedPrompt.substring(0, 2000));
 
   const detectedType: ContentType = detectedTypes[0] || "post";
+  const wasTypeInferred = explicitTypes.length === 0 && detectedTypes[0] === "post";
 
-  console.log(`✅ Detected type(s): ${detectedTypes.join(", ")}`);
-
+  console.log(`✅ Detected type(s): ${detectedTypes.join(", ")}${wasTypeInferred ? ' (fallback)' : ''}`);
   console.log(`Final detected content type: ${detectedType}`);
+  
+  // Detectar pilar baseado no tipo e contexto do prompt
+  const detectPilar = (type: ContentType, promptText: string): string => {
+    const lowerPrompt = promptText.toLowerCase();
+    
+    // Tipos que são claramente de SERVIR
+    if (['aviso', 'convite', 'convite_grupos', 'calendario', 'checklist_culto'].includes(type)) {
+      return 'SERVIR';
+    }
+    
+    // Tipos que são claramente de EDIFICAR
+    if (['estudo', 'devocional', 'esboco', 'trilha_oracao', 'discipulado'].includes(type)) {
+      return 'EDIFICAR';
+    }
+    
+    // Verificar contexto do prompt para outros tipos
+    if (/evangel|alcan[çc]ar|perdido|n[ãa]o.?crente|mundo|testemunho/i.test(lowerPrompt)) {
+      return 'ALCANÇAR';
+    }
+    
+    if (/comunidade|família|grupo|c[ée]lula|pertencer|integra[çc]/i.test(lowerPrompt)) {
+      return 'PERTENCER';
+    }
+    
+    if (/servir|volunt[áa]rio|equipe|minist[ée]rio|trein/i.test(lowerPrompt)) {
+      return 'SERVIR';
+    }
+    
+    // Default para conteúdo reflexivo/espiritual
+    return 'EDIFICAR';
+  };
+  
+  const detectedPilar = detectPilar(detectedType, processedPrompt);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -1275,7 +1337,7 @@ Retorne APENAS o JSON válido.`;
     let depthOk = true;
     let retryCount = 0;
 
-    let generatedContent;
+    let generatedContent: Record<string, any>;
     try {
       const rawContent = aiData.choices[0].message.content;
       console.log('Raw AI response (first 500 chars):', rawContent.substring(0, 500));
@@ -1530,15 +1592,27 @@ Retorne APENAS o JSON válido.`;
       'calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 'versiculos_citados', 'ideia_estrategica',
       'treino_voluntario', 'campanha_tematica', 'roteiro_reels', 'checklist_culto', 'kit_basico', 'manual_etica', 'estrategia_social'
     ];
-    const requiresBiblicalFoundationValidation = !operationalTypesValidation.includes(detectedType);
     
-    // Only require fundamento_biblico for biblical/spiritual content
+    // Tipos que podem ter estrutura alternativa válida (versículos embutidos nos tópicos)
+    const typesWithFlexibleBiblicalFoundation = ['estudo', 'resumo', 'resumo_breve'];
+    
+    const requiresBiblicalFoundationValidation = !operationalTypesValidation.includes(detectedType) && 
+                                                  !typesWithFlexibleBiblicalFoundation.includes(detectedType);
+    
+    // Only require fundamento_biblico for content that strictly needs it
     if (requiresBiblicalFoundationValidation && !generatedContent.fundamento_biblico) {
       console.error('Invalid structure:', generatedContent);
       throw new Error('IA retornou estrutura incompleta - falta fundamento_biblico');
     }
 
-    // Validate structure based on type
+    // Validate structure based on type - com validações flexíveis para estudo
+    const validateEstudo = () => {
+      // Aceita estrutura tradicional OU estrutura alternativa com tópicos
+      return generatedContent.estudo_biblico || 
+             (generatedContent.titulo && generatedContent.topicos_principais) ||
+             (generatedContent.titulo && generatedContent.introducao && generatedContent.conclusao);
+    };
+    
     const hasCorrectStructure = 
       (detectedType === 'calendario' && generatedContent.calendario_editorial) ||
       (detectedType === 'convite' && generatedContent.convite) ||
@@ -1546,14 +1620,15 @@ Retorne APENAS o JSON válido.`;
       (detectedType === 'guia' && generatedContent.guia) ||
       (detectedType === 'convite_grupos' && generatedContent.convite_grupos) ||
       (detectedType === 'versiculos_citados' && generatedContent.versiculos_citados) ||
-      (detectedType === 'esboco' && generatedContent.fundamento_biblico && generatedContent.esboco) ||
-      (detectedType === 'trilha_oracao' && generatedContent.fundamento_biblico && generatedContent.trilha_oracao) ||
-      (detectedType === 'qa_estruturado' && generatedContent.fundamento_biblico && generatedContent.perguntas_respostas) ||
-      (detectedType === 'discipulado' && generatedContent.fundamento_biblico && generatedContent.plano_discipulado) ||
-      (detectedType === 'desafio_semanal' && generatedContent.fundamento_biblico && generatedContent.desafio_semanal?.dias?.length === 7) ||
+      (detectedType === 'esboco' && generatedContent.esboco) ||
+      (detectedType === 'trilha_oracao' && generatedContent.trilha_oracao) ||
+      (detectedType === 'qa_estruturado' && generatedContent.perguntas_respostas) ||
+      (detectedType === 'discipulado' && generatedContent.plano_discipulado) ||
+      (detectedType === 'desafio_semanal' && (generatedContent.desafio_semanal?.dias?.length >= 5 || generatedContent.desafio)) ||
       (detectedType === 'ideia_estrategica' && generatedContent.ideia_estrategica) ||
-      (detectedType === 'estudo' && generatedContent.estudo_biblico) ||
-      (detectedType === 'resumo' && generatedContent.resumo_pregacao) ||
+      (detectedType === 'estudo' && validateEstudo()) ||
+      (detectedType === 'resumo' && (generatedContent.resumo_pregacao || generatedContent.resumo)) ||
+      (detectedType === 'resumo_breve' && generatedContent.resumo) ||
       (detectedType === 'perguntas' && generatedContent.perguntas_celula) ||
       (detectedType === 'devocional' && generatedContent.devocional) ||
       (detectedType === 'stories' && (generatedContent.stories?.slides || generatedContent.stories)) ||
@@ -1594,9 +1669,7 @@ Retorne APENAS o JSON válido.`;
     
     try {
       // Create contextual title based on content type and actual generated content
-      const contentPreview = typeof generatedContent === 'string' 
-        ? generatedContent.substring(0, 100)
-        : JSON.stringify(generatedContent).substring(0, 150);
+      const contentPreview = JSON.stringify(generatedContent).substring(0, 150);
       
       // Extrair tema do conteúdo gerado
       let temaExtraido = "";
@@ -1671,8 +1744,8 @@ Title:`;
       .insert({
         user_id: user.id,
         source_type: 'ai-creator',
-        content_type: detectedType, // tipo de conteúdo (estudo, post, etc)
-        pilar: 'EDIFICAR', // Uppercase para consistência com constraints
+        content_type: detectedType,
+        pilar: detectedPilar, // Pilar detectado dinamicamente baseado no contexto
         prompt_original: prompt.replace(/^TIPO_SOLICITADO:\s*\w+\s*/i, '').trim(),
         title: generatedTitle,
         content: generatedContent,

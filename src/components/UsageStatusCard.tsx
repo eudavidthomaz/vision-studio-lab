@@ -1,44 +1,43 @@
-import { Calendar, Image, Lightbulb } from "lucide-react";
+import { Image, FileAudio, Video } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Progress } from "./ui/progress";
-import { useQuota } from "@/hooks/useQuota";
+import { useQuota, QuotaFeature } from "@/hooks/useQuota";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 
 export const UsageStatusCard = () => {
-  const { quota, limits, isLoading } = useQuota();
+  const { quota, limits, isLoading, getUsage, getLimit, getUsagePercentage } = useQuota();
   const navigate = useNavigate();
 
   if (isLoading || !quota || !limits) {
     return null;
   }
 
-  const usageItems = [
+  const usageItems: { key: QuotaFeature; icon: typeof Image; label: string; color: string; bgColor: string }[] = [
     {
-      icon: Calendar,
-      label: "Packs de Sermões",
-      used: quota.sermon_packs_generated,
-      limit: limits.sermon_packs,
-      color: "text-primary",
-      bgColor: "bg-primary/10",
-    },
-    {
-      icon: Lightbulb,
-      label: "Desafios Ide.On",
-      used: quota.challenges_used,
-      limit: limits.challenges,
-      color: "text-accent",
-      bgColor: "bg-accent/10",
-    },
-    {
+      key: 'images',
       icon: Image,
       label: "Imagens Geradas",
-      used: quota.images_generated,
-      limit: limits.images,
-      color: "text-secondary",
-      bgColor: "bg-secondary/10",
+      color: "text-blue-500",
+      bgColor: "bg-blue-500/10",
+    },
+    {
+      key: 'transcriptions',
+      icon: FileAudio,
+      label: "Transcrições",
+      color: "text-purple-500",
+      bgColor: "bg-purple-500/10",
+    },
+    {
+      key: 'live_captures',
+      icon: Video,
+      label: "Captação ao Vivo",
+      color: "text-green-500",
+      bgColor: "bg-green-500/10",
     },
   ];
+
+  const availableItems = usageItems.filter(item => getLimit(item.key) > 0);
 
   return (
     <Card className="hover:shadow-lg transition-shadow duration-300">
@@ -48,7 +47,7 @@ export const UsageStatusCard = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/usage-dashboard")}
+            onClick={() => navigate("/usage")}
             className="text-xs"
           >
             Ver Detalhes
@@ -56,12 +55,14 @@ export const UsageStatusCard = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {usageItems.map((item) => {
-          const percentage = (item.used / item.limit) * 100;
+        {availableItems.map((item) => {
+          const used = getUsage(item.key);
+          const limit = getLimit(item.key);
+          const percentage = getUsagePercentage(item.key);
           const Icon = item.icon;
           
           return (
-            <div key={item.label} className="space-y-2">
+            <div key={item.key} className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className={`p-1.5 rounded-lg ${item.bgColor}`}>
@@ -70,7 +71,7 @@ export const UsageStatusCard = () => {
                   <span className="text-sm font-medium">{item.label}</span>
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {item.used}/{item.limit}
+                  {used}/{limit}
                 </span>
               </div>
               <Progress 
