@@ -437,32 +437,32 @@ export type Database = {
       }
       usage_quotas: {
         Row: {
+          challenges_used: number
           created_at: string
           id: string
           images_generated: number
-          live_captures_used: number
           reset_date: string
-          transcriptions_used: number
+          sermon_packs_generated: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          challenges_used?: number
           created_at?: string
           id?: string
           images_generated?: number
-          live_captures_used?: number
           reset_date?: string
-          transcriptions_used?: number
+          sermon_packs_generated?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          challenges_used?: number
           created_at?: string
           id?: string
           images_generated?: number
-          live_captures_used?: number
           reset_date?: string
-          transcriptions_used?: number
+          sermon_packs_generated?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -551,10 +551,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_quota: {
-        Args: { _feature: string; _user_id: string }
-        Returns: Json
-      }
       check_rate_limit: {
         Args: {
           _endpoint: string
@@ -575,10 +571,6 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
-      }
-      increment_quota: {
-        Args: { _feature: string; _user_id: string }
-        Returns: Json
       }
       reset_monthly_quotas: { Args: never; Returns: undefined }
       search_content_by_tags: {
