@@ -15,22 +15,28 @@ export const useSubscription = () => {
   const { data: subscription, isLoading, refetch } = useQuery({
     queryKey: ['subscription-status'],
     queryFn: async (): Promise<SubscriptionStatus> => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          return { subscribed: false, role: 'free', product_id: null, subscription_end: null };
+        }
+
+        const { data, error } = await supabase.functions.invoke('check-subscription');
+        
+        if (error) {
+          console.error('Error checking subscription:', error);
+          return { subscribed: false, role: 'free', product_id: null, subscription_end: null };
+        }
+
+        return data as SubscriptionStatus;
+      } catch (err) {
+        console.error('Subscription check failed:', err);
         return { subscribed: false, role: 'free', product_id: null, subscription_end: null };
       }
-
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      
-      if (error) {
-        console.error('Error checking subscription:', error);
-        return { subscribed: false, role: 'free', product_id: null, subscription_end: null };
-      }
-
-      return data as SubscriptionStatus;
     },
     staleTime: 60 * 1000, // 1 minute
     refetchOnWindowFocus: true,
+    retry: false,
   });
 
   // Refresh subscription status periodically and on auth changes
