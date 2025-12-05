@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Video, Image as ImageIcon } from "lucide-react";
+import { Copy, Video, Image as ImageIcon, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
 import { normalizeReelData } from "@/lib/normalizeContentData";
@@ -11,9 +11,10 @@ interface ReelViewProps {
   conteudo?: any;
   data?: any;
   contentType?: string;
+  onRegenerate?: () => void;
 }
 
-export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps) {
+export function ReelView({ roteiro, conteudo, data, contentType, onRegenerate }: ReelViewProps) {
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [generatedCoverImage, setGeneratedCoverImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -37,6 +38,26 @@ export function ReelView({ roteiro, conteudo, data, contentType }: ReelViewProps
   // Se não tem cenas estruturadas mas tem legenda, mostrar como roteiro simples
   const hasStructuredContent = cenas.length > 0;
   const hasSimpleContent = !hasStructuredContent && (legenda || hook);
+  const hasAnyContent = hasStructuredContent || hasSimpleContent;
+
+  if (!hasAnyContent) {
+    return (
+      <Card className="border-yellow-500/50">
+        <CardContent className="pt-6 text-center">
+          <p className="text-muted-foreground mb-2">⚠️ Reel incompleto</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Nenhum conteúdo foi gerado. Tente regenerar.
+          </p>
+          {onRegenerate && (
+            <Button onClick={onRegenerate} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Regenerar
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-4">
