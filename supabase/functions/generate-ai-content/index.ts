@@ -88,7 +88,28 @@ serve(async (req) => {
     // FASE 4: VALIDAÇÃO ÉTICA - POLÍTICA DE RECUSA
     // ============================================
     const ethicalValidation = (text: string): { allowed: boolean; reason?: string } => {
-      const lowerText = text.toLowerCase();
+      // Exceções contextuais - referências acadêmicas/históricas são permitidas
+      const contextualExceptions = [
+        /contexto\s+(político|histórico)/i,
+        /situação\s+política/i,
+        /implicações?\s+políticas?/i,
+        /romano.*polític/i,
+        /polític.*romano/i,
+        /polític.*império/i,
+        /império.*polític/i,
+        /governo\s+(romano|de\s+roma|da\s+época)/i,
+        /autoridades?\s+(romana|da\s+época)/i,
+        /cenário\s+(político|histórico)/i,
+        /realidade\s+política/i,
+        /ambiente\s+político/i,
+      ];
+      
+      // Se o texto contém uma exceção contextual (referência acadêmica/histórica), permitir
+      const hasContextualException = contextualExceptions.some(ex => ex.test(text));
+      if (hasContextualException) {
+        console.log('✅ Ethical validation: contextual exception found (academic/historical reference)');
+        return { allowed: true };
+      }
       
       const redFlags = [
         {
@@ -100,8 +121,9 @@ serve(async (req) => {
           reason: 'Exploração de vulnerabilidade emocional para engajamento (não edificante).'
         },
         {
-          pattern: /(político|eleição|candidato|partido|voto em)/i,
-          reason: 'Proselitismo político-partidário (contra princípios do mentor).'
+          // Mais específico: apenas proselitismo eleitoral real, não referências históricas/acadêmicas
+          pattern: /(vote\s+(em|no|na)\s+\w+|candidato\s+(a\s+)?(prefeito|vereador|deputado|presidente|governador|senador)|apoie\s+(o\s+)?(candidato|partido)|propaganda\s+eleitoral|campanha\s+(eleitoral|partidária)|elei[çc][ãõa]o\s+(de\s+)?\d{4}|urna\s+eletr[oô]nica)/i,
+          reason: 'Proselitismo político-partidário eleitoral não é permitido.'
         },
         {
           pattern: /(baixar|download|piratear|usar).*(música|imagem|vídeo).*(sem|gratuito|de graça)/i,
@@ -110,7 +132,9 @@ serve(async (req) => {
       ];
       
       for (const flag of redFlags) {
-        if (flag.pattern.test(text)) {
+        const match = text.match(flag.pattern);
+        if (match) {
+          console.warn(`⛔ Ethical validation failed: ${flag.reason} | Trigger: "${match[0]}"`);
           return { allowed: false, reason: flag.reason };
         }
       }
