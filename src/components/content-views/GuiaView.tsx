@@ -1,35 +1,92 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, CheckCircle2, Lightbulb, Package } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { BookOpen, CheckCircle2, Lightbulb, Package, Copy, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+import { normalizeGuiaData } from "@/lib/normalizeContentData";
 
 interface GuiaViewProps {
-  guia: {
-    titulo: string;
-    introducao: string;
-    passos: Array<{
-      numero: number;
-      titulo: string;
-      descricao: string;
-      dica?: string;
-    }>;
-    recursos_necessarios: string[];
-    conclusao: string;
-  };
+  guia?: any;
+  data?: any;
+  onRegenerate?: () => void;
 }
 
-export const GuiaView = ({ guia }: GuiaViewProps) => {
+export const GuiaView = ({ guia, data, onRegenerate }: GuiaViewProps) => {
+  // Normalizar dados de múltiplas fontes
+  const rawData = guia || data?.guia || data;
+  const normalized = normalizeGuiaData(rawData);
+  
+  const hasContent = normalized.passos && normalized.passos.length > 0;
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copiado!`);
+  };
+
+  const copyAll = () => {
+    let fullText = `📘 ${normalized.titulo}\n\n`;
+    if (normalized.introducao) fullText += `${normalized.introducao}\n\n`;
+    
+    if (normalized.recursos_necessarios?.length > 0) {
+      fullText += `📦 RECURSOS NECESSÁRIOS:\n`;
+      normalized.recursos_necessarios.forEach(r => {
+        fullText += `• ${r}\n`;
+      });
+      fullText += '\n';
+    }
+    
+    fullText += `📋 PASSOS:\n\n`;
+    normalized.passos.forEach((passo) => {
+      fullText += `${passo.numero}. ${passo.titulo}\n`;
+      fullText += `${passo.descricao}\n`;
+      if (passo.dica) fullText += `💡 Dica: ${passo.dica}\n`;
+      fullText += '\n';
+    });
+    
+    if (normalized.conclusao) fullText += `✅ CONCLUSÃO:\n${normalized.conclusao}`;
+    
+    copyToClipboard(fullText, "Guia completo");
+  };
+
+  if (!hasContent) {
+    return (
+      <Card className="border-yellow-500/50">
+        <CardContent className="pt-6 text-center">
+          <p className="text-muted-foreground mb-2">⚠️ Guia incompleto</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Nenhum passo foi definido. Tente regenerar o conteúdo.
+          </p>
+          {onRegenerate && (
+            <Button onClick={onRegenerate} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Regenerar
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card className="border-primary/20">
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-primary" />
-            <CardTitle>{guia.titulo}</CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-primary" />
+              <CardTitle>{normalized.titulo}</CardTitle>
+            </div>
+            <Button variant="ghost" size="sm" onClick={copyAll}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copiar
+            </Button>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">{guia.introducao}</p>
+          {normalized.introducao && (
+            <p className="text-sm text-muted-foreground mt-2">{normalized.introducao}</p>
+          )}
         </CardHeader>
         <CardContent className="space-y-6">
-          {guia.recursos_necessarios && guia.recursos_necessarios.length > 0 && (
+          {normalized.recursos_necessarios && normalized.recursos_necessarios.length > 0 && (
             <Card className="bg-muted/50">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3">
@@ -37,7 +94,7 @@ export const GuiaView = ({ guia }: GuiaViewProps) => {
                   <div>
                     <p className="font-medium text-sm mb-2">Recursos Necessários</p>
                     <ul className="space-y-1">
-                      {guia.recursos_necessarios.map((recurso, index) => (
+                      {normalized.recursos_necessarios.map((recurso, index) => (
                         <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
                           <CheckCircle2 className="h-3 w-3" />
                           {recurso}
@@ -51,7 +108,7 @@ export const GuiaView = ({ guia }: GuiaViewProps) => {
           )}
 
           <div className="space-y-4">
-            {guia.passos.map((passo, index) => (
+            {normalized.passos.map((passo, index) => (
               <Card key={index} className="border-l-4 border-l-primary">
                 <CardContent className="pt-6">
                   <div className="flex gap-4">
@@ -76,11 +133,13 @@ export const GuiaView = ({ guia }: GuiaViewProps) => {
             ))}
           </div>
 
-          <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground">{guia.conclusao}</p>
-            </CardContent>
-          </Card>
+          {normalized.conclusao && (
+            <Card className="bg-primary/5 border-primary/20">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">{normalized.conclusao}</p>
+              </CardContent>
+            </Card>
+          )}
         </CardContent>
       </Card>
     </div>
