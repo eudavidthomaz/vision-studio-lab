@@ -58,20 +58,57 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100,
+        }
+      });
+      
+      // Detectar mimeType suportado
+      const mimeTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/mp4',
+      ];
+      
+      let selectedMimeType = '';
+      for (const mimeType of mimeTypes) {
+        if (MediaRecorder.isTypeSupported(mimeType)) {
+          selectedMimeType = mimeType;
+          break;
+        }
+      }
+      
+      if (!selectedMimeType) {
+        throw new Error('Nenhum formato de áudio suportado pelo navegador');
+      }
+      
+      console.log('Using mimeType:', selectedMimeType);
+      
       const mediaRecorder = new MediaRecorder(stream, { 
-        mimeType: 'audio/webm;codecs=opus' 
+        mimeType: selectedMimeType,
+        audioBitsPerSecond: 128000,
       });
 
       mediaRecorder.ondataavailable = (e) => {
+        console.log('Data available:', e.data.size, 'bytes');
         if (e.data.size > 0) {
           audioChunksRef.current.push(e.data);
         }
       };
+      
+      mediaRecorder.onerror = (e) => {
+        console.error('MediaRecorder error:', e);
+      };
 
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
-      mediaRecorder.start();
+      
+      // Start with timeslice to capture data in chunks (every 1 second)
+      mediaRecorder.start(1000);
       setIsRecording(true);
 
       toast({
@@ -93,18 +130,32 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
     if (!recorder) return;
 
     setIsRecording(false);
-    setIsProcessing(true);
 
     recorder.onstop = async () => {
       try {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        console.log('Recording stopped. Chunks collected:', audioChunksRef.current.length);
+        
+        // Verificar se há dados gravados
+        if (audioChunksRef.current.length === 0) {
+          throw new Error('Nenhum áudio foi capturado. Verifique se o microfone está funcionando.');
+        }
+        
+        const audioBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+        console.log('Audio blob size:', audioBlob.size, 'bytes');
+        
+        // Validar tamanho mínimo (pelo menos 1KB)
+        if (audioBlob.size < 1024) {
+          throw new Error('Gravação muito curta ou vazia. Tente gravar por mais tempo.');
+        }
+        
+        setIsProcessing(true);
         await transcribeAudio(audioBlob);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error processing audio:', error);
         setIsProcessing(false);
         toast({
-          title: "Erro",
-          description: "Não foi possível processar o áudio. Tente novamente.",
+          title: "Erro na gravação",
+          description: error.message || "Não foi possível processar o áudio. Tente novamente.",
           variant: "destructive",
         });
       }
