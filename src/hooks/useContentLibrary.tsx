@@ -85,21 +85,39 @@ export function useContentLibrary() {
   }, [loading, hasMore, page, loadItems]);
 
   // Criar novo conteúdo
-  const createContent = async (prompt: string, options?: any) => {
+  const createContent = async (prompt: string, options?: any): Promise<string> => {
     try {
       const { data, error } = await supabase.functions.invoke('generate-ai-content', {
         body: { prompt, ...options }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Erro na função de geração');
+      }
+
+      // Validar resposta da edge function
+      if (!data) {
+        console.error('Empty response from generate-ai-content');
+        throw new Error('Resposta vazia do servidor');
+      }
+
+      // A edge function retorna content_id, não id
+      const contentId = data.content_id || data.id;
+      
+      if (!contentId) {
+        console.error('No content_id in response:', data);
+        throw new Error('ID do conteúdo não retornado pelo servidor');
+      }
 
       toast.success('✨ Conteúdo criado com sucesso!');
       await loadItems(); // Refresh
-      return data.id;
+      return contentId;
     } catch (error: any) {
       console.error('Error creating content:', error);
-      toast.error(error.message || 'Erro ao criar conteúdo');
-      throw error;
+      const errorMessage = error?.message || 'Erro ao criar conteúdo';
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
     }
   };
 
