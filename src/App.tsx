@@ -13,10 +13,11 @@ import Metrics from "./pages/Metrics";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 
 const UsageDashboard = lazy(() => import("./pages/UsageDashboard"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const Pricing = lazy(() => import("./pages/Pricing"));
 
 // Optimized React Query configuration for performance
 const queryClient = new QueryClient({
@@ -50,8 +51,9 @@ const App = () => (
           <Route path="/biblioteca/:id" element={<ContentLibraryDetail />} />
           <Route path="/metrics" element={<Metrics />} />
           <Route path="/security" element={<SecurityDashboard />} />
-          <Route path="/usage" element={<UsageDashboard />} />
-          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/usage" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center">Carregando...</div>}><UsageDashboard /></Suspense>} />
+          <Route path="/analytics" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center">Carregando...</div>}><Analytics /></Suspense>} />
+          <Route path="/pricing" element={<Suspense fallback={<div className="min-h-screen flex items-center justify-center">Carregando...</div>}><Pricing /></Suspense>} />
           <Route path="/profile" element={<Profile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
