@@ -1671,7 +1671,7 @@ Retorne APENAS o JSON válido.`;
       // Create contextual title based on content type and actual generated content
       const contentPreview = JSON.stringify(generatedContent).substring(0, 150);
       
-      // Extrair tema do conteúdo gerado
+      // Extrair tema do conteúdo gerado - com fallbacks robustos para cada tipo
       let temaExtraido = "";
       if (detectedType === 'carrossel' && generatedContent.estrutura_visual?.slides?.[0]) {
         temaExtraido = generatedContent.estrutura_visual.slides[0].titulo || "";
@@ -1679,8 +1679,25 @@ Retorne APENAS o JSON válido.`;
         temaExtraido = generatedContent.stories.slides[0].titulo || "";
       } else if (detectedType === 'devocional' && generatedContent.devocional?.titulo) {
         temaExtraido = generatedContent.devocional.titulo;
-      } else if (detectedType === 'estudo' && generatedContent.fundamento_biblico?.versiculos?.[0]) {
-        temaExtraido = generatedContent.fundamento_biblico.versiculos[0].referencia;
+      } else if (detectedType === 'estudo') {
+        // Múltiplos fallbacks para estudo
+        temaExtraido = 
+          generatedContent.titulo ||
+          generatedContent.estudo_biblico?.titulo ||
+          generatedContent.topicos_principais?.[0]?.titulo ||
+          generatedContent.topicos?.[0]?.titulo ||
+          generatedContent.introducao?.substring?.(0, 50) ||
+          generatedContent.fundamento_biblico?.versiculos?.[0]?.referencia ||
+          "";
+      } else if (detectedType === 'resumo' || detectedType === 'resumo_breve') {
+        temaExtraido = 
+          generatedContent.titulo ||
+          generatedContent.resumo?.titulo ||
+          generatedContent.tema_principal ||
+          "";
+      } else if (generatedContent.titulo) {
+        // Fallback genérico: usar título se existir
+        temaExtraido = generatedContent.titulo;
       }
       
       const titlePrompt = `Create a short, descriptive title (max 50 chars) in Portuguese for this ${detectedType}:
