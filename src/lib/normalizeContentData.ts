@@ -578,6 +578,54 @@ export function normalizeDevocionalData(data: any): {
 }
 
 /**
+ * Normaliza dados de devocional semanal (7 dias)
+ */
+export function normalizeDevocionalSemanalData(data: any): {
+  devocional_semanal: {
+    titulo: string;
+    objetivo_semanal: string;
+    dias: Array<{
+      dia: number;
+      titulo: string;
+      versiculo_base: string;
+      reflexao: string;
+      perguntas_pessoais: string[];
+      oracao: string;
+      desafio_do_dia: string;
+    }>;
+    conclusao_semanal: string;
+  };
+  fundamento_biblico?: NormalizedFundamentoBiblico;
+} {
+  const ds = data?.devocional_semanal || data;
+  const dias = ds?.dias || [];
+  
+  return {
+    devocional_semanal: {
+      titulo: ds?.titulo || data?.titulo || 'Devocional Semanal',
+      objetivo_semanal: ds?.objetivo_semanal || ds?.objetivo || '',
+      dias: dias.map((d: any, i: number) => ({
+        dia: d.dia || i + 1,
+        titulo: d.titulo || `Dia ${i + 1}`,
+        versiculo_base: d.versiculo_base || d.versiculo || '',
+        reflexao: d.reflexao || d.meditacao || '',
+        perguntas_pessoais: d.perguntas_pessoais || d.perguntas || [],
+        oracao: d.oracao || '',
+        desafio_do_dia: d.desafio_do_dia || d.desafio || '',
+      })),
+      conclusao_semanal: ds?.conclusao_semanal || ds?.conclusao || '',
+    },
+    fundamento_biblico: data?.fundamento_biblico ? {
+      versiculos: Array.isArray(data.fundamento_biblico.versiculos) 
+        ? data.fundamento_biblico.versiculos 
+        : [data.fundamento_biblico.versiculos || ''],
+      contexto: data.fundamento_biblico.contexto || '',
+      principio: data.fundamento_biblico.principio || '',
+    } : undefined,
+  };
+}
+
+/**
  * Normaliza dados de estudo bíblico
  */
 export function normalizeEstudoBiblicoData(data: any): {
@@ -883,6 +931,10 @@ export function normalizeContentData(data: any, contentType: string): any {
     case 'devocional':
       return { data: normalizeDevocionalData(data), _normalized: true };
     
+    case 'devocionalsemanal':
+    case 'devocional_semanal':
+      return { ...normalizeDevocionalSemanalData(data), _normalized: true };
+    
     case 'estudo':
     case 'estudobiblico':
       return { data: normalizeEstudoBiblicoData(data), _normalized: true };
@@ -944,6 +996,10 @@ export function detectRealContentType(data: any, declaredType: string): string {
 
   if (data?.roteiro?.cenas || data?.estrutura_visual?.cenas) {
     return 'reel';
+  }
+
+  if (data?.devocional_semanal?.dias?.length > 0) {
+    return 'devocional_semanal';
   }
 
   if (data?.devocional?.reflexao || data?.devocional?.oracao) {
