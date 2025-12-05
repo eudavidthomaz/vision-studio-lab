@@ -1559,7 +1559,7 @@ Retorne APENAS o JSON válido.`;
       (detectedType === 'trilha_oracao' && generatedContent.fundamento_biblico && generatedContent.trilha_oracao) ||
       (detectedType === 'qa_estruturado' && generatedContent.fundamento_biblico && generatedContent.perguntas_respostas) ||
       (detectedType === 'discipulado' && generatedContent.fundamento_biblico && generatedContent.plano_discipulado) ||
-      (detectedType === 'desafio_semanal' && generatedContent.fundamento_biblico && generatedContent.desafio_semanal?.dias?.length === 7) ||
+      (detectedType === 'desafio_semanal' && (generatedContent.desafio_semanal?.dias || generatedContent.pontos_principais || generatedContent.desafio)) ||
       (detectedType === 'ideia_estrategica' && generatedContent.ideia_estrategica) ||
       (detectedType === 'estudo' && generatedContent.estudo_biblico) ||
       (detectedType === 'resumo' && generatedContent.resumo_pregacao) ||
