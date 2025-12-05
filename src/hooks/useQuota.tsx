@@ -69,29 +69,20 @@ export const useQuota = () => {
   const { data: userRole } = useQuery({
     queryKey: ['user-role'],
     queryFn: async () => {
-      const { data, error: userError } = await supabase.auth.getUser();
-
-      if (userError) {
-        console.warn('Erro ao recuperar usuário autenticado para roles:', userError);
-        return 'free';
-      }
-
-      if (!data?.user) {
-        return 'free';
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 'free'; // Return default for unauthenticated users
 
       const { data: roleData, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', data.user.id)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao buscar role do usuário:', error);
+      if (error) {
+        console.error('Error fetching user role:', error);
         return 'free';
       }
-
-      return roleData?.role || 'free';
+      return data?.role || 'free';
     },
     retry: false,
   });
@@ -100,7 +91,8 @@ export const useQuota = () => {
   const { data: quota, isLoading } = useQuery<UsageQuota | null>({
     queryKey: ['usage-quota'],
     queryFn: async () => {
-      const { data, error: userError } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null; // Return null for unauthenticated users
 
       if (userError) {
         console.warn('Erro ao recuperar usuário autenticado para quotas:', userError);
@@ -114,14 +106,14 @@ export const useQuota = () => {
       const { data: quotaData, error } = await supabase
         .from('usage_quotas')
         .select('*')
-        .eq('user_id', data.user.id)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao buscar quota do usuário:', error);
+      if (error) {
+        console.error('Error fetching quota:', error);
         return null;
       }
-
+      
       // Se não existe, criar quota inicial
       if (!quotaData) {
         const { data: newQuota, error: insertError } = await supabase
@@ -134,13 +126,12 @@ export const useQuota = () => {
             reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
           })
           .select()
-          .single();
-
+          .maybeSingle();
+        
         if (insertError) {
-          console.error('Erro ao criar quota inicial:', insertError);
+          console.error('Error creating quota:', insertError);
           return null;
         }
-
         return newQuota as UsageQuota;
       }
 
