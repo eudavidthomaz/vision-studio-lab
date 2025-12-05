@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Joyride, { Step, CallBackProps, STATUS } from "react-joyride";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
@@ -11,19 +11,19 @@ const OnboardingTour = ({ run, onComplete }: OnboardingTourProps) => {
   const { trackEvent } = useAnalytics();
   const [steps] = useState<Step[]>([
     {
-      target: '[data-tour="audio-input"]',
-      content: "Comece gravando ou fazendo upload da sua pregação aqui. O áudio será transcrito automaticamente.",
+      target: '[data-tour="ai-creator"]',
+      content: "Comece criando conteúdo com IA! Descreva o que você quer e deixe a inteligência artificial criar posts, carrosseis, stories e muito mais.",
       disableBeacon: true,
       placement: "bottom",
     },
     {
-      target: '[data-tour="weekly-pack"]',
-      content: "Após a transcrição, todo o conteúdo da semana será gerado aqui. Você terá posts, stories, reels e muito mais!",
+      target: '[data-tour="audio-input"]',
+      content: "Ou envie o áudio da sua pregação aqui. Ela será transcrita automaticamente e você poderá gerar conteúdos baseados nela.",
       placement: "top",
     },
     {
-      target: '[data-tour="biblioteca-button"]',
-      content: "Acesse sua biblioteca com todo o conteúdo criado, organize e edite quando precisar.",
+      target: '[data-tour="conteudos-button"]',
+      content: "Acesse sua biblioteca com todo o conteúdo criado. Organize, edite e exporte quando precisar.",
       placement: "bottom",
     },
   ]);
@@ -33,7 +33,6 @@ const OnboardingTour = ({ run, onComplete }: OnboardingTourProps) => {
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
     if (finishedStatuses.includes(status)) {
-      // Track completion or skip
       if (status === STATUS.FINISHED) {
         trackEvent('tour_completed');
       } else if (status === STATUS.SKIPPED) {
