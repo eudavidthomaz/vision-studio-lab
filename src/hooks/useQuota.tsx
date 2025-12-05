@@ -69,41 +69,65 @@ export const useQuota = () => {
   const { data: userRole } = useQuery({
     queryKey: ['user-role'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      const { data, error: userError } = await supabase.auth.getUser();
 
-      const { data, error } = await supabase
+      if (userError) {
+        console.warn('Erro ao recuperar usuário autenticado para roles:', userError);
+        return 'free';
+      }
+
+      if (!data?.user) {
+        return 'free';
+      }
+
+      const { data: roleData, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
+        .eq('user_id', data.user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      return data?.role || 'free';
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao buscar role do usuário:', error);
+        return 'free';
+      }
+
+      return roleData?.role || 'free';
     },
+    retry: false,
   });
 
   // Buscar quotas do usuário
-  const { data: quota, isLoading } = useQuery({
+  const { data: quota, isLoading } = useQuery<UsageQuota | null>({
     queryKey: ['usage-quota'],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      const { data, error: userError } = await supabase.auth.getUser();
 
-      const { data, error } = await supabase
+      if (userError) {
+        console.warn('Erro ao recuperar usuário autenticado para quotas:', userError);
+        return null;
+      }
+
+      if (!data?.user) {
+        return null;
+      }
+
+      const { data: quotaData, error } = await supabase
         .from('usage_quotas')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', data.user.id)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Erro ao buscar quota do usuário:', error);
+        return null;
+      }
+
       // Se não existe, criar quota inicial
-      if (!data) {
+      if (!quotaData) {
         const { data: newQuota, error: insertError } = await supabase
           .from('usage_quotas')
           .insert({
-            user_id: user.id,
+            user_id: data.user.id,
             images_generated: 0,
             transcriptions_used: 0,
             live_captures_used: 0,
@@ -111,13 +135,18 @@ export const useQuota = () => {
           })
           .select()
           .single();
-        
-        if (insertError) throw insertError;
+
+        if (insertError) {
+          console.error('Erro ao criar quota inicial:', insertError);
+          return null;
+        }
+
         return newQuota as UsageQuota;
       }
-      
-      return data as UsageQuota;
+
+      return quotaData as UsageQuota;
     },
+    retry: false,
   });
 
   const limits = ROLE_LIMITS[userRole || 'free'];
