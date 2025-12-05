@@ -1,22 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Target } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, Target, Copy, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+import { normalizeCalendarioData } from "@/lib/normalizeContentData";
 
 interface CalendarioViewProps {
-  calendario: {
-    periodo: string;
-    objetivo: string;
-    postagens: Array<{
-      dia: string;
-      horario_sugerido: string;
-      formato: string;
-      tema: string;
-      pilar: string;
-      versiculo_base?: string;
-      objetivo_do_post: string;
-    }>;
-    observacoes: string;
-  };
+  calendario?: any;
+  data?: any;
+  onRegenerate?: () => void;
 }
 
 const getPillarColor = (pilar: string) => {
@@ -26,37 +18,74 @@ const getPillarColor = (pilar: string) => {
     PERTENCER: "bg-green-500/10 text-green-700 border-green-200",
     SERVIR: "bg-purple-500/10 text-purple-700 border-purple-200",
   };
-  return pillarMap[pilar] || "bg-gray-500/10 text-gray-700 border-gray-200";
+  return pillarMap[pilar?.toUpperCase()] || "bg-gray-500/10 text-gray-700 border-gray-200";
 };
 
-export const CalendarioView = ({ calendario }: CalendarioViewProps) => {
-  // Validação defensiva - suporte para múltiplas estruturas
-  const calData = calendario || (calendario as any)?.calendario_editorial || (calendario as any)?.data?.calendario;
+export const CalendarioView = ({ calendario, data, onRegenerate }: CalendarioViewProps) => {
+  // Normalizar dados de múltiplas fontes possíveis
+  const rawData = calendario || data?.calendario || data;
+  const normalized = normalizeCalendarioData(rawData);
   
-  if (!calData || !calData.postagens || calData.postagens.length === 0) {
+  const { periodo, objetivo, postagens, observacoes } = normalized;
+  const hasContent = postagens && postagens.length > 0;
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copiado!`);
+  };
+
+  const copyAll = () => {
+    let fullText = `📅 CALENDÁRIO EDITORIAL: ${periodo}\n\n`;
+    if (objetivo) fullText += `🎯 Objetivo: ${objetivo}\n\n`;
+    
+    postagens.forEach((post, i) => {
+      fullText += `--- ${post.dia} ---\n`;
+      fullText += `⏰ ${post.horario_sugerido} | 📱 ${post.formato}\n`;
+      fullText += `📌 ${post.tema}\n`;
+      fullText += `🎯 ${post.objetivo_do_post}\n`;
+      if (post.versiculo_base) fullText += `📖 ${post.versiculo_base}\n`;
+      fullText += `🏷️ ${post.pilar}\n\n`;
+    });
+    
+    if (observacoes) fullText += `💡 Observações: ${observacoes}`;
+    
+    copyToClipboard(fullText, "Calendário completo");
+  };
+
+  if (!hasContent) {
     return (
       <div className="space-y-6">
         <Card className="border-yellow-500/50">
           <CardContent className="pt-6 text-center">
             <p className="text-muted-foreground mb-2">⚠️ Calendário vazio ou incompleto</p>
-            <p className="text-sm text-muted-foreground">
-              Nenhuma postagem foi planejada. Tente regenerar o conteúdo com mais detalhes sobre o que você precisa para cada dia da semana.
+            <p className="text-sm text-muted-foreground mb-4">
+              Nenhuma postagem foi planejada. Tente regenerar o conteúdo com mais detalhes.
             </p>
+            {onRegenerate && (
+              <Button onClick={onRegenerate} variant="outline">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Regenerar
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const { periodo, objetivo, postagens, observacoes } = calData;
-
   return (
     <div className="space-y-6">
       <Card className="border-primary/20">
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            <CardTitle>Calendário Editorial</CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              <CardTitle>Calendário Editorial</CardTitle>
+            </div>
+            <Button variant="ghost" size="sm" onClick={copyAll}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copiar
+            </Button>
           </div>
           {periodo && (
             <p className="text-sm text-muted-foreground mt-2">{periodo}</p>

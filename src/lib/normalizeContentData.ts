@@ -554,6 +554,263 @@ export function normalizeKitBasicoData(data: any): {
   };
 }
 
+/**
+ * Normaliza dados de devocional
+ */
+export function normalizeDevocionalData(data: any): {
+  titulo: string;
+  reflexao: string;
+  perguntas_pessoais: string[];
+  oracao: string;
+  desafio_do_dia: string;
+  versiculo_base?: string;
+} {
+  const dev = data?.devocional || data;
+  
+  return {
+    titulo: dev?.titulo || data?.titulo || 'Devocional',
+    reflexao: dev?.reflexao || dev?.meditacao || dev?.conteudo || '',
+    perguntas_pessoais: dev?.perguntas_pessoais || dev?.perguntas || dev?.questoes || [],
+    oracao: dev?.oracao || dev?.oracao_sugerida || '',
+    desafio_do_dia: dev?.desafio_do_dia || dev?.desafio || dev?.aplicacao_pratica || '',
+    versiculo_base: dev?.versiculo_base || dev?.versiculo || data?.fundamento_biblico?.versiculos?.[0],
+  };
+}
+
+/**
+ * Normaliza dados de estudo bíblico
+ */
+export function normalizeEstudoBiblicoData(data: any): {
+  fundamento_biblico: {
+    versiculos: string[];
+    contexto: string;
+    principio_atemporal: string;
+  };
+  estudo_biblico: {
+    tema: string;
+    introducao: string;
+    desenvolvimento: Array<{
+      ponto: string;
+      explicacao: string;
+      aplicacao: string;
+    }>;
+    perguntas: string[];
+    conclusao: string;
+    desafio: string;
+  };
+} {
+  const fb = data?.fundamento_biblico || {};
+  const eb = data?.estudo_biblico || data?.estudo || data;
+  
+  return {
+    fundamento_biblico: {
+      versiculos: Array.isArray(fb.versiculos) ? fb.versiculos : 
+                  fb.versiculos ? [fb.versiculos] : 
+                  eb.versiculos ? [eb.versiculos] : [],
+      contexto: fb.contexto || eb.contexto_historico || '',
+      principio_atemporal: fb.principio_atemporal || fb.principio || eb.principio || '',
+    },
+    estudo_biblico: {
+      tema: eb.tema || data?.titulo || 'Estudo Bíblico',
+      introducao: eb.introducao || eb.abertura || '',
+      desenvolvimento: (eb.desenvolvimento || eb.pontos || eb.topicos || []).map((d: any, i: number) => ({
+        ponto: d.ponto || d.titulo || d.topico || `Ponto ${i + 1}`,
+        explicacao: d.explicacao || d.conteudo || d.descricao || '',
+        aplicacao: d.aplicacao || d.aplicacao_pratica || '',
+      })),
+      perguntas: eb.perguntas || eb.perguntas_reflexao || [],
+      conclusao: eb.conclusao || eb.fechamento || '',
+      desafio: eb.desafio || eb.desafio_semanal || eb.aplicacao || '',
+    },
+  };
+}
+
+/**
+ * Normaliza dados de trilha de oração
+ */
+export function normalizeTrilhaOracaoData(data: any): {
+  titulo: string;
+  duracao_estimada: string;
+  introducao: string;
+  etapas: Array<{
+    numero: number;
+    nome: string;
+    orientacao: string;
+    versiculo_guia: string;
+    tempo_sugerido: string;
+  }>;
+  encerramento: string;
+} {
+  const trilha = data?.trilha || data?.trilha_oracao || data;
+  
+  return {
+    titulo: trilha?.titulo || data?.titulo || 'Trilha de Oração',
+    duracao_estimada: trilha?.duracao_estimada || trilha?.duracao || '15 minutos',
+    introducao: trilha?.introducao || trilha?.abertura || '',
+    etapas: (trilha?.etapas || trilha?.passos || trilha?.momentos || []).map((e: any, i: number) => ({
+      numero: e.numero || i + 1,
+      nome: e.nome || e.titulo || `Etapa ${i + 1}`,
+      orientacao: e.orientacao || e.descricao || e.instrucao || '',
+      versiculo_guia: e.versiculo_guia || e.versiculo || '',
+      tempo_sugerido: e.tempo_sugerido || e.tempo || '3 min',
+    })),
+    encerramento: trilha?.encerramento || trilha?.conclusao || trilha?.fechamento || '',
+  };
+}
+
+/**
+ * Normaliza dados de convite
+ */
+export function normalizeConviteData(data: any): {
+  titulo_evento: string;
+  data: string;
+  horario: string;
+  local: string;
+  descricao: string;
+  publico_alvo: string;
+  como_participar: string;
+  contato?: string;
+  chamado_acao: string;
+} {
+  const convite = data?.convite || data;
+  
+  return {
+    titulo_evento: convite?.titulo_evento || convite?.titulo || data?.titulo || 'Evento',
+    data: convite?.data || convite?.data_evento || '[Data a definir]',
+    horario: convite?.horario || convite?.hora || '[Horário a definir]',
+    local: convite?.local || convite?.endereco || '[Local a definir]',
+    descricao: convite?.descricao || convite?.sobre || '',
+    publico_alvo: convite?.publico_alvo || convite?.para_quem || 'Todos são bem-vindos',
+    como_participar: convite?.como_participar || convite?.inscricao || 'Basta comparecer',
+    contato: convite?.contato || convite?.informacoes,
+    chamado_acao: convite?.chamado_acao || convite?.cta || 'Participe!',
+  };
+}
+
+/**
+ * Normaliza dados de guia
+ */
+export function normalizeGuiaData(data: any): {
+  titulo: string;
+  introducao: string;
+  passos: Array<{
+    numero: number;
+    titulo: string;
+    descricao: string;
+    dica?: string;
+  }>;
+  recursos_necessarios: string[];
+  conclusao: string;
+} {
+  const guia = data?.guia || data;
+  
+  return {
+    titulo: guia?.titulo || data?.titulo || 'Guia',
+    introducao: guia?.introducao || guia?.abertura || '',
+    passos: (guia?.passos || guia?.etapas || guia?.steps || []).map((p: any, i: number) => ({
+      numero: p.numero || i + 1,
+      titulo: p.titulo || `Passo ${i + 1}`,
+      descricao: p.descricao || p.conteudo || '',
+      dica: p.dica || p.sugestao,
+    })),
+    recursos_necessarios: guia?.recursos_necessarios || guia?.recursos || guia?.materiais || [],
+    conclusao: guia?.conclusao || guia?.fechamento || '',
+  };
+}
+
+/**
+ * Normaliza dados de aviso
+ */
+export function normalizeAvisoData(data: any): {
+  tipo: string;
+  titulo: string;
+  mensagem: string;
+  data_vigencia: string;
+  responsavel: string;
+  chamado_acao: string;
+} {
+  const aviso = data?.aviso || data;
+  
+  return {
+    tipo: aviso?.tipo || aviso?.categoria || 'Informativo',
+    titulo: aviso?.titulo || data?.titulo || 'Aviso',
+    mensagem: aviso?.mensagem || aviso?.conteudo || aviso?.descricao || '',
+    data_vigencia: aviso?.data_vigencia || aviso?.validade || '[Sem prazo]',
+    responsavel: aviso?.responsavel || aviso?.autor || '[Não informado]',
+    chamado_acao: aviso?.chamado_acao || aviso?.cta || '',
+  };
+}
+
+/**
+ * Normaliza dados de roteiro de vídeo
+ */
+export function normalizeRoteiroVideoData(data: any): {
+  titulo: string;
+  duracao_total: string;
+  objetivo: string;
+  cenas: Array<{
+    numero: number;
+    duracao: string;
+    descricao_visual: string;
+    audio_fala: string;
+    texto_tela?: string;
+  }>;
+  equipamentos_sugeridos: string[];
+  dicas_gravacao: string[];
+} {
+  const roteiro = data?.roteiro || data?.roteiro_video || data;
+  
+  return {
+    titulo: roteiro?.titulo || data?.titulo || 'Roteiro de Vídeo',
+    duracao_total: roteiro?.duracao_total || roteiro?.duracao || '3-5 min',
+    objetivo: roteiro?.objetivo || '',
+    cenas: (roteiro?.cenas || roteiro?.sequencias || []).map((c: any, i: number) => ({
+      numero: c.numero || i + 1,
+      duracao: c.duracao || c.tempo || '10-20s',
+      descricao_visual: c.descricao_visual || c.visual || c.imagem || '',
+      audio_fala: c.audio_fala || c.audio || c.fala || c.script || '',
+      texto_tela: c.texto_tela || c.texto_overlay,
+    })),
+    equipamentos_sugeridos: roteiro?.equipamentos_sugeridos || roteiro?.equipamentos || [],
+    dicas_gravacao: roteiro?.dicas_gravacao || roteiro?.dicas || [],
+  };
+}
+
+/**
+ * Normaliza dados de checklist de culto
+ */
+export function normalizeChecklistCultoData(data: any): {
+  titulo: string;
+  data_evento: string;
+  responsavel_geral: string;
+  categorias: Array<{
+    nome: string;
+    responsavel: string;
+    itens: Array<{
+      item: string;
+      prazo: string;
+      observacao?: string;
+    }>;
+  }>;
+} {
+  const checklist = data?.checklist || data?.checklist_culto || data;
+  
+  return {
+    titulo: checklist?.titulo || data?.titulo || 'Checklist do Culto',
+    data_evento: checklist?.data_evento || checklist?.data || '[Data a definir]',
+    responsavel_geral: checklist?.responsavel_geral || checklist?.responsavel || '[Não definido]',
+    categorias: (checklist?.categorias || checklist?.secoes || checklist?.areas || []).map((cat: any) => ({
+      nome: cat.nome || cat.titulo || cat.categoria || 'Categoria',
+      responsavel: cat.responsavel || '[Não definido]',
+      itens: (cat.itens || cat.tarefas || []).map((item: any) => ({
+        item: typeof item === 'string' ? item : item.item || item.tarefa || item.descricao || '',
+        prazo: typeof item === 'string' ? '' : item.prazo || item.quando || '',
+        observacao: typeof item === 'string' ? undefined : item.observacao || item.obs,
+      })),
+    })),
+  };
+}
+
 // ============================================
 // FUNÇÃO UNIVERSAL DE NORMALIZAÇÃO
 // ============================================
@@ -566,7 +823,9 @@ export function normalizeContentData(data: any, contentType: string): any {
     return { _empty: true, _type: contentType };
   }
 
-  switch (contentType.toLowerCase().replace(/_/g, '')) {
+  const typeKey = contentType.toLowerCase().replace(/_/g, '');
+  
+  switch (typeKey) {
     case 'carrossel':
     case 'carousel':
       return { ...normalizeCarrosselData(data), _normalized: true };
@@ -581,6 +840,7 @@ export function normalizeContentData(data: any, contentType: string): any {
     
     case 'post':
     case 'postsimples':
+    case 'fotopost':
       return { ...normalizePostData(data), _normalized: true };
     
     case 'calendario':
@@ -589,11 +849,10 @@ export function normalizeContentData(data: any, contentType: string): any {
     
     case 'desafiosemanal':
     case 'desafio':
+      const desafioNorm = normalizeDesafioSemanalData(data);
       return { 
-        desafio_semanal: normalizeDesafioSemanalData(data).dias.length > 0 
-          ? normalizeDesafioSemanalData(data) 
-          : data?.desafio_semanal || data,
-        fundamento_biblico: normalizeDesafioSemanalData(data).fundamento_biblico || data?.fundamento_biblico,
+        desafio_semanal: desafioNorm.dias.length > 0 ? desafioNorm : data?.desafio_semanal || data,
+        fundamento_biblico: desafioNorm.fundamento_biblico || data?.fundamento_biblico,
         _normalized: true 
       };
     
@@ -606,6 +865,7 @@ export function normalizeContentData(data: any, contentType: string): any {
     
     case 'qaestruturado':
     case 'qa':
+    case 'perguntas':
       return { qa: normalizeQAEstruturadoData(data), _normalized: true };
     
     case 'estrategiasocial':
@@ -620,8 +880,46 @@ export function normalizeContentData(data: any, contentType: string): any {
     case 'kit':
       return { data: normalizeKitBasicoData(data), _normalized: true };
     
+    case 'devocional':
+      return { data: normalizeDevocionalData(data), _normalized: true };
+    
+    case 'estudo':
+    case 'estudobiblico':
+      return { data: normalizeEstudoBiblicoData(data), _normalized: true };
+    
+    case 'trilhaoracao':
+      return { trilha: normalizeTrilhaOracaoData(data), _normalized: true };
+    
+    case 'convite':
+      return { convite: normalizeConviteData(data), _normalized: true };
+    
+    case 'guia':
+      return { guia: normalizeGuiaData(data), _normalized: true };
+    
+    case 'aviso':
+      return { aviso: normalizeAvisoData(data), _normalized: true };
+    
+    case 'roteirovideo':
+      return { roteiro: normalizeRoteiroVideoData(data), _normalized: true };
+    
+    case 'checklistculto':
+      return { checklist: normalizeChecklistCultoData(data), _normalized: true };
+    
+    case 'convitegrupos':
+      return { convite: normalizeConviteData(data), _normalized: true };
+    
+    case 'resumo':
+    case 'resumopregacao':
+    case 'resumobreve':
+    case 'versiculoscitados':
+    case 'esboco':
+    case 'ideiastrategica':
+    case 'discipulado':
+    case 'roteiroreels':
+      // Retornar dados originais para tipos que têm views específicas
+      return { ...data, _normalized: false, _type: contentType };
+    
     default:
-      // Para tipos não normalizados, retornar dados originais com marcação
       return { ...data, _normalized: false, _type: contentType };
   }
 }
@@ -656,6 +954,42 @@ export function detectRealContentType(data: any, declaredType: string): string {
     return 'estudo';
   }
 
+  if (data?.trilha || data?.trilha_oracao) {
+    return 'trilha_oracao';
+  }
+
+  if (data?.convite) {
+    return 'convite';
+  }
+
+  if (data?.guia) {
+    return 'guia';
+  }
+
+  if (data?.aviso) {
+    return 'aviso';
+  }
+
+  if (data?.calendario || data?.calendario_editorial) {
+    return 'calendario';
+  }
+
+  if (data?.desafio_semanal || data?.desafio) {
+    return 'desafio_semanal';
+  }
+
+  if (data?.campanha || data?.campanha_tematica) {
+    return 'campanha_tematica';
+  }
+
+  if (data?.manual || data?.manual_etica) {
+    return 'manual_etica';
+  }
+
+  if (data?.qa || data?.perguntas_respostas) {
+    return 'qa_estruturado';
+  }
+
   if (data?.conteudo?.legenda && !data?.estrutura_visual && !data?.stories) {
     return 'post';
   }
@@ -685,6 +1019,22 @@ export function isContentEmpty(data: any, contentType: string): boolean {
     case 'post': {
       const normalized = normalizePostData(data);
       return !normalized.texto && !normalized.legenda;
+    }
+    case 'devocional': {
+      const normalized = normalizeDevocionalData(data);
+      return !normalized.reflexao;
+    }
+    case 'estudo': {
+      const normalized = normalizeEstudoBiblicoData(data);
+      return !normalized.estudo_biblico.tema && normalized.estudo_biblico.desenvolvimento.length === 0;
+    }
+    case 'trilha_oracao': {
+      const normalized = normalizeTrilhaOracaoData(data);
+      return normalized.etapas.length === 0;
+    }
+    case 'calendario': {
+      const normalized = normalizeCalendarioData(data);
+      return normalized.postagens.length === 0;
     }
     default:
       return Object.keys(data).length === 0;
