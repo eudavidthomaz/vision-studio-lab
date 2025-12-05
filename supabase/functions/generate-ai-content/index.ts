@@ -1,15 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { 
-  MENTOR_IDENTITY, 
+import {
+  MENTOR_IDENTITY,
   MENTOR_IDENTITY_SIMPLIFIED,
   THEOLOGICAL_BASE,
   ACADEMIC_BASE,
   STUDY_BASE,
-  CORE_PRINCIPLES, 
-  CONTENT_METHOD, 
-  PILLAR_DISTRIBUTION 
+  CORE_PRINCIPLES,
+  CONTENT_METHOD,
+  PILLAR_DISTRIBUTION
 } from "../_shared/prompt-principles.ts";
+import { ContentType, detectContentTypes, isContentType } from "../_shared/detectContentTypes.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -138,69 +139,22 @@ serve(async (req) => {
   console.log('📋 User specifications extracted:', userSpecs);
 
   // Detectar tipo de conteúdo solicitado
-  let detectedType = 'post'; // default
+  const explicitTypeMatch = processedPrompt.match(/TIPO_SOLICITADO:\s*([\w,\s-]+)/i);
 
-  // PRIORIDADE 1: Verificar se há marcador explícito
-  const explicitTypeMatch = processedPrompt.match(/TIPO_SOLICITADO:\s*(\w+)/i);
-  if (explicitTypeMatch) {
-    detectedType = explicitTypeMatch[1].toLowerCase();
-    console.log(`✅ Explicit type detected: ${detectedType}`);
-  } else {
-    // PRIORIDADE 2: Detecção por regex (formatos específicos primeiro)
-    const contentTypeDetection = {
-      // COMANDOS ESPECIAIS (prioridade máxima)
-      treino_voluntario: /\/treino-voluntário|treino de voluntário|onboarding mídia/i,
-      campanha_tematica: /\/campanha-temática|série de conteúdo|planejamento série/i,
-      roteiro_reels: /\/roteiro-reels|script reels|roteiro curto/i,
-      checklist_culto: /\/checklist-culto|checklist culto|pré culto/i,
-      kit_basico: /\/kit-básico|mídia com celular|setup mínimo/i,
-      manual_etica: /\/manual-ética|guia ética|proteção imagem/i,
-      estrategia_social: /\/estratégia-social|plano instagram|estratégia redes/i,
-      
-      // Resumo breve (for sermon summaries)
-      resumo_breve: /resumo_breve|resumo breve/i,
-      
-      // PRIORIDADE ABSOLUTA: Carrossel (slides/páginas sequenciais)
-      carrossel: /carrossel|carousel|slides?|páginas?|sequência|cards?\s*\d+/i,
-      
-      // FORMATOS DE CONTEÚDO
-      reel: /reel|vídeo(?!\s+para)|roteiro|script/i,
-      stories: /stories|story|storys/i,
-      
-      // Organizacionais
-      calendario: /calendário|calendario|cronograma|planejamento|plano editorial|grade de posts|planner/i,
-      aviso: /aviso|comunicado|lembrete|atenção/i,
-      guia: /guia|manual|passo a passo|tutorial/i,
-      esboco: /esboço|outline|tópicos|estrutura/i,
-      versiculos_citados: /versículos citados|referências bíblicas|passagens mencionadas/i,
-      trilha_oracao: /trilha de oração|roteiro de oração|guia de intercessão/i,
-      qa_estruturado: /perguntas e respostas|q&a|dúvidas frequentes|faq/i,
-      convite_grupos: /convite para grupo|chamado para célula|junte-se ao|entre no grupo/i,
-      discipulado: /discipulado|mentoria|acompanhamento espiritual/i,
-      
-      // Bíblicos/Criativos
-      desafio_semanal: /desafio|challenge|compromisso semanal|missão|jornada/i,
-      estudo: /estudo|estudo bíblico|análise bíblica|exegese/i,
-      resumo: /resumo|resumir|sintetize|principais pontos|síntese/i,
-      devocional: /devocional|meditação|reflexão diária/i,
-      perguntas: /perguntas|questões|discussão|célula/i,
-      post: /post|publicação|legenda/i,
-      ideia_estrategica: /ideia|viral|campanha|estratégia|plano de conteúdo|série/i,
-      
-      // TIPOS DE EVENTO (PRIORIDADE BAIXA - verificar por último)
-      convite: /\b(convite|convidar|chamado para|venha para|participe)\b(?!\s+para\s+grupo)/i
-    };
+  const explicitTypes: ContentType[] = explicitTypeMatch
+    ? explicitTypeMatch[1]
+        .split(/[|,]/)
+        .map((value) => value.trim().toLowerCase())
+        .filter(isContentType)
+    : [];
 
-    // Apenas analisar os primeiros 2000 caracteres para evitar falsos positivos
-    const promptStart = processedPrompt.substring(0, 2000);
-    
-    for (const [type, regex] of Object.entries(contentTypeDetection)) {
-      if (regex.test(promptStart)) {
-        detectedType = type;
-        break;
-      }
-    }
-  }
+  const detectedTypes = explicitTypes.length > 0
+    ? explicitTypes
+    : detectContentTypes(processedPrompt.substring(0, 2000));
+
+  const detectedType: ContentType = detectedTypes[0] || "post";
+
+  console.log(`✅ Detected type(s): ${detectedTypes.join(", ")}`);
 
   console.log(`Final detected content type: ${detectedType}`);
 
