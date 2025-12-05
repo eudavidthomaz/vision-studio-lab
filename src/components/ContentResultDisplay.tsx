@@ -551,7 +551,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
   }
 
   if (contentType === 'desafio_semanal' && parsedContent.desafio_semanal) {
-    return <DesafioSemanalView data={parsedContent} onSave={onSave} onRegenerate={onRegenerate} isSaving={isSaving} />;
+    return <DesafioSemanalView data={parsedContent} onRegenerate={onRegenerate} />;
   }
 
   if (contentType === 'devocional') {

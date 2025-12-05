@@ -3,9 +3,6 @@
  * 
  * Este módulo resolve o problema de inconsistência entre estruturas JSON
  * geradas pelo backend e o que cada View espera receber.
- * 
- * A IA pode retornar dados em diferentes formatos. Este normalizador
- * garante que cada View receba dados no formato esperado.
  */
 
 // ============================================
@@ -73,7 +70,6 @@ export function normalizeCarrosselData(data: any): {
   dicaProducao?: NormalizedDicaProducao;
   fundamento?: NormalizedFundamentoBiblico;
 } {
-  // Buscar slides em todas as localizações possíveis
   const rawSlides = 
     data?.estrutura_visual?.slides ||
     data?.estrutura_visual?.cards ||
@@ -93,14 +89,8 @@ export function normalizeCarrosselData(data: any): {
     versiculo: slide.versiculo || slide.versiculo_base,
   }));
 
-  // Normalizar legenda
-  const legenda = 
-    data?.conteudo?.legenda ||
-    data?.legenda ||
-    data?.caption ||
-    undefined;
+  const legenda = data?.conteudo?.legenda || data?.legenda || data?.caption;
 
-  // Normalizar dicas de produção
   const rawDica = data?.dica_producao || data?.dicas || {};
   const dicaProducao: NormalizedDicaProducao = {
     formato: rawDica.formato,
@@ -111,7 +101,6 @@ export function normalizeCarrosselData(data: any): {
     cta: rawDica.cta,
   };
 
-  // Normalizar fundamento bíblico
   const rawFundamento = data?.fundamento_biblico || data?.fundamento || {};
   const fundamento: NormalizedFundamentoBiblico | undefined = rawFundamento.versiculos ? {
     versiculos: Array.isArray(rawFundamento.versiculos) 
@@ -132,20 +121,17 @@ export function normalizeStoriesData(data: any): {
   legenda?: string;
   hashtags?: string[];
 } {
-  // Buscar stories/slides em todas as localizações possíveis
   const rawSlides = 
     data?.stories?.slides ||
     data?.stories ||
     data?.estrutura?.slides ||
     data?.slides ||
-    // Se recebeu formato de array direto de versículos (comum quando IA confunde)
     (Array.isArray(data?.fundamento_biblico?.versiculos) && 
      data?.fundamento_biblico?.versiculos[0]?.texto 
       ? data.fundamento_biblico.versiculos 
       : null) ||
     [];
 
-  // Se recebeu um formato de post ao invés de stories, criar um story fake para exibir
   if (rawSlides.length === 0 && (data?.conteudo?.legenda || data?.conteudo?.texto)) {
     return {
       slides: [{
@@ -186,7 +172,6 @@ export function normalizeReelData(data: any): {
   hook?: string;
   duracao?: string;
 } {
-  // Buscar cenas em todas as localizações possíveis
   const rawCenas = 
     data?.roteiro?.cenas ||
     data?.roteiro_video?.cenas ||
@@ -194,7 +179,6 @@ export function normalizeReelData(data: any): {
     data?.cenas ||
     [];
 
-  // Se não tem cenas mas tem roteiro como string, criar cena única
   if (rawCenas.length === 0 && (data?.roteiro || data?.estrutura_visual?.roteiro)) {
     const roteiroText = typeof data?.roteiro === 'string' 
       ? data.roteiro 
@@ -244,34 +228,122 @@ export function normalizePostData(data: any): NormalizedPost {
   };
 }
 
+// ============================================
+// NORMALIZADORES PARA TIPOS ESPECÍFICOS
+// ============================================
+
 /**
- * Normaliza dados de devocional
+ * Normaliza dados de calendário editorial
  */
-export function normalizeDevocionalData(data: any): {
-  titulo: string;
-  versiculo: string;
-  textoVersiculo: string;
-  reflexao: string;
-  oracao: string;
-  desafioDoDia: string;
-  aplicacaoPratica?: string;
-  perguntasPessoais?: string[];
-  fundamento?: NormalizedFundamentoBiblico;
+export function normalizeCalendarioData(data: any): {
+  periodo: string;
+  objetivo: string;
+  postagens: Array<{
+    dia: string;
+    horario_sugerido: string;
+    formato: string;
+    tema: string;
+    pilar: string;
+    versiculo_base?: string;
+    objetivo_do_post: string;
+  }>;
+  observacoes?: string;
 } {
-  const devocional = data?.devocional || data;
-  const fundamento = data?.fundamento_biblico;
+  const cal = data?.calendario || data?.calendario_editorial || data?.data?.calendario || data;
+  
+  const rawPostagens = cal?.postagens || cal?.posts || cal?.dias || [];
+  
+  const postagens = rawPostagens.map((p: any, i: number) => ({
+    dia: p.dia || p.data || `Dia ${i + 1}`,
+    horario_sugerido: p.horario_sugerido || p.horario || p.melhor_horario || '18:00',
+    formato: p.formato || p.tipo || 'Post',
+    tema: p.tema || p.titulo || p.assunto || '',
+    pilar: p.pilar || 'EDIFICAR',
+    versiculo_base: p.versiculo_base || p.versiculo,
+    objetivo_do_post: p.objetivo_do_post || p.objetivo || p.descricao || '',
+  }));
 
   return {
-    titulo: data?.titulo || devocional?.titulo || 'Devocional',
-    versiculo: devocional?.versiculo || fundamento?.versiculos?.[0] || '',
-    textoVersiculo: devocional?.texto_versiculo || '',
-    reflexao: devocional?.reflexao || '',
-    oracao: devocional?.oracao || '',
-    desafioDoDia: devocional?.desafio_do_dia || devocional?.desafio || '',
-    aplicacaoPratica: devocional?.aplicacao_pratica,
-    perguntasPessoais: devocional?.perguntas_pessoais,
-    fundamento: fundamento ? {
-      versiculos: Array.isArray(fundamento.versiculos) ? fundamento.versiculos : [fundamento.versiculos],
+    periodo: cal?.periodo || data?.titulo || 'Calendário Semanal',
+    objetivo: cal?.objetivo || cal?.objetivo_geral || '',
+    postagens,
+    observacoes: cal?.observacoes || cal?.dicas,
+  };
+}
+
+/**
+ * Normaliza dados de desafio semanal
+ */
+export function normalizeDesafioSemanalData(data: any): {
+  titulo: string;
+  objetivo_espiritual: string;
+  objetivo_pratico: string;
+  como_funciona: string;
+  dias: Array<{
+    dia: number;
+    acao: string;
+    versiculo_do_dia: string;
+    reflexao: string;
+    exemplo_pratico: string;
+  }>;
+  como_compartilhar: {
+    hashtag: string;
+    sugestao_post: string;
+    formato: string;
+  };
+  metricas_de_impacto: {
+    individual: string;
+    comunitario: string;
+  };
+  fundamento_biblico?: NormalizedFundamentoBiblico;
+} {
+  const desafio = data?.desafio_semanal || data?.desafio || data;
+  const fundamento = data?.fundamento_biblico;
+  
+  // Normalizar dias de diferentes estruturas
+  let dias = desafio?.dias || [];
+  
+  // Se veio como objeto dia_1, dia_2, etc
+  if (dias.length === 0 && desafio?.dia_1) {
+    dias = [];
+    for (let i = 1; i <= 7; i++) {
+      const diaKey = `dia_${i}`;
+      if (desafio[diaKey]) {
+        const d = desafio[diaKey];
+        dias.push({
+          dia: i,
+          acao: d.desafio || d.acao || d.titulo || '',
+          versiculo_do_dia: d.reflexao || d.versiculo || '',
+          reflexao: typeof d.reflexao === 'string' ? d.reflexao : '',
+          exemplo_pratico: d.exemplo || d.exemplo_pratico || '',
+        });
+      }
+    }
+  }
+
+  return {
+    titulo: desafio?.titulo || data?.titulo || 'Desafio Semanal',
+    objetivo_espiritual: desafio?.objetivo_espiritual || desafio?.objetivo || '',
+    objetivo_pratico: desafio?.objetivo_pratico || '',
+    como_funciona: desafio?.como_funciona || '',
+    dias: dias.map((d: any, i: number) => ({
+      dia: d.dia || i + 1,
+      acao: d.acao || d.desafio || d.titulo || '',
+      versiculo_do_dia: d.versiculo_do_dia || d.versiculo || '',
+      reflexao: d.reflexao || '',
+      exemplo_pratico: d.exemplo_pratico || d.exemplo || '',
+    })),
+    como_compartilhar: {
+      hashtag: desafio?.como_compartilhar?.hashtag || '#DesafioSemanal',
+      sugestao_post: desafio?.como_compartilhar?.sugestao_post || '',
+      formato: desafio?.como_compartilhar?.formato || 'Story',
+    },
+    metricas_de_impacto: {
+      individual: desafio?.metricas_de_impacto?.individual || desafio?.impacto?.individual || '',
+      comunitario: desafio?.metricas_de_impacto?.comunitario || desafio?.impacto?.comunitario || '',
+    },
+    fundamento_biblico: fundamento ? {
+      versiculos: Array.isArray(fundamento.versiculos) ? fundamento.versiculos : [fundamento.versiculos || ''],
       contexto: fundamento.contexto || '',
       principio: fundamento.principio || fundamento.principio_atemporal || '',
     } : undefined,
@@ -279,59 +351,288 @@ export function normalizeDevocionalData(data: any): {
 }
 
 /**
- * Normaliza dados de estudo bíblico
+ * Normaliza dados de campanha temática
  */
-export function normalizeEstudoData(data: any): {
+export function normalizeCampanhaTematicaData(data: any): {
   titulo: string;
-  passagemPrincipal: string;
-  introducao: string;
-  contextoHistorico: string;
-  pontosPrincipais: Array<{
-    ponto: string;
-    explicacao: string;
-    aplicacao: string;
+  duracao: string;
+  objetivo_geral: string;
+  semanas: Array<{
+    numero: number;
+    tema: string;
+    objetivo: string;
+    formatos_sugeridos: string[];
+    exemplo_post: string;
+    metricas: string[];
   }>;
-  perguntasDiscussao: string[];
-  desafioPratico: string;
-  fundamento?: NormalizedFundamentoBiblico;
 } {
-  const estudo = data?.estudo_biblico || data?.estudo || data;
-  const fundamento = data?.fundamento_biblico;
-
-  // Normalizar pontos principais de diferentes estruturas
-  const rawPontos = estudo?.pontos_principais || estudo?.desenvolvimento || [];
-  const pontosPrincipais = rawPontos.map((p: any) => ({
-    ponto: p.ponto || p.titulo || '',
-    explicacao: p.explicacao || p.conteudo || '',
-    aplicacao: p.aplicacao || '',
-  }));
+  const campanha = data?.campanha || data?.campanha_tematica || data;
+  const rawSemanas = campanha?.semanas || campanha?.fases || [];
 
   return {
-    titulo: data?.titulo || estudo?.tema || estudo?.titulo || 'Estudo Bíblico',
-    passagemPrincipal: data?.passagem_principal || estudo?.passagem || fundamento?.versiculos?.[0] || '',
-    introducao: estudo?.introducao || '',
-    contextoHistorico: estudo?.contexto_historico || fundamento?.contexto || '',
-    pontosPrincipais,
-    perguntasDiscussao: estudo?.perguntas_discussao || estudo?.perguntas || [],
-    desafioPratico: estudo?.desafio_pratico || estudo?.desafio || '',
-    fundamento: fundamento ? {
-      versiculos: Array.isArray(fundamento.versiculos) ? fundamento.versiculos : [fundamento.versiculos],
-      contexto: fundamento.contexto || '',
-      principio: fundamento.principio || fundamento.principio_atemporal || '',
-    } : undefined,
+    titulo: campanha?.titulo || data?.titulo || 'Campanha Temática',
+    duracao: campanha?.duracao || campanha?.periodo || '4 semanas',
+    objetivo_geral: campanha?.objetivo_geral || campanha?.objetivo || '',
+    semanas: rawSemanas.map((s: any, i: number) => ({
+      numero: s.numero || s.semana || i + 1,
+      tema: s.tema || s.titulo || '',
+      objetivo: s.objetivo || '',
+      formatos_sugeridos: s.formatos_sugeridos || s.formatos || [],
+      exemplo_post: s.exemplo_post || s.exemplo || '',
+      metricas: s.metricas || [],
+    })),
   };
+}
+
+/**
+ * Normaliza dados de manual de ética
+ */
+export function normalizeManualEticaData(data: any): {
+  titulo: string;
+  introducao: string;
+  principios_gerais: string[];
+  secoes: Array<{
+    titulo: string;
+    contexto: string;
+    fazer: string[];
+    nao_fazer: string[];
+    exemplo_pratico: string;
+  }>;
+} {
+  const manual = data?.manual || data?.manual_etica || data;
+
+  return {
+    titulo: manual?.titulo || data?.titulo || 'Manual de Ética',
+    introducao: manual?.introducao || '',
+    principios_gerais: manual?.principios_gerais || manual?.principios || [],
+    secoes: (manual?.secoes || manual?.diretrizes || []).map((s: any) => ({
+      titulo: s.titulo || '',
+      contexto: s.contexto || s.descricao || '',
+      fazer: s.fazer || s.deve_fazer || [],
+      nao_fazer: s.nao_fazer || s.evitar || [],
+      exemplo_pratico: s.exemplo_pratico || s.exemplo || '',
+    })),
+  };
+}
+
+/**
+ * Normaliza dados de Q&A estruturado
+ */
+export function normalizeQAEstruturadoData(data: any): {
+  tema: string;
+  introducao: string;
+  questoes: Array<{
+    numero: number;
+    pergunta: string;
+    resposta: string;
+    versiculo_relacionado: string;
+  }>;
+} {
+  const qa = data?.qa || data?.qa_estruturado || data?.perguntas_respostas || data;
+  const rawQuestoes = qa?.questoes || qa?.perguntas || qa?.items || [];
+
+  return {
+    tema: qa?.tema || data?.titulo || 'Perguntas e Respostas',
+    introducao: qa?.introducao || '',
+    questoes: rawQuestoes.map((q: any, i: number) => ({
+      numero: q.numero || i + 1,
+      pergunta: q.pergunta || q.questao || '',
+      resposta: q.resposta || '',
+      versiculo_relacionado: q.versiculo_relacionado || q.versiculo || '',
+    })),
+  };
+}
+
+/**
+ * Normaliza dados de estratégia social
+ */
+export function normalizeEstrategiaSocialData(data: any): {
+  titulo: string;
+  objetivo_estrategico: string;
+  publico_alvo: string;
+  pilares_conteudo: Array<{
+    nome: string;
+    descricao: string;
+    frequencia: string;
+    exemplos: string[];
+  }>;
+  metricas_acompanhamento: Array<{
+    metrica: string;
+    meta: string;
+    como_medir: string;
+  }>;
+  proximos_passos: string[];
+} {
+  const estrategia = data?.estrategia || data?.estrategia_social || data?.plano || data;
+
+  return {
+    titulo: estrategia?.titulo || data?.titulo || 'Estratégia Social',
+    objetivo_estrategico: estrategia?.objetivo_estrategico || estrategia?.objetivo || '',
+    publico_alvo: estrategia?.publico_alvo || estrategia?.publico || '',
+    pilares_conteudo: (estrategia?.pilares_conteudo || estrategia?.pilares || []).map((p: any) => ({
+      nome: p.nome || p.titulo || '',
+      descricao: p.descricao || '',
+      frequencia: p.frequencia || '',
+      exemplos: p.exemplos || [],
+    })),
+    metricas_acompanhamento: (estrategia?.metricas_acompanhamento || estrategia?.metricas || []).map((m: any) => ({
+      metrica: m.metrica || m.nome || '',
+      meta: m.meta || '',
+      como_medir: m.como_medir || m.medicao || '',
+    })),
+    proximos_passos: estrategia?.proximos_passos || estrategia?.acoes || [],
+  };
+}
+
+/**
+ * Normaliza dados de treino de voluntário
+ */
+export function normalizeTreinoVoluntarioData(data: any): {
+  titulo: string;
+  area_ministerio: string;
+  nivel: string;
+  duracao_estimada: string;
+  modulos: Array<{
+    numero: number;
+    titulo: string;
+    objetivos: string[];
+    conteudo_teorico: string;
+    exercicio_pratico: string;
+  }>;
+  checklist_competencias: string[];
+} {
+  const treino = data?.treino || data?.treino_voluntario || data?.treinamento || data;
+
+  return {
+    titulo: treino?.titulo || data?.titulo || 'Treino de Voluntário',
+    area_ministerio: treino?.area_ministerio || treino?.area || treino?.ministerio || '',
+    nivel: treino?.nivel || 'Iniciante',
+    duracao_estimada: treino?.duracao_estimada || treino?.duracao || '1 hora',
+    modulos: (treino?.modulos || treino?.aulas || []).map((m: any, i: number) => ({
+      numero: m.numero || i + 1,
+      titulo: m.titulo || '',
+      objetivos: m.objetivos || [],
+      conteudo_teorico: m.conteudo_teorico || m.conteudo || m.teoria || '',
+      exercicio_pratico: m.exercicio_pratico || m.exercicio || m.pratica || '',
+    })),
+    checklist_competencias: treino?.checklist_competencias || treino?.competencias || [],
+  };
+}
+
+/**
+ * Normaliza dados de kit básico
+ */
+export function normalizeKitBasicoData(data: any): {
+  titulo: string;
+  finalidade: string;
+  orcamento_estimado: string;
+  itens: Array<{
+    categoria: string;
+    nome: string;
+    especificacao: string;
+    preco_referencia: string;
+    alternativa_economica?: string;
+    link_referencia?: string;
+  }>;
+  dicas_uso: string[];
+} {
+  const kit = data?.kit || data?.kit_basico || data;
+
+  return {
+    titulo: kit?.titulo || data?.titulo || 'Kit Básico',
+    finalidade: kit?.finalidade || kit?.descricao || kit?.objetivo || '',
+    orcamento_estimado: kit?.orcamento_estimado || kit?.orcamento || 'A definir',
+    itens: (kit?.itens || kit?.equipamentos || kit?.lista || []).map((item: any) => ({
+      categoria: item.categoria || 'Geral',
+      nome: item.nome || item.item || '',
+      especificacao: item.especificacao || item.descricao || '',
+      preco_referencia: item.preco_referencia || item.preco || '',
+      alternativa_economica: item.alternativa_economica || item.alternativa,
+      link_referencia: item.link_referencia || item.link,
+    })),
+    dicas_uso: kit?.dicas_uso || kit?.dicas || [],
+  };
+}
+
+// ============================================
+// FUNÇÃO UNIVERSAL DE NORMALIZAÇÃO
+// ============================================
+
+/**
+ * Normaliza dados de qualquer tipo de conteúdo
+ */
+export function normalizeContentData(data: any, contentType: string): any {
+  if (!data || typeof data !== 'object') {
+    return { _empty: true, _type: contentType };
+  }
+
+  switch (contentType.toLowerCase().replace(/_/g, '')) {
+    case 'carrossel':
+    case 'carousel':
+      return { ...normalizeCarrosselData(data), _normalized: true };
+    
+    case 'stories':
+    case 'story':
+      return { ...normalizeStoriesData(data), _normalized: true };
+    
+    case 'reel':
+    case 'reels':
+      return { ...normalizeReelData(data), _normalized: true };
+    
+    case 'post':
+    case 'postsimples':
+      return { ...normalizePostData(data), _normalized: true };
+    
+    case 'calendario':
+    case 'calendar':
+      return { calendario: normalizeCalendarioData(data), _normalized: true };
+    
+    case 'desafiosemanal':
+    case 'desafio':
+      return { 
+        desafio_semanal: normalizeDesafioSemanalData(data).dias.length > 0 
+          ? normalizeDesafioSemanalData(data) 
+          : data?.desafio_semanal || data,
+        fundamento_biblico: normalizeDesafioSemanalData(data).fundamento_biblico || data?.fundamento_biblico,
+        _normalized: true 
+      };
+    
+    case 'campanhatematica':
+    case 'campanha':
+      return { data: normalizeCampanhaTematicaData(data), _normalized: true };
+    
+    case 'manualetica':
+      return { data: normalizeManualEticaData(data), _normalized: true };
+    
+    case 'qaestruturado':
+    case 'qa':
+      return { qa: normalizeQAEstruturadoData(data), _normalized: true };
+    
+    case 'estrategiasocial':
+    case 'estrategia':
+      return { data: normalizeEstrategiaSocialData(data), _normalized: true };
+    
+    case 'treinovoluntario':
+    case 'treino':
+      return { data: normalizeTreinoVoluntarioData(data), _normalized: true };
+    
+    case 'kitbasico':
+    case 'kit':
+      return { data: normalizeKitBasicoData(data), _normalized: true };
+    
+    default:
+      // Para tipos não normalizados, retornar dados originais com marcação
+      return { ...data, _normalized: false, _type: contentType };
+  }
 }
 
 /**
  * Detecta o tipo real do conteúdo baseado na estrutura dos dados
- * Útil quando content_type salvo não corresponde à estrutura real
  */
 export function detectRealContentType(data: any, declaredType: string): string {
-  // Se tem slides de carrossel
   if (data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides) {
     const slides = data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides;
     if (Array.isArray(slides) && slides.length > 0) {
-      // Verificar se parece carrossel (tem conteudo/texto longo)
       const firstSlide = slides[0];
       if (firstSlide.conteudo || firstSlide.texto) {
         return 'carrossel';
@@ -339,32 +640,26 @@ export function detectRealContentType(data: any, declaredType: string): string {
     }
   }
 
-  // Se tem stories
   if (data?.stories?.slides || (Array.isArray(data?.stories) && data.stories.length > 0)) {
     return 'stories';
   }
 
-  // Se tem roteiro com cenas
   if (data?.roteiro?.cenas || data?.estrutura_visual?.cenas) {
     return 'reel';
   }
 
-  // Se tem devocional estruturado
   if (data?.devocional?.reflexao || data?.devocional?.oracao) {
     return 'devocional';
   }
 
-  // Se tem estudo_biblico
   if (data?.estudo_biblico || data?.estudo) {
     return 'estudo';
   }
 
-  // Se tem só legenda (post simples)
   if (data?.conteudo?.legenda && !data?.estrutura_visual && !data?.stories) {
     return 'post';
   }
 
-  // Retornar tipo declarado se não conseguir detectar
   return declaredType;
 }
 
@@ -391,16 +686,7 @@ export function isContentEmpty(data: any, contentType: string): boolean {
       const normalized = normalizePostData(data);
       return !normalized.texto && !normalized.legenda;
     }
-    case 'devocional': {
-      const normalized = normalizeDevocionalData(data);
-      return !normalized.reflexao && !normalized.oracao;
-    }
-    case 'estudo': {
-      const normalized = normalizeEstudoData(data);
-      return normalized.pontosPrincipais.length === 0 && !normalized.introducao;
-    }
     default:
-      // Para outros tipos, verificar se tem algum conteúdo significativo
       return Object.keys(data).length === 0;
   }
 }

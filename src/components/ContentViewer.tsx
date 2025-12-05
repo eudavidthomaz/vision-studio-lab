@@ -1,4 +1,5 @@
 import { ContentLibraryItem } from "@/hooks/useContentLibrary";
+import { normalizeContentData, detectRealContentType } from "@/lib/normalizeContentData";
 
 // IMPORTS ORGANIZADOS POR CATEGORIA
 
@@ -45,10 +46,12 @@ import { RoteiroReelsView } from "./content-views/RoteiroReelsView";
 import { ChecklistCultoView } from "./content-views/ChecklistCultoView";
 
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
+import { Button } from "./ui/button";
 
 interface ContentViewerProps {
   content: ContentLibraryItem;
+  onRegenerate?: () => void;
 }
 
 // MAPEAMENTO COMPLETO: 34 TIPOS
@@ -97,25 +100,33 @@ const CONTENT_VIEWS: Record<string, any> = {
 };
 
 // View de fallback melhorada
-function DefaultView({ data, type }: { data: any; type: string }) {
+function DefaultView({ data, type, onRegenerate }: { data: any; type: string; onRegenerate?: () => void }) {
   return (
     <Card className="border-yellow-500/50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-yellow-600">
           <AlertCircle className="h-5 w-5" />
-          View em Desenvolvimento
+          Conteúdo não formatado corretamente
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground mb-4">
-          A visualização específica para <strong>{type}</strong> ainda está sendo criada. 
-          Por enquanto, aqui está o conteúdo:
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Não foi possível exibir o conteúdo do tipo <strong>{type}</strong> no formato visual esperado.
+          Isso pode acontecer quando a IA retorna uma estrutura diferente da esperada.
         </p>
+        
+        {onRegenerate && (
+          <Button onClick={onRegenerate} variant="outline" className="w-full">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Regenerar Conteúdo
+          </Button>
+        )}
+        
         <details className="bg-muted p-4 rounded-lg">
           <summary className="cursor-pointer font-medium text-sm mb-2">
-            Ver conteúdo JSON
+            Ver dados brutos (debug)
           </summary>
-          <pre className="overflow-auto max-h-[600px] text-xs mt-2">
+          <pre className="overflow-auto max-h-[400px] text-xs mt-2 whitespace-pre-wrap">
             {JSON.stringify(data, null, 2)}
           </pre>
         </details>
@@ -124,14 +135,17 @@ function DefaultView({ data, type }: { data: any; type: string }) {
   );
 }
 
-export function ContentViewer({ content }: ContentViewerProps) {
+export function ContentViewer({ content, onRegenerate }: ContentViewerProps) {
+  // Detectar tipo real baseado na estrutura dos dados
+  const detectedType = detectRealContentType(content.content, content.content_type);
+  
   // Normalizar tipo de conteúdo (remover underscores, lowercase)
-  const normalizedType = content.content_type
+  const normalizedType = detectedType
     .toLowerCase()
-    .replace(/_/g, ''); // "post_simples" → "postsimples"
+    .replace(/_/g, '');
   
   // Tentar buscar view com tipo normalizado E original
-  let ViewComponent = CONTENT_VIEWS[content.content_type] || 
+  let ViewComponent = CONTENT_VIEWS[detectedType] || 
                       CONTENT_VIEWS[normalizedType] ||
                       null;
   
@@ -147,25 +161,40 @@ export function ContentViewer({ content }: ContentViewerProps) {
       'estudo_biblico': 'estudo',
       'roteiroReels': 'roteiro_reels',
       'roteiroreels': 'roteiro_reels',
+      'desafio': 'desafio_semanal',
+      'campanha': 'campanha_tematica',
+      'treino': 'treino_voluntario',
+      'kit': 'kit_basico',
+      'qa': 'qa_estruturado',
+      'estrategia': 'estrategia_social',
     };
     
-    const aliasKey = typeAliases[normalizedType];
+    const aliasKey = typeAliases[normalizedType] || typeAliases[detectedType];
     if (aliasKey) {
       ViewComponent = CONTENT_VIEWS[aliasKey];
     }
   }
   
-  // Log para debug (TEMPORÁRIO - remover depois)
+  // Normalizar dados antes de passar para a view
+  const normalizedData = normalizeContentData(content.content, detectedType);
+  
   if (!ViewComponent) {
     console.warn(`❌ No view found for: "${content.content_type}"`, {
       original: content.content_type,
+      detected: detectedType,
       normalized: normalizedType,
       availableViews: Object.keys(CONTENT_VIEWS)
     });
+    return <DefaultView data={content.content} type={content.content_type} onRegenerate={onRegenerate} />;
   }
   
-  if (!ViewComponent) {
-    return <DefaultView data={content.content} type={content.content_type} />;
+  // Verificar se dados estão vazios ou malformados
+  const isEmpty = !normalizedData || 
+    (normalizedData._empty) ||
+    (Object.keys(normalizedData).filter(k => !k.startsWith('_')).length === 0);
+  
+  if (isEmpty) {
+    return <DefaultView data={content.content} type={content.content_type} onRegenerate={onRegenerate} />;
   }
   
   return (
@@ -179,9 +208,10 @@ export function ContentViewer({ content }: ContentViewerProps) {
       [&_table]:w-full [&_table]:block [&_table]:overflow-x-auto
     ">
       <ViewComponent 
-        {...content.content}
-        data={content.content}
-        contentType={content.content_type}
+        {...normalizedData}
+        data={normalizedData.data || normalizedData}
+        contentType={detectedType}
+        onRegenerate={onRegenerate}
       />
     </div>
   );
