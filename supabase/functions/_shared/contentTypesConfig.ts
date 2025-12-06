@@ -351,26 +351,21 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
     description: 'Plano estratégico para redes sociais'
   },
 
-  // ========== VÍDEO (2 tipos) ==========
+  // ========== VÍDEO UNIFICADO ==========
   {
-    type: 'roteiro_video',
-    name: 'Roteiro de Vídeo',
-    category: 'video',
-    defaultPillar: 'ENVIAR',
-    synonyms: ['roteiro de vídeo', 'roteiro video', 'script de vídeo', 'roteiro longo'],
-    requiresBiblicalFoundation: true,
-    requiresProductionTips: true,
-    description: 'Roteiro completo para vídeo longo'
-  },
-  {
-    type: 'roteiro_reels',
-    name: 'Roteiro para Reels',
+    type: 'roteiro_video_completo',
+    name: 'Roteiro de Vídeo Completo',
     category: 'video',
     defaultPillar: 'ALCANÇAR',
-    synonyms: ['roteiro reels', 'script reels', 'roteiro de reel'],
+    synonyms: [
+      'roteiro de vídeo', 'roteiro video', 'roteiro de reel', 'roteiro reels',
+      'video sobre', 'reels sobre', 'ideia para video', 'script de video',
+      'gravar video', 'conteúdo em vídeo', 'vídeo para instagram', 
+      'ideia de video', 'ideia de reel', 'reel sobre', 'roteiro para video'
+    ],
     requiresBiblicalFoundation: true,
     requiresProductionTips: true,
-    description: 'Roteiro específico para Reels/Shorts'
+    description: 'Roteiro completo com estratégia, implementação e métricas'
   },
 
   // ========== GENÉRICO (fallback) ==========

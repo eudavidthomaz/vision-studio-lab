@@ -33,12 +33,14 @@ export interface ContentTypeDefinition {
 // ============================================
 
 export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
+// VÍDEO UNIFICADO (PRIORIDADE MÁXIMA)
+  { type: 'roteiro_video_completo', name: 'Roteiro de Vídeo Completo', category: 'video', defaultPillar: 'ALCANÇAR', synonyms: ['roteiro de vídeo', 'roteiro video', 'roteiro de reel', 'roteiro reels', 'video sobre', 'reels sobre', 'ideia para video', 'script de video', 'gravar video', 'conteúdo em vídeo', 'vídeo para instagram', 'ideia de video', 'ideia de reel', 'video de', 'reel de', 'reel sobre', 'roteiro para video', 'roteiro para reel'], requiresBiblicalFoundation: true, requiresProductionTips: true, description: 'Roteiro completo com estratégia, implementação e métricas' },
+
   // SOCIAL
   { type: 'post', name: 'Post Simples', category: 'social', defaultPillar: 'EDIFICAR', synonyms: ['post', 'post simples', 'publicação', 'legenda'], requiresBiblicalFoundation: true, requiresProductionTips: true, description: 'Post de texto' },
   { type: 'foto_post', name: 'Post com Foto', category: 'social', defaultPillar: 'ALCANÇAR', synonyms: ['foto post', 'post com foto'], requiresBiblicalFoundation: false, requiresProductionTips: true, description: 'Post com imagem' },
   { type: 'carrossel', name: 'Carrossel', category: 'social', defaultPillar: 'EDIFICAR', synonyms: ['carrossel', 'carousel', 'slides', 'páginas'], requiresBiblicalFoundation: true, requiresProductionTips: true, description: 'Sequência de slides' },
   { type: 'stories', name: 'Stories', category: 'social', defaultPillar: 'ALCANÇAR', synonyms: ['stories', 'story'], requiresBiblicalFoundation: false, requiresProductionTips: true, description: 'Stories Instagram' },
-  { type: 'reel', name: 'Reel/Short', category: 'social', defaultPillar: 'ALCANÇAR', synonyms: ['reel', 'reels', 'short', 'shorts'], requiresBiblicalFoundation: true, requiresProductionTips: true, description: 'Vídeo curto' },
   { type: 'convite', name: 'Convite', category: 'social', defaultPillar: 'ALCANÇAR', synonyms: ['convite', 'venha para'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Convite para eventos' },
   { type: 'aviso', name: 'Aviso/Comunicado', category: 'operacional', defaultPillar: 'SERVIR', synonyms: ['aviso', 'comunicado', 'lembrete'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Comunicado' },
   
@@ -72,9 +74,8 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
   { type: 'checklist_culto', name: 'Checklist do Culto', category: 'operacional', defaultPillar: 'SERVIR', synonyms: ['checklist culto', 'pré culto'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Checklist operacional' },
   { type: 'estrategia_social', name: 'Estratégia Social', category: 'operacional', defaultPillar: 'SERVIR', synonyms: ['estratégia social', 'plano instagram', 'estratégia de redes sociais', 'plano de redes sociais', 'estratégia para redes', 'estratégia para a igreja'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Plano para redes' },
   
-  // VÍDEO
-  { type: 'roteiro_video', name: 'Roteiro de Vídeo', category: 'video', defaultPillar: 'ENVIAR', synonyms: ['roteiro de vídeo', 'script de vídeo'], requiresBiblicalFoundation: true, requiresProductionTips: true, description: 'Roteiro para vídeo' },
-  { type: 'roteiro_reels', name: 'Roteiro para Reels', category: 'video', defaultPillar: 'ALCANÇAR', synonyms: ['roteiro reels', 'script reels'], requiresBiblicalFoundation: true, requiresProductionTips: true, description: 'Roteiro para Reels' },
+  // VÍDEO (tipos legados redirecionam para roteiro_video_completo)
+  // roteiro_video e roteiro_reels foram unificados em roteiro_video_completo
   
   // GENÉRICO (fallback)
   { type: 'conteudo_generico_estruturado', name: 'Conteúdo Estruturado', category: 'generico', defaultPillar: 'EDIFICAR', synonyms: [], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Conteúdo genérico' },
@@ -143,6 +144,19 @@ interface TypePattern {
 }
 
 const TYPE_PATTERNS: TypePattern[] = [
+  // PRIORIDADE 0: VÍDEO UNIFICADO (captura TODAS as variações de vídeo/reels)
+  { type: 'roteiro_video_completo', patterns: [
+    /roteiro\s*(de\s*)?(v[ií]deo|reels?)/i,
+    /v[ií]deo\s*(sobre|de|para|com)\s/i,
+    /reels?\s*(sobre|de|para|com)\s/i,
+    /ideia\s*(de\s*|para\s*)?(v[ií]deo|reels?)/i,
+    /script\s*(de\s*)?(v[ií]deo|reels?)/i,
+    /gravar\s*(um\s*)?(v[ií]deo|reels?)/i,
+    /conte[uú]do\s*(em\s*)?v[ií]deo/i,
+    /v[ií]deo\s+\w+/i,  // "video testemunho", "video comunhão"
+    /\breels?\b.*\b(sobre|tema|assunto)\b/i,
+  ], priority: 0 },
+
   // PRIORIDADE 1: Muito específicos
   { type: 'treino_voluntario', patterns: [
     /treino\s*(de\s*)?volunt[aá]rio/i, 
@@ -153,7 +167,6 @@ const TYPE_PATTERNS: TypePattern[] = [
     /treinamento\s*(para\s*)?equipe/i
   ], priority: 1 },
   { type: 'campanha_tematica', patterns: [/campanha[-\s]?tem[aá]tica/i, /s[eé]rie\s*de\s*conte[uú]do/i], priority: 1 },
-  { type: 'roteiro_reels', patterns: [/roteiro\s*(de\s*)?reels?/i, /script\s*reels?/i], priority: 1 },
   { type: 'checklist_culto', patterns: [/checklist\s*(para\s*)?(equipe\s*)?(do\s*)?culto/i, /checklist.*culto/i, /pr[eé][-\s]?culto/i], priority: 1 },
   { type: 'kit_basico', patterns: [
     /kit\s*b[aá]sico/i, 
@@ -180,14 +193,12 @@ const TYPE_PATTERNS: TypePattern[] = [
   { type: 'qa_estruturado', patterns: [/perguntas\s*e\s*respostas/i, /q\s*&\s*a/i, /faq/i], priority: 2 },
   { type: 'convite_grupos', patterns: [/convite\s*(para\s*)?grupo/i, /chamado\s*(para\s*)?c[eé]lula/i], priority: 2 },
   { type: 'resumo_breve', patterns: [/resumo\s*breve/i, /resumo\s*curto/i], priority: 2 },
-  { type: 'roteiro_video', patterns: [/roteiro\s*(de\s*)?v[ií]deo/i, /script\s*(de\s*)?v[ií]deo/i], priority: 2 },
   { type: 'estudo', patterns: [/estudo\s*b[ií]blico/i, /an[aá]lise\s*b[ií]blica/i, /exegese/i], priority: 2 },
   { type: 'ideia_estrategica', patterns: [/ideia\s*estrat[eé]gica/i, /plano\s*de\s*conte[uú]do/i], priority: 2 },
 
   // PRIORIDADE 3: Tipos comuns
   { type: 'carrossel', patterns: [/carros?s?el/i, /carousel/i, /\d+\s*slides?/i, /\d+\s*p[aá]ginas?/i], priority: 3 },
   { type: 'calendario', patterns: [/calend[aá]rio/i, /cronograma/i, /plano\s*editorial/i, /planner/i], priority: 3 },
-  { type: 'reel', patterns: [/\breels?\b/i, /\bshorts?\b/i, /v[ií]deo\s*curto/i], priority: 3 },
   { type: 'stories', patterns: [/\bstory\b/i, /\bstories\b/i], priority: 3 },
   { type: 'aviso', patterns: [/\baviso\b/i, /\bcomunicado\b/i, /\blembrete\b/i], priority: 3 },
   { type: 'guia', patterns: [/\bguia\b/i, /\bmanual\b/i, /passo\s*a\s*passo/i], priority: 3 },
