@@ -14,13 +14,19 @@ interface TreinoVoluntarioViewProps {
 
 export const TreinoVoluntarioView = ({ data, treino, onRegenerate }: TreinoVoluntarioViewProps) => {
   // Normalização robusta - aceita múltiplas estruturas
-  const t = data?.treino || data || treino || {};
+  const t = data?.treino_voluntario || 
+    data?.treino || 
+    data?.treinamento ||
+    data?.conteudo_generico_estruturado ||
+    treino || 
+    data || 
+    {};
   
-  const titulo = t?.titulo || 'Treino de Voluntário';
+  const titulo = t?.titulo || data?.titulo || 'Treino de Voluntário';
   const area_ministerio = t?.area_ministerio || t?.area || t?.ministerio || '';
   const nivel = t?.nivel || 'Iniciante';
   const duracao_estimada = t?.duracao_estimada || t?.duracao || '1 hora';
-  const modulos = t?.modulos || t?.aulas || [];
+  const modulos = t?.modulos || t?.aulas || t?.blocos || [];
   const checklist_competencias = t?.checklist_competencias || t?.competencias || [];
   
   // Validação

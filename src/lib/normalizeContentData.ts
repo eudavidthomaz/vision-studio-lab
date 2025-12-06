@@ -300,6 +300,59 @@ export function normalizeReelData(data: any): {
     data?.cenas ||
     [];
 
+  // Se não tem cenas estruturadas, criar a partir de hook/desenvolvimento/cta
+  if (rawCenas.length === 0 && (data?.hook || data?.desenvolvimento || data?.cta)) {
+    const fakeCenas: NormalizedCena[] = [];
+    if (data?.hook) {
+      fakeCenas.push({
+        numero: 1,
+        duracao: '3-5s',
+        visual: 'Abertura impactante',
+        audio: typeof data.hook === 'string' ? data.hook : safeString(data.hook),
+        texto_overlay: 'HOOK',
+      });
+    }
+    if (data?.desenvolvimento) {
+      const devText = typeof data.desenvolvimento === 'string' 
+        ? data.desenvolvimento 
+        : Array.isArray(data.desenvolvimento) 
+          ? data.desenvolvimento.join(' | ')
+          : safeString(data.desenvolvimento);
+      fakeCenas.push({
+        numero: fakeCenas.length + 1,
+        duracao: '10-20s',
+        visual: 'Conteúdo principal',
+        audio: devText,
+      });
+    }
+    if (data?.cta) {
+      fakeCenas.push({
+        numero: fakeCenas.length + 1,
+        duracao: '3-5s',
+        visual: 'Call to action final',
+        audio: typeof data.cta === 'string' ? data.cta : safeString(data.cta),
+        texto_overlay: 'CTA',
+      });
+    }
+    if (fakeCenas.length > 0) {
+      const rawFundamento = data?.fundamento_biblico || data?.fundamento;
+      const fundamento = rawFundamento?.versiculos ? {
+        versiculos: Array.isArray(rawFundamento.versiculos) ? rawFundamento.versiculos : [rawFundamento.versiculos],
+        contexto: rawFundamento.contexto || '',
+        principio_atemporal: rawFundamento.principio_atemporal || rawFundamento.principio || '',
+      } : undefined;
+      return {
+        cenas: fakeCenas,
+        legenda: data?.conteudo?.legenda || data?.legenda,
+        hashtags: data?.conteudo?.hashtags || data?.dica_producao?.hashtags || data?.hashtags,
+        hook: data?.hook,
+        duracao: data?.estrutura_visual?.duracao_total || data?.duracao || '15-30s',
+        fundamento,
+        estrategia: normalizeStrategicIdea(data),
+      };
+    }
+  }
+
   if (rawCenas.length === 0 && (data?.roteiro || data?.estrutura_visual?.roteiro)) {
     const roteiroText = typeof data?.roteiro === 'string' 
       ? data.roteiro 
@@ -945,18 +998,27 @@ export function normalizeRoteiroVideoData(data: any): {
   equipamentos_sugeridos: string[];
   dicas_gravacao: string[];
 } {
-  const roteiro = data?.roteiro || data?.roteiro_video || data;
+  // Buscar dados em múltiplas estruturas possíveis
+  const roteiro = data?.roteiro_video || data?.roteiro || data?.conteudo?.roteiro_video || data;
+  
+  // Buscar cenas em múltiplas estruturas: cenas, estrutura, sequencias, partes
+  const rawCenas = roteiro?.cenas || 
+    roteiro?.estrutura || 
+    roteiro?.sequencias || 
+    roteiro?.partes ||
+    data?.roteiro_video?.estrutura ||
+    [];
   
   return {
     titulo: roteiro?.titulo || data?.titulo || 'Roteiro de Vídeo',
-    duracao_total: roteiro?.duracao_total || roteiro?.duracao || '3-5 min',
+    duracao_total: roteiro?.duracao_total || roteiro?.duracao_estimada || roteiro?.duracao || '3-5 min',
     objetivo: roteiro?.objetivo || '',
-    cenas: (roteiro?.cenas || roteiro?.sequencias || []).map((c: any, i: number) => ({
-      numero: c.numero || i + 1,
+    cenas: rawCenas.map((c: any, i: number) => ({
+      numero: c.numero || c.cena || i + 1,
       duracao: c.duracao || c.tempo || '10-20s',
-      descricao_visual: c.descricao_visual || c.visual || c.imagem || '',
-      audio_fala: c.audio_fala || c.audio || c.fala || c.script || '',
-      texto_tela: c.texto_tela || c.texto_overlay,
+      descricao_visual: c.descricao_visual || c.visual || c.imagem || c.descricao || '',
+      audio_fala: c.audio_fala || c.audio || c.fala || c.script || c.conteudo || c.texto || '',
+      texto_tela: c.texto_tela || c.texto_overlay || c.legenda,
     })),
     equipamentos_sugeridos: roteiro?.equipamentos_sugeridos || roteiro?.equipamentos || [],
     dicas_gravacao: roteiro?.dicas_gravacao || roteiro?.dicas || [],
