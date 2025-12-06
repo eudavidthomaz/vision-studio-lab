@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { normalizeEstudoBiblicoData } from "@/lib/normalizeContentData";
+import { normalizeEstudoBiblicoData, safeString } from "@/lib/normalizeContentData";
 
 interface EstudoBiblicoViewProps {
   data?: any;
@@ -119,7 +119,7 @@ export const EstudoBiblicoView = ({ data, onRegenerate }: EstudoBiblicoViewProps
               <div className="space-y-3">
                 {fundamento_biblico.versiculos.map((versiculo, idx) => (
                   <div key={idx} className="p-4 bg-muted/50 rounded-lg border-l-4 border-primary">
-                    <p className="text-sm leading-relaxed italic">{versiculo}</p>
+                    <p className="text-sm leading-relaxed italic">{safeString(versiculo)}</p>
                   </div>
                 ))}
               </div>
@@ -207,7 +207,7 @@ export const EstudoBiblicoView = ({ data, onRegenerate }: EstudoBiblicoViewProps
               {estudo_biblico.perguntas.map((pergunta, idx) => (
                 <div key={idx} className="flex gap-3 p-3 rounded-lg bg-muted/30">
                   <span className="text-primary font-bold flex-shrink-0">{idx + 1}.</span>
-                  <p className="text-sm">{pergunta}</p>
+                  <p className="text-sm">{safeString(pergunta)}</p>
                 </div>
               ))}
             </div>

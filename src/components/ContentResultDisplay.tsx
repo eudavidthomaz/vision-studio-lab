@@ -29,6 +29,7 @@ import { DiscipuladoView } from "./content-views/DiscipuladoView";
 import { DevocionalView } from "./content-views/DevocionalView";
 import { FotoPostView } from "./content-views/FotoPostView";
 import { RoteiroVideoView } from "./content-views/RoteiroVideoView";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface ContentResultProps {
   content: any; // Tipo dinâmico baseado no content_type
@@ -108,7 +109,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
                 <div>
                   <h4 className="font-semibold mb-2">Versículos-base:</h4>
                   <ul className="space-y-2">
-                    {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
+                    {safeStringArray(parsedContent.fundamento_biblico.versiculos).map((v: string, i: number) => (
                       <li key={i} className="border-l-2 border-primary pl-3 text-sm">
                         {v}
                       </li>
@@ -168,7 +169,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
                 <div>
                   <h4 className="font-semibold mb-2">Versículos-base:</h4>
                   <ul className="space-y-2">
-                    {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
+                    {safeStringArray(parsedContent.fundamento_biblico.versiculos).map((v: string, i: number) => (
                       <li key={i} className="border-l-2 border-primary pl-3 text-sm">
                         {v}
                       </li>
@@ -212,7 +213,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
                 <div>
                   <h4 className="font-semibold mb-2">Versículos-base:</h4>
                   <ul className="space-y-2">
-                    {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
+                    {safeStringArray(parsedContent.fundamento_biblico.versiculos).map((v: string, i: number) => (
                       <li key={i} className="border-l-2 border-primary pl-3 text-sm">
                         {v}
                       </li>
@@ -256,7 +257,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
                 <div>
                   <h4 className="font-semibold mb-2">Versículos-base:</h4>
                   <ul className="space-y-2">
-                    {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
+                    {safeStringArray(parsedContent.fundamento_biblico.versiculos).map((v: string, i: number) => (
                       <li key={i} className="border-l-2 border-primary pl-3 text-sm">
                         {v}
                       </li>
@@ -480,7 +481,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
             <div>
               <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
               <ul className="space-y-2">
-                {parsedContent.fundamento_biblico.versiculos.map((v: string, i: number) => (
+                {safeStringArray(parsedContent.fundamento_biblico.versiculos).map((v: string, i: number) => (
                   <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
                     {v}
                   </li>
@@ -569,7 +570,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
               <div>
                 <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
                 <ul className="space-y-2">
-                  {parsedContent.fundamento_biblico.versiculos?.map((v: string, i: number) => (
+                  {safeStringArray(parsedContent.fundamento_biblico.versiculos).map((v: string, i: number) => (
                     <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
                       {v}
                     </li>
@@ -619,7 +620,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
               <div>
                 <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
                 <ul className="space-y-2">
-                  {parsedContent.fundamento_biblico.versiculos?.map((v: string, i: number) => (
+                  {safeStringArray(parsedContent.fundamento_biblico.versiculos).map((v: string, i: number) => (
                     <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
                       {v}
                     </li>
@@ -672,7 +673,7 @@ export const ContentResultDisplay = ({ content, onSave, onRegenerate, isSaving }
               <div>
                 <h4 className="font-semibold mb-2 text-sm">Versículos-base:</h4>
                 <ul className="space-y-2">
-                  {parsedContent.fundamento_biblico.versiculos?.map((v: string, i: number) => (
+                  {safeStringArray(parsedContent.fundamento_biblico.versiculos).map((v: string, i: number) => (
                     <li key={i} className="text-sm text-muted-foreground border-l-2 border-primary pl-3">
                       {v}
                     </li>
