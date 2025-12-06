@@ -57,7 +57,7 @@ serve(async (req) => {
       type: 'string',
       required: true,
       minLength: 3,
-      maxLength: 500,
+      maxLength: 2000,
     });
 
     validateInput('estilo', {
