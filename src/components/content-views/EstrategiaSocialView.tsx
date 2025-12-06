@@ -13,7 +13,7 @@ interface EstrategiaSocialViewProps {
 
 export const EstrategiaSocialView = ({ data, estrategia, onRegenerate }: EstrategiaSocialViewProps) => {
   // Normalização robusta - aceita múltiplas estruturas
-  const e = data || estrategia || {};
+  const e = data?.estrategia || data || estrategia || {};
   
   const titulo = e?.titulo || 'Estratégia Social';
   const objetivo_estrategico = e?.objetivo_estrategico || e?.objetivo || '';

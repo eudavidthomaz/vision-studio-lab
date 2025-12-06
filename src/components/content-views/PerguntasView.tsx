@@ -12,7 +12,7 @@ interface PerguntasViewProps {
 
 export const PerguntasView = ({ data, onRegenerate }: PerguntasViewProps) => {
   // Normalizar dados de múltiplas estruturas possíveis
-  const rawData = data?.perguntas_reflexao || data || {};
+  const rawData = data?.perguntas_celula || data?.perguntas_reflexao || data?.perguntas || data || {};
   
   const normalized = {
     titulo: rawData.titulo || data?.titulo || 'Perguntas para Reflexão',

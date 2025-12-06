@@ -147,7 +147,7 @@ const TYPE_PATTERNS: TypePattern[] = [
   { type: 'treino_voluntario', patterns: [/treino\s*(de\s*)?volunt[aá]rio/i, /onboarding\s*m[ií]dia/i], priority: 1 },
   { type: 'campanha_tematica', patterns: [/campanha[-\s]?tem[aá]tica/i, /s[eé]rie\s*de\s*conte[uú]do/i], priority: 1 },
   { type: 'roteiro_reels', patterns: [/roteiro\s*(de\s*)?reels?/i, /script\s*reels?/i], priority: 1 },
-  { type: 'checklist_culto', patterns: [/checklist\s*(do\s*)?culto/i, /pr[eé][-\s]?culto/i], priority: 1 },
+  { type: 'checklist_culto', patterns: [/checklist\s*(para\s*)?(equipe\s*)?(do\s*)?culto/i, /checklist.*culto/i, /pr[eé][-\s]?culto/i], priority: 1 },
   { type: 'kit_basico', patterns: [/kit\s*b[aá]sico/i, /m[ií]dia\s*com\s*celular/i], priority: 1 },
   { type: 'manual_etica', patterns: [/manual\s*[-\s]?[eé]tica/i, /guia\s*[eé]tica/i], priority: 1 },
   { type: 'estrategia_social', patterns: [/estrat[eé]gia[-\s]?social/i, /plano\s*instagram/i], priority: 1 },
