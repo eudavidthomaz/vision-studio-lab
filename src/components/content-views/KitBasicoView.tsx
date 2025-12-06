@@ -13,7 +13,7 @@ interface KitBasicoViewProps {
 
 export const KitBasicoView = ({ data, kit, onRegenerate }: KitBasicoViewProps) => {
   // Normalização robusta - aceita múltiplas estruturas
-  const k = data || kit || {};
+  const k = data?.kit || data || kit || {};
   
   const titulo = k?.titulo || 'Kit Básico';
   const finalidade = k?.finalidade || k?.descricao || k?.objetivo || '';

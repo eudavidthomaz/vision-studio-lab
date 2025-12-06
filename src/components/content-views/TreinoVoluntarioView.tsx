@@ -14,7 +14,7 @@ interface TreinoVoluntarioViewProps {
 
 export const TreinoVoluntarioView = ({ data, treino, onRegenerate }: TreinoVoluntarioViewProps) => {
   // Normalização robusta - aceita múltiplas estruturas
-  const t = data || treino || {};
+  const t = data?.treino || data || treino || {};
   
   const titulo = t?.titulo || 'Treino de Voluntário';
   const area_ministerio = t?.area_ministerio || t?.area || t?.ministerio || '';

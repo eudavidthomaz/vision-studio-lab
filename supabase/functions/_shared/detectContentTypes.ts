@@ -58,7 +58,7 @@ const TYPE_PATTERNS: TypePattern[] = [
   },
   {
     type: 'checklist_culto',
-    patterns: [/checklist\s*(do\s*)?culto/i, /pr[eé][-\s]?culto/i],
+    patterns: [/checklist\s*(para\s*)?(equipe\s*)?(do\s*)?culto/i, /checklist.*culto/i, /pr[eé][-\s]?culto/i],
     priority: 1
   },
   {

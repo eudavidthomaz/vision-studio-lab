@@ -1861,6 +1861,7 @@ Retorne APENAS o JSON válido.`;
       (detectedType === 'kit_basico' && generatedContent.kit) ||
       (detectedType === 'manual_etica' && generatedContent.manual) ||
       (detectedType === 'estrategia_social' && generatedContent.estrategia) ||
+      (detectedType === 'roteiro_video' && (generatedContent.roteiro_video || generatedContent.roteiro || generatedContent.conteudo?.roteiro_video)) ||
       (['post', 'carrossel', 'reel'].includes(detectedType) && generatedContent.conteudo);
 
     if (!hasCorrectStructure) {
