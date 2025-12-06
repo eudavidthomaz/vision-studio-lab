@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Video, Copy, Clock, Sparkles, Lightbulb, RefreshCw, 
   Target, Users, CheckCircle, BarChart3, Shield, 
-  Play, Clapperboard, Megaphone
+  Clapperboard, Megaphone
 } from "lucide-react";
 import { toast } from "sonner";
 import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
@@ -155,14 +155,14 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
 
   if (!hasContent) {
     return (
-      <Card className="border-yellow-500/50 bg-yellow-50/50 dark:bg-yellow-950/20">
+      <Card className="border-yellow-500/30 bg-yellow-500/10 rounded-xl">
         <CardContent className="pt-6 text-center">
-          <p className="text-yellow-800 dark:text-yellow-200 mb-2">⚠️ Roteiro de vídeo incompleto</p>
-          <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-4">
+          <p className="text-yellow-400 mb-2">⚠️ Roteiro de vídeo incompleto</p>
+          <p className="text-sm text-yellow-400/70 mb-4">
             O conteúdo não foi gerado corretamente. Tente regenerar.
           </p>
           {onRegenerate && (
-            <Button onClick={onRegenerate} variant="outline">
+            <Button onClick={onRegenerate} variant="outline" className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10">
               <RefreshCw className="w-4 h-4 mr-2" />
               Regenerar
             </Button>
@@ -176,19 +176,19 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
     <div className="space-y-5 p-3 sm:p-4 max-w-4xl mx-auto">
       
       {/* Header Principal */}
-      <Card className="border-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-950/40 shadow-sm">
+      <Card className="bg-card border border-primary/30 rounded-xl shadow-lg">
         <CardHeader className="pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 flex-1 min-w-0">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
-                <Video className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <div className="p-2.5 bg-primary/20 rounded-xl">
+                <Video className="w-6 h-6 text-primary" />
               </div>
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="bg-purple-600 text-white hover:bg-purple-700">
+                  <Badge className="bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30">
                     {normalized.formato}
                   </Badge>
-                  <Badge variant="outline" className="flex items-center gap-1 text-muted-foreground">
+                  <Badge variant="outline" className="flex items-center gap-1 border-border text-muted-foreground">
                     <Clock className="w-3 h-3" />
                     {normalized.duracao_estimada}
                   </Badge>
@@ -213,43 +213,51 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
       
       {/* Proposta Estratégica */}
       {hasPropostaEstrategica && (
-        <Card>
-          <CardHeader className="pb-3 border-b">
-            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-              <Target className="w-5 h-5 text-amber-600" />
+        <Card className="bg-card border border-border rounded-xl">
+          <CardHeader className="pb-3 border-b border-border">
+            <CardTitle className="text-base sm:text-lg flex items-center gap-2 text-foreground">
+              <div className="p-1.5 bg-amber-500/20 rounded-lg">
+                <Target className="w-5 h-5 text-amber-400" />
+              </div>
               Proposta Estratégica
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4 space-y-3">
             <div className="grid gap-3">
               {normalized.proposta_estrategica.problema_real && (
-                <div className="p-3 bg-red-50 dark:bg-red-950/30 rounded-lg border border-red-200 dark:border-red-800">
-                  <h4 className="font-semibold text-sm mb-1 text-red-800 dark:text-red-200">❓ Problema que resolve</h4>
-                  <p className="text-sm text-red-700 dark:text-red-300">{normalized.proposta_estrategica.problema_real}</p>
+                <div className="p-4 bg-muted/30 rounded-xl border-l-4 border-red-500">
+                  <h4 className="font-semibold text-sm mb-1 text-foreground flex items-center gap-2">
+                    <span>❓</span> Problema que resolve
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{normalized.proposta_estrategica.problema_real}</p>
                 </div>
               )}
               {normalized.proposta_estrategica.solucao_proposta && (
-                <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-800">
-                  <h4 className="font-semibold text-sm mb-1 text-green-800 dark:text-green-200">💡 Solução proposta</h4>
-                  <p className="text-sm text-green-700 dark:text-green-300">{normalized.proposta_estrategica.solucao_proposta}</p>
+                <div className="p-4 bg-muted/30 rounded-xl border-l-4 border-green-500">
+                  <h4 className="font-semibold text-sm mb-1 text-foreground flex items-center gap-2">
+                    <span>💡</span> Solução proposta
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{normalized.proposta_estrategica.solucao_proposta}</p>
                 </div>
               )}
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {normalized.proposta_estrategica.hook_psicologico && (
-                <div className="p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
-                  <h4 className="font-semibold text-sm mb-1 text-purple-800 dark:text-purple-200">🧠 Gatilho psicológico</h4>
-                  <p className="text-sm text-purple-700 dark:text-purple-300">{normalized.proposta_estrategica.hook_psicologico}</p>
+                <div className="p-4 bg-muted/30 rounded-xl border-l-4 border-purple-500">
+                  <h4 className="font-semibold text-sm mb-1 text-foreground flex items-center gap-2">
+                    <span>🧠</span> Gatilho psicológico
+                  </h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{normalized.proposta_estrategica.hook_psicologico}</p>
                 </div>
               )}
               {normalized.proposta_estrategica.publico_alvo && (
-                <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <h4 className="font-semibold text-sm mb-1 text-blue-800 dark:text-blue-200 flex items-center gap-1">
-                    <Users className="w-4 h-4" />
+                <div className="p-4 bg-muted/30 rounded-xl border-l-4 border-blue-500">
+                  <h4 className="font-semibold text-sm mb-1 text-foreground flex items-center gap-2">
+                    <Users className="w-4 h-4 text-blue-400" />
                     Público-alvo
                   </h4>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">{normalized.proposta_estrategica.publico_alvo}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{normalized.proposta_estrategica.publico_alvo}</p>
                 </div>
               )}
             </div>
@@ -258,9 +266,9 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
       )}
       
       {/* Roteiro Detalhado - DESTAQUE PRINCIPAL */}
-      <Card className="border-2 border-purple-200 dark:border-purple-800 shadow-md">
-        <CardHeader className="bg-purple-50 dark:bg-purple-950/40 border-b border-purple-200 dark:border-purple-800">
-          <CardTitle className="text-lg sm:text-xl flex items-center gap-2 text-purple-900 dark:text-purple-100">
+      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-2 border-primary/30 rounded-xl shadow-lg">
+        <CardHeader className="bg-primary/10 border-b border-primary/20 rounded-t-xl">
+          <CardTitle className="text-lg sm:text-xl flex items-center gap-2 text-primary">
             <Clapperboard className="w-5 h-5" />
             Roteiro Detalhado
           </CardTitle>
@@ -269,20 +277,20 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
           
           {/* Hook */}
           {hasHook && (
-            <div className="p-4 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/40 dark:to-orange-950/40 rounded-lg border border-red-200 dark:border-red-800">
+            <div className="p-4 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-xl border border-red-500/30">
               <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-5 h-5 text-red-600 dark:text-red-400" />
-                <h4 className="font-bold text-red-800 dark:text-red-200">
+                <Sparkles className="w-5 h-5 text-red-400" />
+                <h4 className="font-bold text-red-400">
                   Hook (0-3s) — Pare o scroll!
                 </h4>
               </div>
-              <p className="text-base font-medium text-red-900 dark:text-red-100 whitespace-pre-line">
+              <p className="text-base font-medium text-foreground whitespace-pre-line leading-relaxed">
                 {typeof normalized.roteiro.hook === 'string' 
                   ? normalized.roteiro.hook 
                   : normalized.roteiro.hook?.texto || ''}
               </p>
               {normalized.roteiro.hook?.visual && (
-                <p className="text-sm text-red-700 dark:text-red-300 mt-2 flex items-center gap-1">
+                <p className="text-sm text-muted-foreground mt-3 flex items-center gap-1">
                   🎥 {normalized.roteiro.hook.visual}
                 </p>
               )}
@@ -293,15 +301,15 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
           {hasCenas && (
             <div className="space-y-3">
               {normalized.roteiro.desenvolvimento.map((cena: any, i: number) => (
-                <div key={i} className="p-4 bg-card rounded-lg border shadow-sm">
+                <div key={i} className="p-4 bg-card rounded-xl border border-border">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-semibold flex items-center gap-2 text-foreground">
-                      <span className="w-7 h-7 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                      <span className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
                         {cena.cena || i + 1}
                       </span>
                       Cena {cena.cena || i + 1}
                     </h4>
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="bg-muted text-muted-foreground">
                       {cena.duracao || '?s'}
                     </Badge>
                   </div>
@@ -310,17 +318,17 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
                     {(cena.texto_fala || cena.texto || cena.audio) && (
                       <div>
                         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">📝 Fala:</span>
-                        <p className="text-sm text-foreground mt-1 whitespace-pre-line">{cena.texto_fala || cena.texto || cena.audio}</p>
+                        <p className="text-sm text-foreground mt-1 whitespace-pre-line leading-relaxed">{cena.texto_fala || cena.texto || cena.audio}</p>
                       </div>
                     )}
                     {cena.visual && (
                       <div>
                         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">🎥 Visual:</span>
-                        <p className="text-sm text-muted-foreground mt-1">{cena.visual}</p>
+                        <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{cena.visual}</p>
                       </div>
                     )}
                     {cena.texto_tela && (
-                      <div className="p-3 bg-muted rounded-lg text-center">
+                      <div className="p-3 bg-muted/50 rounded-xl text-center">
                         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide block mb-1">📺 Texto na tela:</span>
                         <p className="text-sm font-bold text-foreground">{cena.texto_tela}</p>
                       </div>
@@ -333,20 +341,20 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
           
           {/* CTA */}
           {(normalized.roteiro.cta?.texto || typeof normalized.roteiro.cta === 'string') && (
-            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-950/40 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/30">
               <div className="flex items-center gap-2 mb-2">
-                <Megaphone className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <h4 className="font-bold text-green-800 dark:text-green-200">
+                <Megaphone className="w-5 h-5 text-green-400" />
+                <h4 className="font-bold text-green-400">
                   Call to Action (CTA)
                 </h4>
               </div>
-              <p className="text-base font-medium text-green-900 dark:text-green-100 whitespace-pre-line">
+              <p className="text-base font-medium text-foreground whitespace-pre-line leading-relaxed">
                 {typeof normalized.roteiro.cta === 'string'
                   ? normalized.roteiro.cta
                   : normalized.roteiro.cta?.texto || ''}
               </p>
               {normalized.roteiro.cta?.visual && (
-                <p className="text-sm text-green-700 dark:text-green-300 mt-2 flex items-center gap-1">
+                <p className="text-sm text-muted-foreground mt-3 flex items-center gap-1">
                   🎥 {normalized.roteiro.cta.visual}
                 </p>
               )}
@@ -357,30 +365,38 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
       
       {/* Como Implementar */}
       {(normalized.implementacao.equipe_solo || normalized.implementacao.equipe_pequena || normalized.implementacao.equipe_estruturada) && (
-        <Card>
-          <CardHeader className="pb-3 border-b">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-600" />
+        <Card className="bg-card border border-border rounded-xl">
+          <CardHeader className="pb-3 border-b border-border">
+            <CardTitle className="text-base flex items-center gap-2 text-foreground">
+              <div className="p-1.5 bg-blue-500/20 rounded-lg">
+                <Users className="w-5 h-5 text-blue-400" />
+              </div>
               Como Implementar
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4 space-y-3">
             {normalized.implementacao.equipe_solo && (
-              <div className="p-3 rounded-lg border bg-card">
-                <h4 className="font-semibold text-sm mb-1 text-foreground">👤 Sozinho (celular)</h4>
-                <p className="text-sm text-muted-foreground">{normalized.implementacao.equipe_solo}</p>
+              <div className="p-4 rounded-xl bg-muted/30 border border-border">
+                <h4 className="font-semibold text-sm mb-2 text-foreground flex items-center gap-2">
+                  <span>👤</span> Sozinho (celular)
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{normalized.implementacao.equipe_solo}</p>
               </div>
             )}
             {normalized.implementacao.equipe_pequena && (
-              <div className="p-3 rounded-lg border bg-card">
-                <h4 className="font-semibold text-sm mb-1 text-foreground">👥 Equipe pequena (2-5 pessoas)</h4>
-                <p className="text-sm text-muted-foreground">{normalized.implementacao.equipe_pequena}</p>
+              <div className="p-4 rounded-xl bg-muted/30 border border-border">
+                <h4 className="font-semibold text-sm mb-2 text-foreground flex items-center gap-2">
+                  <span>👥</span> Equipe pequena (2-5 pessoas)
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{normalized.implementacao.equipe_pequena}</p>
               </div>
             )}
             {normalized.implementacao.equipe_estruturada && (
-              <div className="p-3 rounded-lg border bg-card">
-                <h4 className="font-semibold text-sm mb-1 text-foreground">🎬 Equipe profissional</h4>
-                <p className="text-sm text-muted-foreground">{normalized.implementacao.equipe_estruturada}</p>
+              <div className="p-4 rounded-xl bg-muted/30 border border-border">
+                <h4 className="font-semibold text-sm mb-2 text-foreground flex items-center gap-2">
+                  <span>🎬</span> Equipe profissional
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{normalized.implementacao.equipe_estruturada}</p>
               </div>
             )}
           </CardContent>
@@ -389,21 +405,23 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
       
       {/* Passo a Passo */}
       {normalized.passos_praticos.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3 border-b">
-            <CardTitle className="text-base flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
+        <Card className="bg-card border border-border rounded-xl">
+          <CardHeader className="pb-3 border-b border-border">
+            <CardTitle className="text-base flex items-center gap-2 text-foreground">
+              <div className="p-1.5 bg-green-500/20 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+              </div>
               Passo a Passo
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             <ol className="space-y-2">
               {normalized.passos_praticos.map((passo, i) => (
-                <li key={i} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                  <span className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                <li key={i} className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/30 transition-colors">
+                  <span className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                     {i + 1}
                   </span>
-                  <p className="text-sm text-foreground">{passo}</p>
+                  <p className="text-sm text-foreground leading-relaxed">{passo}</p>
                 </li>
               ))}
             </ol>
@@ -413,34 +431,36 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
       
       {/* Métricas de Impacto */}
       {(normalized.metricas_de_fruto.indicadores.length > 0 || normalized.metricas_de_fruto.meta_sugerida) && (
-        <Card>
-          <CardHeader className="pb-3 border-b">
-            <CardTitle className="text-base flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-indigo-600" />
+        <Card className="bg-card border border-border rounded-xl">
+          <CardHeader className="pb-3 border-b border-border">
+            <CardTitle className="text-base flex items-center gap-2 text-foreground">
+              <div className="p-1.5 bg-indigo-500/20 rounded-lg">
+                <BarChart3 className="w-5 h-5 text-indigo-400" />
+              </div>
               Como Medir o Impacto
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
             {normalized.metricas_de_fruto.indicadores.length > 0 && (
               <div>
-                <h4 className="font-semibold text-sm mb-2 text-foreground">📊 Indicadores para acompanhar:</h4>
+                <h4 className="font-semibold text-sm mb-3 text-foreground">📊 Indicadores para acompanhar:</h4>
                 <div className="flex flex-wrap gap-2">
                   {normalized.metricas_de_fruto.indicadores.map((indicador, i) => (
-                    <Badge key={i} variant="secondary">{indicador}</Badge>
+                    <Badge key={i} variant="secondary" className="bg-muted text-muted-foreground">{indicador}</Badge>
                   ))}
                 </div>
               </div>
             )}
             {normalized.metricas_de_fruto.meta_sugerida && (
-              <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                <h4 className="font-semibold text-sm mb-1 text-indigo-800 dark:text-indigo-200">🎯 Meta sugerida:</h4>
-                <p className="text-sm text-indigo-700 dark:text-indigo-300">{normalized.metricas_de_fruto.meta_sugerida}</p>
+              <div className="p-4 bg-primary/10 rounded-xl border border-primary/20">
+                <h4 className="font-semibold text-sm mb-1 text-primary">🎯 Meta sugerida:</h4>
+                <p className="text-sm text-foreground leading-relaxed">{normalized.metricas_de_fruto.meta_sugerida}</p>
               </div>
             )}
             {normalized.metricas_de_fruto.como_medir && (
-              <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="p-4 bg-muted/30 rounded-xl">
                 <h4 className="font-semibold text-sm mb-1 text-foreground">📱 Onde acompanhar:</h4>
-                <p className="text-sm text-muted-foreground">{normalized.metricas_de_fruto.como_medir}</p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{normalized.metricas_de_fruto.como_medir}</p>
               </div>
             )}
           </CardContent>
@@ -449,15 +469,17 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
       
       {/* Filtro Ético e Teológico */}
       {(normalized.filtro_etico_teologico.consideracoes || normalized.filtro_etico_teologico.cuidados.length > 0) && (
-        <Card>
-          <CardHeader className="pb-3 border-b">
+        <Card className="bg-card border border-border rounded-xl">
+          <CardHeader className="pb-3 border-b border-border">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Shield className={`w-5 h-5 ${normalized.filtro_etico_teologico.aprovado ? 'text-green-600' : 'text-yellow-600'}`} />
+              <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                <div className={`p-1.5 rounded-lg ${normalized.filtro_etico_teologico.aprovado ? 'bg-green-500/20' : 'bg-yellow-500/20'}`}>
+                  <Shield className={`w-5 h-5 ${normalized.filtro_etico_teologico.aprovado ? 'text-green-400' : 'text-yellow-400'}`} />
+                </div>
                 Filtro Ético e Teológico
               </CardTitle>
               {normalized.filtro_etico_teologico.aprovado && (
-                <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                <Badge className="bg-green-500/20 text-green-400 border border-green-500/30">
                   ✅ Aprovado
                 </Badge>
               )}
@@ -465,15 +487,15 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
           </CardHeader>
           <CardContent className="pt-4 space-y-3">
             {normalized.filtro_etico_teologico.consideracoes && (
-              <p className="text-sm text-muted-foreground">{normalized.filtro_etico_teologico.consideracoes}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{normalized.filtro_etico_teologico.consideracoes}</p>
             )}
             {normalized.filtro_etico_teologico.cuidados.length > 0 && (
               <div>
                 <h4 className="font-semibold text-sm mb-2 text-foreground">⚠️ Cuidados importantes:</h4>
-                <ul className="space-y-1">
+                <ul className="space-y-2">
                   {normalized.filtro_etico_teologico.cuidados.map((cuidado, i) => (
-                    <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                      <span className="text-yellow-600 mt-1">•</span>
+                    <li key={i} className="text-sm text-muted-foreground flex items-start gap-2 leading-relaxed">
+                      <span className="text-yellow-400 mt-0.5">•</span>
                       {cuidado}
                     </li>
                   ))}
@@ -486,37 +508,39 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
       
       {/* Dicas de Produção */}
       {(normalized.dicas_producao.iluminacao || normalized.dicas_producao.audio || normalized.dicas_producao.edicao) && (
-        <Card>
-          <CardHeader className="pb-3 border-b">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Lightbulb className="w-5 h-5 text-yellow-600" />
+        <Card className="bg-card border border-border rounded-xl">
+          <CardHeader className="pb-3 border-b border-border">
+            <CardTitle className="text-base flex items-center gap-2 text-foreground">
+              <div className="p-1.5 bg-yellow-500/20 rounded-lg">
+                <Lightbulb className="w-5 h-5 text-yellow-400" />
+              </div>
               Dicas de Produção
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {normalized.dicas_producao.iluminacao && (
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold text-sm mb-1 text-foreground">💡 Iluminação</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{normalized.dicas_producao.iluminacao}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <h4 className="font-semibold text-sm mb-2 text-foreground">💡 Iluminação</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{normalized.dicas_producao.iluminacao}</p>
                 </div>
               )}
               {normalized.dicas_producao.audio && (
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold text-sm mb-1 text-foreground">🎙️ Áudio</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{normalized.dicas_producao.audio}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <h4 className="font-semibold text-sm mb-2 text-foreground">🎙️ Áudio</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{normalized.dicas_producao.audio}</p>
                 </div>
               )}
               {normalized.dicas_producao.edicao && (
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold text-sm mb-1 text-foreground">✂️ Edição</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{normalized.dicas_producao.edicao}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <h4 className="font-semibold text-sm mb-2 text-foreground">✂️ Edição</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{normalized.dicas_producao.edicao}</p>
                 </div>
               )}
               {normalized.dicas_producao.musica_sugerida && (
-                <div className="p-3 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold text-sm mb-1 text-foreground">🎵 Música sugerida</h4>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{normalized.dicas_producao.musica_sugerida}</p>
+                <div className="p-4 bg-muted/30 rounded-xl">
+                  <h4 className="font-semibold text-sm mb-2 text-foreground">🎵 Música sugerida</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{normalized.dicas_producao.musica_sugerida}</p>
                 </div>
               )}
             </div>
@@ -526,9 +550,9 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
       
       {/* Hashtags e Melhor Horário */}
       {(normalized.dicas_producao.hashtags.length > 0 || normalized.dicas_producao.melhor_horario) && (
-        <Card>
-          <CardHeader className="pb-3 border-b">
-            <CardTitle className="text-base">Publicação</CardTitle>
+        <Card className="bg-card border border-border rounded-xl">
+          <CardHeader className="pb-3 border-b border-border">
+            <CardTitle className="text-base text-foreground">Publicação</CardTitle>
           </CardHeader>
           <CardContent className="pt-4 space-y-3">
             {normalized.dicas_producao.melhor_horario && (
@@ -539,7 +563,7 @@ export const RoteiroVideoCompletoView = ({ data, onRegenerate }: RoteiroVideoCom
             {normalized.dicas_producao.hashtags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {normalized.dicas_producao.hashtags.map((tag, i) => (
-                  <Badge key={i} variant="outline" className="text-xs">
+                  <Badge key={i} variant="outline" className="text-xs border-border text-muted-foreground">
                     {tag.startsWith('#') ? tag : `#${tag}`}
                   </Badge>
                 ))}
