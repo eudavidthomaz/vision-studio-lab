@@ -1811,7 +1811,8 @@ Retorne APENAS o JSON válido.`;
     // Validate structure based on content type
     const operationalTypesValidation = [
       'calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 'versiculos_citados', 'ideia_estrategica',
-      'treino_voluntario', 'campanha_tematica', 'roteiro_reels', 'checklist_culto', 'kit_basico', 'manual_etica', 'estrategia_social'
+      'treino_voluntario', 'campanha_tematica', 'roteiro_reels', 'checklist_culto', 'kit_basico', 'manual_etica', 'estrategia_social',
+      'conteudo_generico_estruturado'
     ];
     
     // Tipos que podem ter estrutura alternativa válida (versículos embutidos nos tópicos)
@@ -1862,6 +1863,7 @@ Retorne APENAS o JSON válido.`;
       (detectedType === 'manual_etica' && generatedContent.manual) ||
       (detectedType === 'estrategia_social' && generatedContent.estrategia) ||
       (detectedType === 'roteiro_video' && (generatedContent.roteiro_video || generatedContent.roteiro || generatedContent.conteudo?.roteiro_video)) ||
+      (detectedType === 'conteudo_generico_estruturado' && generatedContent.conteudo_generico_estruturado) ||
       (['post', 'carrossel', 'reel'].includes(detectedType) && generatedContent.conteudo);
 
     if (!hasCorrectStructure) {
