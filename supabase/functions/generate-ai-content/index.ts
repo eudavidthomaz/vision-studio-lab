@@ -1481,10 +1481,13 @@ Retorne APENAS o JSON válido.`;
     // Tipos complexos precisam de mais tokens
     const complexTypes = ['campanha_tematica', 'treino_voluntario', 'manual_etica', 'estrategia_social'];
     const deepBiblicalTypes = ['estudo', 'esboco', 'discipulado', 'qa_estruturado'];
+    const extendedBiblicalTypes = ['devocional_semanal']; // Tipos que precisam de MUITOS tokens (7 dias)
     const operationalTypesTemp = ['aviso', 'convite', 'versiculos_citados', 'checklist_culto'];
     
     // Ajustar max_tokens baseado em quantidade especificada
-    let maxTokens = complexTypes.includes(detectedType) 
+    let maxTokens = extendedBiblicalTypes.includes(detectedType)
+      ? 12000 // Devocional semanal (7 dias extensos com reflexões longas)
+      : complexTypes.includes(detectedType) 
       ? 8000  // Conteúdo complexo/estratégico
       : deepBiblicalTypes.includes(detectedType)
       ? 6000  // Conteúdo bíblico profundo
