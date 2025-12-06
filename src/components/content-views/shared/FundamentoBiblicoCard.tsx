@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Book } from "lucide-react";
+import { safeString } from "@/lib/normalizeContentData";
 interface FundamentoBiblicoCardProps {
   fundamento: {
     versiculos: string[];
@@ -25,22 +26,11 @@ export function FundamentoBiblicoCard({
         {fundamento.versiculos && fundamento.versiculos.length > 0 && <div>
             <h4 className="font-semibold text-sm mb-2">Versículos Base:</h4>
             <div className="space-y-2">
-              {fundamento.versiculos.map((v, i) => {
-                // Garantir que v seja sempre string
-                let versiculoText = '';
-                if (typeof v === 'string') {
-                  versiculoText = v;
-                } else if (typeof v === 'object' && v !== null) {
-                  // Se v é objeto {texto, aplicacao, referencia}, extrair partes
-                  const vObj = v as { texto?: string; aplicacao?: string; referencia?: string };
-                  versiculoText = [vObj.texto, vObj.aplicacao, vObj.referencia].filter(Boolean).join(' - ');
-                }
-                return (
-                  <div key={i} className="p-3 rounded-md bg-primary">
-                    <p className="text-sm italic">{versiculoText}</p>
-                  </div>
-                );
-              })}
+              {fundamento.versiculos.map((v, i) => (
+                <div key={i} className="p-3 rounded-md bg-primary">
+                  <p className="text-sm italic">{safeString(v)}</p>
+                </div>
+              ))}
             </div>
           </div>}
         

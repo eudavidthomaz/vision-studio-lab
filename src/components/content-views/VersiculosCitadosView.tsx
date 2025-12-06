@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { safeString } from "@/lib/normalizeContentData";
 
 interface VersiculosCitadosViewProps {
   versiculos?: any;
@@ -74,22 +75,22 @@ export const VersiculosCitadosView = ({ versiculos, data, onRegenerate }: Versic
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {normalized.versiculos.map((versiculo, index) => (
+              {normalized.versiculos.map((versiculo, index) => (
               <Card key={index} className="border-l-4 border-l-primary">
                 <CardContent className="pt-6">
                   <div className="space-y-3">
                     <div>
                       <p className="font-semibold text-primary mb-2">
-                        {versiculo.referencia || `Versículo ${index + 1}`}
+                        {safeString(versiculo.referencia) || `Versículo ${index + 1}`}
                       </p>
                       <p className="text-sm text-muted-foreground italic leading-relaxed">
-                        "{versiculo.texto_completo || versiculo.texto || ''}"
+                        "{safeString(versiculo.texto_completo || versiculo.texto)}"
                       </p>
                     </div>
                     {versiculo.contexto_uso && (
                       <div className="p-3 bg-muted/50 rounded-lg">
                         <p className="text-xs text-muted-foreground">
-                          <span className="font-medium">Contexto:</span> {versiculo.contexto_uso}
+                          <span className="font-medium">Contexto:</span> {safeString(versiculo.contexto_uso)}
                         </p>
                       </div>
                     )}
