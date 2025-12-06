@@ -14,8 +14,13 @@ interface RoteiroVideoViewProps {
 }
 
 export const RoteiroVideoView = ({ conteudo_criativo, dica_producao, roteiro, data, onRegenerate }: RoteiroVideoViewProps) => {
-  // Normalizar dados de múltiplas fontes
-  const rawData = roteiro || data?.roteiro || data || { conteudo_criativo, dica_producao };
+  // Normalizar dados de múltiplas fontes - buscar em várias estruturas possíveis
+  const rawData = data?.roteiro_video || 
+    data?.conteudo?.roteiro_video || 
+    data?.roteiro || 
+    roteiro || 
+    data || 
+    { conteudo_criativo, dica_producao };
   const normalized = normalizeRoteiroVideoData(rawData);
   
   const hasContent = normalized.cenas && normalized.cenas.length > 0;

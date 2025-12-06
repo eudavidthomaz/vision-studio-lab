@@ -271,7 +271,11 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
     name: 'Treino de Voluntário',
     category: 'educacional',
     defaultPillar: 'SERVIR',
-    synonyms: ['treino de voluntário', 'treino voluntário', 'onboarding mídia', 'capacitação'],
+    synonyms: [
+      'treino de voluntário', 'treino voluntário', 'onboarding mídia', 'capacitação',
+      'treinamento de equipe', 'treinamento mídia', 'treinamento para equipe de mídia',
+      'treinamento de voluntários', 'capacitação de equipe', 'treinamento equipe'
+    ],
     requiresBiblicalFoundation: false,
     requiresProductionTips: false,
     description: 'Material de onboarding para novos voluntários'
@@ -291,7 +295,11 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
     name: 'Kit Básico de Mídia',
     category: 'educacional',
     defaultPillar: 'SERVIR',
-    synonyms: ['kit básico', 'kit basico', 'mídia com celular', 'setup mínimo'],
+    synonyms: [
+      'kit básico', 'kit basico', 'mídia com celular', 'setup mínimo',
+      'kit de boas-vindas', 'kit boas vindas', 'boas vindas novos convertidos',
+      'kit para novos convertidos', 'kit novos membros', 'kit de novos membros'
+    ],
     requiresBiblicalFoundation: false,
     requiresProductionTips: false,
     description: 'Lista de equipamentos básicos para mídia'
@@ -333,7 +341,11 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
     name: 'Estratégia Social',
     category: 'operacional',
     defaultPillar: 'SERVIR',
-    synonyms: ['estratégia social', 'estrategia social', 'plano instagram', 'estratégia redes'],
+    synonyms: [
+      'estratégia social', 'estrategia social', 'plano instagram', 'estratégia redes',
+      'estratégia de redes sociais', 'estrategia de redes sociais', 'plano de redes sociais',
+      'estratégia para redes', 'estratégia para a igreja', 'estrategia para igreja'
+    ],
     requiresBiblicalFoundation: false,
     requiresProductionTips: false,
     description: 'Plano estratégico para redes sociais'

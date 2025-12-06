@@ -62,15 +62,15 @@ export const CONTENT_TYPE_DEFINITIONS: ContentTypeDefinition[] = [
   { type: 'guia', name: 'Guia Prático', category: 'educacional', defaultPillar: 'EDIFICAR', synonyms: ['guia', 'manual', 'tutorial'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Material educativo' },
   { type: 'discipulado', name: 'Plano de Discipulado', category: 'educacional', defaultPillar: 'EDIFICAR', synonyms: ['discipulado', 'mentoria'], requiresBiblicalFoundation: true, requiresProductionTips: false, description: 'Plano de discipulado' },
   { type: 'qa_estruturado', name: 'Perguntas e Respostas', category: 'educacional', defaultPillar: 'EDIFICAR', synonyms: ['perguntas e respostas', 'q&a', 'faq'], requiresBiblicalFoundation: true, requiresProductionTips: false, description: 'Q&A estruturado' },
-  { type: 'treino_voluntario', name: 'Treino de Voluntário', category: 'educacional', defaultPillar: 'SERVIR', synonyms: ['treino de voluntário', 'onboarding'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Material para voluntários' },
+  { type: 'treino_voluntario', name: 'Treino de Voluntário', category: 'educacional', defaultPillar: 'SERVIR', synonyms: ['treino de voluntário', 'onboarding', 'treinamento de equipe', 'treinamento mídia', 'treinamento para equipe de mídia', 'treinamento de voluntários', 'capacitação de equipe', 'treinamento equipe'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Material para voluntários' },
   { type: 'manual_etica', name: 'Manual de Ética', category: 'educacional', defaultPillar: 'SERVIR', synonyms: ['manual ética', 'guia ética'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Guia de ética' },
-  { type: 'kit_basico', name: 'Kit Básico de Mídia', category: 'educacional', defaultPillar: 'SERVIR', synonyms: ['kit básico', 'mídia com celular'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Lista de equipamentos' },
+  { type: 'kit_basico', name: 'Kit Básico de Mídia', category: 'educacional', defaultPillar: 'SERVIR', synonyms: ['kit básico', 'mídia com celular', 'kit de boas-vindas', 'kit boas vindas', 'kit para novos convertidos', 'kit novos membros'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Lista de equipamentos' },
   
   // OPERACIONAL
   { type: 'calendario', name: 'Calendário Editorial', category: 'operacional', defaultPillar: 'SERVIR', synonyms: ['calendário', 'cronograma', 'planner'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Planejamento editorial' },
   { type: 'convite_grupos', name: 'Convite para Grupos', category: 'operacional', defaultPillar: 'PERTENCER', synonyms: ['convite para grupo', 'chamado para célula'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Convite para células' },
   { type: 'checklist_culto', name: 'Checklist do Culto', category: 'operacional', defaultPillar: 'SERVIR', synonyms: ['checklist culto', 'pré culto'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Checklist operacional' },
-  { type: 'estrategia_social', name: 'Estratégia Social', category: 'operacional', defaultPillar: 'SERVIR', synonyms: ['estratégia social', 'plano instagram'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Plano para redes' },
+  { type: 'estrategia_social', name: 'Estratégia Social', category: 'operacional', defaultPillar: 'SERVIR', synonyms: ['estratégia social', 'plano instagram', 'estratégia de redes sociais', 'plano de redes sociais', 'estratégia para redes', 'estratégia para a igreja'], requiresBiblicalFoundation: false, requiresProductionTips: false, description: 'Plano para redes' },
   
   // VÍDEO
   { type: 'roteiro_video', name: 'Roteiro de Vídeo', category: 'video', defaultPillar: 'ENVIAR', synonyms: ['roteiro de vídeo', 'script de vídeo'], requiresBiblicalFoundation: true, requiresProductionTips: true, description: 'Roteiro para vídeo' },
@@ -144,13 +144,33 @@ interface TypePattern {
 
 const TYPE_PATTERNS: TypePattern[] = [
   // PRIORIDADE 1: Muito específicos
-  { type: 'treino_voluntario', patterns: [/treino\s*(de\s*)?volunt[aá]rio/i, /onboarding\s*m[ií]dia/i], priority: 1 },
+  { type: 'treino_voluntario', patterns: [
+    /treino\s*(de\s*)?volunt[aá]rio/i, 
+    /onboarding\s*m[ií]dia/i,
+    /treinamento\s*(para\s*)?(equipe\s*)?(de\s*)?m[ií]dia/i,
+    /capacita[cç][aã]o\s*(de\s*)?(equipe|volunt[aá]rios?)/i,
+    /treinamento\s*(de\s*)?volunt[aá]rios?/i,
+    /treinamento\s*(para\s*)?equipe/i
+  ], priority: 1 },
   { type: 'campanha_tematica', patterns: [/campanha[-\s]?tem[aá]tica/i, /s[eé]rie\s*de\s*conte[uú]do/i], priority: 1 },
   { type: 'roteiro_reels', patterns: [/roteiro\s*(de\s*)?reels?/i, /script\s*reels?/i], priority: 1 },
   { type: 'checklist_culto', patterns: [/checklist\s*(para\s*)?(equipe\s*)?(do\s*)?culto/i, /checklist.*culto/i, /pr[eé][-\s]?culto/i], priority: 1 },
-  { type: 'kit_basico', patterns: [/kit\s*b[aá]sico/i, /m[ií]dia\s*com\s*celular/i], priority: 1 },
+  { type: 'kit_basico', patterns: [
+    /kit\s*b[aá]sico/i, 
+    /m[ií]dia\s*com\s*celular/i,
+    /kit\s*(de\s*)?boas[-\s]?vindas/i,
+    /kit\s*(para\s*)?(novos\s*)?convertidos/i,
+    /kit\s*(de\s*)?novos\s*membros/i
+  ], priority: 1 },
   { type: 'manual_etica', patterns: [/manual\s*[-\s]?[eé]tica/i, /guia\s*[eé]tica/i], priority: 1 },
-  { type: 'estrategia_social', patterns: [/estrat[eé]gia[-\s]?social/i, /plano\s*instagram/i], priority: 1 },
+  { type: 'estrategia_social', patterns: [
+    /estrat[eé]gia[-\s]?social/i, 
+    /plano\s*instagram/i,
+    /estrat[eé]gia\s*(de\s*)?(redes\s*)?sociais?/i,
+    /estrat[eé]gia\s*(para\s*)?redes/i,
+    /plano\s*(de\s*)?redes\s*sociais?/i,
+    /estrat[eé]gia\s*(para\s*)?(a\s*)?igreja/i
+  ], priority: 1 },
 
   // PRIORIDADE 2: Específicos com múltiplas palavras
   { type: 'devocional_semanal', patterns: [/devocional\s*(de\s*)?(7|sete|\d+)\s*dias?/i, /devocionais?\s+semanais?/i, /devocional\s+semanal/i], priority: 2 },

@@ -43,7 +43,15 @@ const TYPE_PATTERNS: TypePattern[] = [
   // PRIORIDADE 1: Tipos muito específicos (comandos)
   {
     type: 'treino_voluntario',
-    patterns: [/treino\s*(de\s*)?volunt[aá]rio/i, /onboarding\s*m[ií]dia/i, /\/treino-volunt[aá]rio/i],
+    patterns: [
+      /treino\s*(de\s*)?volunt[aá]rio/i, 
+      /onboarding\s*m[ií]dia/i, 
+      /\/treino-volunt[aá]rio/i,
+      /treinamento\s*(para\s*)?(equipe\s*)?(de\s*)?m[ií]dia/i,
+      /capacita[cç][aã]o\s*(de\s*)?(equipe|volunt[aá]rios?)/i,
+      /treinamento\s*(de\s*)?volunt[aá]rios?/i,
+      /treinamento\s*(para\s*)?equipe/i
+    ],
     priority: 1
   },
   {
@@ -63,7 +71,14 @@ const TYPE_PATTERNS: TypePattern[] = [
   },
   {
     type: 'kit_basico',
-    patterns: [/kit\s*b[aá]sico/i, /m[ií]dia\s*com\s*celular/i, /setup\s*m[ií]nimo/i],
+    patterns: [
+      /kit\s*b[aá]sico/i, 
+      /m[ií]dia\s*com\s*celular/i, 
+      /setup\s*m[ií]nimo/i,
+      /kit\s*(de\s*)?boas[-\s]?vindas/i,
+      /kit\s*(para\s*)?(novos\s*)?convertidos/i,
+      /kit\s*(de\s*)?novos\s*membros/i
+    ],
     priority: 1
   },
   {
@@ -73,7 +88,15 @@ const TYPE_PATTERNS: TypePattern[] = [
   },
   {
     type: 'estrategia_social',
-    patterns: [/estrat[eé]gia[-\s]?social/i, /plano\s*instagram/i, /estrat[eé]gia\s*redes/i],
+    patterns: [
+      /estrat[eé]gia[-\s]?social/i, 
+      /plano\s*instagram/i, 
+      /estrat[eé]gia\s*redes/i,
+      /estrat[eé]gia\s*(de\s*)?(redes\s*)?sociais?/i,
+      /estrat[eé]gia\s*(para\s*)?redes/i,
+      /plano\s*(de\s*)?redes\s*sociais?/i,
+      /estrat[eé]gia\s*(para\s*)?(a\s*)?igreja/i
+    ],
     priority: 1
   },
 
