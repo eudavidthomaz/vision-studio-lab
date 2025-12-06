@@ -971,42 +971,90 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
   }
 }`,
 
-      roteiro_video: `{
+      roteiro_video_completo: `{
+  "ideia_estrategica": {
+    "titulo": "Título do conteúdo de vídeo",
+    "objetivo": "Objetivo estratégico do vídeo",
+    "publico_alvo": "Para quem é este vídeo",
+    "promessa": "O que o espectador vai ganhar",
+    "chamada_para_acao": "Próximo passo esperado",
+    "tom": "Tom de comunicação",
+    "formato_prioritario": "Reel/Short/Vídeo longo",
+    "proximos_passos": "O que fazer após gravar"
+  },
   "fundamento_biblico": {
-    "versiculos": ["Versículo 1", "Versículo 2"],
-    "contexto": "Contexto bíblico",
-    "principio_atemporal": "Princípio aplicável"
+    "versiculos": ["Versículo 1 com referência", "Versículo 2"],
+    "contexto": "Contexto bíblico e teológico",
+    "principio_atemporal": "Princípio aplicável à vida moderna"
   },
-  "roteiro_video": {
+  "roteiro_video_completo": {
     "titulo": "Título do vídeo",
-    "duracao_estimada": "5-10 minutos",
-    "objetivo": "Objetivo do vídeo",
-    "estrutura": [
-      {
-        "parte": "Introdução",
-        "duracao": "0:00 - 1:00",
-        "conteudo": "O que falar/mostrar",
-        "visual": "Sugestão visual"
+    "duracao_estimada": "60-90 segundos",
+    "formato": "Reel/Short/Vídeo completo",
+    "proposta_estrategica": {
+      "problema_real": "Qual dor/necessidade o vídeo resolve",
+      "solucao_proposta": "Como o vídeo resolve isso",
+      "hook_psicologico": "Gatilho que prende atenção nos primeiros 3s",
+      "publico_alvo": "Para quem é este vídeo"
+    },
+    "roteiro": {
+      "hook": {
+        "duracao": "0-3s",
+        "texto": "Primeira frase impactante",
+        "visual": "Descrição visual da cena"
       },
-      {
-        "parte": "Desenvolvimento",
-        "duracao": "1:00 - 7:00",
-        "conteudo": "Pontos principais a abordar",
-        "visual": "Sugestões visuais"
-      },
-      {
-        "parte": "Conclusão",
-        "duracao": "7:00 - 10:00",
-        "conteudo": "Como encerrar",
-        "visual": "Visual de encerramento"
+      "desenvolvimento": [
+        {
+          "cena": 1,
+          "duracao": "3-15s",
+          "texto_fala": "O que falar",
+          "visual": "O que mostrar",
+          "texto_tela": "Texto overlay (opcional)"
+        },
+        {
+          "cena": 2,
+          "duracao": "15-30s",
+          "texto_fala": "Continuação",
+          "visual": "Visual da cena",
+          "texto_tela": "Texto overlay"
+        }
+      ],
+      "cta": {
+        "duracao": "últimos 5s",
+        "texto": "Chamada para ação",
+        "visual": "Descrição visual"
       }
+    },
+    "implementacao": {
+      "equipe_solo": "Como fazer sozinho com celular",
+      "equipe_pequena": "Como fazer com 2-3 pessoas",
+      "equipe_estruturada": "Versão profissional"
+    },
+    "passos_praticos": [
+      "1. Preparar ambiente de gravação",
+      "2. Gravar hook primeiro",
+      "3. Gravar desenvolvimento em takes separados",
+      "4. Editar com cortes dinâmicos",
+      "5. Adicionar texto e música"
     ],
-    "chamada_para_acao": "O que pedir ao espectador"
-  },
-  "dica_producao": {
-    "equipamento": "Equipamento mínimo necessário",
-    "iluminacao": "Dicas de iluminação",
-    "audio": "Dicas de captação de áudio"
+    "metricas_de_fruto": {
+      "indicadores": ["Views", "Compartilhamentos", "Salvamentos"],
+      "meta_sugerida": "Meta realista para 7 dias",
+      "como_medir": "Onde acompanhar essas métricas"
+    },
+    "filtro_etico_teologico": {
+      "aprovado": true,
+      "consideracoes": "Observações sobre ética e teologia",
+      "cuidados": ["Não usar música secular com letra inadequada"]
+    },
+    "dicas_producao": {
+      "iluminacao": "Dica de luz",
+      "audio": "Dica de áudio",
+      "edicao": "Estilo de edição recomendado",
+      "musica_sugerida": "Estilo de áudio/música",
+      "hashtags": ["#hashtag1", "#hashtag2"],
+      "melhor_horario": "Horário ideal para postar"
+    }
   }
 }`
     };
@@ -1812,7 +1860,7 @@ Retorne APENAS o JSON válido.`;
     const operationalTypesValidation = [
       'calendario', 'convite', 'aviso', 'guia', 'convite_grupos', 'versiculos_citados', 'ideia_estrategica',
       'treino_voluntario', 'campanha_tematica', 'roteiro_reels', 'checklist_culto', 'kit_basico', 'manual_etica', 'estrategia_social',
-      'conteudo_generico_estruturado'
+      'conteudo_generico_estruturado', 'roteiro_video_completo'
     ];
     
     // Tipos que podem ter estrutura alternativa válida (versículos embutidos nos tópicos)
@@ -1868,6 +1916,7 @@ Retorne APENAS o JSON válido.`;
       (detectedType === 'manual_etica' && generatedContent.manual) ||
       (detectedType === 'estrategia_social' && generatedContent.estrategia) ||
       (detectedType === 'roteiro_video' && (generatedContent.roteiro_video || generatedContent.roteiro || generatedContent.conteudo?.roteiro_video)) ||
+      (detectedType === 'roteiro_video_completo' && (generatedContent.roteiro_video_completo || generatedContent.roteiro_video || generatedContent.roteiro || generatedContent.ideia_estrategica || generatedContent.conteudo)) ||
       (detectedType === 'conteudo_generico_estruturado' && generatedContent.conteudo_generico_estruturado) ||
       (['post', 'carrossel', 'reel'].includes(detectedType) && generatedContent.conteudo);
 
