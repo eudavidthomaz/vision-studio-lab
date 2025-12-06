@@ -5,7 +5,6 @@ import { normalizeContentData, detectRealContentType } from "@/lib/normalizeCont
 
 // 1. CONTEÚDO SOCIAL
 import { CarrosselView } from "./content-views/CarrosselView";
-import { ReelView } from "./content-views/ReelView";
 import { StoriesView } from "./content-views/StoriesView";
 import { PostSimplesView } from "./content-views/PostSimplesView";
 import { FotoPostView } from "./content-views/FotoPostView";
@@ -41,7 +40,8 @@ import { QAEstruturadoView } from "./content-views/QAEstruturadoView";
 import { PerguntasView } from "./content-views/PerguntasView";
 import { DiscipuladoView } from "./content-views/DiscipuladoView";
 
-// 6. OUTROS
+// 6. VÍDEO
+import { RoteiroVideoCompletoView } from "./content-views/RoteiroVideoCompletoView";
 import { RoteiroVideoView } from "./content-views/RoteiroVideoView";
 import { RoteiroReelsView } from "./content-views/RoteiroReelsView";
 import { ChecklistCultoView } from "./content-views/ChecklistCultoView";
@@ -60,9 +60,8 @@ interface ContentViewerProps {
 
 // MAPEAMENTO COMPLETO: 34 TIPOS
 const CONTENT_VIEWS: Record<string, any> = {
-  // Social (6 tipos)
+  // Social (5 tipos - reel foi unificado em vídeo)
   'carrossel': CarrosselView,
-  'reel': ReelView,
   'stories': StoriesView,
   'post': PostSimplesView,
   'foto_post': FotoPostView,
@@ -98,9 +97,11 @@ const CONTENT_VIEWS: Record<string, any> = {
   'perguntas': PerguntasView,
   'discipulado': DiscipuladoView,
   
-  // Outros (3 tipos)
-  'roteiro_video': RoteiroVideoView,
-  'roteiro_reels': RoteiroReelsView,
+  // Vídeo UNIFICADO (todos redirecionam para RoteiroVideoCompletoView)
+  'roteiro_video_completo': RoteiroVideoCompletoView,
+  'roteiro_video': RoteiroVideoCompletoView,
+  'roteiro_reels': RoteiroVideoCompletoView,
+  'reel': RoteiroVideoCompletoView,
   'checklist_culto': ChecklistCultoView,
   
   // Fallback genérico estruturado (NUNCA mostra JSON cru)
@@ -169,14 +170,21 @@ export function ContentViewer({ content, onRegenerate }: ContentViewerProps) {
       'resumo_pregacao': 'resumo',
       'estudobiblico': 'estudo',
       'estudo_biblico': 'estudo',
-      'roteiroReels': 'roteiro_reels',
-      'roteiroreels': 'roteiro_reels',
       'desafio': 'desafio_semanal',
       'campanha': 'campanha_tematica',
       'treino': 'treino_voluntario',
       'kit': 'kit_basico',
       'qa': 'qa_estruturado',
       'estrategia': 'estrategia_social',
+      // Vídeo - todos redirecionam para roteiro_video_completo
+      'roteiroReels': 'roteiro_video_completo',
+      'roteiroreels': 'roteiro_video_completo',
+      'roteiroVideo': 'roteiro_video_completo',
+      'roteirovideo': 'roteiro_video_completo',
+      'video': 'roteiro_video_completo',
+      'reels': 'roteiro_video_completo',
+      'short': 'roteiro_video_completo',
+      'shorts': 'roteiro_video_completo',
     };
     
     const aliasKey = typeAliases[normalizedType] || typeAliases[detectedType];

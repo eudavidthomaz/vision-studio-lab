@@ -40,6 +40,23 @@ interface TypePattern {
 }
 
 const TYPE_PATTERNS: TypePattern[] = [
+  // PRIORIDADE 0: VÍDEO UNIFICADO (captura TODAS as variações de vídeo/reels)
+  {
+    type: 'roteiro_video_completo',
+    patterns: [
+      /roteiro\s*(de\s*)?(v[ií]deo|reels?)/i,
+      /v[ií]deo\s*(sobre|de|para|com)\s/i,
+      /reels?\s*(sobre|de|para|com)\s/i,
+      /ideia\s*(de\s*|para\s*)?(v[ií]deo|reels?)/i,
+      /script\s*(de\s*)?(v[ií]deo|reels?)/i,
+      /gravar\s*(um\s*)?(v[ií]deo|reels?)/i,
+      /conte[uú]do\s*(em\s*)?v[ií]deo/i,
+      /v[ií]deo\s+\w+/i,
+      /\breels?\b.*\b(sobre|tema|assunto)\b/i,
+    ],
+    priority: 0
+  },
+
   // PRIORIDADE 1: Tipos muito específicos (comandos)
   {
     type: 'treino_voluntario',
@@ -57,11 +74,6 @@ const TYPE_PATTERNS: TypePattern[] = [
   {
     type: 'campanha_tematica',
     patterns: [/campanha[-\s]?tem[aá]tica/i, /s[eé]rie\s*de\s*conte[uú]do/i, /planejamento\s*s[eé]rie/i],
-    priority: 1
-  },
-  {
-    type: 'roteiro_reels',
-    patterns: [/roteiro\s*(de\s*)?reels?/i, /script\s*reels?/i, /reel\s*roteiro/i],
     priority: 1
   },
   {
