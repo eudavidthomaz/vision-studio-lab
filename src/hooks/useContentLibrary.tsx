@@ -95,7 +95,7 @@ export function useContentLibrary() {
 
       toast.success('✨ Conteúdo criado com sucesso!');
       await loadItems(); // Refresh
-      return data.id;
+      return data.content_id || data.id;
     } catch (error: any) {
       console.error('Error creating content:', error);
       toast.error(error.message || 'Erro ao criar conteúdo');
