@@ -17,26 +17,28 @@ export function FundamentoBiblicoCard({
   if (!fundamento) return null;
   
   return (
-    <Card className="border-l-4 border-l-blue-500">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Book className="w-5 h-5 text-blue-600" />
+    <Card className="bg-card border border-border rounded-xl">
+      <CardHeader className="pb-3 border-b border-border">
+        <CardTitle className="flex items-center gap-2 text-lg text-foreground">
+          <div className="p-1.5 bg-blue-500/20 rounded-lg">
+            <Book className="w-5 h-5 text-blue-400" />
+          </div>
           Fundamento Bíblico
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="pt-4 space-y-4">
         
         {/* Versículos */}
         {fundamento.versiculos && fundamento.versiculos.length > 0 && (
           <div>
-            <h4 className="font-semibold text-sm mb-2 text-foreground">Versículos Base:</h4>
+            <h4 className="font-semibold text-sm mb-3 text-foreground">Versículos Base:</h4>
             <div className="space-y-2">
               {fundamento.versiculos.map((v, i) => (
                 <div 
                   key={i} 
-                  className="p-3 rounded-md bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
+                  className="p-4 rounded-xl bg-muted/50 border-l-4 border-blue-500"
                 >
-                  <p className="text-sm italic text-blue-900 dark:text-blue-100">
+                  <p className="text-sm italic text-foreground leading-relaxed">
                     {safeString(v)}
                   </p>
                 </div>
@@ -49,7 +51,7 @@ export function FundamentoBiblicoCard({
         {fundamento.contexto && (
           <div>
             <h4 className="font-semibold text-sm mb-2 text-foreground">Contexto Histórico:</h4>
-            <p className="text-sm text-muted-foreground whitespace-pre-line">
+            <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
               {fundamento.contexto}
             </p>
           </div>
@@ -57,11 +59,12 @@ export function FundamentoBiblicoCard({
         
         {/* Princípio */}
         {(fundamento.principio_atemporal || fundamento.principio) && (
-          <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
-            <h4 className="font-semibold text-sm mb-2 text-amber-800 dark:text-amber-200">
-              💡 Princípio Atemporal:
+          <div className="p-4 bg-primary/10 rounded-xl border border-primary/20">
+            <h4 className="font-semibold text-sm mb-2 text-primary flex items-center gap-2">
+              <span>💡</span>
+              Princípio Atemporal
             </h4>
-            <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+            <p className="text-sm font-medium text-foreground leading-relaxed">
               {fundamento.principio_atemporal || fundamento.principio}
             </p>
           </div>
