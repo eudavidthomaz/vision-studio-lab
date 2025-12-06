@@ -14,6 +14,7 @@ import {
   Target 
 } from "lucide-react";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface DiaDevocional {
   dia: number;
@@ -161,7 +162,7 @@ ${dia.desafio_do_dia}`;
             </h4>
             {fundamento.versiculos?.length > 0 && (
               <div className="space-y-1 mb-2">
-                {fundamento.versiculos.map((v: string, i: number) => (
+                {safeStringArray(fundamento.versiculos).map((v: string, i: number) => (
                   <p key={i} className="text-sm italic text-muted-foreground">"{v}"</p>
                 ))}
               </div>
@@ -228,7 +229,7 @@ ${dia.desafio_do_dia}`;
                       Perguntas para Reflexão
                     </h4>
                     <ul className="space-y-2">
-                      {dia.perguntas_pessoais.map((pergunta, i) => (
+                      {safeStringArray(dia.perguntas_pessoais).map((pergunta, i) => (
                         <li key={i} className="text-sm text-muted-foreground flex gap-2">
                           <span className="font-semibold text-primary">{i + 1}.</span>
                           {pergunta}

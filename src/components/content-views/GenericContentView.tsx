@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, RefreshCw, Copy, BookOpen, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface GenericContentViewProps {
   data?: any;
@@ -39,11 +40,9 @@ export const GenericContentView = ({ data, contentType, onRegenerate }: GenericC
     // Tentar extrair título
     result.titulo = obj.titulo || obj.title || obj.nome || obj.tema || 'Conteúdo Gerado';
 
-    // Procurar por versículos
+    // Procurar por versículos - garantir que sejam strings
     if (obj.fundamento_biblico?.versiculos) {
-      result.versiculos = Array.isArray(obj.fundamento_biblico.versiculos) 
-        ? obj.fundamento_biblico.versiculos 
-        : [obj.fundamento_biblico.versiculos];
+      result.versiculos = safeStringArray(obj.fundamento_biblico.versiculos);
     }
 
     // Procurar observações do sistema

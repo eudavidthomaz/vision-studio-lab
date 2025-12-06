@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CheckCircle2, Circle, Book, Target, Share2, TrendingUp, Copy, RotateCw } from "lucide-react";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface DesafioSemanalViewProps {
   desafio_semanal?: any;
@@ -122,7 +123,7 @@ ${dia.exemplo_pratico ? `Exemplo: ${dia.exemplo_pratico}` : ''}
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              {(Array.isArray(fundamento.versiculos) ? fundamento.versiculos : [fundamento.versiculos]).map((v: string, i: number) => (
+              {safeStringArray(fundamento.versiculos).map((v: string, i: number) => (
                 <div key={i} className="p-4 bg-muted/50 rounded-lg border-l-4 border-primary">
                   <p className="text-sm leading-relaxed italic">{v}</p>
                 </div>

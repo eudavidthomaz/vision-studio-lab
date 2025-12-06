@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface ResumoPregacaoViewProps {
   data?: any;
@@ -17,21 +18,20 @@ export const ResumoPregacaoView = ({ data, onRegenerate }: ResumoPregacaoViewPro
   
   const normalized = {
     fundamento_biblico: {
-      versiculos: Array.isArray(fb.versiculos) ? fb.versiculos : fb.versiculos ? [fb.versiculos] : [],
-      contexto: fb.contexto || '',
-      principio: fb.principio_atemporal || fb.principio || '',
+      versiculos: safeStringArray(fb.versiculos),
+      contexto: safeString(fb.contexto),
+      principio: safeString(fb.principio_atemporal || fb.principio),
     },
     resumo_pregacao: {
-      titulo: rawData.titulo || data?.titulo || 'Resumo da Pregação',
-      introducao: rawData.introducao || '',
+      titulo: safeString(rawData.titulo || data?.titulo) || 'Resumo da Pregação',
+      introducao: safeString(rawData.introducao),
       pontos_principais: Array.isArray(rawData.pontos_principais) ? rawData.pontos_principais : 
                          Array.isArray(rawData.pontos) ? rawData.pontos : [],
-      ilustracoes: Array.isArray(rawData.ilustracoes) ? rawData.ilustracoes : [],
-      conclusao: rawData.conclusao || '',
-      aplicacao_pratica: rawData.aplicacao_pratica || rawData.aplicacao || '',
+      ilustracoes: safeStringArray(rawData.ilustracoes),
+      conclusao: safeString(rawData.conclusao),
+      aplicacao_pratica: safeString(rawData.aplicacao_pratica || rawData.aplicacao),
     },
-    frases_impactantes: Array.isArray(data?.frases_impactantes) ? data.frases_impactantes : 
-                        Array.isArray(rawData?.frases_impactantes) ? rawData.frases_impactantes : [],
+    frases_impactantes: safeStringArray(data?.frases_impactantes || rawData?.frases_impactantes),
   };
   
   const hasContent = normalized.resumo_pregacao.titulo && 

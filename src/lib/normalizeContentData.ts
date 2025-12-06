@@ -6,6 +6,61 @@
  */
 
 // ============================================
+// FUNÇÃO UTILITÁRIA PARA GARANTIR STRINGS
+// ============================================
+
+/**
+ * Converte qualquer valor em string segura para renderização React.
+ * Previne erro "Objects are not valid as React children".
+ * 
+ * Trata casos onde a IA retorna objetos como {texto, aplicacao, referencia}
+ * ao invés de strings simples.
+ */
+export function safeString(value: any): string {
+  if (typeof value === 'string') return value;
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (typeof value === 'object') {
+    // Extrair texto de estruturas comuns retornadas pela IA
+    const parts = [
+      value.texto,
+      value.conteudo,
+      value.descricao,
+      value.aplicacao,
+      value.referencia,
+      value.titulo,
+      value.pergunta,
+      value.resposta
+    ].filter(v => typeof v === 'string' && v.trim());
+    
+    if (parts.length > 0) {
+      return parts.join(' - ');
+    }
+    
+    // Fallback: tentar JSON.stringify se não encontrou campos conhecidos
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return '[objeto]';
+    }
+  }
+  return String(value);
+}
+
+/**
+ * Normaliza um array para garantir que todos os itens sejam strings.
+ * Útil para arrays como versiculos, perguntas, ilustracoes, etc.
+ */
+export function safeStringArray(arr: any): string[] {
+  if (!Array.isArray(arr)) {
+    if (arr && typeof arr === 'string') return [arr];
+    if (arr && typeof arr === 'object') return [safeString(arr)];
+    return [];
+  }
+  return arr.map(item => safeString(item));
+}
+
+// ============================================
 // INTERFACES PADRONIZADAS POR TIPO
 // ============================================
 
