@@ -13,7 +13,7 @@ interface DiscipuladoViewProps {
 
 export const DiscipuladoView = ({ plano, data, onRegenerate }: DiscipuladoViewProps) => {
   // Normalizar dados de múltiplas estruturas possíveis
-  const rawData = plano || data?.plano || data || {};
+  const rawData = plano || data?.plano_discipulado || data?.plano || data || {};
   
   const normalized = {
     titulo: rawData.titulo || 'Plano de Discipulado',
