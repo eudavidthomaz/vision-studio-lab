@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { GraduationCap, Target, CheckCircle2, Copy, RotateCw } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface TreinoVoluntarioViewProps {
   data?: any;
@@ -136,10 +137,10 @@ ${checklist_competencias.map((c: string) => `☐ ${c}`).join('\n')}
                         Objetivos
                       </h4>
                       <ul className="space-y-1 text-sm text-muted-foreground">
-                        {modulo.objetivos.map((obj: string, i: number) => (
+                        {safeStringArray(modulo.objetivos).map((obj, i) => (
                           <li key={i} className="flex items-start gap-2">
                             <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
-                            <span>{obj}</span>
+                            <span>{safeString(obj)}</span>
                           </li>
                         ))}
                       </ul>
@@ -186,10 +187,10 @@ ${checklist_competencias.map((c: string) => `☐ ${c}`).join('\n')}
               Ao final do treinamento, você deve ser capaz de:
             </p>
             <div className="space-y-2">
-              {checklist_competencias.map((competencia: string, i: number) => (
+              {safeStringArray(checklist_competencias).map((competencia, i) => (
                 <div key={i} className="flex items-start gap-2 p-2 rounded hover:bg-muted/50 transition-colors">
                   <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 shrink-0 mt-0.5" />
-                  <span className="text-sm">{competencia}</span>
+                  <span className="text-sm">{safeString(competencia)}</span>
                 </div>
               ))}
             </div>

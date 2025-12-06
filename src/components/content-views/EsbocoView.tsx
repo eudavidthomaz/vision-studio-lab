@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, List, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface EsbocoViewProps {
   esboco?: any;
@@ -100,10 +101,10 @@ export const EsbocoView = ({ esboco, data, onRegenerate }: EsbocoViewProps) => {
                             <h4 className="font-semibold mb-2">{topico.titulo || `Tópico ${index + 1}`}</h4>
                             {subtopicos.length > 0 && (
                               <div className="space-y-1 ml-4">
-                                {subtopicos.map((sub, subIndex) => (
+                                {safeStringArray(subtopicos).map((sub, subIndex) => (
                                   <div key={subIndex} className="flex items-start gap-2">
                                     <List className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                                    <p className="text-sm text-muted-foreground">{sub}</p>
+                                    <p className="text-sm text-muted-foreground">{safeString(sub)}</p>
                                   </div>
                                 ))}
                               </div>
@@ -113,7 +114,7 @@ export const EsbocoView = ({ esboco, data, onRegenerate }: EsbocoViewProps) => {
                         {topico.versiculo_base && (
                           <div className="ml-10 p-3 bg-primary/5 rounded-lg">
                             <p className="text-sm text-muted-foreground italic">
-                              📖 {topico.versiculo_base}
+                              📖 {safeString(topico.versiculo_base)}
                             </p>
                           </div>
                         )}

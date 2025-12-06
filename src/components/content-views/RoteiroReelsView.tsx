@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Video, Copy, Clock, Sparkles, Lightbulb, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface RoteiroReelsViewProps {
   data?: any;
@@ -178,9 +179,9 @@ export const RoteiroReelsView = ({ data, onRegenerate }: RoteiroReelsViewProps) 
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {normalized.estrutura_visual.texto_tela.map((texto, i) => (
+              {safeStringArray(normalized.estrutura_visual.texto_tela).map((texto, i) => (
                 <div key={i} className="p-3 bg-primary/5 rounded-md border border-primary/20 text-center">
-                  <p className="font-bold text-sm sm:text-lg">{texto}</p>
+                  <p className="font-bold text-sm sm:text-lg">{safeString(texto)}</p>
                 </div>
               ))}
             </div>
@@ -255,9 +256,9 @@ export const RoteiroReelsView = ({ data, onRegenerate }: RoteiroReelsViewProps) 
             )}
             {normalized.dica_producao.hashtags.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-3 border-t">
-                {normalized.dica_producao.hashtags.map((tag, i) => (
+                {safeStringArray(normalized.dica_producao.hashtags).map((tag, i) => (
                   <Badge key={i} variant="secondary" className="text-xs">
-                    {tag}
+                    {safeString(tag)}
                   </Badge>
                 ))}
               </div>

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Lightbulb, Target, Users, CheckCircle2, AlertCircle, TrendingUp, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface IdeiaEstrategicaViewProps {
   data?: any;
@@ -131,10 +132,10 @@ export const IdeiaEstrategicaView = ({ data, onRegenerate }: IdeiaEstrategicaVie
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {normalized.base_academica.map((base, idx) => (
+              {safeStringArray(normalized.base_academica).map((base, idx) => (
                 <li key={idx} className="text-sm flex items-start gap-2">
                   <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                  <span>{base}</span>
+                  <span>{safeString(base)}</span>
                 </li>
               ))}
             </ul>
@@ -182,12 +183,12 @@ export const IdeiaEstrategicaView = ({ data, onRegenerate }: IdeiaEstrategicaVie
           </CardHeader>
           <CardContent>
             <ol className="space-y-3">
-              {normalized.passos_praticos.map((passo, idx) => (
+              {safeStringArray(normalized.passos_praticos).map((passo, idx) => (
                 <li key={idx} className="text-sm flex items-start gap-3">
                   <span className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
                     {idx + 1}
                   </span>
-                  <span className="pt-0.5">{passo}</span>
+                  <span className="pt-0.5">{safeString(passo)}</span>
                 </li>
               ))}
             </ol>
