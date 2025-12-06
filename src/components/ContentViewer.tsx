@@ -46,6 +46,9 @@ import { RoteiroVideoView } from "./content-views/RoteiroVideoView";
 import { RoteiroReelsView } from "./content-views/RoteiroReelsView";
 import { ChecklistCultoView } from "./content-views/ChecklistCultoView";
 
+// 7. FALLBACK GENÉRICO
+import { GenericContentView } from "./content-views/GenericContentView";
+
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "./ui/button";
@@ -99,6 +102,9 @@ const CONTENT_VIEWS: Record<string, any> = {
   'roteiro_video': RoteiroVideoView,
   'roteiro_reels': RoteiroReelsView,
   'checklist_culto': ChecklistCultoView,
+  
+  // Fallback genérico estruturado (NUNCA mostra JSON cru)
+  'conteudo_generico_estruturado': GenericContentView,
 };
 
 // View de fallback melhorada
