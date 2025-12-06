@@ -10,7 +10,16 @@ import {
   CONTENT_METHOD,
   PILLAR_DISTRIBUTION
 } from "../_shared/prompt-principles.ts";
-import { ContentType, detectContentTypes, isContentType } from "../_shared/detectContentTypes.ts";
+import { 
+  detectContentTypes, 
+  isContentType,
+  getDefaultPillar,
+  typeRequiresBiblicalFoundation,
+  getTypeDefinition,
+  interpretSemanticType,
+  CONTENT_TYPE_DEFINITIONS,
+  type ContentType
+} from "../_shared/detectContentTypes.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -200,21 +209,14 @@ serve(async (req) => {
   console.log(`✅ Detected type(s): ${detectedTypes.join(", ")}${wasTypeInferred ? ' (fallback)' : ''}`);
   console.log(`Final detected content type: ${detectedType}`);
   
-  // Detectar pilar baseado no tipo e contexto do prompt
-  const detectPilar = (type: ContentType, promptText: string): string => {
+  // Detectar pilar baseado no tipo e contexto do prompt - usa configuração unificada
+  const detectPilar = (type: string, promptText: string): string => {
     const lowerPrompt = promptText.toLowerCase();
     
-    // Tipos que são claramente de SERVIR
-    if (['aviso', 'convite', 'convite_grupos', 'calendario', 'checklist_culto'].includes(type)) {
-      return 'SERVIR';
-    }
+    // Primeiro, tentar obter o pilar padrão do tipo
+    const defaultTypePillar = getDefaultPillar(type);
     
-    // Tipos que são claramente de EDIFICAR
-    if (['estudo', 'devocional', 'esboco', 'trilha_oracao', 'discipulado'].includes(type)) {
-      return 'EDIFICAR';
-    }
-    
-    // Verificar contexto do prompt para outros tipos
+    // Verificar contexto do prompt para sobrescrever se necessário
     if (/evangel|alcan[çc]ar|perdido|n[ãa]o.?crente|mundo|testemunho/i.test(lowerPrompt)) {
       return 'ALCANÇAR';
     }
@@ -227,8 +229,16 @@ serve(async (req) => {
       return 'SERVIR';
     }
     
-    // Default para conteúdo reflexivo/espiritual
-    return 'EDIFICAR';
+    if (/adorar|louvar|exaltar|glor/i.test(lowerPrompt)) {
+      return 'EXALTAR';
+    }
+    
+    if (/enviar|miss[aã]o|missionário|desafio/i.test(lowerPrompt)) {
+      return 'ENVIAR';
+    }
+    
+    // Usar pilar padrão do tipo
+    return defaultTypePillar;
   };
   
   const detectedPilar = detectPilar(detectedType, processedPrompt);
@@ -904,10 +914,104 @@ Pastoral, direto, didático e estratégico. Nunca usa jargão sem explicar. Ensi
     "crescimento": "Como mensurar crescimento além de números",
     "ajustes": "Quando e como ajustar estratégia"
   }
+}`,
+
+      // ============================================
+      // TIPO GENÉRICO ESTRUTURADO (FALLBACK INTELIGENTE)
+      // ============================================
+      conteudo_generico_estruturado: `{
+  "conteudo_generico_estruturado": {
+    "titulo": "Título claro e descritivo do conteúdo",
+    "objetivo": "Objetivo principal deste conteúdo - o que ele pretende comunicar ou ensinar",
+    "blocos": [
+      {
+        "tipo": "introducao",
+        "titulo": "Introdução ao Tema",
+        "conteudo": "Parágrafo introdutório contextualizando o assunto de forma envolvente"
+      },
+      {
+        "tipo": "desenvolvimento",
+        "titulo": "Ponto Principal 1",
+        "conteudo": "Desenvolvimento do primeiro ponto com exemplos e aplicações"
+      },
+      {
+        "tipo": "desenvolvimento",
+        "titulo": "Ponto Principal 2",
+        "conteudo": "Desenvolvimento do segundo ponto"
+      },
+      {
+        "tipo": "aplicacao",
+        "titulo": "Aplicação Prática",
+        "conteudo": "Como aplicar esse conteúdo na vida cotidiana"
+      },
+      {
+        "tipo": "conclusao",
+        "titulo": "Conclusão",
+        "conteudo": "Fechamento inspirador com chamada à ação"
+      }
+    ],
+    "versiculos_relacionados": ["Referência bíblica 1", "Referência bíblica 2"],
+    "palavras_chave": ["palavra1", "palavra2", "palavra3"],
+    "observacoes_sistema": "Este conteúdo foi gerado no formato estruturado genérico. Para resultados mais específicos, experimente pedir explicitamente: carrossel, devocional, estudo bíblico, stories, reel, etc."
+  }
+}`,
+
+      foto_post: `{
+  "foto_post": {
+    "titulo": "Título do post com foto",
+    "descricao_imagem": "Descrição detalhada da imagem sugerida - cores, elementos, composição",
+    "legenda": "Legenda completa e engajante para o post no Instagram",
+    "hashtags": ["#hashtag1", "#hashtag2", "#hashtag3"],
+    "chamada_para_acao": "CTA específico para o público"
+  },
+  "dica_producao": {
+    "formato": "1080x1080px (quadrado) ou 1080x1350px (retrato)",
+    "estilo": "Estilo visual recomendado",
+    "horario": "Melhor horário para postar com justificativa"
+  }
+}`,
+
+      roteiro_video: `{
+  "fundamento_biblico": {
+    "versiculos": ["Versículo 1", "Versículo 2"],
+    "contexto": "Contexto bíblico",
+    "principio_atemporal": "Princípio aplicável"
+  },
+  "roteiro_video": {
+    "titulo": "Título do vídeo",
+    "duracao_estimada": "5-10 minutos",
+    "objetivo": "Objetivo do vídeo",
+    "estrutura": [
+      {
+        "parte": "Introdução",
+        "duracao": "0:00 - 1:00",
+        "conteudo": "O que falar/mostrar",
+        "visual": "Sugestão visual"
+      },
+      {
+        "parte": "Desenvolvimento",
+        "duracao": "1:00 - 7:00",
+        "conteudo": "Pontos principais a abordar",
+        "visual": "Sugestões visuais"
+      },
+      {
+        "parte": "Conclusão",
+        "duracao": "7:00 - 10:00",
+        "conteudo": "Como encerrar",
+        "visual": "Visual de encerramento"
+      }
+    ],
+    "chamada_para_acao": "O que pedir ao espectador"
+  },
+  "dica_producao": {
+    "equipamento": "Equipamento mínimo necessário",
+    "iluminacao": "Dicas de iluminação",
+    "audio": "Dicas de captação de áudio"
+  }
 }`
     };
 
-    const selectedStructure = structureByType[detectedType] || structureByType.post;
+    const selectedStructure = structureByType[detectedType] || structureByType.conteudo_generico_estruturado;
 
     // ============================================
     // FASE 2: LÓGICA CONDICIONAL DE IDENTIDADE
@@ -1195,10 +1299,20 @@ ESTRUTURA OBRIGATÓRIA:
     "conclusao_semanal": "Fechamento e próximos passos"
   }
 }
+`,
+
+      conteudo_generico_estruturado: `
+INSTRUÇÕES CONTEÚDO GENÉRICO ESTRUTURADO:
+1. Este tipo é usado quando o pedido do usuário não corresponde a um formato específico
+2. Estruture o conteúdo em blocos claros: introdução, desenvolvimento, aplicação, conclusão
+3. Cada bloco deve ter tipo, título e conteúdo substancial
+4. Inclua versículos relacionados se o tema for espiritual/bíblico
+5. Adicione observacoes_sistema explicando que formatos específicos estão disponíveis
+6. Seja completo e útil, mesmo não sendo um formato específico
 `
     };
     
-    systemPrompt += `\n\n${typeInstructions[detectedType] || ''}`;
+    systemPrompt += `\n\n${typeInstructions[detectedType] || typeInstructions.conteudo_generico_estruturado || ''}`;
     
     // LAYER 3: BASE DE ESTUDOS (só para conteúdo bíblico profundo)
     if (['estudo', 'devocional', 'devocional_semanal', 'esboco', 'discipulado'].includes(detectedType)) {
