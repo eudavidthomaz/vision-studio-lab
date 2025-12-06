@@ -1822,7 +1822,12 @@ Retorne APENAS o JSON válido.`;
                                                   !typesWithFlexibleBiblicalFoundation.includes(detectedType);
     
     // Only require fundamento_biblico for content that strictly needs it
-    if (requiresBiblicalFoundationValidation && !generatedContent.fundamento_biblico) {
+    // Para conteudo_generico_estruturado, verificar se a estrutura interna existe
+    const hasBiblicalFoundation = generatedContent.fundamento_biblico || 
+      generatedContent.conteudo_generico_estruturado?.versiculos_relacionados ||
+      generatedContent.conteudo_generico_estruturado?.blocos;
+    
+    if (requiresBiblicalFoundationValidation && !hasBiblicalFoundation) {
       console.error('Invalid structure:', generatedContent);
       throw new Error('IA retornou estrutura incompleta - falta fundamento_biblico');
     }
