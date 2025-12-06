@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, Target, BookOpen, Calendar, CheckCircle2, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface DiscipuladoViewProps {
   plano?: any;
@@ -132,10 +133,10 @@ export const DiscipuladoView = ({ plano, data, onRegenerate }: DiscipuladoViewPr
                             <div>
                               <p className="text-sm font-medium mb-2">🎯 Objetivos:</p>
                               <ul className="space-y-1">
-                                {objetivos.map((objetivo, idx) => (
+                                {safeStringArray(objetivos).map((objetivo, idx) => (
                                   <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
                                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                                    {objetivo}
+                                    {safeString(objetivo)}
                                   </li>
                                 ))}
                               </ul>
@@ -155,10 +156,10 @@ export const DiscipuladoView = ({ plano, data, onRegenerate }: DiscipuladoViewPr
                             <div>
                               <p className="text-sm font-medium mb-2">📋 Atividades:</p>
                               <ul className="space-y-1">
-                                {atividades.map((atividade, idx) => (
+                                {safeStringArray(atividades).map((atividade, idx) => (
                                   <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
                                     <span className="text-primary">•</span>
-                                    {atividade}
+                                    {safeString(atividade)}
                                   </li>
                                 ))}
                               </ul>
@@ -185,10 +186,10 @@ export const DiscipuladoView = ({ plano, data, onRegenerate }: DiscipuladoViewPr
               <CardContent className="pt-6">
                 <p className="font-medium text-sm mb-2">📚 Recursos Recomendados:</p>
                 <ul className="space-y-1">
-                  {normalized.recursos.map((recurso, index) => (
+                  {safeStringArray(normalized.recursos).map((recurso, index) => (
                     <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
                       <CheckCircle2 className="h-3 w-3 text-primary" />
-                      {recurso}
+                      {safeString(recurso)}
                     </li>
                   ))}
                 </ul>

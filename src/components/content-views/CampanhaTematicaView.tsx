@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Megaphone, TrendingUp, Calendar, Copy, RotateCw } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface CampanhaTematicaViewProps {
   data?: any;
@@ -135,9 +136,9 @@ ${(s.metricas || []).length > 0 ? `Métricas: ${s.metricas.join(', ')}` : ''}
                     <div>
                       <h4 className="font-semibold text-sm mb-2">📱 Formatos Sugeridos</h4>
                       <div className="flex flex-wrap gap-2">
-                        {semana.formatos_sugeridos.map((formato: string, i: number) => (
+                                  {safeStringArray(semana.formatos_sugeridos).map((formato: string, i: number) => (
                           <Badge key={i} variant="secondary" className="text-xs">
-                            {formato}
+                            {safeString(formato)}
                           </Badge>
                         ))}
                       </div>
@@ -159,10 +160,10 @@ ${(s.metricas || []).length > 0 ? `Métricas: ${s.metricas.join(', ')}` : ''}
                     <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
                       <h4 className="font-semibold text-sm mb-2">📊 Métricas de Acompanhamento</h4>
                       <ul className="space-y-1 text-sm text-muted-foreground">
-                        {semana.metricas.map((metrica: string, i: number) => (
+                        {safeStringArray(semana.metricas).map((metrica: string, i: number) => (
                           <li key={i} className="flex items-start gap-2">
                             <span className="text-green-600">•</span>
-                            <span>{metrica}</span>
+                            <span>{safeString(metrica)}</span>
                           </li>
                         ))}
                       </ul>

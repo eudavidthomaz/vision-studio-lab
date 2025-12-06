@@ -5,7 +5,7 @@ import { Copy, Image as ImageIcon, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
-import { normalizeCarrosselData } from "@/lib/normalizeContentData";
+import { normalizeCarrosselData, safeString, safeStringArray } from "@/lib/normalizeContentData";
 import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
 import { StrategicIdeaCard } from "./shared/StrategicIdeaCard";
 
@@ -157,10 +157,10 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                           )}
                           {/* Texto + CTA integrados para facilitar geração de imagem */}
                           <div className="text-xs leading-relaxed break-words whitespace-pre-wrap">
-                            <p>{slide.conteudo}</p>
+                            <p>{safeString(slide.conteudo)}</p>
                             {slide.chamada_para_acao && (
                               <p className="mt-2 pt-2 border-t border-primary/20 font-medium text-primary">
-                                {slide.chamada_para_acao}
+                                {safeString(slide.chamada_para_acao)}
                               </p>
                             )}
                           </div>
@@ -221,9 +221,9 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <div className="flex flex-wrap gap-2">
-              {dicaProducao.hashtags.map((tag, i) => (
+              {safeStringArray(dicaProducao.hashtags).map((tag, i) => (
                 <span key={i} className="text-sm text-primary">
-                  {tag}
+                  {safeString(tag)}
                 </span>
               ))}
             </div>

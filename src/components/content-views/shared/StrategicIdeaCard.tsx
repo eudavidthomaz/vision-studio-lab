@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Compass, Target, Users, Megaphone, Sparkles } from "lucide-react";
+import { safeString } from "@/lib/normalizeContentData";
 
 interface StrategicIdeaCardProps {
   ideia?: {
@@ -47,17 +48,17 @@ export function StrategicIdeaCard({ ideia }: StrategicIdeaCardProps) {
             <Target className="h-4 w-4 text-primary mt-0.5" />
             <div>
               <p className="font-semibold">Objetivo</p>
-              <p className="text-muted-foreground whitespace-pre-line">{ideia.objetivo}</p>
-            </div>
+            <p className="text-muted-foreground whitespace-pre-line">{safeString(ideia.objetivo)}</p>
           </div>
-        )}
+        </div>
+      )}
 
-        {ideia.promessa && (
-          <div className="flex items-start gap-2">
-            <Sparkles className="h-4 w-4 text-primary mt-0.5" />
-            <div>
-              <p className="font-semibold">Mensagem Central</p>
-              <p className="text-muted-foreground whitespace-pre-line">{ideia.promessa}</p>
+      {ideia.promessa && (
+        <div className="flex items-start gap-2">
+          <Sparkles className="h-4 w-4 text-primary mt-0.5" />
+          <div>
+            <p className="font-semibold">Mensagem Central</p>
+            <p className="text-muted-foreground whitespace-pre-line">{safeString(ideia.promessa)}</p>
             </div>
           </div>
         )}
@@ -69,13 +70,13 @@ export function StrategicIdeaCard({ ideia }: StrategicIdeaCardProps) {
               {ideia.publico_alvo && (
                 <div>
                   <p className="font-semibold">Público</p>
-                  <p className="text-muted-foreground">{ideia.publico_alvo}</p>
+                  <p className="text-muted-foreground">{safeString(ideia.publico_alvo)}</p>
                 </div>
               )}
               {ideia.tom && (
                 <div>
                   <p className="font-semibold">Tom e Estilo</p>
-                  <p className="text-muted-foreground">{ideia.tom}</p>
+                  <p className="text-muted-foreground">{safeString(ideia.tom)}</p>
                 </div>
               )}
             </div>
@@ -89,13 +90,13 @@ export function StrategicIdeaCard({ ideia }: StrategicIdeaCardProps) {
               {ideia.chamada_para_acao && (
                 <div>
                   <p className="font-semibold">Chamada para Ação</p>
-                  <p className="text-muted-foreground whitespace-pre-line">{ideia.chamada_para_acao}</p>
+                  <p className="text-muted-foreground whitespace-pre-line">{safeString(ideia.chamada_para_acao)}</p>
                 </div>
               )}
               {ideia.proximos_passos && (
                 <div>
                   <p className="font-semibold">Próximos Passos</p>
-                  <p className="text-muted-foreground whitespace-pre-line">{ideia.proximos_passos}</p>
+                  <p className="text-muted-foreground whitespace-pre-line">{safeString(ideia.proximos_passos)}</p>
                 </div>
               )}
             </div>
