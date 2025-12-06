@@ -179,15 +179,36 @@ export function normalizeStoriesData(data: any): {
     };
   }
 
-  const slides: NormalizedStory[] = rawSlides.map((story: any, index: number) => ({
-    numero: story.numero || index + 1,
-    titulo: story.titulo || story.dia || `Story ${index + 1}`,
-    texto: story.texto || story.conteudo || story.mensagem || story.aplicacao || '',
-    versiculo: story.versiculo || story.referencia,
-    call_to_action: story.call_to_action || story.cta || story.chamada_para_acao,
-    timing: story.timing || '5s',
-    sugestao_visual: story.sugestao_visual || story.visual,
-  }));
+  const slides: NormalizedStory[] = rawSlides.map((story: any, index: number) => {
+    // Garantir que texto seja sempre string, nunca objeto
+    let textoFinal = '';
+    if (typeof story.texto === 'string') {
+      textoFinal = story.texto;
+    } else if (typeof story.texto === 'object' && story.texto !== null) {
+      // Se texto é um objeto {texto, aplicacao, referencia}, extrair partes
+      textoFinal = [
+        story.texto.texto,
+        story.texto.aplicacao,
+        story.texto.referencia
+      ].filter(Boolean).join('\n\n');
+    } else if (typeof story.conteudo === 'string') {
+      textoFinal = story.conteudo;
+    } else if (typeof story.mensagem === 'string') {
+      textoFinal = story.mensagem;
+    } else if (typeof story.aplicacao === 'string') {
+      textoFinal = story.aplicacao;
+    }
+    
+    return {
+      numero: story.numero || index + 1,
+      titulo: story.titulo || story.dia || `Story ${index + 1}`,
+      texto: textoFinal,
+      versiculo: typeof story.versiculo === 'string' ? story.versiculo : (story.referencia || ''),
+      call_to_action: story.call_to_action || story.cta || story.chamada_para_acao,
+      timing: story.timing || '5s',
+      sugestao_visual: story.sugestao_visual || story.visual,
+    };
+  });
 
   const rawFundamento = data?.fundamento_biblico || data?.fundamento;
   const fundamento = rawFundamento?.versiculos ? {
