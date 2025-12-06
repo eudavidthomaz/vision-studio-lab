@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HelpCircle, BookOpen, Copy, RotateCw } from "lucide-react";
 import { toast } from "sonner";
+import { safeString } from "@/lib/normalizeContentData";
 
 interface QAEstruturadoViewProps {
   qa?: any;
@@ -80,17 +81,17 @@ ${questao.versiculo_relacionado ? `📖 ${questao.versiculo_relacionado}` : ''}
                       <div className="flex-1 space-y-3">
                         <div>
                           <p className="font-semibold text-primary mb-2">
-                            ❓ {questao.pergunta || questao.questao}
+                            ❓ {safeString(questao.pergunta || questao.questao)}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {questao.resposta}
+                            {safeString(questao.resposta)}
                           </p>
                         </div>
                         {(questao.versiculo_relacionado || questao.versiculo) && (
                           <div className="p-3 bg-muted/50 rounded-lg flex items-start gap-2">
                             <BookOpen className="h-4 w-4 text-primary mt-0.5" />
                             <p className="text-sm text-muted-foreground italic flex-1">
-                              {questao.versiculo_relacionado || questao.versiculo}
+                              {safeString(questao.versiculo_relacionado || questao.versiculo)}
                             </p>
                           </div>
                         )}

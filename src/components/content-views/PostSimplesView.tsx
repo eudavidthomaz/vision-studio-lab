@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, FileText, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
-import { normalizePostData } from "@/lib/normalizeContentData";
+import { normalizePostData, safeString, safeStringArray } from "@/lib/normalizeContentData";
 import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
 import { StrategicIdeaCard } from "./shared/StrategicIdeaCard";
 
@@ -127,9 +127,9 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
           </CardHeader>
           <CardContent className="p-2 pt-0">
             <div className="flex flex-wrap gap-2">
-              {hashtags.map((tag, i) => (
+              {safeStringArray(hashtags).map((tag, i) => (
                 <span key={i} className="text-xs text-primary break-all">
-                  {tag}
+                  {safeString(tag)}
                 </span>
               ))}
             </div>

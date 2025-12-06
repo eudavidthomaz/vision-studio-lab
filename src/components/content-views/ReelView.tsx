@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, Video, Image as ImageIcon, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
-import { normalizeReelData } from "@/lib/normalizeContentData";
+import { normalizeReelData, safeString, safeStringArray } from "@/lib/normalizeContentData";
 import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
 import { StrategicIdeaCard } from "./shared/StrategicIdeaCard";
 
@@ -148,16 +148,16 @@ export function ReelView({ roteiro, conteudo, data, contentType, onRegenerate }:
                 <CardContent className="space-y-2 text-xs p-2 pt-0">
                   <div>
                     <strong>Visual:</strong>
-                    <p className="text-muted-foreground break-words">{cena.visual}</p>
+                    <p className="text-muted-foreground break-words">{safeString(cena.visual)}</p>
                   </div>
                   <div>
                     <strong>Áudio/Texto:</strong>
-                    <p className="text-muted-foreground break-words">{cena.audio}</p>
+                    <p className="text-muted-foreground break-words">{safeString(cena.audio)}</p>
                   </div>
                   {cena.texto_overlay && (
                     <div>
                       <strong>Texto na Tela:</strong>
-                      <p className="text-muted-foreground break-words">{cena.texto_overlay}</p>
+                      <p className="text-muted-foreground break-words">{safeString(cena.texto_overlay)}</p>
                     </div>
                   )}
                 </CardContent>
@@ -222,9 +222,9 @@ export function ReelView({ roteiro, conteudo, data, contentType, onRegenerate }:
           </CardHeader>
           <CardContent className="p-2 pt-0">
             <div className="flex flex-wrap gap-2">
-              {hashtags.map((tag, i) => (
+              {safeStringArray(hashtags).map((tag, i) => (
                 <span key={i} className="text-xs text-primary break-all">
-                  {tag}
+                  {safeString(tag)}
                 </span>
               ))}
             </div>

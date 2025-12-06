@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, Book, MessageSquare, Target, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { normalizeDevocionalData } from "@/lib/normalizeContentData";
+import { normalizeDevocionalData, safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface DevocionalViewProps {
   titulo?: string;
@@ -118,8 +118,8 @@ export const DevocionalView = ({
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <ol className="space-y-2 list-decimal list-inside text-sm text-muted-foreground">
-              {normalized.perguntas_pessoais.map((p, i) => (
-                <li key={i}>{p}</li>
+              {safeStringArray(normalized.perguntas_pessoais).map((p, i) => (
+                <li key={i}>{safeString(p)}</li>
               ))}
             </ol>
           </CardContent>

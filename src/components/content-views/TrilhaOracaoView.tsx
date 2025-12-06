@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, Clock, BookOpen, Copy, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { normalizeTrilhaOracaoData } from "@/lib/normalizeContentData";
+import { normalizeTrilhaOracaoData, safeString } from "@/lib/normalizeContentData";
 
 interface TrilhaOracaoViewProps {
   trilha?: any;
@@ -103,13 +103,13 @@ export const TrilhaOracaoView = ({ trilha, data, onRegenerate }: TrilhaOracaoVie
                       </Badge>
                     </div>
                     
-                    <p className="text-sm text-muted-foreground ml-11">{etapa.orientacao}</p>
+                    <p className="text-sm text-muted-foreground ml-11">{safeString(etapa.orientacao)}</p>
                     
                     {etapa.versiculo_guia && (
                       <div className="ml-11 p-3 bg-muted/50 rounded-lg flex items-start gap-2">
                         <BookOpen className="h-4 w-4 text-primary mt-0.5" />
                         <p className="text-sm text-muted-foreground italic flex-1">
-                          {etapa.versiculo_guia}
+                          {safeString(etapa.versiculo_guia)}
                         </p>
                       </div>
                     )}
