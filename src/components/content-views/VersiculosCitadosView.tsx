@@ -12,7 +12,7 @@ interface VersiculosCitadosViewProps {
 
 export const VersiculosCitadosView = ({ versiculos, data, onRegenerate }: VersiculosCitadosViewProps) => {
   // Normalizar dados de múltiplas estruturas possíveis
-  const rawData = versiculos || data?.versiculos || data || {};
+  const rawData = versiculos || data?.versiculos_citados || data?.versiculos || data || {};
   
   const normalized = {
     origem: rawData.origem || rawData.fonte || '',
