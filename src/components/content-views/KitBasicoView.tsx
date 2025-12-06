@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Package, DollarSign, ExternalLink, Copy, RotateCw } from "lucide-react";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface KitBasicoViewProps {
   data?: any;
@@ -150,10 +151,10 @@ ${dicas_uso.map((d: string) => `• ${d}`).join('\n')}
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {dicas_uso.map((dica: string, i: number) => (
+              {safeStringArray(dicas_uso).map((dica, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs sm:text-sm">
                   <span className="text-amber-600 shrink-0">•</span>
-                  <span>{dica}</span>
+                  <span>{safeString(dica)}</span>
                 </li>
               ))}
             </ul>

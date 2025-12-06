@@ -5,7 +5,7 @@ import { Copy, Image, Check, Loader2, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
-import { normalizeStoriesData, NormalizedStory } from "@/lib/normalizeContentData";
+import { normalizeStoriesData, NormalizedStory, safeString, safeStringArray } from "@/lib/normalizeContentData";
 import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
 import { StrategicIdeaCard } from "./shared/StrategicIdeaCard";
 
@@ -151,9 +151,9 @@ export function StoriesView({ estrutura, conteudo, data, contentType, onRegenera
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <div className="flex flex-wrap gap-2">
-              {hashtags.map((tag, i) => (
+              {safeStringArray(hashtags).map((tag, i) => (
                 <span key={i} className="text-xs text-primary">
-                  {tag}
+                  {safeString(tag)}
                 </span>
               ))}
             </div>

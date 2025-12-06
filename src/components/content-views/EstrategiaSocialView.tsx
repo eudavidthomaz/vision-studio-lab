@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Target, BarChart3, Copy, RotateCw } from "lucide-react";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface EstrategiaSocialViewProps {
   data?: any;
@@ -146,10 +147,10 @@ ${proximos_passos.map((p: string, i: number) => `${i + 1}. ${p}`).join('\n')}
                   <div className="pt-2">
                     <p className="text-xs font-semibold mb-1">Exemplos:</p>
                     <ul className="space-y-1">
-                      {pilar.exemplos.map((exemplo: string, i: number) => (
+                      {safeStringArray(pilar.exemplos).map((exemplo, i) => (
                         <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
                           <span className="text-violet-600">•</span>
-                          <span>{exemplo}</span>
+                          <span>{safeString(exemplo)}</span>
                         </li>
                       ))}
                     </ul>
@@ -202,12 +203,12 @@ ${proximos_passos.map((p: string, i: number) => `${i + 1}. ${p}`).join('\n')}
           </CardHeader>
           <CardContent>
             <ol className="space-y-2">
-              {proximos_passos.map((passo: string, i: number) => (
+              {safeStringArray(proximos_passos).map((passo, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs sm:text-sm">
                   <Badge variant="outline" className="shrink-0 font-mono">
                     {i + 1}
                   </Badge>
-                  <span>{passo}</span>
+                  <span>{safeString(passo)}</span>
                 </li>
               ))}
             </ol>

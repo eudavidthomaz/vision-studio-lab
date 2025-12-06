@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Video, Clock, Hash, Target, Copy, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { normalizeRoteiroVideoData } from "@/lib/normalizeContentData";
+import { normalizeRoteiroVideoData, safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface RoteiroVideoViewProps {
   conteudo_criativo?: any;
@@ -190,8 +190,8 @@ export const RoteiroVideoView = ({ conteudo_criativo, dica_producao, roteiro, da
           </CardHeader>
           <CardContent>
             <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-              {normalized.equipamentos_sugeridos.map((equip, i) => (
-                <li key={i}>{equip}</li>
+              {safeStringArray(normalized.equipamentos_sugeridos).map((equip, i) => (
+                <li key={i}>{safeString(equip)}</li>
               ))}
             </ul>
           </CardContent>
@@ -207,8 +207,8 @@ export const RoteiroVideoView = ({ conteudo_criativo, dica_producao, roteiro, da
           </CardHeader>
           <CardContent>
             <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-              {normalized.dicas_gravacao.map((dica, i) => (
-                <li key={i}>{dica}</li>
+              {safeStringArray(normalized.dicas_gravacao).map((dica, i) => (
+                <li key={i}>{safeString(dica)}</li>
               ))}
             </ul>
           </CardContent>
@@ -225,9 +225,9 @@ export const RoteiroVideoView = ({ conteudo_criativo, dica_producao, roteiro, da
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {legacyHashtags.map((tag: string, i: number) => (
+              {safeStringArray(legacyHashtags).map((tag, i) => (
                 <Badge key={i} variant="outline" className="text-blue-600 border-blue-300">
-                  {tag}
+                  {safeString(tag)}
                 </Badge>
               ))}
             </div>

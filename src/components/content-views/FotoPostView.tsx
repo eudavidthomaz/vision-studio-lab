@@ -5,6 +5,7 @@ import { Camera, Palette, Hash, Type, Image as ImageIcon, Copy, RefreshCw } from
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface FotoPostViewProps {
   conteudo_criativo?: any;
@@ -125,8 +126,8 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao, data, onRegener
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <ul className="space-y-1.5 list-disc list-inside text-sm text-muted-foreground">
-              {normalized.sugestoes_composicao.map((s: string, i: number) => (
-                <li key={i}>{s}</li>
+              {safeStringArray(normalized.sugestoes_composicao).map((s, i) => (
+                <li key={i}>{safeString(s)}</li>
               ))}
             </ul>
           </CardContent>
@@ -157,8 +158,8 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao, data, onRegener
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <div className="flex flex-wrap gap-2">
-              {normalized.cores.map((cor: string, i: number) => (
-                <Badge key={i} variant="secondary" className="text-xs">{cor}</Badge>
+              {safeStringArray(normalized.cores).map((cor, i) => (
+                <Badge key={i} variant="secondary" className="text-xs">{safeString(cor)}</Badge>
               ))}
             </div>
           </CardContent>
@@ -175,9 +176,9 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao, data, onRegener
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <div className="flex flex-wrap gap-2">
-              {normalized.hashtags.map((tag: string, i: number) => (
+              {safeStringArray(normalized.hashtags).map((tag, i) => (
                 <Badge key={i} variant="outline" className="text-xs text-blue-600 border-blue-300">
-                  {tag}
+                  {safeString(tag)}
                 </Badge>
               ))}
             </div>

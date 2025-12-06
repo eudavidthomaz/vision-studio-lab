@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, AlertTriangle, CheckCircle2, Copy, RotateCw } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
+import { safeString, safeStringArray } from "@/lib/normalizeContentData";
 
 interface ManualEticaViewProps {
   data?: any;
@@ -107,10 +108,10 @@ ${s.exemplo_pratico ? `💡 Exemplo: ${s.exemplo_pratico}` : ''}
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {principios_gerais.map((principio: string, i: number) => (
+              {safeStringArray(principios_gerais).map((principio, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
                   <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                  <span>{principio}</span>
+                  <span>{safeString(principio)}</span>
                 </li>
               ))}
             </ul>
@@ -148,10 +149,10 @@ ${s.exemplo_pratico ? `💡 Exemplo: ${s.exemplo_pratico}` : ''}
                           ✅ Fazer
                         </h4>
                         <ul className="space-y-1">
-                          {secao.fazer.map((item: string, i: number) => (
+                          {safeStringArray(secao.fazer).map((item, i) => (
                             <li key={i} className="text-xs sm:text-sm flex items-start gap-2">
                               <span className="text-green-600">•</span>
-                              <span>{item}</span>
+                              <span>{safeString(item)}</span>
                             </li>
                           ))}
                         </ul>
@@ -166,10 +167,10 @@ ${s.exemplo_pratico ? `💡 Exemplo: ${s.exemplo_pratico}` : ''}
                           ❌ Não Fazer
                         </h4>
                         <ul className="space-y-1">
-                          {secao.nao_fazer.map((item: string, i: number) => (
+                          {safeStringArray(secao.nao_fazer).map((item, i) => (
                             <li key={i} className="text-xs sm:text-sm flex items-start gap-2">
                               <span className="text-red-600">•</span>
-                              <span>{item}</span>
+                              <span>{safeString(item)}</span>
                             </li>
                           ))}
                         </ul>
