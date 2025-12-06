@@ -80,9 +80,15 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
     // PASSO 1: Analisar prompt do usuário para extrair TODAS especificações
     const userSpecs = extractUserSpecifications(prompt.trim());
     
-    // PASSO 2: Detectar tipo base
+    // PASSO 2: Detectar tipo base usando sistema unificado
     const detectedTypes = detectContentTypes(prompt.trim());
     const baseType = detectedTypes[0];
+    
+    // Log detalhado para debug
+    console.log('🔍 [AIPromptModal] Prompt original:', prompt.trim());
+    console.log('🎯 [AIPromptModal] Tipos detectados:', detectedTypes);
+    console.log('📋 [AIPromptModal] Tipo principal:', baseType);
+    console.log('⚙️ [AIPromptModal] Especificações:', userSpecs);
     
     // PASSO 3: Construir prompt estruturado HIERARQUICAMENTE
     let finalPrompt = '';
