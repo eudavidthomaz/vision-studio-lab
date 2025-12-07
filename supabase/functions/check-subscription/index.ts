@@ -8,8 +8,8 @@ const corsHeaders = {
 };
 
 const PRODUCT_TO_ROLE: Record<string, string> = {
-  'prod_TXxBwPsl1XySa6': 'pro',
-  'prod_TXxBXiibNmpi9j': 'team',
+  'prod_TYdDZJuSPTQgsn': 'pro',
+  'prod_TYdDnWDdVthKIs': 'team',
 };
 
 const logStep = (step: string, details?: unknown) => {

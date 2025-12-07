@@ -48,14 +48,14 @@ const ROLE_LIMITS: Record<string, QuotaLimits> = {
 // Preços dos planos (em centavos BRL)
 export const PLAN_PRICES = {
   pro: {
-    price_id: 'price_1SarH3LOuknfB6DJBJ7TevZA',
-    product_id: 'prod_TXxBwPsl1XySa6',
+    price_id: 'price_1SbVxCL14iBizYHbs3ZKZQzZ',
+    product_id: 'prod_TYdDZJuSPTQgsn',
     amount: 2900,
     name: 'Pro',
   },
   team: {
-    price_id: 'price_1SarHILOuknfB6DJfV2aTQ93',
-    product_id: 'prod_TXxBXiibNmpi9j',
+    price_id: 'price_1SbVxOL14iBizYHbf0O5sEdg',
+    product_id: 'prod_TYdDnWDdVthKIs',
     amount: 7900,
     name: 'Team',
   },
