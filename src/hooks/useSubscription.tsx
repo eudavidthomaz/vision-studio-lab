@@ -43,13 +43,17 @@ export const useSubscription = () => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         setTimeout(() => refetch(), 500);
       }
+      // SECURITY FIX: Clear all cached auth data on logout to prevent role leakage
+      if (event === 'SIGNED_OUT') {
+        queryClient.clear();
+      }
     });
 
     return () => {
       clearInterval(interval);
       authSub.unsubscribe();
     };
-  }, [refetch]);
+  }, [refetch, queryClient]);
 
   const openCustomerPortal = async () => {
     try {
