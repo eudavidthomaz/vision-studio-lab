@@ -49,10 +49,14 @@ serve(async (req) => {
     
     if (customers.data.length === 0) {
       logStep("No customer found, returning free status");
-      // Ensure user has free role
+      // SECURITY FIX: Delete existing roles and insert free role to ensure only one role per user
       await supabaseClient
         .from('user_roles')
-        .upsert({ user_id: user.id, role: 'free' }, { onConflict: 'user_id' });
+        .delete()
+        .eq('user_id', user.id);
+      await supabaseClient
+        .from('user_roles')
+        .insert({ user_id: user.id, role: 'free' });
       
       return new Response(JSON.stringify({ 
         subscribed: false, 
@@ -89,10 +93,14 @@ serve(async (req) => {
       logStep("No active subscription found");
     }
 
-    // Update user role in database
+    // SECURITY FIX: Delete existing roles and insert new role to ensure only one role per user
     await supabaseClient
       .from('user_roles')
-      .upsert({ user_id: user.id, role: role }, { onConflict: 'user_id' });
+      .delete()
+      .eq('user_id', user.id);
+    await supabaseClient
+      .from('user_roles')
+      .insert({ user_id: user.id, role: role });
     logStep("User role updated", { role });
 
     // Update subscriptions table

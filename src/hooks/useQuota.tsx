@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 export interface UsageQuota {
   id: string;
@@ -64,6 +65,20 @@ export const PLAN_PRICES = {
 export const useQuota = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // SECURITY FIX: Clear cache on logout to prevent role leakage
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        queryClient.invalidateQueries({ queryKey: ['user-role'] });
+        queryClient.invalidateQueries({ queryKey: ['usage-quota'] });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [queryClient]);
 
   // Buscar role do usuário
   const { data: userRole } = useQuery({
