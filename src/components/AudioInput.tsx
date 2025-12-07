@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Podcast, Square, Loader2, Upload, File as FileIcon, Library } from "lucide-react";
+import { Podcast, Square, Loader2, Upload, File as FileIcon, Library, Lock, Crown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSecureApi } from "@/hooks/useSecureApi";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useQuota } from "@/hooks/useQuota";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 interface AudioInputProps {
   onTranscriptionComplete: (transcript: string, sermonId?: string) => void;
@@ -30,6 +32,7 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [transcriptionProgress, setTranscriptionProgress] = useState(0);
   const [transcriptionStage, setTranscriptionStage] = useState<string>('');
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,6 +40,11 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
   const { toast } = useToast();
   const { invokeFunction } = useSecureApi();
   const navigate = useNavigate();
+  
+  // Verificar quota de captação ao vivo
+  const { isFeatureAvailable, canUse, incrementUsage, getUsage, getLimit } = useQuota();
+  const isLiveCaptureAvailable = isFeatureAvailable('live_captures');
+  const canUseLiveCapture = canUse('live_captures');
 
   // Cleanup interval on unmount
   useEffect(() => {
@@ -57,6 +65,23 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
   };
 
   const startRecording = async () => {
+    // Verificar se feature está disponível no plano
+    if (!isLiveCaptureAvailable) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    
+    // Verificar se ainda tem quota disponível
+    if (!canUseLiveCapture) {
+      toast({
+        title: "Limite atingido",
+        description: `Você usou todas as ${getLimit('live_captures')} captações ao vivo deste mês. Faça upgrade para mais.`,
+        variant: "destructive",
+      });
+      setShowUpgradeModal(true);
+      return;
+    }
+    
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
@@ -463,92 +488,144 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
   };
 
   return (
-    <Tabs defaultValue="record" className="w-full max-w-2xl mx-auto">
-      <TabsList className="grid w-full grid-cols-2 mb-8">
-        <TabsTrigger value="record">Gravar Ao Vivo</TabsTrigger>
-        <TabsTrigger value="upload">Upload de Arquivo</TabsTrigger>
-      </TabsList>
-
-      <TabsContent value="record" className="flex flex-col items-center gap-6">
-        {!isRecording && !isProcessing && (
-          <Button
-            onClick={startRecording}
-            size="lg"
-            variant="ghost"
-            className="relative h-40 w-40 rounded-full bg-gradient-to-br from-white/5 to-primary/20 backdrop-blur-xl border-2 border-white/20 hover:border-white/30 shadow-[0_8px_32px_0_rgba(168,85,247,0.3)] hover:shadow-[0_8px_48px_0_rgba(168,85,247,0.5)] transition-all duration-500 hover:scale-105 overflow-hidden group"
+    <>
+      <Tabs defaultValue="upload" className="w-full max-w-2xl mx-auto">
+        <TabsList className="grid w-full grid-cols-2 mb-8">
+          <TabsTrigger 
+            value="record" 
+            className="relative"
+            disabled={!isLiveCaptureAvailable}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
-            <div className="relative z-10">
-              <Podcast className="h-[152px] w-[152px] text-white opacity-90 drop-shadow-[0_0_25px_rgba(168,85,247,0.9)] group-hover:drop-shadow-[0_0_35px_rgba(168,85,247,1)] transition-all duration-500" strokeWidth={1} />
-            </div>
-          </Button>
-        )}
+            {!isLiveCaptureAvailable && (
+              <Lock className="h-3 w-3 mr-1 text-muted-foreground" />
+            )}
+            Gravar Ao Vivo
+            {!isLiveCaptureAvailable && (
+              <span className="ml-1 text-[10px] text-amber-500 font-medium">PRO</span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="upload">Upload de Arquivo</TabsTrigger>
+        </TabsList>
 
-        {isRecording && (
-          <Button
-            onClick={stopRecording}
-            size="lg"
-            className="relative h-40 w-40 rounded-full bg-gradient-to-br from-destructive/20 to-destructive/10 backdrop-blur-xl border-2 border-destructive/30 hover:border-destructive/50 shadow-2xl hover:shadow-destructive/30 transition-all duration-500 hover:scale-105 overflow-hidden group animate-pulse"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-destructive/30 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
-            <div className="relative flex flex-col items-center gap-2 z-10">
-              <Square className="h-16 w-16 text-destructive group-hover:text-destructive/90 transition-colors" />
-              <span className="text-sm font-semibold text-foreground">Parar</span>
-            </div>
-          </Button>
-        )}
-
-        {isProcessing && (
-          <div className="flex flex-col items-center gap-6 w-full max-w-md">
-            {/* Círculo de progresso visual */}
-            <div className="relative h-40 w-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-xl border-2 border-primary/30 shadow-2xl flex items-center justify-center overflow-hidden">
-              {/* Progresso circular */}
-              <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="6"
-                  className="text-primary/20"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="6"
-                  strokeDasharray={`${transcriptionProgress * 2.827} ${282.7 - (transcriptionProgress * 2.827)}`}
-                  className="text-primary transition-all duration-500"
-                />
-              </svg>
-              
-              {/* Porcentagem central */}
-              <div className="relative z-10 text-center">
-                <div className="text-3xl font-bold text-primary">
-                  {transcriptionProgress}%
+        <TabsContent value="record" className="flex flex-col items-center gap-6">
+          {/* Bloqueio para usuários Free */}
+          {!isLiveCaptureAvailable ? (
+            <Card className="w-full border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent">
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center gap-4 text-center py-8">
+                  <div className="relative">
+                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-amber-500/20 to-amber-600/10 flex items-center justify-center">
+                      <Crown className="h-10 w-10 text-amber-500" />
+                    </div>
+                    <Lock className="h-5 w-5 text-amber-600 absolute -bottom-1 -right-1 bg-background rounded-full p-0.5" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground">Recurso Premium</h3>
+                    <p className="text-sm text-muted-foreground max-w-sm">
+                      Captação ao vivo está disponível nos planos <span className="font-medium text-amber-500">Pro</span> e <span className="font-medium text-amber-500">Team</span>.
+                      Grave pregações em tempo real e transforme em conteúdo instantaneamente.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
+                  >
+                    <Crown className="h-4 w-4 mr-2" />
+                    Fazer Upgrade
+                  </Button>
                 </div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {transcriptionStage}
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Contador de quota restante */}
+              {canUseLiveCapture && (
+                <div className="text-xs text-muted-foreground mb-2">
+                  {getUsage('live_captures')}/{getLimit('live_captures')} captações usadas este mês
+                </div>
+              )}
+              
+              {!isRecording && !isProcessing && (
+                <Button
+                  onClick={startRecording}
+                  size="lg"
+                  variant="ghost"
+                  className="relative h-40 w-40 rounded-full bg-gradient-to-br from-white/5 to-primary/20 backdrop-blur-xl border-2 border-white/20 hover:border-white/30 shadow-[0_8px_32px_0_rgba(168,85,247,0.3)] hover:shadow-[0_8px_48px_0_rgba(168,85,247,0.5)] transition-all duration-500 hover:scale-105 overflow-hidden group"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
+                  <div className="relative z-10">
+                    <Podcast className="h-[152px] w-[152px] text-white opacity-90 drop-shadow-[0_0_25px_rgba(168,85,247,0.9)] group-hover:drop-shadow-[0_0_35px_rgba(168,85,247,1)] transition-all duration-500" strokeWidth={1} />
+                  </div>
+                </Button>
+              )}
+            </>
+          )}
+
+          {isLiveCaptureAvailable && isRecording && (
+            <Button
+              onClick={stopRecording}
+              size="lg"
+              className="relative h-40 w-40 rounded-full bg-gradient-to-br from-destructive/20 to-destructive/10 backdrop-blur-xl border-2 border-destructive/30 hover:border-destructive/50 shadow-2xl hover:shadow-destructive/30 transition-all duration-500 hover:scale-105 overflow-hidden group animate-pulse"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-destructive/30 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
+              <div className="relative flex flex-col items-center gap-2 z-10">
+                <Square className="h-16 w-16 text-destructive group-hover:text-destructive/90 transition-colors" />
+                <span className="text-sm font-semibold text-foreground">Parar</span>
+              </div>
+            </Button>
+          )}
+
+          {isLiveCaptureAvailable && isProcessing && (
+            <div className="flex flex-col items-center gap-6 w-full max-w-md">
+              {/* Círculo de progresso visual */}
+              <div className="relative h-40 w-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-xl border-2 border-primary/30 shadow-2xl flex items-center justify-center overflow-hidden">
+                {/* Progresso circular */}
+                <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    className="text-primary/20"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    strokeDasharray={`${transcriptionProgress * 2.827} ${282.7 - (transcriptionProgress * 2.827)}`}
+                    className="text-primary transition-all duration-500"
+                  />
+                </svg>
+                
+                {/* Porcentagem central */}
+                <div className="relative z-10 text-center">
+                  <div className="text-3xl font-bold text-primary">
+                    {transcriptionProgress}%
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {transcriptionStage}
+                  </div>
                 </div>
               </div>
+              
+              <p className="text-sm text-muted-foreground text-center max-w-xs">
+                Processando sua gravação...
+              </p>
             </div>
-            
-            <p className="text-sm text-muted-foreground text-center max-w-xs">
-              Processando sua gravação...
-            </p>
-          </div>
-        )}
+          )}
 
-        {!isProcessing && (
-          <p className="text-sm text-muted-foreground text-center max-w-xs">
-            {!isRecording && "Comece a compartilhar a palavra"}
-            {isRecording && "Registrando sua mensagem... Clique para finalizar"}
-          </p>
-        )}
-      </TabsContent>
+          {isLiveCaptureAvailable && !isProcessing && (
+            <p className="text-sm text-muted-foreground text-center max-w-xs">
+              {!isRecording && "Comece a compartilhar a palavra"}
+              {isRecording && "Registrando sua mensagem... Clique para finalizar"}
+            </p>
+          )}
+        </TabsContent>
 
       <TabsContent value="upload" className="flex flex-col items-center gap-6">
         <Card className="w-full">
@@ -664,7 +741,16 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
           </CardContent>
         </Card>
       </TabsContent>
-    </Tabs>
+      </Tabs>
+
+      {/* Modal de Upgrade */}
+      <UpgradeModal 
+        open={showUpgradeModal} 
+        onOpenChange={setShowUpgradeModal}
+        feature="live_captures"
+        reason="feature_locked"
+      />
+    </>
   );
 };
 
