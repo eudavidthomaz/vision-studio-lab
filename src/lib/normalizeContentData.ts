@@ -305,7 +305,12 @@ export function normalizeReelData(data: any): {
   fundamento?: NormalizedFundamentoBiblico;
   estrategia?: NormalizedStrategicIdea;
 } {
+  // Buscar cenas em múltiplos caminhos possíveis
   const rawCenas = 
+    // Caminho aninhado: data.conteudo.roteiro_detalhado (usado pela IA atual)
+    data?.conteudo?.roteiro_detalhado ||
+    data?.conteudo?.cenas ||
+    // Caminhos padrão
     data?.roteiro?.cenas ||
     data?.roteiro_video?.cenas ||
     data?.estrutura_visual?.cenas ||
