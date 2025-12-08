@@ -157,7 +157,19 @@ export function normalizeCarrosselData(data: any): {
   fundamento?: NormalizedFundamentoBiblico;
   estrategia?: NormalizedStrategicIdea;
 } {
+  // Buscar slides em múltiplos caminhos possíveis
   const rawSlides = 
+    // Caminho aninhado: data.conteudo.estrutura_visual (quando é array direto)
+    (Array.isArray(data?.conteudo?.estrutura_visual) ? data.conteudo.estrutura_visual : null) ||
+    // Caminho aninhado: data.conteudo.estrutura_visual.slides
+    data?.conteudo?.estrutura_visual?.slides ||
+    data?.conteudo?.estrutura_visual?.cards ||
+    // Caminho aninhado: data.conteudo.slides
+    data?.conteudo?.slides ||
+    data?.conteudo?.cards ||
+    // Caminho direto: data.estrutura_visual (quando é array direto)
+    (Array.isArray(data?.estrutura_visual) ? data.estrutura_visual : null) ||
+    // Caminhos padrão
     data?.estrutura_visual?.slides ||
     data?.estrutura_visual?.cards ||
     data?.estrutura?.slides ||
