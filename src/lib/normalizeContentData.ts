@@ -310,6 +310,8 @@ export function normalizeReelData(data: any): {
     // Caminho aninhado: data.conteudo.roteiro_detalhado (usado pela IA atual)
     data?.conteudo?.roteiro_detalhado ||
     data?.conteudo?.cenas ||
+    // Caminho: data.estrutura_visual.roteiro (usado por alguns reels)
+    (Array.isArray(data?.estrutura_visual?.roteiro) ? data.estrutura_visual.roteiro : null) ||
     // Caminhos padrão
     data?.roteiro?.cenas ||
     data?.roteiro_video?.cenas ||
@@ -1016,14 +1018,17 @@ export function normalizeRoteiroVideoData(data: any): {
   dicas_gravacao: string[];
 } {
   // Buscar dados em múltiplas estruturas possíveis
-  const roteiro = data?.roteiro_video || data?.roteiro || data?.conteudo?.roteiro_video || data;
+  const roteiro = data?.roteiro_video || data?.roteiro || data?.conteudo?.roteiro_video || data?.conteudo?.roteiro || data;
   
-  // Buscar cenas em múltiplas estruturas: cenas, estrutura, sequencias, partes
+  // Buscar cenas em múltiplas estruturas: cenas, estrutura, sequencias, partes (incluindo paths aninhados)
   const rawCenas = roteiro?.cenas || 
     roteiro?.estrutura || 
     roteiro?.sequencias || 
     roteiro?.partes ||
     data?.roteiro_video?.estrutura ||
+    data?.conteudo?.cenas ||
+    data?.conteudo?.estrutura ||
+    data?.conteudo?.roteiro_detalhado ||
     [];
   
   return {
@@ -1198,11 +1203,13 @@ export function normalizeContentData(data: any, contentType: string): any {
  * Detecta o tipo real do conteúdo baseado na estrutura dos dados
  */
 export function detectRealContentType(data: any, declaredType: string): string {
-  if (data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides) {
-    const slides = data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides;
+  // Detecção de carrossel - incluindo path aninhado em conteudo.estrutura_visual
+  if (data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides || data?.conteudo?.estrutura_visual) {
+    const slides = data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides || 
+      (Array.isArray(data?.conteudo?.estrutura_visual) ? data.conteudo.estrutura_visual : null);
     if (Array.isArray(slides) && slides.length > 0) {
       const firstSlide = slides[0];
-      if (firstSlide.conteudo || firstSlide.texto) {
+      if (firstSlide.conteudo || firstSlide.texto || firstSlide.titulo_slide) {
         return 'carrossel';
       }
     }
@@ -1212,7 +1219,10 @@ export function detectRealContentType(data: any, declaredType: string): string {
     return 'stories';
   }
 
-  if (data?.roteiro?.cenas || data?.estrutura_visual?.cenas) {
+  // Detecção de reel - incluindo paths aninhados
+  if (data?.roteiro?.cenas || data?.estrutura_visual?.cenas || 
+      data?.conteudo?.roteiro_detalhado || data?.conteudo?.cenas ||
+      (Array.isArray(data?.estrutura_visual?.roteiro) && data.estrutura_visual.roteiro.length > 0)) {
     return 'reel';
   }
 
