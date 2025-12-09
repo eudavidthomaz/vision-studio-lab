@@ -96,7 +96,18 @@ export default function Pricing() {
 
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, '_blank');
+        toast({
+          title: 'Redirecionando para pagamento...',
+          description: (
+            <span>
+              Você será levado ao Stripe.{' '}
+              <a href={data.url} className="underline font-medium">Clique aqui</a> caso não seja redirecionado.
+            </span>
+          ),
+        });
+        setTimeout(() => {
+          window.location.href = data.url;
+        }, 500);
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
