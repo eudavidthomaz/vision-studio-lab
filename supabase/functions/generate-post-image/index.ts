@@ -84,17 +84,16 @@ serve(async (req) => {
     const sanitizedContexto = contexto_adicional ? sanitizeText(contexto_adicional, 500) : '';
     const hasReferenceImage = !!referenceImage;
 
-    console.log('Generating image with params:', { formato, estilo, pilar, hasReferenceImage });
+    console.log('Generating image with Lovable AI:', { formato, estilo, pilar, hasReferenceImage });
 
-    // Map formats to GPT Image 1 supported sizes
-    // GPT Image 1 supports: 1024x1024, 1536x1024, 1024x1536, auto
-    const formatoDimensoes: Record<string, { size: string; width: number; height: number }> = {
-      'feed_square': { size: '1024x1024', width: 1024, height: 1024 },
-      'feed_portrait': { size: '1024x1536', width: 1024, height: 1536 },
-      'story': { size: '1024x1536', width: 1024, height: 1536 },
-      'reel_cover': { size: '1024x1536', width: 1024, height: 1536 }
+    // Map formats to dimensions for reference
+    const formatoDimensoes: Record<string, { width: number; height: number }> = {
+      'feed_square': { width: 1024, height: 1024 },
+      'feed_portrait': { width: 1024, height: 1536 },
+      'story': { width: 1024, height: 1536 },
+      'reel_cover': { width: 1024, height: 1536 }
     };
-    const dimensaoConfig = formatoDimensoes[formato] || { size: '1024x1024', width: 1024, height: 1024 };
+    const dimensaoConfig = formatoDimensoes[formato] || { width: 1024, height: 1024 };
 
     // Build intelligent prompt based on pilar and estilo
     const pilarStyles = {
@@ -104,20 +103,7 @@ serve(async (req) => {
       'Servir': 'organic earthy color palette, clean simple typography, genuine hands-on action imagery, natural authentic lighting, purposeful feel, documentary-style quality'
     };
 
-    const estiloDescriptions = {
-      'minimalista': 'ultra-minimalist design with premium aesthetics, clean geometric lines, abundant strategic white space, sophisticated simplicity, balanced negative space, professional magazine-style layout',
-      'tipografico': 'typography-driven design with premium font pairings, text as the hero element, creative typographic hierarchy, professional kerning and spacing, modern font treatments, editorial quality',
-      'fotografico': 'high-end photographic style with professional lighting, cinematic composition, authentic human moments, premium photo treatment, professional color grading, magazine-quality photography',
-      'ilustrativo': 'premium illustrated style with custom artwork, sophisticated graphics, professional illustration techniques, cohesive visual storytelling, modern artistic approach, gallery-quality illustrations'
-    };
-
-    const pilarStyle = pilarStyles[pilar as keyof typeof pilarStyles] || pilarStyles['Edificar'];
-    const estiloDesc = estiloDescriptions[estilo as keyof typeof estiloDescriptions] || estiloDescriptions['minimalista'];
-
-    // Truncate copy if too long
-    const truncatedCopy = sanitizedCopy.length > 200 ? sanitizedCopy.substring(0, 200) + '...' : sanitizedCopy;
-
-    // Adaptar descrições de estilo ao novo prompt
+    // Adaptar descrições de estilo ao prompt
     const estiloAdaptacoes = {
       'minimalista': 'fundo liso ou leve gradiente escuro; foco total no título grande; poucos elementos gráficos; subtítulo pequeno "handwritten" sutil.',
       'tipografico': 'sem foto. Fundo sólido/texturizado (papel). Título branco em grotesk bold/condensed; use um realce de caneta (sublinhar ou oval) em 1–2 palavras-chave; assinatura manuscrita no cantinho.',
@@ -125,180 +111,136 @@ serve(async (req) => {
       'ilustrativo': 'colagem/estêncil sobre papel texturizado; paleta terrosa/retrô; bordas orgânicas; ruído fino. Evitar cartoon infantil.'
     };
 
+    const pilarStyle = pilarStyles[pilar as keyof typeof pilarStyles] || pilarStyles['Edificar'];
     const estiloAdaptacao = estiloAdaptacoes[estilo as keyof typeof estiloAdaptacoes] || estiloAdaptacoes['minimalista'];
 
-    // Build prompt based on whether editing or generating
+    // Truncate copy if too long
+    const truncatedCopy = sanitizedCopy.length > 200 ? sanitizedCopy.substring(0, 200) + '...' : sanitizedCopy;
+
+    // Build prompt for image generation
+    const aspectRatio = dimensaoConfig.width === dimensaoConfig.height ? '1:1 square' : '2:3 portrait';
+    
     const prompt = hasReferenceImage
-      ? `Edite esta imagem seguindo estas instruções: ${truncatedCopy}
+      ? `Edit this image following these instructions: ${truncatedCopy}
 
-Aplique o estilo ${estilo}: ${estiloAdaptacao}
+Apply style ${estilo}: ${estiloAdaptacao}
 
-Mantenha a composição geral mas:
-- Aplique paleta de cores: ${pilarStyle.split(',')[0]}
-- Melhore a qualidade visual com acabamento profissional
-- Adicione tratamento de imagem: granulação de filme 6-8%, matte finish
-${sanitizedContexto ? `- Contexto adicional: ${sanitizedContexto}` : ''}
+Keep the general composition but:
+- Apply color palette: ${pilarStyle.split(',')[0]}
+- Improve visual quality with professional finish
+- Add image treatment: film grain 6-8%, matte finish
+${sanitizedContexto ? `- Additional context: ${sanitizedContexto}` : ''}
 
-NUNCA: distorcer rostos/mãos, adicionar textos não solicitados, mudar completamente a imagem original.`
-      : `Tarefa: Gerar um pôster para redes sociais no formato já selecionado (respeite a proporção e margens de segurança), com estética editorial cristã/cinemática e acabamento profissional.
+NEVER: distort faces/hands, add unsolicited text, completely change the original image.`
+      : `Generate a ${aspectRatio} social media poster with Christian/cinematic editorial aesthetic and professional finish.
 
-Texto a renderizar (exato, em PT-BR, sem traduzir ou reescrever):
-* Título: primeira linha do input do usuário "${truncatedCopy.split('\n')[0]}" (aplique visualmente CAIXA-ALTA, grotesk bold/condensed, alinhado à esquerda, tracking levemente negativo, linhas compactas).
-* Subtítulo/assinatura (opcional): linhas seguintes do input (estilo handwritten/brush fino, podendo ter sublinhado discreto ou setas desenhadas à mão).
+Text to render (exact, do not translate or rewrite):
+* Title: "${truncatedCopy.split('\n')[0]}" (apply visually UPPERCASE, grotesk bold/condensed, left-aligned, slightly negative tracking, compact lines).
+* Subtitle/signature (optional): following lines from input (handwritten/brush fine style).
 
-Diretrizes comuns (sempre):
-* Composição: layout limpo, forte hierarquia, espaço negativo para respiro; grid 12 col / 24pt baseline; margens mín. 6% do lado menor.
-* Legibilidade: alto contraste texto/fundo; não distorcer letras; evitar fundo poluído atrás do título.
-* Tratamento de imagem: granulação de filme 6–8%, matte finish, halation suave nas altas luzes; nitidez profissional sem oversharpen.
-* Cores sugeridas: paleta quente (âmbar/ocre/sépia) ou neutros elegantes (preto carvão, off-white), com possibilidade de destaque laranja #F2552B.
-* Respeito: retratar pessoas de forma digna, natural, sem caricatura.
+Common guidelines (always):
+* Composition: clean layout, strong hierarchy, negative space for breathing; 12 col grid / 24pt baseline; min margins 6% of shorter side.
+* Legibility: high contrast text/background; don't distort letters; avoid busy background behind title.
+* Image treatment: film grain 6-8%, matte finish, soft halation in highlights; professional sharpness without oversharpen.
+* Suggested colors: warm palette (amber/ochre/sepia) or elegant neutrals (charcoal black, off-white), with possible orange #F2552B accent.
+* Respect: portray people with dignity, naturally, without caricature.
 
-Adapte ao ESTILO selecionado pelo usuário (${estilo}):
+Adapt to selected STYLE (${estilo}):
 ${estiloAdaptacao}
 
-${sanitizedContexto ? `Contexto adicional: ${sanitizedContexto}` : ''}
+${sanitizedContexto ? `Additional context: ${sanitizedContexto}` : ''}
 
-NUNCA fazer: baixa resolução, clip-art, 3D/cartoon, neon, bevel/emboss, sombras duras, textos errados/omitidos, deformações de mão/rosto, marcas d'água, molduras, excesso de elementos.
+NEVER: low resolution, clip-art, 3D/cartoon, neon, bevel/emboss, hard shadows, wrong/omitted text, hand/face deformations, watermarks, frames, excess elements.
 
-Entrega: imagem final pronta para social no formato escolhido, texto nítido e legível, sem bordas.`;
+Delivery: final image ready for social at ${aspectRatio} format, sharp legible text, no borders.`;
 
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      throw new Error('OPENAI_API_KEY not configured');
+    // Use Lovable AI Gateway with Gemini Flash Image
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    let base64Data: string;
+    console.log('Calling Lovable AI Gateway with Gemini Flash Image...');
 
+    // Build messages array
+    const messages: any[] = [];
+    
     if (hasReferenceImage) {
-      // Use image editing endpoint
-      console.log('Using image editing mode with GPT Image 1...');
-      
-      // Extract base64 data from data URL
-      const base64Match = referenceImage.match(/^data:image\/\w+;base64,(.+)$/);
-      if (!base64Match) {
-        throw new ValidationError('Formato de imagem inválido. Use PNG, JPG ou WEBP.');
-      }
-      
-      const imageBase64 = base64Match[1];
-      
-      // Determine image mime type
-      const mimeMatch = referenceImage.match(/^data:(image\/\w+);base64,/);
-      const mimeType = mimeMatch ? mimeMatch[1] : 'image/png';
-      const extension = mimeType.split('/')[1] || 'png';
-      
-      // Convert base64 to blob for multipart form
-      const binaryString = atob(imageBase64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      const imageBlob = new Blob([bytes], { type: mimeType });
-      
-      // Create form data for edit endpoint
-      const formData = new FormData();
-      formData.append('model', 'gpt-image-1');
-      formData.append('image', imageBlob, `image.${extension}`);
-      formData.append('prompt', prompt);
-      formData.append('size', dimensaoConfig.size);
-      formData.append('quality', 'medium');
-
-      const editResponse = await fetch('https://api.openai.com/v1/images/edits', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
-        },
-        body: formData,
+      // For editing, include the reference image in the message
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: prompt },
+          { type: 'image_url', image_url: { url: referenceImage } }
+        ]
       });
-
-      if (!editResponse.ok) {
-        const errorText = await editResponse.text();
-        console.error('OpenAI edit API error:', editResponse.status, errorText);
-        
-        const errorMsg = `Image editing failed: ${editResponse.status}`;
-        await logSecurityEvent(supabaseClient, userId, 'image_edit_failed', 'generate-post-image', false, errorMsg);
-        
-        if (editResponse.status === 429) {
-          throw new RateLimitError('Limite de taxa excedido. Tente novamente mais tarde.', 60);
-        }
-        
-        if (editResponse.status === 402) {
-          throw new ValidationError('Créditos insuficientes na conta OpenAI.');
-        }
-
-        if (editResponse.status === 400) {
-          let errorDetail = 'Erro na requisição';
-          try {
-            const errorJson = JSON.parse(errorText);
-            errorDetail = errorJson.error?.message || errorDetail;
-          } catch {}
-          throw new ValidationError(`Erro de edição: ${errorDetail}`);
-        }
-
-        throw new Error(errorMsg);
-      }
-
-      const editData = await editResponse.json();
-      base64Data = editData.data?.[0]?.b64_json;
-      
-      if (!base64Data) {
-        console.error('No image data in edit response:', JSON.stringify(editData).substring(0, 500));
-        throw new Error('No image data in edit response');
-      }
     } else {
-      // Use image generation endpoint
-      console.log('Using image generation mode with GPT Image 1...');
-      
-      const response = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-image-1',
-          prompt: prompt,
-          n: 1,
-          size: dimensaoConfig.size,
-          quality: 'medium',
-          output_format: 'png'
-        }),
+      messages.push({
+        role: 'user',
+        content: prompt
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('OpenAI API error:', response.status, errorText);
-        
-        const errorMsg = `Image generation failed: ${response.status}`;
-        await logSecurityEvent(supabaseClient, userId, 'image_gen_failed', 'generate-post-image', false, errorMsg);
-        
-        if (response.status === 429) {
-          throw new RateLimitError('Limite de taxa excedido. Tente novamente mais tarde.', 60);
-        }
-        
-        if (response.status === 402) {
-          throw new ValidationError('Créditos insuficientes na conta OpenAI.');
-        }
-
-        if (response.status === 400) {
-          let errorDetail = 'Erro na requisição';
-          try {
-            const errorJson = JSON.parse(errorText);
-            errorDetail = errorJson.error?.message || errorDetail;
-          } catch {}
-          throw new ValidationError(`Erro de conteúdo: ${errorDetail}`);
-        }
-
-        throw new Error(errorMsg);
-      }
-
-      const data = await response.json();
-      base64Data = data.data?.[0]?.b64_json;
-      
-      if (!base64Data) {
-        console.error('No image data in response:', JSON.stringify(data).substring(0, 500));
-        throw new Error('No image data in response');
-      }
     }
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: messages,
+        modalities: ['image', 'text']
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Lovable AI Gateway error:', response.status, errorText);
+      
+      const errorMsg = `Image generation failed: ${response.status}`;
+      await logSecurityEvent(supabaseClient, userId, 'image_gen_failed', 'generate-post-image', false, errorMsg);
+      
+      if (response.status === 429) {
+        throw new RateLimitError('Limite de requisições excedido. Tente novamente mais tarde.', 60);
+      }
+      
+      if (response.status === 402) {
+        throw new ValidationError('Créditos Lovable AI insuficientes. Adicione créditos no workspace em Settings → Workspace → Usage.');
+      }
+
+      if (response.status === 400) {
+        let errorDetail = 'Erro na requisição';
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorDetail = errorJson.error?.message || errorDetail;
+        } catch {}
+        throw new ValidationError(`Erro de conteúdo: ${errorDetail}`);
+      }
+
+      throw new Error(errorMsg);
+    }
+
+    const data = await response.json();
+    console.log('Lovable AI response received');
+
+    // Extract image from Lovable AI response
+    // Format: data.choices[0].message.images[0].image_url.url = "data:image/png;base64,..."
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (!imageUrl) {
+      console.error('No image in Lovable AI response:', JSON.stringify(data).substring(0, 500));
+      throw new Error('Nenhuma imagem foi gerada. Tente novamente.');
+    }
+
+    // Extract base64 data from data URL
+    const base64Match = imageUrl.match(/^data:image\/\w+;base64,(.+)$/);
+    if (!base64Match) {
+      console.error('Invalid image format from Lovable AI:', imageUrl.substring(0, 100));
+      throw new Error('Formato de imagem inválido na resposta.');
+    }
+
+    const base64Data = base64Match[1];
 
     // Upload image to Supabase Storage
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -333,7 +275,7 @@ Entrega: imagem final pronta para social no formato escolhido, texto nítido e l
       // Fallback to returning base64 if storage fails
       return new Response(
         JSON.stringify({ 
-          image_url: `data:image/png;base64,${base64Data}`,
+          image_url: imageUrl,
           prompt_usado: prompt,
           dimensoes: { width: dimensaoConfig.width, height: dimensaoConfig.height },
           storage_error: uploadError.message
