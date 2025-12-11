@@ -4,10 +4,34 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+
+// Tradução de mensagens de erro do Supabase para português
+const translateAuthError = (errorMessage: string): string => {
+  const errorMap: Record<string, string> = {
+    'Invalid login credentials': 'Email ou senha incorretos',
+    'User already registered': 'Este email já está cadastrado',
+    'Password should be at least 6 characters': 'A senha deve ter pelo menos 6 caracteres',
+    'Unable to validate email address: invalid format': 'Formato de email inválido',
+    'Email rate limit exceeded': 'Muitas tentativas. Aguarde alguns minutos',
+    'Signup requires a valid password': 'Digite uma senha válida',
+    'Email not confirmed': 'Email não confirmado. Verifique sua caixa de entrada',
+    'Invalid email or password': 'Email ou senha inválidos',
+  };
+  
+  // Verifica correspondência parcial
+  for (const [key, value] of Object.entries(errorMap)) {
+    if (errorMessage.toLowerCase().includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+  
+  return errorMessage;
+};
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -17,6 +41,7 @@ const Auth = () => {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [isResetting, setIsResetting] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
@@ -47,6 +72,12 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Reset contador ao mudar de aba
+  const handleTabChange = (loginMode: boolean) => {
+    setIsLogin(loginMode);
+    setFailedAttempts(0);
+  };
+
   const handleResetPassword = async () => {
     if (!resetEmail) {
       toast({ 
@@ -66,7 +97,7 @@ const Auth = () => {
     if (error) {
       toast({ 
         title: 'Erro', 
-        description: error.message, 
+        description: translateAuthError(error.message), 
         variant: 'destructive' 
       });
     } else {
@@ -92,6 +123,7 @@ const Auth = () => {
         
         if (error) throw error;
         
+        setFailedAttempts(0);
         toast({
           title: "Bem-vindo!",
           description: "Login realizado com sucesso.",
@@ -119,9 +151,37 @@ const Auth = () => {
         navigate("/welcome");
       }
     } catch (error: any) {
+      const errorMessage = error.message || 'Erro desconhecido';
+      
+      // Tratamento específico para login
+      if (isLogin && errorMessage.toLowerCase().includes('invalid login credentials')) {
+        setFailedAttempts(prev => prev + 1);
+        toast({
+          title: "Email ou senha incorretos",
+          description: failedAttempts >= 1 
+            ? "Verifique seus dados ou redefina sua senha" 
+            : "Verifique seus dados e tente novamente. Não tem conta? Clique em Cadastro.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Tratamento específico para signup - usuário já existe
+      if (!isLogin && (errorMessage.toLowerCase().includes('already registered') || errorMessage.toLowerCase().includes('already been registered'))) {
+        toast({
+          title: "Email já cadastrado",
+          description: "Este email já tem uma conta. Faça login ou redefina sua senha.",
+          variant: "destructive",
+        });
+        // Sugerir mudar para login
+        setTimeout(() => handleTabChange(true), 1500);
+        return;
+      }
+      
+      // Erro genérico traduzido
       toast({
         title: "Erro",
-        description: error.message,
+        description: translateAuthError(errorMessage),
         variant: "destructive",
       });
     } finally {
@@ -138,12 +198,32 @@ const Auth = () => {
         </div>
 
         <div className="bg-card backdrop-blur-sm border border-border rounded-lg p-6 sm:p-8 shadow-2xl animate-scale-in">
+          {/* Alerta de tentativas falhas */}
+          {isLogin && failedAttempts >= 2 && (
+            <Alert className="mb-4 bg-amber-500/10 border-amber-500/30">
+              <AlertTriangle className="h-4 w-4 text-amber-500" />
+              <AlertDescription className="text-amber-200 ml-2">
+                Muitas tentativas falhas?{" "}
+                <Button 
+                  variant="link" 
+                  className="text-primary p-0 h-auto font-semibold" 
+                  onClick={() => {
+                    setResetEmail(email);
+                    setShowResetPassword(true);
+                  }}
+                >
+                  Redefina sua senha
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="flex gap-2 mb-6">
             <Button
               type="button"
               variant={isLogin ? "default" : "outline"}
               className="flex-1"
-              onClick={() => setIsLogin(true)}
+              onClick={() => handleTabChange(true)}
             >
               Login
             </Button>
@@ -151,11 +231,18 @@ const Auth = () => {
               type="button"
               variant={!isLogin ? "default" : "outline"}
               className="flex-1"
-              onClick={() => setIsLogin(false)}
+              onClick={() => handleTabChange(false)}
             >
               Cadastro
             </Button>
           </div>
+
+          {/* Texto explicativo para cadastro */}
+          {!isLogin && (
+            <p className="text-sm text-muted-foreground mb-4 text-center">
+              Crie sua conta gratuita para começar a usar o Ide.On
+            </p>
+          )}
 
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
@@ -180,7 +267,7 @@ const Auth = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 className="bg-input border-border text-foreground"
-                placeholder="••••••••"
+                placeholder={isLogin ? "••••••••" : "Mínimo 6 caracteres"}
                 minLength={6}
               />
             </div>
@@ -207,11 +294,28 @@ const Auth = () => {
                 type="button"
                 variant="link"
                 className="text-sm text-muted-foreground hover:text-foreground"
-                onClick={() => setShowResetPassword(true)}
+                onClick={() => {
+                  setResetEmail(email);
+                  setShowResetPassword(true);
+                }}
               >
                 Esqueci minha senha
               </Button>
             </div>
+          )}
+
+          {/* Dica adicional para login */}
+          {isLogin && (
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              Não tem conta?{" "}
+              <Button 
+                variant="link" 
+                className="text-xs text-primary p-0 h-auto" 
+                onClick={() => handleTabChange(false)}
+              >
+                Cadastre-se gratuitamente
+              </Button>
+            </p>
           )}
         </div>
       </div>
