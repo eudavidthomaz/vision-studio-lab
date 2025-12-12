@@ -161,7 +161,7 @@ const Landing = () => {
       {/* Como Funciona - Mobile optimized */}
       <section id="como-funciona" className="container mx-auto px-4 py-12 md:py-20 bg-card/5">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
+          <h2 className="text-[2.8125rem] md:text-[3.375rem] font-bold text-white text-center mb-4">
             Como Funciona?
           </h2>
           <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
