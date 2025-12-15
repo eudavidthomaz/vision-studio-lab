@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Mic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,7 @@ import { AIPromptModal } from "@/components/AIPromptModal";
 import { RecentContentSection } from "@/components/RecentContentSection";
 import { HeroHeader } from "@/components/HeroHeader";
 import { SermonCompletedModal } from "@/components/SermonCompletedModal";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -33,10 +34,50 @@ const Dashboard = () => {
   const [generatedContentsCount, setGeneratedContentsCount] = useState(0);
   const [preselectedSermonId, setPreselectedSermonId] = useState<string | undefined>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
   const { incrementUsage } = useQuota();
   const { createContent } = useContentLibrary();
+  const { invalidateSubscription } = useSubscription();
+
+  // Handle checkout success redirect
+  useEffect(() => {
+    const checkoutStatus = searchParams.get('checkout');
+    if (checkoutStatus === 'success') {
+      // Remove the query param
+      searchParams.delete('checkout');
+      setSearchParams(searchParams, { replace: true });
+      
+      // Force subscription refresh
+      invalidateSubscription();
+      
+      // Show success message with confetti
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      
+      toast({
+        title: "🎉 Plano ativado com sucesso!",
+        description: "Obrigado por assinar! Seus novos recursos já estão disponíveis.",
+        duration: 6000,
+      });
+      
+      trackEvent('subscription_activated');
+    } else if (checkoutStatus === 'cancelled') {
+      searchParams.delete('checkout');
+      setSearchParams(searchParams, { replace: true });
+      
+      toast({
+        title: "Assinatura cancelada",
+        description: "A assinatura foi cancelada. Você pode tentar novamente quando quiser.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  }, [searchParams, setSearchParams, invalidateSubscription, toast, trackEvent]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
