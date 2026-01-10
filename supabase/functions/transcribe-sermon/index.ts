@@ -133,6 +133,38 @@ serve(async (req) => {
       throw new ValidationError('Authentication required');
     }
 
+    // Check user role and quota for transcriptions
+    const { data: roleData } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+
+    const userRole = roleData?.role || 'free';
+    
+    // Define transcription limits per role
+    const transcriptionLimits: Record<string, number> = {
+      free: 1,
+      pro: 5,
+      team: 20,
+      admin: 9999
+    };
+    
+    const limit = transcriptionLimits[userRole] || 1;
+
+    // Check current usage
+    const { data: quotaData } = await supabaseClient
+      .from('usage_quotas')
+      .select('transcriptions_used')
+      .eq('user_id', userId)
+      .single();
+
+    const currentUsage = quotaData?.transcriptions_used || 0;
+    
+    if (currentUsage >= limit) {
+      throw new ValidationError(`Limite de transcrições atingido (${currentUsage}/${limit}). Faça upgrade para mais transcrições.`);
+    }
+
     // Check rate limit
     await checkRateLimit(supabaseClient, userId, 'transcribe-sermon');
 

@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, FileText, Image as ImageIcon } from "lucide-react";
+import { Copy, FileText, Image as ImageIcon, Crown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import { normalizePostData, safeString, safeStringArray } from "@/lib/normalizeContentData";
 import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
 import { StrategicIdeaCard } from "./shared/StrategicIdeaCard";
+import { useQuota } from "@/hooks/useQuota";
 
 interface PostSimplesViewProps {
   conteudo?: any;
@@ -19,6 +22,10 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const { isFeatureAvailable } = useQuota();
+  const canGenerateImages = isFeatureAvailable('images');
 
   // Usar normalizador centralizado
   const rawData = data || { conteudo };
@@ -29,6 +36,10 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
   const actualImagem = imagem || data?.imagem;
   
   const handleGenerateImage = () => {
+    if (!canGenerateImages) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setIsGenerating(true);
     setImageModalOpen(true);
   };
@@ -150,8 +161,14 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
             size="sm"
             onClick={handleGenerateImage}
             disabled={isGenerating}
-            className="w-full h-8 text-xs"
+            className={`w-full h-8 text-xs ${!canGenerateImages ? 'opacity-80' : ''}`}
           >
+            {!canGenerateImages && (
+              <Badge variant="secondary" className="mr-1.5 bg-amber-500 text-white text-[10px] px-1 py-0">
+                <Crown className="h-2.5 w-2.5 mr-0.5" />
+                PRO
+              </Badge>
+            )}
             <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
             {isGenerating ? "Gerando..." : generatedImage ? "Regerar" : "Gerar Imagem"}
           </Button>
@@ -186,6 +203,13 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
             element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }, 100);
         }}
+      />
+
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        feature="images"
+        reason="feature_locked"
       />
     </div>
   );

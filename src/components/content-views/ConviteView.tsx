@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, MapPin, Users, Phone, Image as ImageIcon, Copy, RefreshCw } from "lucide-react";
+import { Calendar, Clock, MapPin, Users, Phone, Image as ImageIcon, Copy, RefreshCw, Crown } from "lucide-react";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import { normalizeConviteData } from "@/lib/normalizeContentData";
+import { useQuota } from "@/hooks/useQuota";
 
 interface ConviteViewProps {
   convite?: any;
@@ -17,6 +19,10 @@ export const ConviteView = ({ convite, data, onRegenerate }: ConviteViewProps) =
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const { isFeatureAvailable } = useQuota();
+  const canGenerateImages = isFeatureAvailable('images');
 
   // Normalizar dados de múltiplas fontes
   const rawData = convite || data?.convite || data;
@@ -25,6 +31,10 @@ export const ConviteView = ({ convite, data, onRegenerate }: ConviteViewProps) =
   const hasContent = normalized.titulo_evento && (normalized.descricao || normalized.chamado_acao);
 
   const handleGenerateImage = () => {
+    if (!canGenerateImages) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setIsGenerating(true);
     setImageModalOpen(true);
   };
@@ -99,8 +109,14 @@ export const ConviteView = ({ convite, data, onRegenerate }: ConviteViewProps) =
             variant={generatedImage ? "outline" : "default"}
             onClick={handleGenerateImage}
             disabled={isGenerating}
-            className="w-full h-8 text-xs"
+            className={`w-full h-8 text-xs ${!canGenerateImages ? 'opacity-80' : ''}`}
           >
+            {!canGenerateImages && (
+              <Badge variant="secondary" className="mr-1.5 bg-amber-500 text-white text-[10px] px-1 py-0">
+                <Crown className="h-2.5 w-2.5 mr-0.5" />
+                PRO
+              </Badge>
+            )}
             <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
             {isGenerating ? "Gerando..." : generatedImage ? "Regerar" : "Gerar Arte"}
           </Button>
@@ -172,6 +188,13 @@ export const ConviteView = ({ convite, data, onRegenerate }: ConviteViewProps) =
             element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }, 100);
         }}
+      />
+
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        feature="images"
+        reason="feature_locked"
       />
     </div>
   );
