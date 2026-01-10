@@ -25,8 +25,8 @@ export type QuotaFeature = 'images' | 'transcriptions' | 'live_captures';
 // Limites por role
 const ROLE_LIMITS: Record<string, QuotaLimits> = {
   free: {
-    images: 10,
-    transcriptions: 2,
+    images: 0,
+    transcriptions: 1,
     live_captures: 0,
   },
   pro: {

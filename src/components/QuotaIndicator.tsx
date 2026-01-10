@@ -2,7 +2,7 @@ import { useQuota, QuotaFeature } from '@/hooks/useQuota';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Image, FileAudio, Video } from 'lucide-react';
+import { AlertCircle, Image, FileAudio, Video, Crown } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const QuotaIndicator = () => {
@@ -29,6 +29,7 @@ export const QuotaIndicator = () => {
   ];
 
   const availableFeatures = features.filter(f => getLimit(f.key) > 0);
+  const lockedFeatures = features.filter(f => getLimit(f.key) === 0);
   const hasWarning = availableFeatures.some(f => isNearLimit(f.key));
 
   return (
@@ -74,6 +75,26 @@ export const QuotaIndicator = () => {
                 value={percentage} 
                 className="h-2"
               />
+            </div>
+          );
+        })}
+
+        {/* Recursos bloqueados */}
+        {lockedFeatures.map((feature) => {
+          const Icon = feature.icon;
+          
+          return (
+            <div key={feature.key} className="space-y-2 opacity-60">
+              <div className="flex justify-between items-center text-xs">
+                <div className="flex items-center gap-2">
+                  <Icon className="h-3 w-3" />
+                  <span className="font-medium">{feature.label}</span>
+                </div>
+                <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0">
+                  <Crown className="h-2.5 w-2.5 mr-0.5" />
+                  PRO
+                </Badge>
+              </div>
             </div>
           );
         })}

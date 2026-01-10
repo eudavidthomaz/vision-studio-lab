@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Image as ImageIcon, RefreshCw } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Copy, Image as ImageIcon, RefreshCw, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import { normalizeCarrosselData, safeString, safeStringArray } from "@/lib/normalizeContentData";
 import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
 import { StrategicIdeaCard } from "./shared/StrategicIdeaCard";
+import { useQuota } from "@/hooks/useQuota";
 
 interface CarrosselViewProps {
   estrutura?: any;
@@ -25,6 +28,10 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
   const [loadingCard, setLoadingCard] = useState<number | null>(null);
   const [copiedCard, setCopiedCard] = useState<number | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  
+  const { isFeatureAvailable } = useQuota();
+  const canGenerateImages = isFeatureAvailable('images');
 
   // Usar normalizador centralizado - combina todas as fontes de dados
   const rawData = data || { estrutura, estrutura_visual, conteudo, dica_producao };
@@ -34,6 +41,10 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
   const hasContent = slides.length > 0 || legenda;
   
   const handleGenerateImage = (cardData: { numero: number; titulo: string; texto: string }) => {
+    if (!canGenerateImages) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setLoadingCard(cardData.numero);
     setSelectedCard(cardData);
     setImageModalOpen(true);
@@ -124,8 +135,11 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                                 texto: slide.conteudo 
                               })}
                               disabled={loadingCard === index + 1}
-                              className="w-full h-8 text-xs"
+                              className={`w-full h-8 text-xs ${!canGenerateImages ? 'border-amber-500/50' : ''}`}
                             >
+                              {!canGenerateImages && (
+                                <Crown className="h-3.5 w-3.5 mr-1.5 text-amber-500" />
+                              )}
                               <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
                               {loadingCard === index + 1 ? "Gerando..." : generatedImages[index + 1] ? "Regerar" : "Gerar Imagem"}
                             </Button>
@@ -291,6 +305,13 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
           }}
         />
       )}
+
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        feature="images"
+        reason="feature_locked"
+      />
     </div>
   );
 }

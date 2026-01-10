@@ -25,11 +25,10 @@ const PLAN_FEATURES = {
     name: 'Free',
     price: 0,
     features: [
-      '10 imagens/mês',
-      '2 transcrições/mês',
+      '1 transcrição/mês',
       'Conteúdos ilimitados',
     ],
-    notIncluded: ['Captação ao vivo'],
+    notIncluded: ['Geração de imagens', 'Captação ao vivo'],
   },
   pro: {
     name: 'Pro',
