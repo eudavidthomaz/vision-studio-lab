@@ -38,6 +38,19 @@ serve(async (req) => {
       throw new ValidationError('Authentication required');
     }
 
+    // Check user role - block free users from generating images
+    const { data: roleData } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .single();
+
+    const userRole = roleData?.role || 'free';
+    
+    if (userRole === 'free') {
+      throw new ValidationError('Geração de imagens disponível apenas para planos Pro e Team. Faça upgrade para usar este recurso.');
+    }
+
     // Check rate limit
     await checkRateLimit(supabaseClient, userId, 'generate-post-image');
 

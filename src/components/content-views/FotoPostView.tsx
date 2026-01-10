@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Camera, Palette, Hash, Type, Image as ImageIcon, Copy, RefreshCw } from "lucide-react";
+import { Camera, Palette, Hash, Type, Image as ImageIcon, Copy, RefreshCw, Crown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import { safeString, safeStringArray } from "@/lib/normalizeContentData";
+import { useQuota } from "@/hooks/useQuota";
 
 interface FotoPostViewProps {
   conteudo_criativo?: any;
@@ -18,6 +20,10 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao, data, onRegener
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const { isFeatureAvailable } = useQuota();
+  const canGenerateImages = isFeatureAvailable('images');
 
   // Normalizar dados de múltiplas fontes
   const rawData = data || { conteudo_criativo, dica_producao };
@@ -36,6 +42,10 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao, data, onRegener
   const hasContent = normalized.descricao_visual || normalized.legenda_sugerida;
 
   const handleGenerateImage = () => {
+    if (!canGenerateImages) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setIsGenerating(true);
     setImageModalOpen(true);
   };
@@ -95,8 +105,14 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao, data, onRegener
               size="sm"
               onClick={handleGenerateImage}
               disabled={isGenerating}
-              className="w-full sm:w-auto h-9"
+              className={`w-full sm:w-auto h-9 ${!canGenerateImages ? 'opacity-80' : ''}`}
             >
+              {!canGenerateImages && (
+                <Badge variant="secondary" className="mr-1.5 bg-amber-500 text-white text-[10px] px-1 py-0">
+                  <Crown className="h-2.5 w-2.5 mr-0.5" />
+                  PRO
+                </Badge>
+              )}
               <ImageIcon className="h-4 w-4 mr-2" />
               {isGenerating ? "Gerando..." : generatedImage ? "Regerar Imagem" : "Gerar Imagem"}
             </Button>
@@ -202,6 +218,13 @@ export const FotoPostView = ({ conteudo_criativo, dica_producao, data, onRegener
             element?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           }, 100);
         }}
+      />
+
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        feature="images"
+        reason="feature_locked"
       />
     </div>
   );

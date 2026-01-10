@@ -41,10 +41,12 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
   const { invokeFunction } = useSecureApi();
   const navigate = useNavigate();
   
-  // Verificar quota de captação ao vivo
+  // Verificar quota de captação ao vivo e transcrições
   const { isFeatureAvailable, canUse, incrementUsage, getUsage, getLimit } = useQuota();
   const isLiveCaptureAvailable = isFeatureAvailable('live_captures');
   const canUseLiveCapture = canUse('live_captures');
+  const isTranscriptionAvailable = isFeatureAvailable('transcriptions');
+  const canUseTranscription = canUse('transcriptions');
 
   // Cleanup interval on unmount
   useEffect(() => {
@@ -221,6 +223,23 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
 
   const handleFileUpload = async () => {
     if (!selectedFile) return;
+
+    // Verificar se feature de transcrição está disponível
+    if (!isTranscriptionAvailable) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
+    // Verificar se ainda tem quota disponível
+    if (!canUseTranscription) {
+      toast({
+        title: "Limite atingido",
+        description: `Você usou sua transcrição gratuita deste mês. Faça upgrade para mais.`,
+        variant: "destructive",
+      });
+      setShowUpgradeModal(true);
+      return;
+    }
 
     setIsProcessing(true);
 
@@ -747,8 +766,8 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
       <UpgradeModal 
         open={showUpgradeModal} 
         onOpenChange={setShowUpgradeModal}
-        feature="live_captures"
-        reason="feature_locked"
+        feature={!isLiveCaptureAvailable ? "live_captures" : "transcriptions"}
+        reason={!isTranscriptionAvailable || !isLiveCaptureAvailable ? "feature_locked" : "quota_exceeded"}
       />
     </>
   );

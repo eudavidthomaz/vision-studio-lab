@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, Image, Check, Loader2, RefreshCw } from "lucide-react";
+import { Copy, Image, Check, Loader2, RefreshCw, Crown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import ImageGenerationModal from "@/components/ImageGenerationModal";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import { normalizeStoriesData, NormalizedStory, safeString, safeStringArray } from "@/lib/normalizeContentData";
 import { FundamentoBiblicoCard } from "./shared/FundamentoBiblicoCard";
 import { StrategicIdeaCard } from "./shared/StrategicIdeaCard";
+import { useQuota } from "@/hooks/useQuota";
 
 interface StoriesViewProps {
   estrutura?: any;
@@ -27,6 +29,10 @@ export function StoriesView({ estrutura, conteudo, data, contentType, onRegenera
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
   const [loadingSlide, setLoadingSlide] = useState<number | null>(null);
   const [copiedSlide, setCopiedSlide] = useState<number | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const { isFeatureAvailable } = useQuota();
+  const canGenerateImages = isFeatureAvailable('images');
 
   const { slides, hashtags, fundamento, estrategia } = normalized;
   const hasSlides = slides.length > 0;
@@ -39,6 +45,10 @@ export function StoriesView({ estrutura, conteudo, data, contentType, onRegenera
   };
 
   const handleGenerateImage = (slide: NormalizedStory) => {
+    if (!canGenerateImages) {
+      setShowUpgradeModal(true);
+      return;
+    }
     setLoadingSlide(slide.numero);
     setSelectedSlide(slide);
     setImageModalOpen(true);
@@ -104,8 +114,14 @@ export function StoriesView({ estrutura, conteudo, data, contentType, onRegenera
                     size="sm"
                     onClick={() => handleGenerateImage(slide)}
                     disabled={isLoadingImage}
-                    className="w-full h-8 text-xs"
+                    className={`w-full h-8 text-xs ${!canGenerateImages ? 'opacity-70' : ''}`}
                   >
+                    {!canGenerateImages && (
+                      <Badge variant="secondary" className="mr-1.5 bg-amber-500 text-white text-[10px] px-1 py-0">
+                        <Crown className="h-2.5 w-2.5 mr-0.5" />
+                        PRO
+                      </Badge>
+                    )}
                     {isLoadingImage ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
                     ) : (
@@ -182,6 +198,13 @@ export function StoriesView({ estrutura, conteudo, data, contentType, onRegenera
             }, 100);
           }
         }}
+      />
+
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        feature="images"
+        reason="feature_locked"
       />
     </div>
   );
