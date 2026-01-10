@@ -2,7 +2,7 @@ import { useQuota, QuotaFeature } from '@/hooks/useQuota';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Image, FileAudio, Video, TrendingUp, Calendar } from 'lucide-react';
+import { Image, FileAudio, Video, TrendingUp, Calendar, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -165,7 +165,10 @@ export default function UsageDashboard() {
                         </p>
                       </>
                     ) : (
-                      <Badge variant="secondary">Não disponível</Badge>
+                      <Badge className="bg-amber-500 text-white">
+                        <Crown className="h-3 w-3 mr-1" />
+                        PRO
+                      </Badge>
                     )}
                   </div>
                 </div>

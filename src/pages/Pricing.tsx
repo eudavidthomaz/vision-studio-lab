@@ -16,8 +16,8 @@ const PLANS = [
     price: 0,
     description: 'Perfeito para começar',
     features: [
-      { text: '10 imagens/mês', included: true },
-      { text: '2 transcrições/mês', included: true },
+      { text: 'Geração de imagens', included: false },
+      { text: '1 transcrição/mês', included: true },
       { text: 'Conteúdos ilimitados', included: true, highlight: true },
       { text: 'Captação ao vivo', included: false },
     ],

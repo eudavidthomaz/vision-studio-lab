@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2, Star, Archive, RefreshCw, Pin, AlertCircle, Eye } from "lucide-react";
+import { Copy, Trash2, Edit, Image, GripVertical, Check, Loader2, CheckCircle2, Star, Archive, RefreshCw, Pin, AlertCircle, Eye, Crown } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import ContentStatusBadge from "./ContentStatusBadge";
 import TagManagerDialog from "./TagManagerDialog";
@@ -11,10 +11,12 @@ import { useState, useEffect, memo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import ImageGenerationModal from "./ImageGenerationModal";
+import { UpgradeModal } from "./UpgradeModal";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useDebounce } from "@/hooks/useDebounce";
 import { ContentLibraryItem } from "@/hooks/useContentLibrary";
+import { useQuota } from "@/hooks/useQuota";
 
 interface ContentCardProps {
   content: ContentLibraryItem;
@@ -37,6 +39,10 @@ const pillarColors: Record<string, string> = {
 
 const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, isSelected = false, onToggleSelect }: ContentCardProps) => {
   const { toast } = useToast();
+  const { isFeatureAvailable } = useQuota();
+  
+  // Check if image generation is available
+  const canGenerateImages = isFeatureAvailable('images');
   
   // Extract data from nested content JSON
   const contentData = content.content || {};
@@ -56,6 +62,7 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
   const [showSavedCheck, setShowSavedCheck] = useState(false);
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Debounce edited values for auto-save
   const debouncedTitulo = useDebounce(editedTitulo, 1000);
@@ -150,6 +157,15 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
   const copyAll = () => {
     const fullText = `${copy}\n\n${cta}\n\n${Array.isArray(hashtags) ? hashtags.join(" ") : ''}`;
     copyToClipboard(fullText, "Conteúdo completo");
+  };
+
+  const handleImageButtonClick = () => {
+    if (!canGenerateImages) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    setIsGeneratingImage(true);
+    setImageModalOpen(true);
   };
 
   return (
@@ -351,12 +367,9 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              setIsGeneratingImage(true);
-              setImageModalOpen(true);
-            }}
+            onClick={handleImageButtonClick}
             disabled={isGeneratingImage}
-            className="transition-transform hover:scale-105"
+            className={`transition-transform hover:scale-105 ${!canGenerateImages ? 'border-amber-500/50' : ''}`}
           >
             {isGeneratingImage ? (
               <>
@@ -365,6 +378,9 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
               </>
             ) : (
               <>
+                {!canGenerateImages && (
+                  <Crown className="h-3 w-3 mr-1 text-amber-500" />
+                )}
                 <Image className="h-3 w-3 mr-1" />
                 {imagem_url ? "Editar" : "Gerar"}
               </>
@@ -467,9 +483,20 @@ const ContentCard = memo(({ content, onDelete, onUpdate, isDraggable = false, is
           };
           onUpdate(content.id, { content: updatedContent });
           setRegenerateDialogOpen(false);
+          toast({
+            title: "✓ Conteúdo regenerado!",
+            description: "O conteúdo foi atualizado com sucesso.",
+          });
         }}
       />
     </Card>
+
+    <UpgradeModal
+      open={showUpgradeModal}
+      onOpenChange={setShowUpgradeModal}
+      feature="images"
+      reason="feature_locked"
+    />
     </>
   );
 });
