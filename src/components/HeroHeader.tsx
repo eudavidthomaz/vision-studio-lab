@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Library, User } from "lucide-react";
+import { Library, User, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 interface HeroHeaderProps {
   onNavigateToContent: () => void;
   onNavigateToProfile: () => void;
@@ -8,8 +10,10 @@ interface HeroHeaderProps {
 export const HeroHeader = ({
   onNavigateToContent,
   onNavigateToProfile,
-  onLogout
+  onLogout,
 }: HeroHeaderProps) => {
+  const navigate = useNavigate();
+  
   return <header className="relative overflow-hidden mb-8 sm:mb-12 lg:mb-16">
       {/* Background Gradient Effect */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-background rounded-2xl sm:rounded-3xl blur-3xl -z-10 opacity-80" />
@@ -37,6 +41,16 @@ export const HeroHeader = ({
             >
               <User className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
               <span className="hidden sm:inline text-xs sm:text-sm">Perfil</span>
+            </Button>
+
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate("/voluntarios")} 
+              className="gap-1.5 sm:gap-2 hover:bg-primary/10 hover:border-primary/50 hover:scale-105 transition-all duration-300 h-8 sm:h-9 px-2 sm:px-3"
+            >
+              <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
+              <span className="hidden sm:inline text-xs sm:text-sm">Equipe</span>
             </Button>
 
             <Button 

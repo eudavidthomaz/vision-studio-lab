@@ -3,9 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
-import { lazy, Suspense } from "react";
 
-// Eager load all pages - no lazy loading complexity
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
@@ -16,6 +14,8 @@ import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import UsageDashboard from "./pages/UsageDashboard";
 import Pricing from "./pages/Pricing";
+import Volunteers from "./pages/Volunteers";
+import Schedules from "./pages/Schedules";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,7 +29,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Legacy route handler
 function LegacyContentRedirect() {
   const { id } = useParams<{ id: string }>();
   return <Navigate to={`/biblioteca/${id}`} replace />;
@@ -51,6 +50,8 @@ const App = () => (
           <Route path="/usage" element={<UsageDashboard />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/voluntarios" element={<Volunteers />} />
+          <Route path="/escalas" element={<Schedules />} />
           {/* Legacy redirects */}
           <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />
           <Route path="/conteudo/:id" element={<LegacyContentRedirect />} />
