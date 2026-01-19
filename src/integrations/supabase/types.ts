@@ -546,6 +546,101 @@ export type Database = {
         }
         Relationships: []
       }
+      volunteer_schedules: {
+        Row: {
+          created_at: string | null
+          end_time: string | null
+          id: string
+          notes: string | null
+          role: string
+          service_date: string
+          service_name: string | null
+          start_time: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          volunteer_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          role: string
+          service_date: string
+          service_name?: string | null
+          start_time?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          volunteer_id: string
+        }
+        Update: {
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          role?: string
+          service_date?: string
+          service_name?: string | null
+          start_time?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          volunteer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "volunteer_schedules_volunteer_id_fkey"
+            columns: ["volunteer_id"]
+            isOneToOne: false
+            referencedRelation: "volunteers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      volunteers: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          ministry: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          ministry?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          ministry?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
