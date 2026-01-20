@@ -50,3 +50,24 @@ verify_jwt = true
 
 [functions.generate-volunteer-schedule]
 verify_jwt = false
+
+[functions.generate-smart-schedule]
+verify_jwt = false
+
+[functions.send-notification]
+verify_jwt = false
+
+[functions.confirm-schedule]
+verify_jwt = false
+
+[functions.schedule-notifications]
+verify_jwt = false
+
+[functions.volunteer-reports]
+verify_jwt = false
+
+[functions.google-calendar-auth]
+verify_jwt = false
+
+[functions.google-calendar-availability]
+verify_jwt = false

@@ -7,6 +7,9 @@ export const RATE_LIMITS = {
   'generate-ideon-challenge': { max: 30, windowMinutes: 60 }, // 30 per hour
   'generate-content-idea': { max: 50, windowMinutes: 60 }, // 50 per hour
   'generate-post-image': { max: 30, windowMinutes: 60 }, // 30 per hour
+  'generate-volunteer-schedule': { max: 20, windowMinutes: 60 }, // 20 per hour
+  'generate-smart-schedule': { max: 20, windowMinutes: 60 }, // 20 per hour
+  'volunteer-reports': { max: 30, windowMinutes: 60 }, // 30 per hour
 };
 
 export interface ValidationRule {

@@ -165,6 +165,188 @@ export type Database = {
         }
         Relationships: []
       }
+      google_calendar_tokens: {
+        Row: {
+          access_token: string
+          calendar_id: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          refresh_token: string
+          scopes: string[] | null
+          token_expiry: string
+          updated_at: string | null
+          user_id: string
+          volunteer_id: string | null
+        }
+        Insert: {
+          access_token: string
+          calendar_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          refresh_token: string
+          scopes?: string[] | null
+          token_expiry: string
+          updated_at?: string | null
+          user_id: string
+          volunteer_id?: string | null
+        }
+        Update: {
+          access_token?: string
+          calendar_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          refresh_token?: string
+          scopes?: string[] | null
+          token_expiry?: string
+          updated_at?: string | null
+          user_id?: string
+          volunteer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "google_calendar_tokens_volunteer_id_fkey"
+            columns: ["volunteer_id"]
+            isOneToOne: true
+            referencedRelation: "volunteer_stats"
+            referencedColumns: ["volunteer_id"]
+          },
+          {
+            foreignKeyName: "google_calendar_tokens_volunteer_id_fkey"
+            columns: ["volunteer_id"]
+            isOneToOne: true
+            referencedRelation: "volunteers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_logs: {
+        Row: {
+          channel: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          notification_type: string
+          recipient_email: string | null
+          recipient_id: string
+          schedule_id: string | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_type: string
+          recipient_email?: string | null
+          recipient_id: string
+          schedule_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          notification_type?: string
+          recipient_email?: string | null
+          recipient_id?: string
+          schedule_id?: string | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "volunteer_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          confirmation_request_app: boolean | null
+          confirmation_request_email: boolean | null
+          created_at: string | null
+          id: string
+          reminder_24h_app: boolean | null
+          reminder_24h_email: boolean | null
+          reminder_2h_app: boolean | null
+          reminder_2h_email: boolean | null
+          schedule_changed_app: boolean | null
+          schedule_changed_email: boolean | null
+          schedule_created_app: boolean | null
+          schedule_created_email: boolean | null
+          updated_at: string | null
+          user_id: string
+          volunteer_id: string | null
+        }
+        Insert: {
+          confirmation_request_app?: boolean | null
+          confirmation_request_email?: boolean | null
+          created_at?: string | null
+          id?: string
+          reminder_24h_app?: boolean | null
+          reminder_24h_email?: boolean | null
+          reminder_2h_app?: boolean | null
+          reminder_2h_email?: boolean | null
+          schedule_changed_app?: boolean | null
+          schedule_changed_email?: boolean | null
+          schedule_created_app?: boolean | null
+          schedule_created_email?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          volunteer_id?: string | null
+        }
+        Update: {
+          confirmation_request_app?: boolean | null
+          confirmation_request_email?: boolean | null
+          created_at?: string | null
+          id?: string
+          reminder_24h_app?: boolean | null
+          reminder_24h_email?: boolean | null
+          reminder_2h_app?: boolean | null
+          reminder_2h_email?: boolean | null
+          schedule_changed_app?: boolean | null
+          schedule_changed_email?: boolean | null
+          schedule_created_app?: boolean | null
+          schedule_created_email?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          volunteer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_volunteer_id_fkey"
+            columns: ["volunteer_id"]
+            isOneToOne: true
+            referencedRelation: "volunteer_stats"
+            referencedColumns: ["volunteer_id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_volunteer_id_fkey"
+            columns: ["volunteer_id"]
+            isOneToOne: true
+            referencedRelation: "volunteers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -260,6 +442,47 @@ export type Database = {
           window_start?: string
         }
         Relationships: []
+      }
+      schedule_confirmation_tokens: {
+        Row: {
+          action_taken: string | null
+          created_at: string | null
+          expires_at: string
+          id: string
+          notes: string | null
+          schedule_id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          notes?: string | null
+          schedule_id: string
+          token?: string
+          used_at?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          notes?: string | null
+          schedule_id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_confirmation_tokens_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: true
+            referencedRelation: "volunteer_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       security_audit_log: {
         Row: {
@@ -548,6 +771,8 @@ export type Database = {
       }
       volunteer_schedules: {
         Row: {
+          confirmed_at: string | null
+          confirmed_by: string | null
           created_at: string | null
           end_time: string | null
           id: string
@@ -562,6 +787,8 @@ export type Database = {
           volunteer_id: string
         }
         Insert: {
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string | null
           end_time?: string | null
           id?: string
@@ -576,6 +803,8 @@ export type Database = {
           volunteer_id: string
         }
         Update: {
+          confirmed_at?: string | null
+          confirmed_by?: string | null
           created_at?: string | null
           end_time?: string | null
           id?: string
@@ -590,6 +819,13 @@ export type Database = {
           volunteer_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "volunteer_schedules_volunteer_id_fkey"
+            columns: ["volunteer_id"]
+            isOneToOne: false
+            referencedRelation: "volunteer_stats"
+            referencedColumns: ["volunteer_id"]
+          },
           {
             foreignKeyName: "volunteer_schedules_volunteer_id_fkey"
             columns: ["volunteer_id"]
@@ -643,7 +879,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      volunteer_stats: {
+        Row: {
+          absent_count: number | null
+          attendance_rate: number | null
+          confirmed_count: number | null
+          email: string | null
+          first_schedule: string | null
+          is_active: boolean | null
+          last_schedule: string | null
+          ministry: string | null
+          name: string | null
+          pending_count: number | null
+          phone: string | null
+          primary_role: string | null
+          roles_count: number | null
+          roles_worked: string[] | null
+          substituted_count: number | null
+          total_schedules: number | null
+          user_id: string | null
+          volunteer_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_quota: {
