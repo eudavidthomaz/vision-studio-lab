@@ -16,6 +16,7 @@ import UsageDashboard from "./pages/UsageDashboard";
 import Pricing from "./pages/Pricing";
 import Volunteers from "./pages/Volunteers";
 import Schedules from "./pages/Schedules";
+import ConfirmSchedule from "./pages/ConfirmSchedule";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +53,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/voluntarios" element={<Volunteers />} />
           <Route path="/escalas" element={<Schedules />} />
+          <Route path="/confirmar/:token" element={<ConfirmSchedule />} />
           {/* Legacy redirects */}
           <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />
           <Route path="/conteudo/:id" element={<LegacyContentRedirect />} />
