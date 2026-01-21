@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Library, User, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 interface HeroHeaderProps {
   onNavigateToContent: () => void;
@@ -33,6 +34,7 @@ export const HeroHeader = ({
           
           {/* Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+            <NotificationCenter />
             <Button 
               variant="outline" 
               size="sm" 
