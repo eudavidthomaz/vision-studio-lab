@@ -19,13 +19,18 @@ import {
   RefreshCw,
   Trash2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Sparkles
 } from "lucide-react";
 import { format, addDays, startOfWeek, endOfWeek, addWeeks, subWeeks, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useVolunteers, VOLUNTEER_ROLES } from "@/hooks/useVolunteers";
 import { useVolunteerSchedules, VolunteerSchedule, SCHEDULE_STATUSES, GenerateScheduleRequest } from "@/hooks/useVolunteerSchedules";
 import { ScheduleGeneratorModal } from "@/components/schedules/ScheduleGeneratorModal";
+import { SmartScheduleModal } from "@/components/schedules/SmartScheduleModal";
+import { PendingConfirmationsAlert } from "@/components/schedules/PendingConfirmationsAlert";
+import { ScheduleConfirmationBadge } from "@/components/schedules/ScheduleConfirmationBadge";
+import { useSmartSchedule, SmartScheduleRequest, SmartScheduleResponse } from "@/hooks/useSmartSchedule";
 
 export default function Schedules() {
   const navigate = useNavigate();
@@ -35,6 +40,7 @@ export default function Schedules() {
     startOfWeek(new Date(), { weekStartsOn: 0 })
   );
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
+  const [showSmartModal, setShowSmartModal] = useState(false);
   const [deletingSchedule, setDeletingSchedule] = useState<VolunteerSchedule | null>(null);
   const [deletingDate, setDeletingDate] = useState<string | null>(null);
 
@@ -44,6 +50,7 @@ export default function Schedules() {
 
   const { list, createBulk, updateStatus, remove, removeByDate } = useVolunteerSchedules();
   const schedulesQuery = useVolunteerSchedules().useListByDateRange(startDateStr, endDateStr);
+  const { generateSmartSchedule, isLoading: isSmartLoading } = useSmartSchedule();
 
   // Auth check
   useEffect(() => {
@@ -100,6 +107,10 @@ export default function Schedules() {
     await createBulk.mutateAsync(request);
   };
 
+  const handleSmartSchedule = async (request: SmartScheduleRequest): Promise<SmartScheduleResponse> => {
+    return await generateSmartSchedule.mutateAsync(request);
+  };
+
   const handleUpdateStatus = async (schedule: VolunteerSchedule, newStatus: string) => {
     await updateStatus.mutateAsync({ id: schedule.id, status: newStatus });
   };
@@ -151,12 +162,26 @@ export default function Schedules() {
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Voluntários</span>
             </Button>
-            <Button onClick={() => setShowGeneratorModal(true)} className="gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowGeneratorModal(true)} 
+              className="gap-2"
+            >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Nova Escala</span>
             </Button>
+            <Button 
+              onClick={() => setShowSmartModal(true)} 
+              className="gap-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span className="hidden sm:inline">Escala Inteligente</span>
+            </Button>
           </div>
         </div>
+
+        {/* Pending Confirmations Alert */}
+        <PendingConfirmationsAlert className="mb-6" />
 
         {/* Week Navigation */}
         <Card className="mb-6">
@@ -243,8 +268,6 @@ export default function Schedules() {
                     ) : (
                       <div className="space-y-2">
                         {schedules.map((schedule) => {
-                          const statusInfo = getStatusInfo(schedule.status);
-                          
                           return (
                             <div
                               key={schedule.id}
@@ -260,21 +283,12 @@ export default function Schedules() {
                               </div>
                               
                               <div className="flex items-center gap-1">
-                                <Select
-                                  value={schedule.status}
-                                  onValueChange={(value) => handleUpdateStatus(schedule, value)}
-                                >
-                                  <SelectTrigger className="h-7 w-24 text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {SCHEDULE_STATUSES.map((status) => (
-                                      <SelectItem key={status.value} value={status.value}>
-                                        {status.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                <ScheduleConfirmationBadge 
+                                  status={schedule.status}
+                                  confirmedAt={schedule.confirmed_at}
+                                  confirmedBy={schedule.confirmed_by}
+                                  size="sm"
+                                />
                                 
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
@@ -347,13 +361,22 @@ export default function Schedules() {
           </Card>
         )}
 
-        {/* Generator Modal */}
+        {/* Generator Modal (Simple) */}
         <ScheduleGeneratorModal
           open={showGeneratorModal}
           onOpenChange={setShowGeneratorModal}
           volunteers={listActive.data || []}
           onSubmit={handleGenerateSchedule}
           isLoading={createBulk.isPending}
+        />
+
+        {/* Smart Schedule Modal (AI) */}
+        <SmartScheduleModal
+          open={showSmartModal}
+          onOpenChange={setShowSmartModal}
+          volunteers={listActive.data || []}
+          onSubmit={handleSmartSchedule}
+          isLoading={isSmartLoading}
         />
 
         {/* Delete Schedule Confirmation */}

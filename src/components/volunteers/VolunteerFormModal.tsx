@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 import { Volunteer, VolunteerInsert, VOLUNTEER_ROLES } from "@/hooks/useVolunteers";
+import { GoogleCalendarConnectButton } from "./GoogleCalendarConnectButton";
 
 interface VolunteerFormModalProps {
   open: boolean;
@@ -152,6 +154,20 @@ export function VolunteerFormModal({
               rows={3}
             />
           </div>
+
+          {/* Google Calendar Integration - only show when editing */}
+          {isEditing && volunteer?.id && (
+            <>
+              <Separator className="my-4" />
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Integração Google Calendar</Label>
+                <p className="text-xs text-muted-foreground">
+                  Conecte o calendário para verificar disponibilidade automaticamente.
+                </p>
+                <GoogleCalendarConnectButton volunteerId={volunteer.id} />
+              </div>
+            </>
+          )}
 
           <DialogFooter>
             <Button

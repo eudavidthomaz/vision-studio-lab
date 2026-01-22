@@ -19,10 +19,12 @@ import {
   UserX,
   ArrowLeft,
   Users,
-  Calendar
+  Calendar,
+  BarChart3
 } from "lucide-react";
 import { useVolunteers, Volunteer, VolunteerInsert, VOLUNTEER_ROLES } from "@/hooks/useVolunteers";
 import { VolunteerFormModal } from "@/components/volunteers/VolunteerFormModal";
+import { VolunteerAvailabilityBadge } from "@/components/volunteers/VolunteerAvailabilityBadge";
 
 export default function Volunteers() {
   const navigate = useNavigate();
@@ -105,6 +107,14 @@ export default function Volunteers() {
           <div className="flex gap-2">
             <Button
               variant="outline"
+              onClick={() => navigate("/voluntarios/relatorios")}
+              className="gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span className="hidden sm:inline">Relatórios</span>
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => navigate("/escalas")}
               className="gap-2"
             >
@@ -177,6 +187,7 @@ export default function Volunteers() {
                       <TableHead>Função</TableHead>
                       <TableHead className="hidden md:table-cell">Ministério</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead className="hidden lg:table-cell">Calendário</TableHead>
                       <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -208,6 +219,12 @@ export default function Volunteers() {
                           <Badge variant={volunteer.is_active ? "default" : "outline"}>
                             {volunteer.is_active ? "Ativo" : "Inativo"}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          <VolunteerAvailabilityBadge 
+                            volunteerId={volunteer.id}
+                            showTooltip={true}
+                          />
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>

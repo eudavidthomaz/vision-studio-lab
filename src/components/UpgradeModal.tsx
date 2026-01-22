@@ -93,6 +93,10 @@ export const UpgradeModal = ({ open, onOpenChange, feature, reason = 'upgrade' }
 
   const getMessage = () => {
     if (reason === 'quota_exceeded' && feature) {
+      // Mensagem especial para transcrições
+      if (feature === 'transcriptions') {
+        return 'Você usou sua transcrição gratuita deste mês. Faça upgrade para transcrever mais pregações e multiplicar seu alcance!';
+      }
       return `Você atingiu o limite mensal de ${FEATURE_LABELS[feature]}. Faça upgrade para continuar usando.`;
     }
     if (reason === 'feature_locked' && feature) {
