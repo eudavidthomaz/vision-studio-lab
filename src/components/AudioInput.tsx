@@ -498,6 +498,17 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
       setIsProcessing(false);
       setTranscriptionProgress(0);
       setTranscriptionStage('');
+      
+      // Detectar erro de quota da edge function
+      const errorMessage = error?.message || '';
+      const isQuotaError = errorMessage.includes('Limite de transcrições atingido');
+      
+      if (isQuotaError) {
+        // Mostrar modal de upgrade ao invés de toast destrutivo
+        setShowUpgradeModal(true);
+        return;
+      }
+      
       toast({
         title: "Erro na transcrição",
         description: error.message || "Não foi possível transcrever o áudio.",

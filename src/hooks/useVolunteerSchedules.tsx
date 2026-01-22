@@ -13,6 +13,8 @@ export interface VolunteerSchedule {
   role: string;
   status: 'scheduled' | 'confirmed' | 'absent' | 'substituted';
   notes: string | null;
+  confirmed_at: string | null;
+  confirmed_by: string | null;
   created_at: string;
   updated_at: string;
   volunteers?: {
