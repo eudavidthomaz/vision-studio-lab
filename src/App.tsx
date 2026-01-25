@@ -18,6 +18,7 @@ import Volunteers from "./pages/Volunteers";
 import Schedules from "./pages/Schedules";
 import ConfirmSchedule from "./pages/ConfirmSchedule";
 import VolunteerReports from "./pages/VolunteerReports";
+import Install from "./pages/Install";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/voluntarios/relatorios" element={<VolunteerReports />} />
           <Route path="/escalas" element={<Schedules />} />
           <Route path="/confirmar/:token" element={<ConfirmSchedule />} />
+          <Route path="/instalar" element={<Install />} />
           {/* Legacy redirects */}
           <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />
           <Route path="/conteudo/:id" element={<LegacyContentRedirect />} />
