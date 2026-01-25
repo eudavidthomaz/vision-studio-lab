@@ -18,7 +18,10 @@ export const ShareContentDialog = ({ open, onOpenChange, content, contentType }:
   const { toast } = useToast();
 
   const generateShareUrl = () => {
-    const baseUrl = window.location.origin;
+    // Sempre usar domínio de produção para links compartilhados
+    const baseUrl = import.meta.env.PROD 
+      ? 'https://midias.app' 
+      : window.location.origin;
     const contentId = content.id;
     return `${baseUrl}/shared/${contentType}/${contentId}`;
   };
