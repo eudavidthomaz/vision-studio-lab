@@ -45,6 +45,9 @@ verify_jwt = true
 [functions.customer-portal]
 verify_jwt = true
 
+[functions.handle-checkout-success]
+verify_jwt = true
+
 [functions.sync-subscription-roles]
 verify_jwt = true
 

@@ -45,10 +45,49 @@ serve(async (req) => {
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
-    if (customers.data.length === 0) {
-      logStep("No customer found, returning free status");
+    let customerId: string | null = null;
+
+    // Step 1: Check if we have a saved customer ID in subscriptions table
+    const { data: existingSub } = await supabaseClient
+      .from('subscriptions')
+      .select('stripe_customer_id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (existingSub?.stripe_customer_id) {
+      customerId = existingSub.stripe_customer_id;
+      logStep("Using saved customer ID from subscriptions table", { customerId });
+    }
+
+    // Step 2: Fallback - search by email
+    if (!customerId) {
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        logStep("Found customer by email", { customerId });
+      }
+    }
+
+    // Step 3: Fallback - search subscriptions by metadata
+    if (!customerId) {
+      try {
+        const subsSearch = await stripe.subscriptions.search({
+          query: `metadata['user_id']:'${user.id}'`,
+          limit: 1,
+        });
+        
+        if (subsSearch.data.length > 0) {
+          customerId = subsSearch.data[0].customer as string;
+          logStep("Found customer by subscription metadata", { customerId });
+        }
+      } catch (searchError) {
+        logStep("Subscription search failed, continuing without", { error: String(searchError) });
+      }
+    }
+    
+    if (!customerId) {
+      logStep("No customer found after all fallbacks, returning free status");
       // SECURITY FIX: Delete existing roles and insert free role to ensure only one role per user
       await supabaseClient
         .from('user_roles')
@@ -69,7 +108,6 @@ serve(async (req) => {
       });
     }
 
-    const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
     const subscriptions = await stripe.subscriptions.list({

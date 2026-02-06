@@ -44,15 +44,54 @@ const Dashboard = () => {
   // Handle checkout success redirect
   useEffect(() => {
     const checkoutStatus = searchParams.get('checkout');
-    if (checkoutStatus === 'success') {
-      // Remove the query param
+    const sessionId = searchParams.get('session_id');
+    
+    if (checkoutStatus === 'success' && sessionId) {
+      // Remove the query params
       searchParams.delete('checkout');
+      searchParams.delete('session_id');
       setSearchParams(searchParams, { replace: true });
       
-      // Force subscription refresh
-      invalidateSubscription();
+      // Process the checkout session to link Stripe customer
+      const processCheckoutSuccess = async () => {
+        try {
+          const { error } = await supabase.functions.invoke('handle-checkout-success', {
+            body: { sessionId }
+          });
+          
+          if (error) {
+            console.error('Error processing checkout:', error);
+          }
+        } catch (err) {
+          console.error('Failed to process checkout session:', err);
+        }
+        
+        // Force subscription refresh regardless of processing result
+        invalidateSubscription();
+      };
+      
+      processCheckoutSuccess();
       
       // Show success message with confetti
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      
+      toast({
+        title: "🎉 Plano ativado com sucesso!",
+        description: "Obrigado por assinar! Seus novos recursos já estão disponíveis.",
+        duration: 6000,
+      });
+      
+      trackEvent('subscription_activated');
+    } else if (checkoutStatus === 'success') {
+      // Fallback for old URLs without session_id
+      searchParams.delete('checkout');
+      setSearchParams(searchParams, { replace: true });
+      invalidateSubscription();
+      
       confetti({
         particleCount: 100,
         spread: 70,
