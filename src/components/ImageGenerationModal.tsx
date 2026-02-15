@@ -22,6 +22,7 @@ interface ImageGenerationModalProps {
   isStoryMode?: boolean;
   defaultFormat?: string;
   onImageGenerated?: (imageUrl: string) => void;
+  context?: 'post' | 'slide';
 }
 
 const ImageGenerationModal = ({ 
@@ -31,7 +32,8 @@ const ImageGenerationModal = ({
   pilar,
   isStoryMode,
   defaultFormat,
-  onImageGenerated 
+  onImageGenerated,
+  context = 'post'
 }: ImageGenerationModalProps) => {
   const [activeTab, setActiveTab] = useState<string>("generate");
   const [formato, setFormato] = useState(
@@ -305,7 +307,7 @@ const ImageGenerationModal = ({
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
               <ImageIcon className="h-5 w-5 text-primary" />
-              Criar Imagem para Post
+              {context === 'slide' ? 'Criar Imagem para Slide' : 'Criar Imagem para Post'}
               {!isImageFeatureAvailable && (
                 <Badge className="bg-amber-500 text-white ml-2">
                   <Crown className="h-3 w-3 mr-1" />
@@ -383,18 +385,22 @@ const ImageGenerationModal = ({
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="copy" className="text-sm font-medium">Texto do Post</Label>
+                    <Label htmlFor="copy" className="text-sm font-medium">
+                      {context === 'slide' ? 'Texto do Slide' : 'Texto do Post'}
+                    </Label>
                     <Textarea
                       id="copy"
                       value={editedCopy}
                       onChange={(e) => setEditedCopy(e.target.value)}
                       rows={4}
                       className="resize-none text-sm"
-                      placeholder="Digite o texto do seu post aqui..."
+                      placeholder={context === 'slide' ? "Título e texto do slide..." : "Digite o texto do seu post aqui..."}
                       disabled={!isImageFeatureAvailable}
                     />
                     <p className="text-xs text-muted-foreground">
-                      💡 A IA vai criar uma imagem baseada neste texto
+                      {context === 'slide' 
+                        ? '💡 A IA vai criar um card visual com este texto (título + corpo)'
+                        : '💡 A IA vai criar uma imagem baseada neste texto'}
                     </p>
                   </div>
 

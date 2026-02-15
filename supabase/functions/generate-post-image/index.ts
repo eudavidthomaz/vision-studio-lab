@@ -133,6 +133,11 @@ serve(async (req) => {
     // Build prompt for image generation
     const aspectRatio = dimensaoConfig.width === dimensaoConfig.height ? '1:1 square' : '2:3 portrait';
     
+    // Detect if this is a carousel slide (title + body separated by \n\n)
+    const isSlideFormat = truncatedCopy.includes('\n\n');
+    const slideTitle = isSlideFormat ? truncatedCopy.split('\n\n')[0].trim() : truncatedCopy.split('\n')[0];
+    const slideBody = isSlideFormat ? truncatedCopy.split('\n\n').slice(1).join('\n\n').trim() : '';
+
     const prompt = hasReferenceImage
       ? `Edit this image following these instructions: ${truncatedCopy}
 
@@ -145,10 +150,35 @@ Keep the general composition but:
 ${sanitizedContexto ? `- Additional context: ${sanitizedContexto}` : ''}
 
 NEVER: distort faces/hands, add unsolicited text, completely change the original image.`
+      : isSlideFormat
+      ? `Generate a ${aspectRatio} carousel SLIDE card for Instagram with clean, modern design.
+
+This is a CAROUSEL SLIDE (not a poster). Render ALL text below exactly as written, do not translate or rewrite:
+
+* TITLE (top area, bold, large): "${slideTitle}"
+* BODY TEXT (center, clean readable size): "${slideBody}"
+
+Layout requirements:
+* Card-style design with solid or gradient background (no busy photos behind text)
+* Title at top in bold grotesk/sans-serif, prominent
+* Body text below title, clean and fully readable, adequate font size
+* Generous padding and margins for breathing room
+* Professional typography hierarchy: title large, body medium
+* Suggested colors: warm palette (amber/ochre/sepia) or elegant neutrals (charcoal, off-white), accent orange #F2552B
+
+Adapt to selected STYLE (${estilo}):
+${estiloAdaptacao}
+
+${sanitizedContexto ? `Additional context: ${sanitizedContexto}` : ''}
+
+CRITICAL: Render BOTH the title AND the body text on the image. Both must be fully visible and readable.
+NEVER: low resolution, clip-art, 3D/cartoon, neon, omit any text, watermarks, frames.
+
+Delivery: final slide card at ${aspectRatio} format, all text sharp and legible, no borders.`
       : `Generate a ${aspectRatio} social media poster with Christian/cinematic editorial aesthetic and professional finish.
 
 Text to render (exact, do not translate or rewrite):
-* Title: "${truncatedCopy.split('\n')[0]}" (apply visually UPPERCASE, grotesk bold/condensed, left-aligned, slightly negative tracking, compact lines).
+* Title: "${slideTitle}" (apply visually UPPERCASE, grotesk bold/condensed, left-aligned, slightly negative tracking, compact lines).
 * Subtitle/signature (optional): following lines from input (handwritten/brush fine style).
 
 Common guidelines (always):
