@@ -269,7 +269,7 @@ const Dashboard = () => {
       setShowAIModal(false);
       
       setTimeout(() => {
-        navigate(`/biblioteca/${contentId}`);
+        navigate(`/biblioteca?content_id=${contentId}`);
       }, 300);
       
     } catch (error: any) {
@@ -419,7 +419,7 @@ const Dashboard = () => {
               setShowYouTubeModal(false);
               if (data.content_id) {
                 toast({ title: "🎉 Transcrição extraída!", description: "Sermão salvo com sucesso.", duration: 3000 });
-                navigate(`/biblioteca/${data.content_id}`);
+                navigate(`/biblioteca?content_id=${data.content_id}`);
               } else if (data.sermon_id) {
                 toast({ 
                   title: "⚠️ Transcrição salva parcialmente", 
