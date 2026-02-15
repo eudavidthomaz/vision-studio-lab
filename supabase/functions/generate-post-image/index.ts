@@ -118,9 +118,9 @@ serve(async (req) => {
 
     // Adaptar descrições de estilo ao prompt
     const estiloAdaptacoes = {
-      'minimalista': 'fundo liso ou leve gradiente escuro; foco total no título grande; poucos elementos gráficos; subtítulo pequeno "handwritten" sutil.',
+      'minimalista': 'fundo liso ou leve gradiente escuro; foco total no título grande; poucos elementos gráficos; subtítulo em fonte cursiva fina e discreta.',
       'tipografico': 'sem foto. Fundo sólido/texturizado (papel). Título branco em grotesk bold/condensed; use um realce de caneta (sublinhar ou oval) em 1–2 palavras-chave.',
-      'fotografico': 'cena cinematográfica com luz dramática (culto contemporâneo, campo de trigo, milharal, deserto ao entardecer). Profundidade de campo realista; grade tipo Kodak Portra; texto ocupando terço esquerdo/baixo com fundo limpo.',
+      'fotografico': 'cena cinematográfica com luz dramática (culto contemporâneo, campo de trigo, milharal, deserto ao entardecer). Profundidade de campo realista; tonalidade quente analógica com leve dessaturação; texto ocupando terço esquerdo/baixo com fundo limpo.',
       'ilustrativo': 'colagem/estêncil sobre papel texturizado; paleta terrosa/retrô; bordas orgânicas; ruído fino. Evitar cartoon infantil.'
     };
 
@@ -179,7 +179,7 @@ Delivery: final slide card at ${aspectRatio} format, all text sharp and legible,
 
 Text to render (exact, do not translate or rewrite):
 * Title: "${slideTitle}" (apply visually UPPERCASE, grotesk bold/condensed, left-aligned, slightly negative tracking, compact lines).
-* Subtitle/signature (optional): following lines from input (handwritten/brush fine style).
+* Subtitle (optional): following lines from input (cursive brush fine style).
 
 Common guidelines (always):
 * Composition: clean layout, strong hierarchy, negative space for breathing; 12 col grid / 24pt baseline; min margins 6% of shorter side.
