@@ -9,9 +9,11 @@ import {
   positionClasses, 
   fontSizeClasses, 
   fontWeightClasses, 
+  fontFamilyClasses,
   availableIcons,
   positionOptions,
   fontSizeOptions,
+  fontFamilyOptions,
   iconOptions,
   type Overlay,
   type TextOverlay,
@@ -43,6 +45,7 @@ const EditableOverlay = ({
     const textOverlay = overlay as TextOverlay;
     const fontSizeClass = fontSizeClasses[textOverlay.font_size] || 'text-xl';
     const fontWeightClass = fontWeightClasses[textOverlay.font_weight] || 'font-bold';
+    const fontFamilyClass = fontFamilyClasses[textOverlay.font_family || 'montserrat'] || 'font-overlay-modern';
 
     return (
       <div 
@@ -56,7 +59,7 @@ const EditableOverlay = ({
         
         {/* Text content */}
         <div
-          className={`${fontSizeClass} ${fontWeightClass} drop-shadow-lg text-center leading-tight`}
+          className={`${fontSizeClass} ${fontWeightClass} ${fontFamilyClass} drop-shadow-lg text-center leading-tight`}
           style={{ 
             color: textOverlay.color_hex,
             textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
@@ -129,6 +132,26 @@ const EditableOverlay = ({
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* Font family selector */}
+              <div>
+                <Label className="text-xs">Fonte</Label>
+                <Select 
+                  value={textOverlay.font_family || 'montserrat'} 
+                  onValueChange={(v) => onUpdate({ ...textOverlay, font_family: v })}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fontFamilyOptions.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex items-center gap-3">
