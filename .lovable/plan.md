@@ -1,130 +1,128 @@
 
-# Melhorar o Modo Overlay: Fontes, Gradientes e IA Mais Inteligente
+# Auditoria Completa de Responsividade Mobile - 6 Etapas
 
-## Problemas Atuais
+## Problemas Identificados
 
-1. **Modelo fraco**: Usa `gemini-2.5-flash` que gera textos genericos e sem contexto
-2. **Sem fontes personalizadas**: Nao ha Google Fonts carregadas -- tudo usa a fonte sans-serif padrao do sistema
-3. **Sem seletor de fonte**: A interface `TextOverlay` nao tem campo `font_family`
-4. **Textos pequenos**: O prompt nao instrui a IA a usar tamanhos grandes e impactantes
-5. **Sem gradientes**: Nenhuma opcao de gradiente de fundo para melhorar legibilidade
-6. **Prompt generico**: A IA nao recebe contexto suficiente sobre o que deve escrever
+Apos analise completa de 40+ arquivos, identifiquei **32 problemas criticos** organizados em 6 etapas estrategicas.
 
-## Mudancas
+---
 
-### 1. Carregar Google Fonts (index.html)
+## ETAPA 1: CSS Global e Infraestrutura Base
 
-Adicionar link para Montserrat (titulos impactantes), Playfair Display (elegante/editorial), Bebas Neue (condensado/impacto), Dancing Script (decorativa/cursiva) e Inter (corpo limpo).
+### Problemas:
+1. **`index.css` - iOS auto-zoom forcado**: A regra `font-size: 16px !important` em `@supports (-webkit-touch-callout)` esta aplicada a TODOS inputs/textareas/selects globalmente, incluindo selects pequenos de 8px dentro de paineis de edicao do overlay. Isso distorce layouts.
+2. **`index.css` - Falta `overflow-x: hidden` no body**: Nenhuma protecao global contra scroll horizontal.
+3. **`tailwind.config.ts` - Falta breakpoint `xs`**: Dispositivos abaixo de 375px nao tem breakpoint dedicado.
 
-### 2. Configurar fontes no Tailwind (tailwind.config.ts)
+### Correcoes:
+- Remover `!important` do font-size global e aplicar seletivamente apenas onde necessario (inputs de formulario principal, nao componentes UI internos)
+- Adicionar `html, body { overflow-x: hidden; }` no CSS base
+- Considerar `overscroll-behavior-x: none` para prevenir bounce horizontal
 
-Adicionar fontFamily customizadas:
-- `overlay-impact`: Bebas Neue (titulos grandes)
-- `overlay-elegant`: Playfair Display (subtitulos sofisticados)
-- `overlay-modern`: Montserrat (texto moderno/limpo)
-- `overlay-handwritten`: Dancing Script (estilo manuscrito)
-- `overlay-clean`: Inter (corpo neutro)
+---
 
-### 3. Expandir tipos e opcoes (src/lib/overlayPositions.ts)
+## ETAPA 2: Navegacao e Header (HeroHeader, Dashboard)
 
-- Adicionar campo `font_family` ao `TextOverlay` (opcional, default `montserrat`)
-- Adicionar campo `gradient_overlay` ao `OverlayData` para gradientes sobre a imagem
-- Adicionar `fontFamilyClasses` e `fontFamilyOptions` para o seletor
-- Adicionar `gradientOptions` com presets (bottom-dark, top-dark, radial-center, etc.)
-- Expandir `fontSizeClasses` ate `6xl` e `7xl` para textos de impacto
+### Problemas:
+4. **`HeroHeader.tsx` - Botoes do header transbordam em telas < 360px**: 5 botoes em `flex` sem `flex-wrap` causam overflow horizontal quando todos estao visiveis.
+5. **`HeroHeader.tsx` - Hero section ocupa muito espaco vertical no mobile**: `py-6 sm:py-8 md:py-10 lg:py-16` resulta em padding excessivo no mobile, empurrando conteudo para baixo.
+6. **`Dashboard.tsx` - `container mx-auto px-4 py-8`**: `py-8` e excessivo no mobile, deveria ser `py-4 sm:py-8`.
+7. **`AICreatorCard.tsx` - `p-8 md:p-12`**: Padding interno de 32px no mobile desperdiça espaco precioso.
+8. **`AICreatorCard.tsx` - `text-2xl md:text-3xl`**: Titulo grande demais para telas de 320px.
 
-### 4. Atualizar o editor (src/components/EditableOverlay.tsx)
+### Correcoes:
+- HeroHeader: Adicionar `flex-wrap` nos botoes e usar layout mais compacto no mobile (icones sem texto em < 640px ja existe, mas o container precisa wrap)
+- Reduzir padding do hero no mobile
+- Dashboard: `py-4 sm:py-6 md:py-8`
+- AICreatorCard: `p-4 sm:p-6 md:p-8 lg:p-12`
 
-- Adicionar seletor de fonte no painel de edicao de texto
-- Aplicar a classe de fonte correta no render do texto
+---
 
-### 5. Adicionar gradientes ao editor (src/components/ImageOverlayEditor.tsx)
+## ETAPA 3: Modais e Sheets (AIPromptModal, ImageGenerationModal, UnifiedContentModal, UpgradeModal, YouTubeTranscriptModal)
 
-- Adicionar seletor de gradiente (ex: gradiente escuro de baixo, gradiente de topo, radial)
-- Renderizar uma camada de gradiente CSS entre a imagem e os textos
-- Adicionar seletor de gradiente nos controles
+### Problemas:
+9. **`AIPromptModal.tsx` - Textarea com `min-h-[140px]`**: No mobile, quando o teclado sobe, esta altura minima + DialogHeader + dicas empurram botoes para fora da viewport. Nenhuma protecao contra `visualViewport`.
+10. **`ImageGenerationModal.tsx` - `max-w-2xl max-h-[92vh]`**: O `max-h-[92vh]` nao considera a barra de URL do mobile (deveria usar `92dvh`).
+11. **`ImageGenerationModal.tsx` - Tab "Editar Foto"**: O `ImageOverlayEditor` com canvas de 400px de largura fixa nao se adapta a telas menores que 400px.
+12. **`UnifiedContentModal.tsx` - `w-[min(95vw,48rem)]`**: Correto para desktop, mas no mobile a combinacao de padding + width causa micro-overflow.
+13. **`UpgradeModal.tsx` - `sm:max-w-2xl`**: Grid de 2 colunas (`md:grid-cols-2`) colapsa corretamente, mas os cards de plano com `text-2xl font-bold` para preco transbordam em telas < 360px.
+14. **`EditableOverlay.tsx` - Painel de edicao com `min-w-[280px]`**: Este painel flutuante extravasa da tela no mobile. Nao tem protecao de posicionamento.
+15. **`MobileContentSheet.tsx` - `h-[96dvh]`**: O SheetContent nao tem `pb-safe` para safe area do iPhone.
 
-### 6. Upgrade do modelo e prompt (supabase/functions/generate-image-overlay/index.ts)
+### Correcoes:
+- AIPromptModal: Reduzir `min-h` da textarea no mobile, usar `max-h-[85dvh]` em vez de `92vh`, adicionar scroll interno
+- ImageGenerationModal: Usar `dvh`, tornar canvas responsivo com `Math.min(containerWidth, 400)`
+- EditableOverlay: Painel de edicao deve usar `fixed bottom-0` no mobile em vez de `absolute`
+- MobileContentSheet: Adicionar `pb-safe`
+- Todos modais: Usar `dvh` em vez de `vh`
 
-**Modelo**: Trocar de `google/gemini-2.5-flash` para `google/gemini-2.5-pro` para analise de imagem mais precisa e textos mais criativos.
+---
 
-**Prompt reformulado** com instrucoes especificas:
+## ETAPA 4: Bulk Actions, Content Library e Views de Lista/Galeria
 
-- Analisar a imagem em detalhe: o que mostra (pessoas, paisagem, culto, batismo, etc.)
-- Gerar textos contextuais baseados no que a foto mostra + o tema fornecido
-- Usar tamanhos grandes por padrao (`3xl` a `6xl` para titulos)
-- Sugerir a fonte mais adequada entre as opcoes disponiveis
-- Sugerir gradiente quando necessario para legibilidade
-- Retornar JSON expandido incluindo `font_family` e `gradient_overlay`
+### Problemas:
+16. **`BulkActionsBar.tsx` - Botoes transbordam no mobile**: 6 botoes em `flex` horizontal sem `flex-wrap` nem scroll causam overflow. Nenhuma adaptacao mobile.
+17. **`ContentLibrary.tsx` - Header sticky com muitos elementos**: O header fixo acumula BulkActionsBar + titulo + ViewSwitcher + filtros, ocupando > 50% da viewport no mobile.
+18. **`ContentListView.tsx` - Tabela com 9 colunas**: Mesmo com `hidden sm:table-cell` em algumas, restam 6 colunas visiveis no mobile. Overflow horizontal garantido.
+19. **`ContentGalleryView.tsx` - `grid-cols-2` no mobile**: Cards com checkbox + pin button + hover overlay funcionam mal em touch (hover nao existe).
+20. **`ContentItemCard` (dentro de ContentLibrary.tsx) - `truncate` no titulo**: O titulo usa `truncate` (single line) quando deveria usar `line-clamp-2` para dar mais contexto ao usuario.
 
-Exemplo de novo JSON de resposta:
-```text
-{
-  "layout_action": "overlay_original_image",
-  "overlays": [
-    {
-      "type": "text",
-      "content": "CULTO DE ADORACAO",
-      "position": "bottom_center",
-      "color_hex": "#FFFFFF",
-      "font_weight": "extrabold",
-      "font_size": "5xl",
-      "font_family": "bebas_neue",
-      "background_highlight": false
-    },
-    {
-      "type": "text",
-      "content": "Domingo 19h",
-      "position": "bottom_right",
-      "color_hex": "#E0E0E0",
-      "font_weight": "medium",
-      "font_size": "xl",
-      "font_family": "montserrat",
-      "background_highlight": false
-    }
-  ],
-  "image_filter": "none",
-  "gradient_overlay": "bottom_dark_strong",
-  "analysis": {
-    "dominant_color": "dark",
-    "suggested_text_color": "light",
-    "safe_zones": ["bottom_center", "bottom_right"],
-    "image_description": "Foto de culto com luzes roxas e plateia"
-  }
-}
-```
+### Correcoes:
+- BulkActionsBar: No mobile, usar um unico botao de menu com Sheet ou DropdownMenu que contem todas as acoes
+- ContentListView: No mobile, substituir tabela por cards empilhados ou usar apenas 3-4 colunas essenciais
+- ContentGalleryView: Substituir hover overlay por visibilidade permanente dos botoes no mobile
+- Titulo: Usar `line-clamp-2` em vez de `truncate`
 
-## Detalhes Tecnicos
+---
 
-### Fontes Google (index.html)
-```text
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Dancing+Script:wght@400;700&family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-```
+## ETAPA 5: Content Views (CarrosselView, PostSimplesView, DevocionalView, GenericContentView, etc.)
 
-### Gradientes CSS disponveis
-| Preset | CSS |
-|--------|-----|
-| `bottom_dark_strong` | `linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 70%)` |
-| `bottom_dark_subtle` | `linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%)` |
-| `top_dark` | `linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 50%)` |
-| `full_dark` | `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4))` |
-| `radial_vignette` | `radial-gradient(circle, transparent 40%, rgba(0,0,0,0.7) 100%)` |
-| `none` | nenhum |
+### Problemas:
+21. **`CarrosselView.tsx` - Carousel com `px-8`**: O `px-8` interno dentro de `CarouselContent` reduz o espaco util drasticamente no mobile. Botoes Previous/Next (circular, 48px) ficam cortados.
+22. **`CarrosselView.tsx` - Botoes CarouselPrevious/Next**: Estes sao `absolute -left-12 -right-12` por padrao do shadcn, transbordando fora do container.
+23. **`GenericContentView.tsx` - `CardTitle` com `text-xl`**: Titulo grande demais em cards no mobile, quebrando layout do header quando combinado com botoes Copy + Regenerar.
+24. **`StrategicIdeaCard.tsx` - Layout horizontal titulo + badge**: Em telas pequenas, titulo longo + `Badge` de formato prioritario causam overflow.
+25. **`FundamentoBiblicoCard.tsx` - `CardTitle text-lg`**: Titulo e icone ocupam muito espaco vertical desnecessariamente.
+26. **`PostSimplesView.tsx` - Botao "Gerar Imagem" com Badge PRO inline**: A Badge PRO + texto + icone transbordam em telas < 360px.
 
-### Arquivos editados
+### Correcoes:
+- CarrosselView: Reduzir `px-8` para `px-0` e reposicionar botoes Previous/Next abaixo do carousel (inline, nao absolute) no mobile
+- GenericContentView: Titulo `text-base sm:text-xl`, botoes empilhados no mobile
+- StrategicIdeaCard: `flex-wrap` no header, badge abaixo do titulo no mobile
+- Todos os Cards: Revisar paddings para `p-2 sm:p-3 md:p-4`
 
-| Arquivo | Mudanca |
-|---------|---------|
-| `index.html` | Adicionar link Google Fonts |
-| `tailwind.config.ts` | Adicionar fontFamily overlay-* |
-| `src/lib/overlayPositions.ts` | Adicionar font_family, gradient, tamanhos maiores |
-| `src/components/EditableOverlay.tsx` | Seletor de fonte no painel |
-| `src/components/ImageOverlayEditor.tsx` | Camada de gradiente + seletor |
-| `supabase/functions/generate-image-overlay/index.ts` | Modelo Pro + prompt inteligente |
+---
 
-### Resultado esperado
+## ETAPA 6: Paginas Secundarias e Formularios (Auth, Profile, Volunteers, Schedules)
 
-- Textos grandes e impactantes com fontes profissionais
-- Gradientes que garantem legibilidade sem escurecer a foto inteira
-- IA analisa a foto com precisao e sugere textos contextuais
-- Seletores de fonte e gradiente na interface de edicao
+### Problemas:
+27. **`Auth.tsx` - Dialog de reset senha**: `sm:max-w-md` sem `max-h` pode transbordar no mobile com teclado aberto.
+28. **`Profile.tsx` - `TabsList grid-cols-2 h-auto`**: Funcional, mas emojis no texto (`👤 Perfil`, `📊 Uso Mensal`) podem causar inconsistencias de altura.
+29. **`Volunteers.tsx` - Table overflow**: `overflow-x-auto` esta presente, mas a tabela inteira com 7 colunas visiveis no mobile requer scroll horizontal significativo sem indicacao visual.
+30. **`AudioInput.tsx` - Botao de gravacao `h-40 w-40`**: 160px de diametro e grande demais para telas de 320px, especialmente dentro de `max-w-2xl` com padding.
+31. **`AudioInput.tsx` - Upload area `p-12`**: Padding de 48px no mobile desperdiça espaco.
+32. **`RecentContentSection.tsx` - Link para rota legada**: Usa `navigate('/biblioteca/${content.id}')` (rota legada) em vez de `navigate('/biblioteca?content_id=${content.id}')` conforme o novo padrao documentado na memoria.
+
+### Correcoes:
+- Volunteers: No mobile, substituir tabela por cards empilhados (igual pattern de ContentListView)
+- AudioInput: Botao `h-28 w-28 sm:h-40 sm:w-40`, upload area `p-6 sm:p-12`
+- RecentContentSection: Corrigir navegacao para formato query param
+- Auth/Profile: Garantir `dvh` e protecoes de teclado virtual
+
+---
+
+## Resumo de Impacto
+
+| Etapa | Arquivos | Problemas | Prioridade |
+|-------|----------|-----------|------------|
+| 1 | 2 | 3 | Critica (afeta tudo) |
+| 2 | 3 | 5 | Alta |
+| 3 | 6 | 7 | Alta |
+| 4 | 4 | 5 | Alta |
+| 5 | 6 | 6 | Media |
+| 6 | 5 | 6 | Media |
+| **Total** | **~25 arquivos** | **32 problemas** | |
+
+## Ordem de Execucao
+
+Cada etapa sera implementada como uma mensagem separada, na ordem acima. A Etapa 1 (CSS global) deve ser feita primeiro pois afeta todos os componentes subsequentes.
