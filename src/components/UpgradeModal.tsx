@@ -109,7 +109,7 @@ export const UpgradeModal = ({ open, onOpenChange, feature, reason = 'upgrade' }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90dvh] overflow-y-auto">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-2xl max-h-[90dvh] overflow-y-auto overflow-x-hidden" data-prevent-zoom>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Crown className="h-5 w-5 text-amber-500" />

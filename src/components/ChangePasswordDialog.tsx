@@ -63,7 +63,7 @@ export default function ChangePasswordDialog({ open, onClose }: ChangePasswordDi
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-md max-h-[90dvh] overflow-y-auto overflow-x-hidden" data-prevent-zoom>
         <DialogHeader>
           <DialogTitle>Alterar Senha</DialogTitle>
           <DialogDescription>
