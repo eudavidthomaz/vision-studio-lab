@@ -1,109 +1,76 @@
 
-# Corrigir Geração de Imagens para Slides de Carrossel
 
-## Problemas Identificados
+# Corrigir Dessincronizacao do Modal e Quantidade de Slides
 
-### Problema 1: Textos dos slides muito longos
-Ha **instrucoes conflitantes** no backend. Em um lugar (linha 1161) diz "10-20 words MAX", mas em outro (linha 1436) diz "minimo 100 caracteres" com exemplos longos de 2-3 frases. A IA segue a instrucao mais detalhada (a longa), gerando textos enormes que nao cabem em uma imagem.
+## Problema 1: Modal mostra dados do slide errado
 
-### Problema 2: Texto do slide nao e inserido na imagem
-Quando voce clica "Gerar Imagem" em um card do carrossel, o fluxo e:
+**Causa raiz:** O `ImageGenerationModal` usa `useState(copy)` (linha 43) para inicializar `editedCopy`. Essa inicializacao so roda **uma vez** quando o componente monta. Quando voce clica "Gerar Imagem" no Card 2 depois de ter clicado no Card 1, o `copy` prop muda mas `editedCopy` mantem o texto do Card 1.
 
-1. `CarrosselView` passa `titulo + conteudo` do slide para `ImageGenerationModal` via prop `copy`
-2. O modal exibe isso em um campo chamado **"Texto do Post"** (deveria ser "Texto do Slide")
-3. O `generate-post-image` recebe esse texto e no prompt usa apenas `truncatedCopy.split('\n')[0]` como titulo na imagem -- ou seja, so a primeira linha (o titulo) e renderizada, o conteudo do slide e ignorado
-4. O prompt pede para a IA gerar uma imagem "editorial/cinematografica" e renderizar apenas o titulo, sem incluir o corpo do slide
+O componente nunca desmonta entre cliques porque a condicao `selectedCard &&` (linha 285) permanece verdadeira -- `selectedCard` muda de um objeto para outro, mas nunca volta a `null` entre cliques.
 
-Em resumo: a imagem gerada e um poster com o titulo, nao um slide de carrossel com o texto completo.
+**Correcao:** Adicionar um `useEffect` no `ImageGenerationModal.tsx` para sincronizar `editedCopy` quando a prop `copy` mudar:
 
-## Solucao
+```text
+useEffect(() => {
+  setEditedCopy(copy);
+}, [copy]);
+```
 
-### 1. Unificar instrucoes do backend para textos curtos (Edge Function)
-Remover a instrucao conflitante na linha 1436 que pede "minimo 100 caracteres" e substituir por instrucoes alinhadas com "10-20 palavras MAX". Atualizar os exemplos longos (linhas 1442-1458) para exemplos curtos e estrategicos.
+Isso garante que ao trocar de slide, o texto no modal atualiza imediatamente.
 
-**Arquivo:** `supabase/functions/generate-ai-content/index.ts`
-- Linha 1436: trocar "minimo 100 caracteres" por "maximo 20 palavras - frase curta e impactante"
-- Linhas 1442-1458: substituir exemplos longos por exemplos curtos alinhados com as instrucoes da linha 1170-1178
+## Problema 2: Carrossel de 10 slides em vez de 4
 
-### 2. Adaptar o prompt de geracao de imagem para contexto de slide (Edge Function)
-O `generate-post-image` precisa saber que esta gerando um **slide de carrossel** (nao um poster generico). Quando o texto vier com titulo + conteudo separados por `\n\n`, o prompt deve instruir a IA a renderizar **ambos** na imagem: o titulo em destaque e o texto do slide abaixo, como um card de carrossel real.
+**Causa raiz:** A validacao no backend (linha 1619-1622) diz: "se o usuario NAO especificou quantidade, exigir minimo 8 slides". O problema e que a extracao de `specs.quantidade` pode falhar no backend se o formato do prompt processado nao contiver exatamente `QUANTIDADE_OBRIGATORIA: 4`.
 
-**Arquivo:** `supabase/functions/generate-post-image/index.ts`
-- Detectar quando o texto tem formato de slide (titulo + corpo separados por `\n\n`)
-- Ajustar o prompt para renderizar o texto completo do slide na imagem, nao so a primeira linha
-- Usar layout de "slide de carrossel" em vez de "poster editorial"
+Alem disso, mesmo quando `specs.quantidade = 4` e detectada corretamente, a IA pode gerar 10 slides e a validacao rejeita (retorna false no `hasCorrectStructure`), disparando retry. No retry, a IA pode gerar novamente um numero errado, e apos 2 retries o sistema aceita o que vier -- que pode ser 10 slides.
 
-### 3. Corrigir labels do modal para contexto de carrossel (Frontend)
-O `ImageGenerationModal` recebe o texto do slide mas exibe "Texto do Post". Quando usado no contexto de carrossel, deveria exibir "Texto do Slide".
-
-**Arquivo:** `src/components/ImageGenerationModal.tsx`
-- Adicionar prop opcional `context?: 'post' | 'slide'` 
-- Quando `context === 'slide'`, trocar "Texto do Post" por "Texto do Slide" e "Criar Imagem para Post" por "Criar Imagem para Slide"
-
-**Arquivo:** `src/components/content-views/CarrosselView.tsx`
-- Passar `context="slide"` para o `ImageGenerationModal`
+**Correcao:**
+- No backend, apos a validacao falhar e os retries se esgotarem, **truncar** o array de slides para a quantidade solicitada em vez de aceitar todos
+- Reforcar no prompt do carrossel a instrucao de quantidade exata quando `specs.quantidade` existir
+- Adicionar log explicito quando a quantidade nao for detectada no backend
 
 ## Detalhes Tecnicos
 
-### generate-ai-content/index.ts - Remover conflito de instrucoes
+### Arquivo: `src/components/ImageGenerationModal.tsx`
 
-Linha 1436, substituir:
+Adicionar `useEffect` apos a linha 43 (`const [editedCopy, setEditedCopy] = useState(copy)`):
+
 ```text
-Antes: "Cada slide deve ter: titulo_slide, conteudo (minimo 100 caracteres), imagem_sugerida, chamada_para_acao"
-Depois: "Cada slide deve ter: titulo_slide, conteudo (frase curta de 10-20 palavras MAX), imagem_sugerida, chamada_para_acao"
+useEffect(() => {
+  setEditedCopy(copy);
+}, [copy]);
 ```
 
-Linhas 1442-1458, substituir exemplos por versoes curtas:
+Importar `useEffect` do React (adicionar ao import existente na linha 1).
+
+### Arquivo: `supabase/functions/generate-ai-content/index.ts`
+
+1. **Apos validacao/retries** (onde `parsedContent` e aceito mesmo com estrutura incorreta): se `specs.quantidade` existe e o numero de slides e maior, truncar:
+
 ```text
-Exemplo Slide 1:
-{
-  "numero_slide": 1,
-  "titulo_slide": "Voce se sente invisivel?",
-  "conteudo": "Deus te ve. Ele te escolheu antes de voce nascer.",
-  "chamada_para_acao": "Deslize para descobrir"
+if (specs.quantidade && slides.length > specs.quantidade) {
+  content.estrutura_visual.slides = slides.slice(0, specs.quantidade);
+  console.log(`✂️ Truncado de ${slides.length} para ${specs.quantidade} slides`);
 }
 ```
 
-### generate-post-image/index.ts - Prompt adaptado para slides
+2. **No prompt do carrossel**: quando `specs.quantidade` existir, adicionar instrucao explicita como "GERE EXATAMENTE {N} SLIDES. NEM MAIS NEM MENOS."
 
-Na construcao do prompt (linhas 136-168), detectar formato de slide e ajustar:
+3. **Na validacao padrao** (linha 1619-1622): reduzir o minimo padrao de 8 para um valor mais razoavel (ex: 4), ja que o usuario pode pedir carrosseis curtos
 
-```text
-Se o texto contem "\n\n" (titulo + corpo):
-  - Title line = primeira parte
-  - Body text = segunda parte
-  - Prompt: "Generate a carousel SLIDE card with:
-    * Title: [titulo] (bold, top area)
-    * Body: [corpo] (clean readable text, center)
-    * Clean background, card-style layout
-    * No photo - focus on typography and readability"
-```
+### Arquivo: `src/components/content-views/CarrosselView.tsx`
 
-### ImageGenerationModal.tsx - Label contextual
-
-Adicionar prop `context` e usar condicionalmente:
-
-```text
-- DialogTitle: context === 'slide' ? "Criar Imagem para Slide" : "Criar Imagem para Post"
-- Label do textarea: context === 'slide' ? "Texto do Slide" : "Texto do Post"  
-- Dica: context === 'slide' ? "A IA vai criar um card visual com este texto" : "A IA vai criar uma imagem baseada neste texto"
-```
-
-### CarrosselView.tsx - Passar contexto
-
-Na renderizacao do `ImageGenerationModal` (linha 286), adicionar `context="slide"`.
+Nenhuma mudanca necessaria -- o problema nao esta na view.
 
 ## Arquivos a Modificar
 
 | Arquivo | Mudanca |
 |---|---|
-| `supabase/functions/generate-ai-content/index.ts` | Remover instrucao conflitante de "minimo 100 caracteres", alinhar exemplos |
-| `supabase/functions/generate-post-image/index.ts` | Detectar contexto de slide e adaptar prompt para renderizar titulo + texto |
-| `src/components/ImageGenerationModal.tsx` | Adicionar prop `context` e labels contextuais |
-| `src/components/content-views/CarrosselView.tsx` | Passar `context="slide"` ao modal |
+| `src/components/ImageGenerationModal.tsx` | Adicionar `useEffect` para sincronizar `editedCopy` com `copy` prop |
+| `supabase/functions/generate-ai-content/index.ts` | Truncar slides excedentes, reforcar instrucao de quantidade no prompt, ajustar minimo padrao |
 
 ## Resultado Esperado
-- Novos carrosseis terao textos curtos e estrategicos (10-20 palavras por slide)
-- A imagem gerada para cada slide incluira tanto o titulo quanto o texto do slide
-- O modal exibira labels corretos ("Texto do Slide" em vez de "Texto do Post")
-- O texto editado no modal sera respeitado na geracao da imagem
+
+- Ao clicar "Gerar Imagem" em qualquer slide apos navegar no carrossel, o modal mostrara o texto correto daquele slide
+- Carrosseis gerados respeitarao a quantidade solicitada (ex: 4 paginas = 4 slides, nunca 10)
+- Se a IA insistir em gerar mais slides do que o pedido, o sistema truncara automaticamente
