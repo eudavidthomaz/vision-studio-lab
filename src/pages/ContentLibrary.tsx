@@ -181,7 +181,7 @@ ContentItemCard.displayName = 'ContentItemCard';
 
 export default function ContentLibrary() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     items,
     loading,
@@ -214,11 +214,39 @@ export default function ContentLibrary() {
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
   
   const sermonId = searchParams.get('sermon_id');
+  const contentIdParam = searchParams.get('content_id');
   const isDefaultFilter = filters.search === DEFAULT_FILTERS.search &&
     filters.type === DEFAULT_FILTERS.type &&
     filters.source === DEFAULT_FILTERS.source &&
     filters.pilar === DEFAULT_FILTERS.pilar &&
     filters.status === DEFAULT_FILTERS.status;
+
+  // Auto-open content modal from URL param
+  useEffect(() => {
+    if (!contentIdParam) return;
+    
+    const openContentFromUrl = async () => {
+      // Check if already in loaded items
+      const existing = items.find(i => i.id === contentIdParam);
+      if (existing) {
+        setSelectedContent(existing);
+        return;
+      }
+      
+      // Fetch from database
+      const { data } = await supabase
+        .from('content_library')
+        .select('*')
+        .eq('id', contentIdParam)
+        .single();
+      
+      if (data) {
+        setSelectedContent(data as ContentLibraryItem);
+      }
+    };
+    
+    openContentFromUrl();
+  }, [contentIdParam, items]);
 
   const handleClearFilters = () => {
     setFilters(DEFAULT_FILTERS);
@@ -450,7 +478,13 @@ export default function ContentLibrary() {
         <UnifiedContentModal
           content={selectedContent}
           open={!!selectedContent}
-          onClose={() => setSelectedContent(null)}
+          onClose={() => {
+            setSelectedContent(null);
+            if (searchParams.has('content_id')) {
+              searchParams.delete('content_id');
+              setSearchParams(searchParams, { replace: true });
+            }
+          }}
         />
 
         <TagManagerDialog

@@ -26,7 +26,7 @@ export function ContentFeedModal({ content, open, onOpenChange }: ContentFeedMod
     const [type, uuid] = content.id.split("-");
     onOpenChange(false);
     if (type === "ai") {
-      navigate(`/conteudo/${uuid}`);
+      navigate(`/biblioteca?content_id=${uuid}`);
     }
   };
 
