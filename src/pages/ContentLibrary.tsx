@@ -135,7 +135,7 @@ const ContentItemCard = memo(({
               />
             ) : (
               <CardTitle
-                className="text-base truncate break-words cursor-pointer hover:text-primary"
+                className="text-sm sm:text-base line-clamp-2 cursor-pointer hover:text-primary"
                 onDoubleClick={() => setIsEditingTitle(true)}
               >
                 {item.title}
