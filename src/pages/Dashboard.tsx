@@ -18,6 +18,7 @@ import { HeroHeader } from "@/components/HeroHeader";
 import { SermonCompletedModal } from "@/components/SermonCompletedModal";
 import { useSubscription } from "@/hooks/useSubscription";
 import { YouTubeCreatorCard } from "@/components/YouTubeCreatorCard";
+import { ScheduleCreatorCard } from "@/components/ScheduleCreatorCard";
 import { YouTubeTranscriptModal } from "@/components/YouTubeTranscriptModal";
 import { UpgradeModal } from "@/components/UpgradeModal";
 
@@ -340,6 +341,10 @@ const Dashboard = () => {
               />
             </section>
             
+            <section>
+              <ScheduleCreatorCard onClick={() => navigate('/escalas')} />
+            </section>
+
             <section>
               <RecentContentSection />
             </section>
