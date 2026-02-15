@@ -13,7 +13,7 @@ interface YouTubeTranscriptModalProps {
   isLoading: boolean;
 }
 
-const YOUTUBE_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)/;
+const YOUTUBE_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/live\/)/;
 
 export const YouTubeTranscriptModal = ({
   open,
@@ -32,7 +32,7 @@ export const YouTubeTranscriptModal = ({
       return;
     }
     if (!YOUTUBE_REGEX.test(trimmed)) {
-      setUrlError("URL inválida. Use um link do YouTube (youtube.com ou youtu.be)");
+      setUrlError("URL inválida. Use um link do YouTube (youtube.com, youtu.be ou youtube.com/live)");
       return;
     }
     setUrlError("");
@@ -57,7 +57,7 @@ export const YouTubeTranscriptModal = ({
             Extrair Conteúdo do YouTube
           </DialogTitle>
           <DialogDescription>
-            Cole o link do vídeo e nossa IA vai extrair a transcrição e pontos principais.
+            Cole o link do vídeo e as legendas reais serão extraídas e salvas junto aos seus sermões.
           </DialogDescription>
         </DialogHeader>
 
@@ -66,7 +66,7 @@ export const YouTubeTranscriptModal = ({
             <Label htmlFor="yt-url">URL do Vídeo *</Label>
             <Input
               id="yt-url"
-              placeholder="https://youtube.com/watch?v=... ou youtu.be/..."
+              placeholder="youtube.com/watch?v=... | youtu.be/... | youtube.com/live/..."
               value={url}
               onChange={(e) => {
                 setUrl(e.target.value);

@@ -7,6 +7,109 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ─── Helper: Extract video ID from various YouTube URL formats ───
+function extractVideoId(url: string): string | null {
+  const patterns = [
+    /(?:youtube\.com\/watch\?.*v=)([a-zA-Z0-9_-]{11})/,
+    /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+    /(?:youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+    /(?:youtube\.com\/live\/)([a-zA-Z0-9_-]{11})/,
+    /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+// ─── Helper: Fetch real transcript via YouTube Innertube API ───
+async function fetchYouTubeTranscript(videoId: string): Promise<{ transcript: string; title: string }> {
+  // Step 1: Get player data with caption tracks
+  const playerResp = await fetch("https://www.youtube.com/youtubei/v1/player", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      context: {
+        client: {
+          hl: "pt",
+          gl: "BR",
+          clientName: "WEB",
+          clientVersion: "2.20240101.00.00",
+        },
+      },
+      videoId,
+    }),
+  });
+
+  if (!playerResp.ok) {
+    throw new Error("Falha ao acessar dados do vídeo no YouTube");
+  }
+
+  const playerData = await playerResp.json();
+
+  const title = playerData?.videoDetails?.title || "Vídeo do YouTube";
+  const captionTracks = playerData?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+
+  if (!captionTracks || captionTracks.length === 0) {
+    throw new Error("Este vídeo não possui legendas disponíveis (nem manuais nem automáticas). Não é possível extrair a transcrição.");
+  }
+
+  // Step 2: Pick best caption track (pt > en > first available)
+  let selectedTrack = captionTracks.find((t: any) => t.languageCode?.startsWith("pt"));
+  if (!selectedTrack) {
+    selectedTrack = captionTracks.find((t: any) => t.languageCode?.startsWith("en"));
+  }
+  if (!selectedTrack) {
+    selectedTrack = captionTracks[0];
+  }
+
+  const captionUrl = selectedTrack.baseUrl;
+  if (!captionUrl) {
+    throw new Error("URL de legendas não encontrada para este vídeo");
+  }
+
+  console.log(`[extract-youtube] Using caption track: ${selectedTrack.languageCode} (${selectedTrack.name?.simpleText || "auto"})`);
+
+  // Step 3: Download caption XML
+  const captionResp = await fetch(captionUrl);
+  if (!captionResp.ok) {
+    throw new Error("Falha ao baixar legendas do vídeo");
+  }
+  const captionXml = await captionResp.text();
+
+  // Step 4: Parse XML to plain text
+  const transcript = parseTranscriptXml(captionXml);
+
+  if (!transcript || transcript.trim().length < 50) {
+    throw new Error("Legendas encontradas mas com conteúdo insuficiente para extrair transcrição");
+  }
+
+  return { transcript, title };
+}
+
+// ─── Helper: Parse YouTube caption XML to plain text ───
+function parseTranscriptXml(xml: string): string {
+  const segments: string[] = [];
+  const regex = /<text[^>]*>([\s\S]*?)<\/text>/g;
+  let match;
+  while ((match = regex.exec(xml)) !== null) {
+    let text = match[1];
+    // Decode HTML entities
+    text = text.replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&apos;/g, "'")
+      .replace(/\n/g, " ")
+      .trim();
+    if (text) segments.push(text);
+  }
+  return segments.join(" ");
+}
+
+// ─── Main handler ───
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -44,7 +147,6 @@ serve(async (req) => {
       });
     }
 
-    // Service client for admin operations
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     // Check user role
@@ -62,7 +164,7 @@ serve(async (req) => {
       );
     }
 
-    // Check quota (live_captures)
+    // Check quota
     const quotaLimits: Record<string, number> = { pro: 5, team: 20, admin: 9999 };
     const maxCaptures = quotaLimits[userRole] || 0;
 
@@ -88,22 +190,62 @@ serve(async (req) => {
       });
     }
 
-    // Validate YouTube URL
-    const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)/;
-    if (!ytRegex.test(youtubeUrl)) {
-      return new Response(JSON.stringify({ error: "URL do YouTube inválida" }), {
+    // Extract video ID
+    const videoId = extractVideoId(youtubeUrl);
+    if (!videoId) {
+      return new Response(JSON.stringify({ error: "URL do YouTube inválida. Use youtube.com/watch, youtu.be, youtube.com/live ou youtube.com/shorts" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    console.log(`[extract-youtube] Processing video: ${videoId} for user: ${user.id}`);
+
+    // ─── STEP 1: Fetch REAL transcript from YouTube ───
+    let transcript: string;
+    let videoTitle: string;
+    try {
+      const result = await fetchYouTubeTranscript(videoId);
+      transcript = result.transcript;
+      videoTitle = result.title;
+      console.log(`[extract-youtube] Transcript fetched: ${transcript.length} chars, title: "${videoTitle}"`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro ao buscar legendas do vídeo";
+      console.error(`[extract-youtube] Transcript fetch failed:`, msg);
+      return new Response(JSON.stringify({ error: msg }), {
+        status: 422,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ─── STEP 2: Save transcript to sermons table ───
+    const { data: sermonData, error: sermonError } = await supabaseAdmin
+      .from("sermons")
+      .insert({
+        user_id: user.id,
+        transcript,
+        status: "completed",
+      })
+      .select("id")
+      .single();
+
+    if (sermonError) {
+      console.error("[extract-youtube] Sermon insert error:", sermonError);
+      return new Response(JSON.stringify({ error: "Erro ao salvar transcrição" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`[extract-youtube] Sermon saved: ${sermonData.id}`);
+
+    // ─── STEP 3: Use AI to ANALYZE the real transcript ───
+    const truncatedTranscript = transcript.length > 15000 ? transcript.substring(0, 15000) + "..." : transcript;
+
     const userPrompt = instructions
-      ? `Analise o vídeo do YouTube nesta URL: ${youtubeUrl}\n\nInstruções adicionais do usuário: ${instructions}`
-      : `Analise o vídeo do YouTube nesta URL: ${youtubeUrl}`;
+      ? `Analise a seguinte transcrição REAL de um vídeo do YouTube intitulado "${videoTitle}".\n\nInstruções adicionais: ${instructions}\n\nTRANSCRIÇÃO:\n${truncatedTranscript}`
+      : `Analise a seguinte transcrição REAL de um vídeo do YouTube intitulado "${videoTitle}".\n\nTRANSCRIÇÃO:\n${truncatedTranscript}`;
 
-    console.log(`[extract-youtube] Processing URL: ${youtubeUrl} for user: ${user.id}`);
-
-    // Call Gemini via Lovable AI Gateway
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -115,17 +257,13 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Você é um assistente especializado em extrair e estruturar conteúdo de vídeos do YouTube para igrejas e ministérios.
+            content: `Você é um assistente que analisa transcrições reais de vídeos do YouTube para igrejas e ministérios.
 
-Ao receber uma URL de vídeo do YouTube, você deve:
-1. Extrair a transcrição/legenda completa do vídeo
-2. Identificar os pontos principais da mensagem
-3. Criar um resumo estruturado
+Você recebeu a transcrição REAL extraída das legendas do vídeo. Sua tarefa é APENAS estruturar e resumir o conteúdo.
 
 Retorne SEMPRE um JSON válido com a seguinte estrutura:
 {
-  "titulo": "Título do vídeo/mensagem",
-  "transcricao": "Transcrição completa do vídeo...",
+  "titulo": "Título da mensagem/pregação",
   "resumo": "Resumo de 2-3 parágrafos da mensagem...",
   "pontos_principais": ["ponto 1", "ponto 2", "ponto 3"],
   "versiculos_citados": ["Referência 1", "Referência 2"],
@@ -134,100 +272,87 @@ Retorne SEMPRE um JSON válido com a seguinte estrutura:
 }
 
 IMPORTANTE:
-- NÃO invente dados como endereços, telefones, nomes de pessoas ou igrejas
-- Use apenas informações presentes no vídeo
-- Se não conseguir acessar o vídeo, retorne um JSON com erro: {"error": "Não foi possível acessar o vídeo"}
-- Mantenha a transcrição fiel ao conteúdo original`,
+- NÃO invente dados. Use APENAS o que está na transcrição.
+- Se algum campo não tiver informação na transcrição, use array vazio [] ou string descritiva.
+- O título deve refletir o conteúdo real da transcrição.`,
           },
           { role: "user", content: userPrompt },
         ],
-        max_tokens: 8000,
+        max_tokens: 4000,
         temperature: 0.3,
       }),
     });
 
-    if (!aiResponse.ok) {
-      const status = aiResponse.status;
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns minutos." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    let summary = "";
+    let parsedContent: any = null;
+
+    if (aiResponse.ok) {
+      const aiData = await aiResponse.json();
+      const rawContent = aiData.choices?.[0]?.message?.content;
+
+      if (rawContent) {
+        try {
+          const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/) || rawContent.match(/\{[\s\S]*\}/);
+          const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : rawContent;
+          parsedContent = JSON.parse(jsonStr);
+          summary = parsedContent.resumo || rawContent.substring(0, 500);
+        } catch {
+          summary = rawContent.substring(0, 500);
+          parsedContent = {
+            titulo: videoTitle,
+            resumo: summary,
+            pontos_principais: [],
+            versiculos_citados: [],
+            aplicacoes_praticas: [],
+            tema_central: "Extraído do YouTube",
+          };
+        }
       }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos de IA insuficientes." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const errorText = await aiResponse.text();
-      console.error("[extract-youtube] AI gateway error:", status, errorText);
-      return new Response(JSON.stringify({ error: "Erro ao processar o vídeo com IA" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const aiData = await aiResponse.json();
-    const rawContent = aiData.choices?.[0]?.message?.content;
-
-    if (!rawContent) {
-      return new Response(JSON.stringify({ error: "IA não retornou conteúdo" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Parse JSON from AI response
-    let parsedContent: any;
-    try {
-      const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/) || rawContent.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : rawContent;
-      parsedContent = JSON.parse(jsonStr);
-    } catch {
-      console.error("[extract-youtube] Failed to parse AI response as JSON, using raw");
+    } else {
+      console.error("[extract-youtube] AI analysis failed, continuing without summary");
       parsedContent = {
-        titulo: "Conteúdo do YouTube",
-        transcricao: rawContent,
-        resumo: rawContent.substring(0, 500),
+        titulo: videoTitle,
+        resumo: "Resumo não disponível - transcrição salva com sucesso.",
         pontos_principais: [],
         versiculos_citados: [],
         aplicacoes_praticas: [],
         tema_central: "Extraído do YouTube",
       };
+      summary = parsedContent.resumo;
     }
 
-    if (parsedContent.error) {
-      return new Response(JSON.stringify({ error: parsedContent.error }), {
-        status: 422,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Update sermon with summary
+    await supabaseAdmin
+      .from("sermons")
+      .update({ summary })
+      .eq("id", sermonData.id);
 
-    const title = parsedContent.titulo || "Conteúdo do YouTube";
+    // ─── STEP 4: Save structured content to content_library ───
+    const contentTitle = parsedContent?.titulo || videoTitle;
 
-    // Save to content_library
     const { data: contentData, error: insertError } = await supabaseAdmin
       .from("content_library")
       .insert({
         user_id: user.id,
-        title,
+        title: contentTitle,
         content_type: "resumo_pregacao",
         source_type: "youtube",
         content: parsedContent,
         prompt_original: `YouTube: ${youtubeUrl}${instructions ? ` | ${instructions}` : ""}`,
         status: "draft",
         tags: ["youtube", "transcrição"],
+        sermon_id: sermonData.id,
       })
       .select("id")
       .single();
 
     if (insertError) {
-      console.error("[extract-youtube] Insert error:", insertError);
-      return new Response(JSON.stringify({ error: "Erro ao salvar conteúdo" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.error("[extract-youtube] Content insert error:", insertError);
+      // Sermon was saved successfully, return that at least
+      return new Response(
+        JSON.stringify({ sermon_id: sermonData.id, content_id: null, title: contentTitle }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Increment quota
@@ -237,10 +362,10 @@ IMPORTANTE:
       .update({ live_captures_used: currentCaptures + 1 })
       .eq("user_id", user.id);
 
-    console.log(`[extract-youtube] Content saved: ${contentData.id}`);
+    console.log(`[extract-youtube] Done. Sermon: ${sermonData.id}, Content: ${contentData.id}`);
 
     return new Response(
-      JSON.stringify({ content_id: contentData.id, title }),
+      JSON.stringify({ sermon_id: sermonData.id, content_id: contentData.id, title: contentTitle }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
