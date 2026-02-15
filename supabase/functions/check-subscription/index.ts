@@ -44,6 +44,26 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // Check if user has admin role - admins bypass Stripe check
+    const { data: currentRole } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (currentRole?.role === 'admin') {
+      logStep("User is admin, bypassing Stripe check");
+      return new Response(JSON.stringify({
+        subscribed: true,
+        role: 'admin',
+        product_id: null,
+        subscription_end: null
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     
     let customerId: string | null = null;
