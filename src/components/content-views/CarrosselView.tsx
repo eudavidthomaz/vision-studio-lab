@@ -132,7 +132,9 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                               onClick={() => handleGenerateImage({ 
                                 numero: index + 1, 
                                 titulo: slide.titulo, 
-                                texto: slide.conteudo 
+                                texto: slide.chamada_para_acao 
+                                  ? `${slide.conteudo}\n\n${slide.chamada_para_acao}` 
+                                  : slide.conteudo
                               })}
                               disabled={loadingCard === index + 1}
                               className={`w-full h-8 text-xs ${!canGenerateImages ? 'border-amber-500/50' : ''}`}
