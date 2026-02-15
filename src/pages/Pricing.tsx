@@ -59,7 +59,7 @@ const PLANS = [
 export default function Pricing() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { role, isLoading, openCustomerPortal } = useSubscription();
+  const { role, isLoading, openCustomerPortal, invalidateSubscription, refetch } = useSubscription();
   const { toast } = useToast();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
@@ -234,11 +234,7 @@ export default function Pricing() {
               try {
                 toast({ title: "Verificando...", description: "Sincronizando status da assinatura." });
                 await supabase.functions.invoke('check-subscription');
-                const { invalidateSubscription } = await import('@/hooks/useSubscription').then(() => {
-                  // Force refetch via query client
-                  return { invalidateSubscription: () => refetch() };
-                });
-                await refetch();
+                invalidateSubscription();
                 toast({ title: "✅ Status atualizado!", description: "Seu plano foi sincronizado." });
               } catch {
                 toast({ title: "Erro", description: "Não foi possível atualizar.", variant: "destructive" });
