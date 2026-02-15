@@ -1,44 +1,38 @@
 
+# Remover Estilo Fotografico e Refinar Overlay
 
-# Remover Instruções que o Modelo Renderiza como Texto Literal
+## Mudancas
 
-## Problemas Encontrados
+### 1. Remover estilo "fotografico"
 
-### 1. Prompt principal (linha 179) - "Subtitle/signature"
-A instrução `Subtitle/signature (optional): following lines from input (handwritten/brush fine style)` usa a palavra **"signature"**, que o modelo traduz e renderiza como "Assinatura" na imagem. Esta e provavelmente a causa principal do problema em todos os estilos.
+**Backend** (`supabase/functions/generate-post-image/index.ts`):
+- Remover `'fotografico'` do array `ALLOWED_ESTILOS` (linha 20)
+- Remover a entrada `'fotografico'` do objeto `estiloAdaptacoes` (linha 123)
 
-### 2. Estilo `minimalista` (linha 121)
-A instrucao `subtitulo pequeno "handwritten" sutil` contem a palavra "handwritten" entre aspas, que o modelo pode renderizar literalmente.
+**Frontend** (`src/components/ImageGenerationModal.tsx`):
+- Remover o `<SelectItem value="fotografico">` da lista de estilos (linha 386)
 
-### 3. Estilo `fotografico` (linha 123)
-A instrucao `grade tipo Kodak Portra` menciona uma marca comercial que o modelo pode renderizar como texto na imagem.
+### 2. Manter e melhorar o modo Overlay existente
 
-## Correcoes
+O sistema atual de overlay ja faz exatamente o que voce descreveu: a imagem original do usuario fica intacta como camada de fundo, e texto e gerado via HTML/CSS (fontes reais, nitidez perfeita, fundo transparente). A IA (Gemini Flash) apenas analisa a foto e sugere posicoes, cores e conteudo de texto -- nao gera pixels de tipografia.
 
-### Arquivo: `supabase/functions/generate-post-image/index.ts`
+Nenhuma mudanca adicional e necessaria no modo overlay, pois ele ja segue a abordagem correta:
+- Imagem original preservada
+- Tipografia renderizada via HTML com Google Fonts (Montserrat, Playfair Display)
+- Filtro de brilho CSS sobre a imagem de fundo
+- Exportacao via html2canvas em PNG alta resolucao (escala 2x)
+- Drag-and-drop para reposicionar textos
+- Edicao de texto em tempo real
 
-**Mudanca 1** - Estilo `minimalista` (linha 121):
-```
-Antes:  'fundo liso ou leve gradiente escuro; foco total no titulo grande; poucos elementos graficos; subtitulo pequeno "handwritten" sutil.'
-Depois: 'fundo liso ou leve gradiente escuro; foco total no titulo grande; poucos elementos graficos; subtitulo em fonte cursiva fina e discreta.'
-```
+### Arquivos editados
 
-**Mudanca 2** - Estilo `fotografico` (linha 123):
-```
-Antes:  'cena cinematografica com luz dramatica (...). Profundidade de campo realista; grade tipo Kodak Portra; texto ocupando terco esquerdo/baixo com fundo limpo.'
-Depois: 'cena cinematografica com luz dramatica (...). Profundidade de campo realista; tonalidade quente analogica com leve dessaturacao; texto ocupando terco esquerdo/baixo com fundo limpo.'
-```
+| Arquivo | Mudanca |
+|---------|---------|
+| `supabase/functions/generate-post-image/index.ts` | Remover "fotografico" de ALLOWED_ESTILOS e estiloAdaptacoes |
+| `src/components/ImageGenerationModal.tsx` | Remover SelectItem "fotografico" |
 
-**Mudanca 3** - Prompt principal para posters (linha ~179):
-```
-Antes:  '* Subtitle/signature (optional): following lines from input (handwritten/brush fine style).'
-Depois: '* Subtitle (optional): following lines from input (cursive brush fine style).'
-```
+### Resultado
 
-Remover a palavra "signature" do prompt principal e a causa mais impactante -- ela afeta todos os estilos, nao apenas o tipografico.
-
-## Resultado Esperado
-
-- Nenhum estilo tera palavras que o modelo interpreta e renderiza como texto literal
-- A palavra "Assinatura" deixara de aparecer em imagens de qualquer estilo
-- Os efeitos visuais desejados serao mantidos com descricoes alternativas
+- Estilo fotografico removido de todas as interfaces e do backend
+- Modo overlay continua funcionando como a solucao para editar fotos do usuario com tipografia profissional
+- 3 estilos restantes para geracao de imagem nova: Minimalista, Tipografico, Ilustrativo
