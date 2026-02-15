@@ -16,20 +16,46 @@ export const ResumoPregacaoView = ({ data, onRegenerate }: ResumoPregacaoViewPro
   const rawData = data?.resumo_pregacao || data?.resumo || data || {};
   const fb = data?.fundamento_biblico || rawData?.fundamento_biblico || {};
   
+  // Normalizar pontos_principais: converter strings simples para objetos estruturados
+  const rawPontos = Array.isArray(rawData.pontos_principais) ? rawData.pontos_principais : 
+                    Array.isArray(rawData.pontos) ? rawData.pontos : [];
+  const normalizedPontos = rawPontos.map((p: any, idx: number) => {
+    if (typeof p === 'string') {
+      return { numero: idx + 1, titulo: '', conteudo: p };
+    }
+    return p;
+  });
+
+  // Normalizar fundamento_biblico: usar versiculos_citados como fallback
+  const fbVersiculos = safeStringArray(fb.versiculos);
+  const fallbackVersiculos = fbVersiculos.length > 0 ? fbVersiculos : safeStringArray(data?.versiculos_citados || rawData?.versiculos_citados);
+
+  // Normalizar aplicacao_pratica: concatenar array se necessário
+  let aplicacao = safeString(rawData.aplicacao_pratica || rawData.aplicacao);
+  if (!aplicacao) {
+    const aplicacoesArray = rawData.aplicacoes_praticas || data?.aplicacoes_praticas;
+    if (Array.isArray(aplicacoesArray) && aplicacoesArray.length > 0) {
+      aplicacao = aplicacoesArray.map((a: any) => safeString(a)).filter(Boolean).join('\n• ');
+      if (aplicacao) aplicacao = '• ' + aplicacao;
+    }
+  }
+
+  // Normalizar introducao: usar resumo como fallback
+  const introducao = safeString(rawData.introducao) || safeString(rawData.resumo) || safeString(data?.resumo);
+
   const normalized = {
     fundamento_biblico: {
-      versiculos: safeStringArray(fb.versiculos),
+      versiculos: fallbackVersiculos,
       contexto: safeString(fb.contexto),
       principio: safeString(fb.principio_atemporal || fb.principio),
     },
     resumo_pregacao: {
       titulo: safeString(rawData.titulo || data?.titulo) || 'Resumo da Pregação',
-      introducao: safeString(rawData.introducao),
-      pontos_principais: Array.isArray(rawData.pontos_principais) ? rawData.pontos_principais : 
-                         Array.isArray(rawData.pontos) ? rawData.pontos : [],
+      introducao,
+      pontos_principais: normalizedPontos,
       ilustracoes: safeStringArray(rawData.ilustracoes),
       conclusao: safeString(rawData.conclusao),
-      aplicacao_pratica: safeString(rawData.aplicacao_pratica || rawData.aplicacao),
+      aplicacao_pratica: aplicacao,
     },
     frases_impactantes: safeStringArray(data?.frases_impactantes || rawData?.frases_impactantes),
   };

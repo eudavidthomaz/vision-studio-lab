@@ -432,20 +432,33 @@ serve(async (req) => {
 
 Você recebeu a transcrição REAL extraída das legendas do vídeo. Sua tarefa é APENAS estruturar e resumir o conteúdo.
 
-Retorne SEMPRE um JSON válido com a seguinte estrutura:
+Retorne SEMPRE um JSON válido com EXATAMENTE esta estrutura:
 {
   "titulo": "Título da mensagem/pregação",
-  "resumo": "Resumo de 2-3 parágrafos da mensagem...",
-  "pontos_principais": ["ponto 1", "ponto 2", "ponto 3"],
-  "versiculos_citados": ["Referência 1", "Referência 2"],
-  "aplicacoes_praticas": ["Aplicação 1", "Aplicação 2"],
+  "introducao": "Parágrafo introdutório contextualizando a mensagem (2-4 frases)",
+  "pontos_principais": [
+    { "numero": 1, "titulo": "Título curto do ponto", "conteudo": "Explicação detalhada do ponto (2-3 frases)" },
+    { "numero": 2, "titulo": "Título curto do ponto", "conteudo": "Explicação detalhada do ponto (2-3 frases)" }
+  ],
+  "conclusao": "Parágrafo de conclusão da mensagem",
+  "aplicacao_pratica": "Como aplicar esta mensagem no dia a dia (texto corrido, 2-3 frases)",
+  "fundamento_biblico": {
+    "versiculos": ["João 3:16 - Porque Deus amou o mundo...", "Salmos 23:1 - O Senhor é meu pastor..."],
+    "contexto": "Contexto histórico e teológico dos versículos citados",
+    "principio": "Princípio atemporal central da mensagem"
+  },
+  "frases_impactantes": ["Frase marcante 1", "Frase marcante 2"],
   "tema_central": "Tema principal da mensagem"
 }
 
-IMPORTANTE:
+REGRAS OBRIGATÓRIAS:
+- pontos_principais DEVE ser um array de OBJETOS com campos numero, titulo e conteudo. NUNCA use strings simples.
+- fundamento_biblico DEVE ser um objeto com versiculos (array), contexto (string) e principio (string).
+- versiculos em fundamento_biblico devem incluir a referência E o texto quando disponível na transcrição.
 - NÃO invente dados. Use APENAS o que está na transcrição.
-- Se algum campo não tiver informação na transcrição, use array vazio [] ou string descritiva.
-- O título deve refletir o conteúdo real da transcrição.`,
+- Se algum campo não tiver informação na transcrição, use array vazio [] ou string vazia "".
+- O título deve refletir o conteúdo real da transcrição.
+- Gere pelo menos 3 pontos principais e 2 frases impactantes quando possível.`,
           },
           { role: "user", content: userPrompt },
         ],
@@ -466,15 +479,17 @@ IMPORTANTE:
           const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/) || rawContent.match(/\{[\s\S]*\}/);
           const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : rawContent;
           parsedContent = JSON.parse(jsonStr);
-          summary = parsedContent.resumo || rawContent.substring(0, 500);
+          summary = parsedContent.introducao || parsedContent.resumo || rawContent.substring(0, 500);
         } catch {
           summary = rawContent.substring(0, 500);
           parsedContent = {
             titulo: videoTitle,
-            resumo: summary,
+            introducao: summary,
             pontos_principais: [],
-            versiculos_citados: [],
-            aplicacoes_praticas: [],
+            conclusao: "",
+            aplicacao_pratica: "",
+            fundamento_biblico: { versiculos: [], contexto: "", principio: "" },
+            frases_impactantes: [],
             tema_central: "Extraído do YouTube",
           };
         }
@@ -483,13 +498,15 @@ IMPORTANTE:
       console.error("[extract-youtube] AI analysis failed, continuing without summary");
       parsedContent = {
         titulo: videoTitle,
-        resumo: "Resumo não disponível - transcrição salva com sucesso.",
+        introducao: "Resumo não disponível - transcrição salva com sucesso.",
         pontos_principais: [],
-        versiculos_citados: [],
-        aplicacoes_praticas: [],
+        conclusao: "",
+        aplicacao_pratica: "",
+        fundamento_biblico: { versiculos: [], contexto: "", principio: "" },
+        frases_impactantes: [],
         tema_central: "Extraído do YouTube",
       };
-      summary = parsedContent.resumo;
+      summary = parsedContent.introducao;
     }
 
     // Update sermon with summary
