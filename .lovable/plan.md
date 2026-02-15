@@ -1,68 +1,47 @@
 
+# Corrigir Exibicao dos Slides do Carrossel
 
-# Corrigir Falha na Inserção de Conteúdo do YouTube
+## Problema
 
-## O que aconteceu
+Os 5 slides do carrossel **estao salvos corretamente** no banco de dados, dentro de `content.conteudo.estrutura_visual.slides`. Porem, a funcao `detectRealContentType` nao consegue encontra-los porque falta um caminho de busca na extracao dos slides.
 
-As duas tentativas de extração do vídeo "Culto Matutino 08/02 - Neemias e Esdra (Recomeçar)" seguiram este caminho:
-
-1. Transcrição extraída com sucesso via Gemini (9716 e 11939 caracteres)
-2. Transcrição salva na tabela de sermões com sucesso
-3. Chamada à IA para gerar análise estruturada
-4. A IA retornou resposta sem conteúdo utilizável (`parsedContent` ficou `null`)
-5. Tentativa de inserir `content: null` na tabela `content_library` falhou (coluna não aceita nulo)
-6. A função retornou status 200 com `content_id: null`, mas o frontend não mostrou erro
-
-## Causa raiz
-
-Há uma falha lógica no código: quando a resposta da IA não contém conteúdo válido (`choices[0].message.content` é `null` ou `undefined`), a variável `parsedContent` nunca é atribuída e permanece `null`. O fallback existente só cobre dois cenários (IA retorna texto não-JSON, e IA retorna erro HTTP), mas não cobre o caso de resposta vazia.
-
-## Correções
-
-### 1. Edge Function (`supabase/functions/extract-youtube-content/index.ts`)
-
-- Adicionar verificação explícita: se `parsedContent` for `null` após todo o processamento da IA, criar um objeto de fallback com os dados que já temos (título, tema extraído do YouTube)
-- Garantir que `content` nunca será `null` na inserção
-- Melhorar o log para identificar exatamente por que a IA retornou vazio
-
-### 2. Frontend - Tratamento do caso `content_id: null`
-
-- No callback de sucesso da extração do YouTube (Dashboard.tsx ou YouTubeTranscriptModal.tsx), verificar se `content_id` é `null`
-- Se for `null`, mostrar mensagem informando que a transcrição foi salva mas a análise falhou, com opção de tentar novamente
-- Nunca fechar o modal silenciosamente sem feedback
-
-## Detalhes técnicos
-
-### Edge Function - Garantir fallback final
-
-Após toda a lógica de análise da IA (linha ~510), adicionar verificação:
+O que acontece hoje:
 
 ```text
-Se parsedContent ainda for null:
-  parsedContent = {
-    titulo: videoTitle,
-    introducao: "Análise automática não disponível. Transcrição salva com sucesso.",
-    pontos_principais: [],
-    conclusao: "",
-    aplicacao_pratica: "",
-    fundamento_biblico: { versiculos: [], contexto: "", principio: "" },
-    frases_impactantes: [],
-    tema_central: "Extraído do YouTube"
+content = {
+  conteudo: {
+    estrutura_visual: {
+      slides: [ ... 5 slides ... ]  <-- OS DADOS ESTAO AQUI
+    }
   }
+}
 ```
 
-Isso garante que a inserção na `content_library` nunca receberá `null`.
+A funcao de detecao entra no bloco correto (linha 1207 detecta `data.conteudo.estrutura_visual` como truthy), mas na extracao dos slides (linha 1208) verifica apenas:
+- `data.estrutura_visual.slides` (falta o prefixo `conteudo`)
+- `data.carrossel.slides`
+- `data.slides`
+- `Array.isArray(data.conteudo.estrutura_visual)` (e um objeto, nao array)
 
-### Frontend - Feedback ao usuário
+Nenhum desses caminhos bate. Resultado: `slides = null`, a detecao falha, o sistema exibe a view generica sem os cards do carrossel.
 
-No callback de sucesso, verificar `content_id`:
-- Se presente: navegar para o conteúdo normalmente
-- Se `null`: exibir toast informando "Transcrição salva, mas a análise precisa ser refeita" e navegar para a lista de sermões
+## Correcao
 
-## Arquivos a modificar
+### Arquivo: `src/lib/normalizeContentData.ts`
 
-| Arquivo | Mudança |
-|---|---|
-| `supabase/functions/extract-youtube-content/index.ts` | Adicionar fallback final para `parsedContent` null antes da inserção |
-| `src/components/YouTubeTranscriptModal.tsx` ou `src/pages/Dashboard.tsx` | Tratar resposta com `content_id: null` mostrando feedback ao usuário |
+Adicionar o caminho `data?.conteudo?.estrutura_visual?.slides` na extracao dos slides dentro de `detectRealContentType` (linha 1208):
 
+```text
+Antes:
+  data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides || Array.isArray(...)
+
+Depois:
+  data?.conteudo?.estrutura_visual?.slides || data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides || Array.isArray(...)
+```
+
+Isso e uma correcao de uma unica linha. Os slides ja existem no banco e o componente `CarrosselView` ja sabe renderiza-los (o normalizador `normalizeCarrosselData` ja tem esse caminho na linha 165). O problema e exclusivamente na **detecao de tipo**.
+
+## Resultado Esperado
+
+- O carrossel mais recente (e todos os anteriores com mesma estrutura) passara a exibir os 5 cards com titulo, texto e botao de gerar imagem
+- Nenhum outro tipo de conteudo sera afetado
