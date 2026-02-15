@@ -59,7 +59,7 @@ export const RecentContentSection = () => {
             <Button variant="outline" size="sm" onClick={() => navigate("/biblioteca")} className="mt-2">
               Criar Primeiro Conteúdo
             </Button>
-          </div> : recentContents.map(content => <div key={content.id} onClick={() => navigate(`/biblioteca/${content.id}`)} className="group relative overflow-hidden rounded-lg border bg-gradient-to-br from-card to-card/50 hover:shadow-md transition-all duration-300 cursor-pointer">
+          </div> : recentContents.map(content => <div key={content.id} onClick={() => navigate(`/biblioteca?content_id=${content.id}`)} className="group relative overflow-hidden rounded-lg border bg-gradient-to-br from-card to-card/50 hover:shadow-md transition-all duration-300 cursor-pointer">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity" />
               
               <div className="relative p-4 flex items-start gap-3">

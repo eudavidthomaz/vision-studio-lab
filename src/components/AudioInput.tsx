@@ -580,11 +580,11 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
                   onClick={startRecording}
                   size="lg"
                   variant="ghost"
-                  className="relative h-40 w-40 rounded-full bg-gradient-to-br from-white/5 to-primary/20 backdrop-blur-xl border-2 border-white/20 hover:border-white/30 shadow-[0_8px_32px_0_rgba(168,85,247,0.3)] hover:shadow-[0_8px_48px_0_rgba(168,85,247,0.5)] transition-all duration-500 hover:scale-105 overflow-hidden group"
+                  className="relative h-28 w-28 sm:h-40 sm:w-40 rounded-full bg-gradient-to-br from-white/5 to-primary/20 backdrop-blur-xl border-2 border-white/20 hover:border-white/30 shadow-[0_8px_32px_0_rgba(168,85,247,0.3)] hover:shadow-[0_8px_48px_0_rgba(168,85,247,0.5)] transition-all duration-500 hover:scale-105 overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
                   <div className="relative z-10">
-                    <Podcast className="h-[152px] w-[152px] text-white opacity-90 drop-shadow-[0_0_25px_rgba(168,85,247,0.9)] group-hover:drop-shadow-[0_0_35px_rgba(168,85,247,1)] transition-all duration-500" strokeWidth={1} />
+                    <Podcast className="h-24 w-24 sm:h-[152px] sm:w-[152px] text-white opacity-90 drop-shadow-[0_0_25px_rgba(168,85,247,0.9)] group-hover:drop-shadow-[0_0_35px_rgba(168,85,247,1)] transition-all duration-500" strokeWidth={1} />
                   </div>
                 </Button>
               )}
@@ -595,20 +595,20 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
             <Button
               onClick={stopRecording}
               size="lg"
-              className="relative h-40 w-40 rounded-full bg-gradient-to-br from-destructive/20 to-destructive/10 backdrop-blur-xl border-2 border-destructive/30 hover:border-destructive/50 shadow-2xl hover:shadow-destructive/30 transition-all duration-500 hover:scale-105 overflow-hidden group animate-pulse"
+              className="relative h-28 w-28 sm:h-40 sm:w-40 rounded-full bg-gradient-to-br from-destructive/20 to-destructive/10 backdrop-blur-xl border-2 border-destructive/30 hover:border-destructive/50 shadow-2xl hover:shadow-destructive/30 transition-all duration-500 hover:scale-105 overflow-hidden group animate-pulse"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-destructive/30 to-transparent opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
-              <div className="relative flex flex-col items-center gap-2 z-10">
-                <Square className="h-16 w-16 text-destructive group-hover:text-destructive/90 transition-colors" />
-                <span className="text-sm font-semibold text-foreground">Parar</span>
+              <div className="relative flex flex-col items-center gap-1.5 sm:gap-2 z-10">
+                <Square className="h-12 w-12 sm:h-16 sm:w-16 text-destructive group-hover:text-destructive/90 transition-colors" />
+                <span className="text-xs sm:text-sm font-semibold text-foreground">Parar</span>
               </div>
             </Button>
           )}
 
           {isLiveCaptureAvailable && isProcessing && (
-            <div className="flex flex-col items-center gap-6 w-full max-w-md">
+            <div className="flex flex-col items-center gap-4 sm:gap-6 w-full max-w-md">
               {/* Círculo de progresso visual */}
-              <div className="relative h-40 w-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-xl border-2 border-primary/30 shadow-2xl flex items-center justify-center overflow-hidden">
+              <div className="relative h-28 w-28 sm:h-40 sm:w-40 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 backdrop-blur-xl border-2 border-primary/30 shadow-2xl flex items-center justify-center overflow-hidden">
                 {/* Progresso circular */}
                 <svg className="absolute inset-0 transform -rotate-90" viewBox="0 0 100 100">
                   <circle
@@ -672,9 +672,9 @@ const AudioInput = ({ onTranscriptionComplete }: AudioInputProps) => {
               {!selectedFile && !isProcessing && (
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full border-2 border-dashed border-border rounded-lg p-12 flex flex-col items-center gap-4 cursor-pointer hover:border-primary/50 transition-colors"
+                  className="w-full border-2 border-dashed border-border rounded-lg p-6 sm:p-12 flex flex-col items-center gap-3 sm:gap-4 cursor-pointer hover:border-primary/50 transition-colors"
                 >
-                  <Upload className="h-16 w-16 text-muted-foreground" />
+                  <Upload className="h-10 w-10 sm:h-16 sm:w-16 text-muted-foreground" />
                   <div className="text-center">
                     <p className="text-sm font-medium text-foreground">Clique para selecionar um arquivo</p>
                     <p className="text-xs text-muted-foreground mt-1">
