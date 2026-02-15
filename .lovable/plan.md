@@ -1,70 +1,94 @@
 
 
-# Verificacao do Fluxo Completo de Assinatura
+# Extrair Legenda/Transcrição de Vídeo do YouTube via IA
 
-## Analise do Fluxo Atual
+## Resumo
 
-O fluxo completo foi analisado e funciona da seguinte forma:
+Criar uma nova funcionalidade que permite ao usuario colar um link do YouTube, extrair o conteudo do video usando Gemini (via Lovable AI Gateway), e transformar em conteudo para a biblioteca. A funcionalidade compartilha os mesmos limites de quota da "captacao ao vivo" (`live_captures`) e esta disponivel apenas para usuarios Pro e Team.
+
+## Arquitetura
 
 ```text
-Checkout (Stripe) --> Redirect /dashboard?checkout=success&session_id=xxx
-         |
-         v
-handle-checkout-success  (ativacao imediata via session_id)
-         |
-         v
-Atualiza subscriptions + user_roles no banco
-         |
-         v
-invalidateSubscription() --> refetch useSubscription + useQuota
-         |
-         v
-Usuario ve plano atualizado
-         |
-         v
-[Em paralelo] stripe-webhook recebe evento e reforça a mesma atualizacao
+[Dashboard] --> YouTubeCard (visivel para todos, badge PRO para free)
+    |
+    v
+[Click] --> Free? --> UpgradeModal
+    |
+    v
+[Pro/Team] --> YouTubeTranscriptModal (input de URL)
+    |
+    v
+[Submit] --> Edge Function: extract-youtube-content
+    |
+    v
+[Gemini 3 Flash] --> Extrai conteudo do video via URL
+    |
+    v
+[Salva na content_library] --> Redireciona para visualizacao
 ```
 
-## Problemas Encontrados
+## O que sera criado
 
-### 1. Nenhum problema critico de vinculacao UUID/Email
-- O `create-checkout` salva `client_reference_id: user.id` e `metadata.user_id: user.id` na sessao Stripe
-- O `handle-checkout-success` verifica se `session.client_reference_id === user.id` antes de processar
-- O `check-subscription` busca por 3 caminhos: (1) stripe_customer_id salvo, (2) email no Stripe, (3) metadata user_id
-- O webhook tambem usa `client_reference_id` ou `metadata.user_id`
+### 1. Edge Function: `extract-youtube-content`
 
-### 2. Problema: Atualizacao imediata do plano pode ter delay no frontend
-Apos `handle-checkout-success` rodar, o codigo chama `invalidateSubscription()` que invalida 3 queries:
-- `subscription-status` (refetch via `check-subscription` edge function)
-- `user-role` (leitura direta da tabela `user_roles`)
-- `usage-quota`
+- Recebe a URL do YouTube e o prompt do usuario
+- Valida autenticacao e quota (`live_captures`)
+- Usa o Lovable AI Gateway com modelo `google/gemini-3-flash-preview` para analisar o conteudo do video a partir da URL
+- O Gemini recebe a URL do YouTube e extrai o conteudo/transcricao do video
+- Incrementa `live_captures_used` na tabela `usage_quotas`
+- Salva o resultado na `content_library` com `source_type: 'youtube'`
+- Retorna o `content_id` para o frontend
 
-Porem, o `invalidateSubscription()` e chamado **antes** do `processCheckoutSuccess()` terminar em alguns cenarios (o `await` esta correto, mas a invalidacao acontece dentro da funcao asincrona). Isso esta correto no codigo atual.
+### 2. Componente: `YouTubeCreatorCard.tsx`
 
-### 3. Problema menor: `check-subscription` reescreve role a cada chamada
-A cada 60 segundos, o `check-subscription` deleta e reinsere o role do usuario. Isso garante consistencia mas gera escritas desnecessarias. Nao e um bug, mas e um ponto de otimizacao.
+- Card visual no dashboard com icone do YouTube e estilo atrativo
+- Badge "PRO" visivel para todos os usuarios
+- Usuarios Free: ao clicar, abre o `UpgradeModal` com `feature: 'live_captures'`
+- Usuarios Pro/Team: ao clicar, abre o modal de input
 
-### 4. Nenhum problema com RLS
-As edge functions usam `SUPABASE_SERVICE_ROLE_KEY` que bypassa RLS, permitindo escrita nas tabelas `user_roles` e `subscriptions` sem restricao.
+### 3. Componente: `YouTubeTranscriptModal.tsx`
 
-## O que precisa ser corrigido
+- Modal com campo de input para a URL do YouTube
+- Validacao de URL (aceita formatos youtube.com/watch?v= e youtu.be/)
+- Campo opcional de instrucoes adicionais (ex: "foque nos pontos sobre graca")
+- Estado de loading com feedback visual
+- Ao concluir, redireciona para `/biblioteca/{content_id}`
 
-### Nenhuma correcao critica necessaria
+### 4. Integracao no Dashboard
 
-O fluxo esta correto e robusto:
-- UUID vinculado via `client_reference_id` e `metadata.user_id`
-- Email usado como fallback no `check-subscription`
-- Ativacao imediata via `handle-checkout-success` (nao depende do webhook)
-- Webhook como reforco assincrono
-- Frontend refaz queries apos ativacao
+- Adicionar o `YouTubeCreatorCard` na pagina `Dashboard.tsx` entre o `AICreatorCard` e o `RecentContentSection`
+- Conectar com o sistema de quota existente (`useQuota`)
 
-## Recomendacoes de melhoria (opcionais)
+### 5. Atualizacao do `UpgradeModal`
 
-1. **Otimizar `check-subscription`**: Evitar reescrever role se ja estiver correto (comparar antes de deletar/inserir)
-2. **Adicionar retry no frontend**: Se `handle-checkout-success` falhar, tentar novamente apos 3 segundos
-3. **Log de auditoria**: Registrar ativacoes de plano na tabela `security_audit_log`
+- Adicionar label para YouTube na lista de features do modal
+- Atualizar `FEATURE_LABELS` para incluir referencia ao YouTube em `live_captures`
 
-## Conclusao
+## Detalhes Tecnicos
 
-O sistema esta funcionando corretamente. O usuario sera reconhecido tanto por email quanto por UUID, e o plano atualiza imediatamente apos a compra gracas ao `handle-checkout-success` que roda no redirect de sucesso, sem depender do webhook (que serve como reforco).
+### Edge Function (`supabase/functions/extract-youtube-content/index.ts`)
+- Usa `LOVABLE_API_KEY` (ja configurado) para chamar o Lovable AI Gateway
+- Modelo: `google/gemini-3-flash-preview`
+- Prompt de sistema orienta o Gemini a extrair e estruturar o conteudo do video
+- Valida quota de `live_captures` antes de processar
+- Incrementa uso apos sucesso
+- Salva com `content_type` detectado e `source_type: 'youtube'`
+
+### Controle de Acesso
+- Free: 0 captacoes (bloqueado)
+- Pro: 5/mes (compartilhado com captacao ao vivo)
+- Team: 20/mes (compartilhado com captacao ao vivo)
+
+### config.toml
+- Adicionar entrada `[functions.extract-youtube-content]` com `verify_jwt = true`
+
+## Arquivos Modificados/Criados
+
+| Arquivo | Acao |
+|---|---|
+| `supabase/functions/extract-youtube-content/index.ts` | Criar |
+| `src/components/YouTubeCreatorCard.tsx` | Criar |
+| `src/components/YouTubeTranscriptModal.tsx` | Criar |
+| `src/pages/Dashboard.tsx` | Modificar (adicionar card) |
+| `src/components/UpgradeModal.tsx` | Modificar (label YouTube) |
 
