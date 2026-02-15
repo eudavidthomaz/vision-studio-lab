@@ -6,6 +6,11 @@ const PRODUCT_TO_ROLE: Record<string, string> = {
   'prod_TYdDnWDdVthKIs': 'team',
 };
 
+function safeTimestamp(unix: number | null | undefined): string | null {
+  if (!unix || typeof unix !== 'number') return null;
+  return new Date(unix * 1000).toISOString();
+}
+
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
@@ -80,8 +85,8 @@ Deno.serve(async (req) => {
           stripe_subscription_id: subscriptionId,
           stripe_price_id: priceId,
           status: 'active',
-          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          current_period_start: safeTimestamp(subscription.current_period_start),
+          current_period_end: safeTimestamp(subscription.current_period_end),
           cancel_at_period_end: subscription.cancel_at_period_end,
         }, { onConflict: 'user_id' });
 
@@ -123,8 +128,8 @@ Deno.serve(async (req) => {
             stripe_customer_id: subscription.customer as string,
             stripe_price_id: subscription.items.data[0]?.price?.id,
             status,
-            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            current_period_start: safeTimestamp(subscription.current_period_start),
+            current_period_end: safeTimestamp(subscription.current_period_end),
             cancel_at_period_end: subscription.cancel_at_period_end,
           }, { onConflict: 'user_id' });
 
@@ -144,8 +149,8 @@ Deno.serve(async (req) => {
 
         await supabase.from('subscriptions').update({
           status,
-          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+          current_period_start: safeTimestamp(subscription.current_period_start),
+          current_period_end: safeTimestamp(subscription.current_period_end),
           cancel_at_period_end: subscription.cancel_at_period_end,
           stripe_price_id: subscription.items.data[0]?.price?.id,
         }).eq('stripe_subscription_id', subscriptionId);
