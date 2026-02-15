@@ -391,8 +391,18 @@ const Dashboard = () => {
               const { data, error } = await supabase.functions.invoke('extract-youtube-content', {
                 body: { youtubeUrl, instructions },
               });
-              if (error) throw error;
-              if (data?.error) throw new Error(data.error);
+              // supabase.functions.invoke puts non-2xx JSON in error.context.body or data depending on version
+              const errorMsg = error?.message || data?.error;
+              if (errorMsg) {
+                // If it's a 403 (feature locked), show upgrade modal instead
+                if (errorMsg.includes('assinantes') || errorMsg.includes('limite mensal')) {
+                  setShowYouTubeModal(false);
+                  setShowUpgradeModal(true);
+                  toast({ title: "🔒 Recurso Premium", description: errorMsg, duration: 5000 });
+                  return;
+                }
+                throw new Error(errorMsg);
+              }
               toast({ title: "🎉 Conteúdo extraído!", description: "Redirecionando...", duration: 3000 });
               setShowYouTubeModal(false);
               navigate(`/biblioteca/${data.content_id}`);
