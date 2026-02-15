@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -36,13 +36,26 @@ const ImageOverlayEditor = ({
   formato 
 }: ImageOverlayEditorProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [brightness, setBrightness] = useState(75);
+  const [containerWidth, setContainerWidth] = useState(400);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(Math.min(containerRef.current.offsetWidth, 400));
+      }
+    };
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
+
   const dimensions = formatDimensions[formato] || formatDimensions['feed_square'];
-  const scale = Math.min(400 / dimensions.width, 600 / dimensions.height);
+  const scale = Math.min(containerWidth / dimensions.width, 600 / dimensions.height);
 
   const currentGradient = overlayData.gradient_overlay || 'none';
   const gradientCSS = gradientStyles[currentGradient] || '';
@@ -171,7 +184,7 @@ const ImageOverlayEditor = ({
   const brightnessFilter = `brightness(${brightness / 100})`;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" ref={containerRef}>
       {/* Preview Container */}
       <div 
         className="relative mx-auto overflow-hidden rounded-lg shadow-xl bg-muted"

@@ -308,7 +308,7 @@ const ImageGenerationModal = ({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto rounded-xl shadow-2xl border-border/50">
+        <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto rounded-xl shadow-2xl border-border/50" data-prevent-zoom>
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
               <ImageIcon className="h-5 w-5 text-primary" />

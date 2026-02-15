@@ -80,7 +80,7 @@ const EditableOverlay = ({
         {/* Edit panel */}
         {isEditing && (
           <div 
-            className="absolute top-full left-0 mt-2 bg-popover border border-border rounded-lg p-3 shadow-xl z-50 min-w-[280px]"
+            className="fixed sm:absolute bottom-0 left-0 sm:top-full sm:bottom-auto sm:left-0 sm:mt-2 bg-popover border border-border rounded-t-lg sm:rounded-lg p-3 shadow-xl z-50 w-full sm:w-auto sm:min-w-[280px] max-h-[50vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
             style={{ transform: `scale(${1/scale})`, transformOrigin: 'top left' }}
           >
@@ -217,7 +217,7 @@ const EditableOverlay = ({
       {/* Edit panel */}
       {isEditing && (
         <div 
-          className="absolute top-full left-0 mt-2 bg-popover border border-border rounded-lg p-3 shadow-xl z-50 min-w-[200px]"
+          className="fixed sm:absolute bottom-0 left-0 sm:top-full sm:bottom-auto sm:left-0 sm:mt-2 bg-popover border border-border rounded-t-lg sm:rounded-lg p-3 shadow-xl z-50 w-full sm:w-auto sm:min-w-[200px] max-h-[50vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
           style={{ transform: `scale(${1/scale})`, transformOrigin: 'top left' }}
         >

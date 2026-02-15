@@ -109,7 +109,7 @@ export const UpgradeModal = ({ open, onOpenChange, feature, reason = 'upgrade' }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Crown className="h-5 w-5 text-amber-500" />
@@ -127,8 +127,8 @@ export const UpgradeModal = ({ open, onOpenChange, feature, reason = 'upgrade' }
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-lg">{PLAN_FEATURES.pro.name}</h3>
               <div className="text-right">
-                <span className="text-2xl font-bold">R${PLAN_FEATURES.pro.price}</span>
-                <span className="text-muted-foreground text-sm">/mês</span>
+                <span className="text-xl sm:text-2xl font-bold">R${PLAN_FEATURES.pro.price}</span>
+                <span className="text-muted-foreground text-xs sm:text-sm">/mês</span>
               </div>
             </div>
             <ul className="space-y-2 mb-4">
@@ -166,8 +166,8 @@ export const UpgradeModal = ({ open, onOpenChange, feature, reason = 'upgrade' }
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-lg">{PLAN_FEATURES.team.name}</h3>
               <div className="text-right">
-                <span className="text-2xl font-bold">R${PLAN_FEATURES.team.price}</span>
-                <span className="text-muted-foreground text-sm">/mês</span>
+                <span className="text-xl sm:text-2xl font-bold">R${PLAN_FEATURES.team.price}</span>
+                <span className="text-muted-foreground text-xs sm:text-sm">/mês</span>
               </div>
             </div>
             <ul className="space-y-2 mb-4">
