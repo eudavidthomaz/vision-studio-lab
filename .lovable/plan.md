@@ -1,97 +1,66 @@
 
 
-# Escalas: Drag-and-Drop, Visao Mensal e UI/UX Completa
+# Correção: Fluxo Automático de Ativação de Assinatura
 
-## Escopo
+## Problema Raiz
 
-1. **Drag-and-drop** na grade semanal para reatribuir voluntarios entre dias/funcoes
-2. **Visao mensal (calendario)** como alternativa a visao semanal
-3. **Elementos UI/UX faltantes** (empty states, filtros, exportar, toggle de visao)
+O usuário completou o checkout no Stripe, mas a role permaneceu `free` porque:
 
----
-
-## 1. Drag-and-Drop na Grade Semanal
-
-O projeto ja tem `@dnd-kit/core`, `@dnd-kit/sortable` e `@dnd-kit/utilities` instalados.
-
-### Componentes novos
-
-- **`src/components/schedules/DraggableScheduleCard.tsx`** -- Card individual de voluntario escalado, envolvido com `useSortable` do dnd-kit. Exibe nome, funcao, badge de status. Visual: borda tracejada e opacidade reduzida durante drag, sombra elevada no overlay.
-- **`src/components/schedules/DroppableDayColumn.tsx`** -- Coluna de dia que aceita drops via `useDroppable`. Highlight visual (borda primary pulsante) quando um item esta sendo arrastado sobre ela.
-
-### Logica no Schedules.tsx
-
-- Envolver o grid semanal com `<DndContext>` e `<SensorManager>` (pointer + touch sensors)
-- `onDragEnd`: se o voluntario foi solto em um dia diferente, chamar mutation que atualiza `service_date` do schedule via Supabase
-- Feedback visual: toast de confirmacao ao mover, animacao de entrada no novo dia
-
-### Hook: `useVolunteerSchedules` (edicao)
-
-- Adicionar mutation `updateSchedule` que permite alterar `service_date` e/ou `role` de um schedule existente (UPDATE na tabela `volunteer_schedules`)
+1. **Race condition no Dashboard.tsx**: O `useEffect` de checkout dispara ANTES da sessão de auth estar pronta (linhas 52-126). A chamada `handle-checkout-success` requer JWT válido (`verify_jwt = true` no config.toml), então o gateway rejeita com 401 antes mesmo da function executar -- zero logs, falha silenciosa.
+2. **Sem retry**: Se a chamada falha, o erro é engolido no `console.error` e nada mais acontece.
+3. **Webhook potencialmente com secret errado**: O `STRIPE_WEBHOOK_SECRET` no projeto pode não coincidir com `whsec_bFff6IWJWSjU1UQkTy2jjEyfSMPzN3TQ` do Stripe Dashboard.
 
 ---
 
-## 2. Visao Mensal (Calendario)
+## Correções
 
-### Componente novo: `src/components/schedules/MonthlyCalendarView.tsx`
+### 1. `supabase/config.toml` -- Desabilitar verify_jwt para handle-checkout-success
 
-- Grid CSS de 7 colunas (Dom-Sab) com 5-6 linhas conforme o mes
-- Cada celula mostra o numero do dia e mini-badges com contagem de escalas (ex: "3 escalados")
-- Clique em um dia expande um popover/sheet com a lista completa de escalas daquele dia
-- Dia atual com borda `primary`, dias com escalas com dot indicator
-- Navegacao mes anterior/proximo com botoes ChevronLeft/ChevronRight e botao "Hoje"
+Mudar `verify_jwt = true` para `verify_jwt = false` na seção `[functions.handle-checkout-success]`. A validação JWT já é feita dentro do código da function (via `supabaseClient.auth.getUser(token)`), então a segurança é mantida, mas agora falhas de auth produzem logs para debug.
 
-### Integracao no Schedules.tsx
+### 2. `src/pages/Dashboard.tsx` -- Corrigir race condition + retry + fallback
 
-- Toggle de visao (semanal/mensal) usando `Tabs` ou `ToggleGroup` no header da pagina
-- Estado `viewMode: 'week' | 'month'` controla qual componente renderizar
-- Na visao mensal, buscar todas as escalas do mes (dateRange: primeiro dia ao ultimo dia do mes)
+Reescrever o `useEffect` de checkout success (linhas 52-126):
 
-### Hook: useVolunteerSchedules (edicao)
+- **Aguardar sessão de auth**: Só chamar `handle-checkout-success` quando `session` estiver disponível (já existe no state)
+- **Retry com backoff exponencial**: 3 tentativas com delays de 1s, 2s, 4s
+- **Fallback**: Se `handle-checkout-success` falhar após retries, chamar `check-subscription` diretamente (que também sincroniza a role)
+- **Sempre invalidar cache**: Chamar `invalidateSubscription()` no final independente do resultado
 
-- O `useListByDateRange` ja existe e sera reutilizado para o range mensal
+```text
+Fluxo corrigido:
+1. Detecta ?checkout=success&session_id=xxx
+2. Limpa query params da URL
+3. Mostra confetti + toast imediatamente (UX)
+4. Aguarda session de auth estar disponível
+5. Chama handle-checkout-success (até 3 retries)
+6. Se falhar, chama check-subscription como fallback
+7. Invalida cache de subscription
+```
 
----
+### 3. `src/pages/Pricing.tsx` -- Botão "Atualizar Status"
 
-## 3. Elementos UI/UX Faltantes
+Adicionar um botão discreto abaixo dos cards de plano que permite ao usuário forçar a sincronização chamando `check-subscription` manualmente. Serve como fallback de último recurso.
 
-### 3a. Filtro por funcao/status no header
+### 4. Atualizar o secret `STRIPE_WEBHOOK_SECRET`
 
-- Adicionar `Select` para filtrar por funcao (camera, som, etc.) e por status (agendado, confirmado, ausente)
-- Filtro aplicado localmente via `useMemo` sobre os dados ja carregados
+Usar a ferramenta `add_secret` para atualizar o valor para `whsec_bFff6IWJWSjU1UQkTy2jjEyfSMPzN3TQ` conforme informado pelo Stripe Dashboard.
 
-### 3b. Empty state aprimorado
+### 5. Corrigir manualmente o usuário afetado
 
-- Quando nao ha nenhuma escala na semana/mes, exibir ilustracao (icone grande de calendario) com CTA "Gerar primeira escala" que abre o SmartScheduleModal
-
-### 3c. Resumo visual compacto
-
-- Mini barra de progresso no card semanal mostrando % de confirmados vs total
-- Tooltip com detalhamento ao hover
-
-### 3d. Botao de exportar escalas
-
-- Botao "Exportar" no header que gera PDF da semana/mes usando jsPDF (ja instalado)
-
-### 3e. Mobile UX
-
-- Na visao semanal mobile, cards empilham em coluna unica com scroll horizontal opcional
-- Na visao mensal mobile, celulas compactadas com apenas dot indicators, tap abre sheet com detalhes
+Inserir o registro correto na tabela `subscriptions` e atualizar a role para `pro` via SQL para o user_id `afb4298a-4d93-40aa-ac8d-f83e5efd3f30`.
 
 ---
 
-## Arquivos Modificados/Criados
+## Arquivos Modificados
 
-| Arquivo | Acao |
+| Arquivo | Mudança |
 |---|---|
-| `src/components/schedules/DraggableScheduleCard.tsx` | Criar |
-| `src/components/schedules/DroppableDayColumn.tsx` | Criar |
-| `src/components/schedules/MonthlyCalendarView.tsx` | Criar |
-| `src/components/schedules/ScheduleExportButton.tsx` | Criar |
-| `src/pages/Schedules.tsx` | Editar (DnD, toggle visao, filtros, empty state, export) |
-| `src/hooks/useVolunteerSchedules.tsx` | Editar (adicionar `updateSchedule` mutation) |
+| `supabase/config.toml` | `handle-checkout-success` verify_jwt = false |
+| `src/pages/Dashboard.tsx` | Reescrever useEffect de checkout com wait + retry + fallback |
+| `src/pages/Pricing.tsx` | Adicionar botão "Atualizar Status da Assinatura" |
 
-### Dependencias
+## Ação Manual Necessária
 
-Nenhuma nova -- `@dnd-kit/*` e `jspdf` ja estao instalados.
-
+- Confirmar atualização do `STRIPE_WEBHOOK_SECRET` para o valor correto
+- Correção manual do usuário `afb4298a` no banco de dados
