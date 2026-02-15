@@ -383,7 +383,6 @@ const ImageGenerationModal = ({
                       <SelectContent className="bg-popover">
                         <SelectItem value="minimalista">✨ Minimalista</SelectItem>
                         <SelectItem value="tipografico">📝 Tipográfico</SelectItem>
-                        <SelectItem value="fotografico">📸 Fotográfico</SelectItem>
                         <SelectItem value="ilustrativo">🎨 Ilustrativo</SelectItem>
                       </SelectContent>
                     </Select>
