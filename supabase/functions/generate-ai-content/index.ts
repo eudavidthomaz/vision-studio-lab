@@ -1432,15 +1432,15 @@ INSTRUÇÕES ESPECÍFICAS PARA CALENDÁRIO:
 
 ${detectedType === 'carrossel' ? `
 INSTRUÇÕES ESPECÍFICAS PARA CARROSSEL:
-- Crie EXATAMENTE 8-10 slides com progressão lógica
+${userSpecs.quantidade ? `- GERE EXATAMENTE ${userSpecs.quantidade} SLIDES. NEM MAIS, NEM MENOS. ISSO É OBRIGATÓRIO.` : '- Crie entre 5-8 slides com progressão lógica'}
 - Cada slide deve ter: titulo_slide, conteudo (frase curta de 10-20 palavras MAX - impactante e estratégica), imagem_sugerida, chamada_para_acao
 - Slide 1: Hook poderoso que gera curiosidade
-- Slides 2-8: Desenvolvimento progressivo com frases CURTAS e DIRETAS
+- Slides intermediários: Desenvolvimento progressivo com frases CURTAS e DIRETAS
 - Último slide: CTA claro e direto
 - dica_producao deve incluir: copywriting (como escrever legenda engajante), cta (call-to-action específico), hashtags
 - IMPORTANTE: O conteúdo de cada slide será usado para gerar imagens. Textos longos NÃO cabem em imagens. Máximo 20 palavras por slide.
 
-EXEMPLO DE SLIDE 1 (Hook):
+EXEMPLO DE SLIDE (Hook):
 {
   "numero_slide": 1,
   "titulo_slide": "Você se sente invisível?",
@@ -1451,7 +1451,7 @@ EXEMPLO DE SLIDE 1 (Hook):
 
 EXEMPLO DE ÚLTIMO SLIDE (CTA):
 {
-  "numero_slide": 10,
+  "numero_slide": ${userSpecs.quantidade || 8},
   "titulo_slide": "Seu próximo passo",
   "conteudo": "Ore 5 minutos hoje. Deus já te escolheu.",
   "imagem_sugerida": "Mãos abertas ao céu, luz dourada, ambiente esperançoso",
@@ -1616,9 +1616,9 @@ Retorne APENAS o JSON válido.`;
           return false;
         }
         
-        // ✅ VALIDAÇÃO 2: Mínimo 8 slides se não especificado
-        if (!specs.quantidade && slides.length < 8) {
-          console.warn('❌ Carrossel: menos de 8 slides');
+        // ✅ VALIDAÇÃO 2: Mínimo 4 slides se não especificado (usuários podem pedir carrosseis curtos)
+        if (!specs.quantidade && slides.length < 4) {
+          console.warn('❌ Carrossel: menos de 4 slides');
           return false;
         }
         
@@ -1854,6 +1854,22 @@ Retorne APENAS o JSON válido.`;
         }
       } else {
         console.error('❌ Retry API call failed:', retryResponse.status);
+      }
+    }
+
+    // ✅ POST-RETRY: Truncar slides excedentes se quantidade foi especificada
+    if (detectedType === 'carrossel' && userSpecs.quantidade) {
+      const slides = generatedContent.carrossel?.slides || generatedContent.estrutura_visual?.slides || generatedContent.conteudo?.estrutura_visual?.slides || [];
+      if (slides.length > userSpecs.quantidade) {
+        console.log(`✂️ Truncando carrossel de ${slides.length} para ${userSpecs.quantidade} slides`);
+        const truncatedSlides = slides.slice(0, userSpecs.quantidade);
+        if (generatedContent.carrossel?.slides) {
+          generatedContent.carrossel.slides = truncatedSlides;
+        } else if (generatedContent.estrutura_visual?.slides) {
+          generatedContent.estrutura_visual.slides = truncatedSlides;
+        } else if (generatedContent.conteudo?.estrutura_visual?.slides) {
+          generatedContent.conteudo.estrutura_visual.slides = truncatedSlides;
+        }
       }
     }
       

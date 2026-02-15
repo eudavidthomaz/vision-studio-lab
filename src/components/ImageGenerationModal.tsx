@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -42,6 +42,11 @@ const ImageGenerationModal = ({
   const [estilo, setEstilo] = useState("minimalista");
   const [editedCopy, setEditedCopy] = useState(copy);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Sync editedCopy when copy prop changes (e.g., switching slides)
+  useEffect(() => {
+    setEditedCopy(copy);
+  }, [copy]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
