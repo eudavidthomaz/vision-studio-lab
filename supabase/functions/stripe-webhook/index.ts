@@ -198,6 +198,71 @@ Deno.serve(async (req) => {
         break;
       }
 
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subscriptionId = (invoice as any).subscription as string
+          || (invoice as any).parent?.subscription_details?.subscription as string;
+
+        if (!subscriptionId) {
+          logStep("No subscription in succeeded invoice, skipping");
+          break;
+        }
+
+        // 1. Try metadata from parent.subscription_details
+        let userId: string | undefined =
+          (invoice as any).parent?.subscription_details?.metadata?.user_id;
+
+        // 2. Fallback: lookup in DB
+        if (!userId) {
+          const { data: subData } = await supabase
+            .from('subscriptions')
+            .select('user_id')
+            .eq('stripe_subscription_id', subscriptionId)
+            .single();
+          userId = subData?.user_id;
+          if (userId) logStep("Found user via DB lookup", { userId });
+        }
+
+        // 3. Fallback: subscription_details.metadata (alternative format)
+        if (!userId) {
+          userId = (invoice as any).subscription_details?.metadata?.user_id;
+          if (userId) logStep("Found user via subscription_details metadata", { userId });
+        }
+
+        if (!userId) {
+          logStep("WARNING: Cannot find user_id for invoice.payment_succeeded", { subscriptionId });
+          break;
+        }
+
+        logStep("Processing invoice.payment_succeeded", { userId, subscriptionId });
+
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const productId = subscription.items.data[0]?.price?.product as string;
+        const role = PRODUCT_TO_ROLE[productId] || 'free';
+        const priceId = subscription.items.data[0]?.price?.id;
+
+        logStep("Subscription details from Stripe", { productId, role, priceId });
+
+        // Update user role
+        await supabase.from('user_roles').delete().eq('user_id', userId);
+        await supabase.from('user_roles').insert({ user_id: userId, role });
+
+        // Upsert subscription record
+        await supabase.from('subscriptions').upsert({
+          user_id: userId,
+          stripe_subscription_id: subscriptionId,
+          stripe_customer_id: subscription.customer as string,
+          stripe_price_id: priceId,
+          status: 'active',
+          current_period_start: safeTimestamp(subscription.current_period_start),
+          current_period_end: safeTimestamp(subscription.current_period_end),
+          cancel_at_period_end: subscription.cancel_at_period_end,
+        }, { onConflict: 'user_id' });
+
+        logStep("invoice.payment_succeeded processed successfully", { userId, role });
+        break;
+      }
+
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
         const subscriptionId = invoice.subscription as string;
