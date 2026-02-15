@@ -17,7 +17,7 @@ const corsHeaders = {
 };
 
 const ALLOWED_FORMATOS = ['feed_square', 'feed_portrait', 'story', 'reel_cover'];
-const ALLOWED_ESTILOS = ['minimalista', 'tipografico', 'fotografico', 'ilustrativo'];
+const ALLOWED_ESTILOS = ['minimalista', 'tipografico', 'ilustrativo'];
 
 serve(async (req) => {
   const startTime = Date.now();
@@ -120,7 +120,6 @@ serve(async (req) => {
     const estiloAdaptacoes = {
       'minimalista': 'fundo liso ou leve gradiente escuro; foco total no título grande; poucos elementos gráficos; subtítulo em fonte cursiva fina e discreta.',
       'tipografico': 'sem foto. Fundo sólido/texturizado (papel). Título branco em grotesk bold/condensed; use um realce de caneta (sublinhar ou oval) em 1–2 palavras-chave.',
-      'fotografico': 'cena cinematográfica com luz dramática (culto contemporâneo, campo de trigo, milharal, deserto ao entardecer). Profundidade de campo realista; tonalidade quente analógica com leve dessaturação; texto ocupando terço esquerdo/baixo com fundo limpo.',
       'ilustrativo': 'colagem/estêncil sobre papel texturizado; paleta terrosa/retrô; bordas orgânicas; ruído fino. Evitar cartoon infantil.'
     };
 
