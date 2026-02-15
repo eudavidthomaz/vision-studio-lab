@@ -249,11 +249,50 @@ export function useVolunteerSchedules(serviceDate?: string) {
     },
   });
 
+  // Update schedule (date, role, etc.) - used by drag-and-drop
+  const updateSchedule = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: { service_date?: string; role?: string } }) => {
+      const { data, error } = await supabase
+        .from('volunteer_schedules')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .select(`
+          *,
+          volunteers (
+            id,
+            name,
+            role,
+            phone
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+      return data as VolunteerSchedule;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['volunteer-schedules'] });
+      toast({
+        title: 'Escala atualizada',
+        description: 'O voluntário foi reatribuído com sucesso.',
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating schedule:', error);
+      toast({
+        title: 'Erro ao atualizar',
+        description: 'Não foi possível mover o voluntário.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return {
     list,
     useListByDateRange,
     createBulk,
     updateStatus,
+    updateSchedule,
     remove,
     removeByDate,
   };
