@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -40,37 +40,43 @@ const ImageOverlayEditor = ({
   const [isExporting, setIsExporting] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [brightness, setBrightness] = useState(75);
-  const [containerWidth, setContainerWidth] = useState(400);
+  const [containerWidth, setContainerWidth] = useState(0);
   const { toast } = useToast();
 
+  // Use ResizeObserver for accurate container width measurement
   useEffect(() => {
-    const updateWidth = () => {
-      if (containerRef.current) {
-        setContainerWidth(Math.min(containerRef.current.offsetWidth, 400));
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width);
       }
-    };
-    updateWidth();
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   const dimensions = formatDimensions[formato] || formatDimensions['feed_square'];
-  const scale = Math.min(containerWidth / dimensions.width, 600 / dimensions.height);
+  // Only calculate scale when we have a measured width; cap max preview height at 500px
+  const scale = containerWidth > 0
+    ? Math.min(containerWidth / dimensions.width, 500 / dimensions.height)
+    : 0;
 
   const currentGradient = overlayData.gradient_overlay || 'none';
   const gradientCSS = gradientStyles[currentGradient] || '';
 
-  const updateOverlay = (index: number, updated: Overlay) => {
+  const updateOverlay = useCallback((index: number, updated: Overlay) => {
     const newOverlays = [...overlayData.overlays];
     newOverlays[index] = updated;
     onOverlayUpdate({ ...overlayData, overlays: newOverlays });
-  };
+  }, [overlayData, onOverlayUpdate]);
 
-  const removeOverlay = (index: number) => {
+  const removeOverlay = useCallback((index: number) => {
     const newOverlays = overlayData.overlays.filter((_, i) => i !== index);
     onOverlayUpdate({ ...overlayData, overlays: newOverlays });
     setEditingIndex(null);
-  };
+  }, [overlayData, onOverlayUpdate]);
 
   const addTextOverlay = () => {
     const newOverlay: TextOverlay = {
@@ -183,65 +189,80 @@ const ImageOverlayEditor = ({
 
   const brightnessFilter = `brightness(${brightness / 100})`;
 
+  // Don't render preview until we have measured the container
+  const showPreview = scale > 0;
+
   return (
-    <div className="space-y-4" ref={containerRef}>
-      {/* Preview Container */}
-      <div 
-        className="relative mx-auto overflow-hidden rounded-lg shadow-xl bg-muted"
-        style={{ width: dimensions.width * scale, height: dimensions.height * scale }}
-        onClick={() => setEditingIndex(null)}
-      >
-        <div
-          ref={canvasRef}
-          className="absolute top-0 left-0 origin-top-left"
-          style={{ width: dimensions.width, height: dimensions.height, transform: `scale(${scale})` }}
+    <div className="space-y-4 w-full overflow-hidden" ref={containerRef}>
+      {/* Preview Container - capped to container width */}
+      {showPreview && (
+        <div 
+          className="relative mx-auto overflow-hidden rounded-lg shadow-xl bg-muted"
+          style={{ 
+            width: Math.floor(dimensions.width * scale), 
+            height: Math.floor(dimensions.height * scale),
+            maxWidth: '100%',
+          }}
+          onClick={() => setEditingIndex(null)}
         >
-          {/* Layer 1: User Image with Filter */}
-          <img
-            src={userImage}
-            alt="Imagem base"
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ filter: brightnessFilter }}
-            crossOrigin="anonymous"
-          />
-
-          {/* Layer 2: Gradient Overlay */}
-          {gradientCSS && (
-            <div
-              className="absolute inset-0 z-[1]"
-              style={{ background: gradientCSS }}
+          <div
+            ref={canvasRef}
+            className="absolute top-0 left-0 origin-top-left"
+            style={{ width: dimensions.width, height: dimensions.height, transform: `scale(${scale})` }}
+          >
+            {/* Layer 1: User Image with Filter */}
+            <img
+              src={userImage}
+              alt="Imagem base"
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ filter: brightnessFilter }}
+              crossOrigin="anonymous"
             />
-          )}
 
-          {/* Layer 3: Text/Icon Overlays */}
-          {overlayData.overlays.map((overlay, index) => (
-            <EditableOverlay
-              key={index}
-              overlay={overlay}
-              index={index}
-              onUpdate={(updated) => updateOverlay(index, updated)}
-              onRemove={() => removeOverlay(index)}
-              isEditing={editingIndex === index}
-              onStartEdit={() => setEditingIndex(index)}
-              scale={scale}
-            />
-          ))}
+            {/* Layer 2: Gradient Overlay */}
+            {gradientCSS && (
+              <div
+                className="absolute inset-0 z-[1]"
+                style={{ background: gradientCSS }}
+              />
+            )}
+
+            {/* Layer 3: Text/Icon Overlays */}
+            {overlayData.overlays.map((overlay, index) => (
+              <EditableOverlay
+                key={index}
+                overlay={overlay}
+                index={index}
+                onUpdate={(updated) => updateOverlay(index, updated)}
+                onRemove={() => removeOverlay(index)}
+                isEditing={editingIndex === index}
+                onStartEdit={() => setEditingIndex(index)}
+                scale={scale}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {!showPreview && (
+        <div className="flex items-center justify-center h-40 bg-muted rounded-lg">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
 
       {/* Controls */}
-      <div className="space-y-4 bg-muted/50 rounded-lg p-4">
+      <div className="space-y-3 bg-muted/50 rounded-lg p-3">
         {/* Brightness Slider */}
-        <div className="space-y-2">
-          <Label className="text-sm">Brilho da Imagem: {brightness}%</Label>
+        <div className="space-y-1.5">
+          <Label className="text-xs sm:text-sm">Brilho: {brightness}%</Label>
           <Slider value={[brightness]} onValueChange={handleBrightnessChange} min={30} max={100} step={5} className="w-full" />
         </div>
 
         {/* Gradient Selector */}
-        <div className="space-y-2">
-          <Label className="text-sm">Gradiente</Label>
+        <div className="space-y-1.5">
+          <Label className="text-xs sm:text-sm">Gradiente</Label>
           <Select value={currentGradient} onValueChange={handleGradientChange}>
-            <SelectTrigger className="h-9">
+            <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -253,24 +274,24 @@ const ImageOverlayEditor = ({
         </div>
 
         {/* Add Text Button */}
-        <Button variant="outline" onClick={addTextOverlay} className="w-full">
-          <Plus className="h-4 w-4 mr-2" />
+        <Button variant="outline" onClick={addTextOverlay} className="w-full h-8 sm:h-9 text-xs sm:text-sm">
+          <Plus className="h-3.5 w-3.5 mr-1.5" />
           Adicionar Texto
         </Button>
 
         {/* Export Buttons */}
         <div className="flex gap-2">
-          <Button onClick={handleExport} disabled={isExporting} className="flex-1">
-            {isExporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+          <Button onClick={handleExport} disabled={isExporting} className="flex-1 h-8 sm:h-9 text-xs sm:text-sm">
+            {isExporting ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <Download className="h-3.5 w-3.5 mr-1.5" />}
             Salvar na Biblioteca
           </Button>
-          <Button variant="outline" onClick={handleDownload} disabled={isExporting}>
-            <Download className="h-4 w-4" />
+          <Button variant="outline" onClick={handleDownload} disabled={isExporting} className="h-8 sm:h-9 px-2.5">
+            <Download className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground text-center">
+      <p className="text-[10px] sm:text-xs text-muted-foreground text-center">
         💡 Clique nos textos para editar • Use gradientes para melhorar a legibilidade
       </p>
     </div>
