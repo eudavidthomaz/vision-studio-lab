@@ -1205,7 +1205,7 @@ export function normalizeContentData(data: any, contentType: string): any {
 export function detectRealContentType(data: any, declaredType: string): string {
   // Detecção de carrossel - incluindo path aninhado em conteudo.estrutura_visual
   if (data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides || data?.conteudo?.estrutura_visual) {
-    const slides = data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides || 
+    const slides = data?.conteudo?.estrutura_visual?.slides || data?.estrutura_visual?.slides || data?.carrossel?.slides || data?.slides || 
       (Array.isArray(data?.conteudo?.estrutura_visual) ? data.conteudo.estrutura_visual : null);
     if (Array.isArray(slides) && slides.length > 0) {
       const firstSlide = slides[0];
