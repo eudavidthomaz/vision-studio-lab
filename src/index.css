@@ -115,8 +115,10 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body {
+  html, body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
   }
 }
 
@@ -149,9 +151,14 @@ All colors MUST be HSL.
   }
 }
 
-/* Prevenir zoom no iOS em inputs menores que 16px */
+/* Prevenir zoom no iOS apenas em inputs de formulário principal */
 @supports (-webkit-touch-callout: none) {
-  input, textarea, select {
+  form input,
+  form textarea,
+  form select,
+  [data-prevent-zoom] input,
+  [data-prevent-zoom] textarea,
+  [data-prevent-zoom] select {
     font-size: 16px !important;
   }
 }

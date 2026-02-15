@@ -8,7 +8,7 @@ export const AICreatorCard = ({
 }: AICreatorCardProps) => {
   return <div className="relative group">
       <div className="absolute -inset-0.5 bg-gradient-to-r from-primary via-accent to-primary opacity-75 group-hover:opacity-100 blur transition duration-500 animate-pulse"></div>
-      <div className="relative bg-card rounded-xl p-8 md:p-12 text-center border border-border shadow-lg">
+      <div className="relative bg-card rounded-xl p-4 sm:p-6 md:p-8 lg:p-12 text-center border border-border shadow-lg">
         <div className="flex justify-center mb-6">
           <div className="relative">
             <Sparkles className="w-16 h-16 md:w-20 md:h-20 text-primary animate-pulse" />
@@ -16,7 +16,7 @@ export const AICreatorCard = ({
           </div>
         </div>
         
-        <h2 className="text-2xl md:text-3xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
           Crie para o reino com apenas um clique...
         </h2>
         
