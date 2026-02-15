@@ -1433,17 +1433,18 @@ INSTRUÇÕES ESPECÍFICAS PARA CALENDÁRIO:
 ${detectedType === 'carrossel' ? `
 INSTRUÇÕES ESPECÍFICAS PARA CARROSSEL:
 - Crie EXATAMENTE 8-10 slides com progressão lógica
-- Cada slide deve ter: titulo_slide, conteudo (mínimo 100 caracteres), imagem_sugerida, chamada_para_acao
+- Cada slide deve ter: titulo_slide, conteudo (frase curta de 10-20 palavras MAX - impactante e estratégica), imagem_sugerida, chamada_para_acao
 - Slide 1: Hook poderoso que gera curiosidade
-- Slides 2-8: Desenvolvimento progressivo com EXEMPLOS PRÁTICOS
+- Slides 2-8: Desenvolvimento progressivo com frases CURTAS e DIRETAS
 - Último slide: CTA claro e direto
 - dica_producao deve incluir: copywriting (como escrever legenda engajante), cta (call-to-action específico), hashtags
+- IMPORTANTE: O conteúdo de cada slide será usado para gerar imagens. Textos longos NÃO cabem em imagens. Máximo 20 palavras por slide.
 
 EXEMPLO DE SLIDE 1 (Hook):
 {
   "numero_slide": 1,
-  "titulo_slide": "Você já se sentiu invisível?",
-  "conteudo": "Aquela sensação de que ninguém te vê, te ouve ou te entende? Hoje vamos descobrir como Deus enxerga além das aparências e te escolheu desde o início.",
+  "titulo_slide": "Você se sente invisível?",
+  "conteudo": "Deus te vê. Ele te escolheu antes de você nascer.",
   "imagem_sugerida": "Pessoa sozinha olhando para o horizonte, luz suave ao entardecer",
   "chamada_para_acao": "Deslize para descobrir →"
 }
@@ -1452,7 +1453,7 @@ EXEMPLO DE ÚLTIMO SLIDE (CTA):
 {
   "numero_slide": 10,
   "titulo_slide": "Seu próximo passo",
-  "conteudo": "Você não precisa ser perfeito para ser visto por Deus. Ele já te escolheu. Que tal começar uma conversa com Ele hoje? Experimente orar por 5 minutos sobre o que você leu aqui.",
+  "conteudo": "Ore 5 minutos hoje. Deus já te escolheu.",
   "imagem_sugerida": "Mãos abertas ao céu, luz dourada, ambiente esperançoso",
   "chamada_para_acao": "Comente 🙏 se você vai orar hoje"
 }

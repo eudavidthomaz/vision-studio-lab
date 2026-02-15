@@ -287,6 +287,7 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
           open={imageModalOpen}
           onOpenChange={setImageModalOpen}
           copy={`${selectedCard.titulo}\n\n${selectedCard.texto}`}
+          context="slide"
           pilar={data?.pilar || "Edificar"}
           defaultFormat="feed_square"
           onImageGenerated={(imageUrl) => {
