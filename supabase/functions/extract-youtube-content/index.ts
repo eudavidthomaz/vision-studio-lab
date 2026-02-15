@@ -473,6 +473,7 @@ REGRAS OBRIGATÓRIAS:
     if (aiResponse.ok) {
       const aiData = await aiResponse.json();
       const rawContent = aiData.choices?.[0]?.message?.content;
+      console.log(`[extract-youtube] AI raw content type: ${typeof rawContent}, length: ${rawContent?.length || 0}, isNull: ${rawContent === null}, isUndefined: ${rawContent === undefined}`);
 
       if (rawContent) {
         try {
@@ -481,6 +482,7 @@ REGRAS OBRIGATÓRIAS:
           parsedContent = JSON.parse(jsonStr);
           summary = parsedContent.introducao || parsedContent.resumo || rawContent.substring(0, 500);
         } catch {
+          console.warn("[extract-youtube] AI returned non-JSON text, using as introduction");
           summary = rawContent.substring(0, 500);
           parsedContent = {
             titulo: videoTitle,
@@ -493,12 +495,21 @@ REGRAS OBRIGATÓRIAS:
             tema_central: "Extraído do YouTube",
           };
         }
+      } else {
+        console.warn("[extract-youtube] AI returned null/empty content in choices[0].message.content");
       }
     } else {
-      console.error("[extract-youtube] AI analysis failed, continuing without summary");
+      const errBody = await aiResponse.text().catch(() => "");
+      console.error(`[extract-youtube] AI analysis HTTP error: ${aiResponse.status} - ${errBody.substring(0, 200)}`);
+    }
+
+    // ─── FALLBACK FINAL: garantir que parsedContent NUNCA seja null ───
+    if (!parsedContent) {
+      console.warn("[extract-youtube] parsedContent is null after AI processing. Using fallback with transcript data.");
+      const fallbackIntro = transcript.substring(0, 500).trim() + (transcript.length > 500 ? "..." : "");
       parsedContent = {
         titulo: videoTitle,
-        introducao: "Resumo não disponível - transcrição salva com sucesso.",
+        introducao: fallbackIntro,
         pontos_principais: [],
         conclusao: "",
         aplicacao_pratica: "",
@@ -506,7 +517,11 @@ REGRAS OBRIGATÓRIAS:
         frases_impactantes: [],
         tema_central: "Extraído do YouTube",
       };
-      summary = parsedContent.introducao;
+      summary = fallbackIntro;
+    }
+
+    if (!summary) {
+      summary = parsedContent.introducao || parsedContent.resumo || videoTitle;
     }
 
     // Update sermon with summary
