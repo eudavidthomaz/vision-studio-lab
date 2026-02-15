@@ -322,7 +322,7 @@ const Auth = () => {
 
       {/* Dialog de Reset de Senha */}
       <Dialog open={showResetPassword} onOpenChange={setShowResetPassword}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[85dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Redefinir Senha</DialogTitle>
             <DialogDescription>
