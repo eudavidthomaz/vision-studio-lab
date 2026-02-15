@@ -155,6 +155,21 @@ serve(async (req) => {
 
     if (insertError) throw new Error('Failed to save schedules');
 
+    // Create confirmation tokens for each schedule
+    const tokenInserts = (insertedSchedules || []).map((s: any) => ({
+      schedule_id: s.id,
+    }));
+
+    if (tokenInserts.length > 0) {
+      const { error: tokenError } = await supabaseClient
+        .from('schedule_confirmation_tokens')
+        .insert(tokenInserts);
+      
+      if (tokenError) {
+        console.error('Warning: Failed to create confirmation tokens:', tokenError);
+      }
+    }
+
     console.log('Schedule generated:', insertedSchedules?.length);
 
     return new Response(

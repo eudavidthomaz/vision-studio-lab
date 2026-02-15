@@ -2,6 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export interface ScheduleConfirmationToken {
+  token: string;
+  used_at: string | null;
+  action_taken: string | null;
+  expires_at: string;
+}
+
 export interface VolunteerSchedule {
   id: string;
   user_id: string;
@@ -23,6 +30,7 @@ export interface VolunteerSchedule {
     role: string;
     phone: string | null;
   };
+  schedule_confirmation_tokens?: ScheduleConfirmationToken | null;
 }
 
 export interface GenerateScheduleRequest {
@@ -63,6 +71,12 @@ export function useVolunteerSchedules(serviceDate?: string) {
             name,
             role,
             phone
+          ),
+          schedule_confirmation_tokens (
+            token,
+            used_at,
+            action_taken,
+            expires_at
           )
         `)
         .eq('user_id', session.session.user.id)
@@ -75,7 +89,7 @@ export function useVolunteerSchedules(serviceDate?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as VolunteerSchedule[];
+      return data as unknown as VolunteerSchedule[];
     },
   });
 
@@ -98,6 +112,12 @@ export function useVolunteerSchedules(serviceDate?: string) {
               name,
               role,
               phone
+            ),
+            schedule_confirmation_tokens (
+              token,
+              used_at,
+              action_taken,
+              expires_at
             )
           `)
           .eq('user_id', session.session.user.id)
@@ -107,7 +127,7 @@ export function useVolunteerSchedules(serviceDate?: string) {
           .order('role', { ascending: true });
 
         if (error) throw error;
-        return data as VolunteerSchedule[];
+        return data as unknown as VolunteerSchedule[];
       },
       enabled: !!startDate && !!endDate,
     });
