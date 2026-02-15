@@ -1,45 +1,25 @@
 
-# Card de Escalas no Dashboard
+# Custom Scrollbar Styling
 
-## Objetivo
-Criar um card elegante para a funcao de escalas de voluntarios, seguindo o padrao estetico do YouTubeCreatorCard (card secundario com icone, titulo, descricao e micro-animacoes de hover).
+## Problem
+The app uses the browser's default white/light scrollbars, which clash with the dark theme aesthetic. This affects all scrollable areas: page body, modals, dialogs, sheets, scroll areas, textareas, and any `overflow-y: auto` container.
 
-## Novo Componente: `src/components/ScheduleCreatorCard.tsx`
+## Solution
+Add global custom scrollbar CSS rules in `src/index.css` targeting both WebKit-based browsers (Chrome, Safari, Edge) and Firefox. The scrollbar will use the app's existing design tokens (`--muted`, `--border`, `--primary`) to blend seamlessly with the dark UI.
 
-Card com o mesmo padrao visual do YouTubeCreatorCard, adaptado para escalas:
+## File: `src/index.css`
 
-- **Icone**: `CalendarCheck` do lucide-react dentro de um container com fundo gradiente azul/indigo
-- **Titulo**: "Escalas de Voluntarios"
-- **Descricao**: "Organize e gerencie as escalas da sua equipe ministerial. Gere escalas inteligentes com IA."
-- **Micro-animacoes**:
-  - Hover: borda muda para indigo, fundo ganha tint sutil, sombra cresce
-  - Icone container: transicao de cor no hover
-  - Shimmer effect sutil no gradiente do icone (keyframe dedicado)
-  - Tres mini-stats animados (total voluntarios, proxima escala, confirmacoes pendentes) que fazem fade-in escalonado ao entrar na viewport via `animate-fade-in` com delays
+Add a scrollbar styling block inside `@layer base` (after the existing `html, body` rule) with:
 
-## Integracao no Dashboard (`src/pages/Dashboard.tsx`)
+**WebKit (Chrome, Safari, Edge):**
+- `*::-webkit-scrollbar` -- thin track (6px width, 6px height for horizontal)
+- `*::-webkit-scrollbar-track` -- transparent background
+- `*::-webkit-scrollbar-thumb` -- `hsl(var(--border))` with full rounding, transitions to `hsl(var(--muted-foreground))` on hover
+- `*::-webkit-scrollbar-corner` -- transparent
 
-- Importar `ScheduleCreatorCard`
-- Inserir como nova `<section>` entre o YouTubeCreatorCard e o RecentContentSection
-- onClick navega para `/escalas`
+**Firefox:**
+- `*` -- `scrollbar-width: thin; scrollbar-color: hsl(var(--border)) transparent;`
 
-## Detalhe Tecnico
+This covers every scrollable element globally -- page body, modals (`overflow-y-auto`), Radix `ScrollArea` native fallbacks, textareas, select dropdowns, and code blocks.
 
-```text
-+---------------------------------------------------+
-| [CalendarCheck icon]  Escalas de Voluntarios       |
-|                       Organize e gerencie as       |
-|                       escalas da sua equipe...     |
-|                                                    |
-|  [3 voluntarios]  [Prox: Dom 16/02]  [2 pendentes] |
-+---------------------------------------------------+
-```
-
-- Os mini-stats usam dados reais via queries Supabase (count de voluntarios, proxima escala, confirmacoes pendentes)
-- Se nao houver dados, os stats ficam ocultos e o card funciona como link simples
-- Mobile-first: padding `p-4 sm:p-5 sm:p-6`, stats empilham em coluna no xs
-
-## Arquivos Modificados
-
-1. **Criar** `src/components/ScheduleCreatorCard.tsx` -- componente completo
-2. **Editar** `src/pages/Dashboard.tsx` -- importar e inserir o card
+No other files need modification. The Radix `ScrollArea` component already renders a custom thumb (`bg-border`), so it will remain visually consistent.
