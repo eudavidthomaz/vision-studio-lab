@@ -308,7 +308,7 @@ const ImageGenerationModal = ({
   return (
     <>
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto rounded-xl shadow-2xl border-border/50" data-prevent-zoom>
+        <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto overflow-x-hidden rounded-xl shadow-2xl border-border/50" data-prevent-zoom>
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl flex items-center gap-2">
               <ImageIcon className="h-5 w-5 text-primary" />
@@ -443,7 +443,7 @@ const ImageGenerationModal = ({
                 </TabsContent>
 
                 {/* Tab: Edit Photo with Overlays */}
-                <TabsContent value="overlay" className="space-y-4">
+                <TabsContent value="overlay" className="space-y-4 min-w-0">
                   <ImageUploadSection required />
 
                   {!isStoryMode && (
@@ -507,13 +507,15 @@ const ImageGenerationModal = ({
                       </Button>
                     </div>
                   ) : (
-                    <ImageOverlayEditor
-                      userImage={referenceImage!}
-                      overlayData={overlayData}
-                      onOverlayUpdate={setOverlayData}
-                      onExport={handleOverlayExport}
-                      formato={formato}
-                    />
+                    <div className="w-full min-w-0 overflow-hidden">
+                      <ImageOverlayEditor
+                        userImage={referenceImage!}
+                        overlayData={overlayData}
+                        onOverlayUpdate={setOverlayData}
+                        onExport={handleOverlayExport}
+                        formato={formato}
+                      />
+                    </div>
                   )}
                 </TabsContent>
               </Tabs>
