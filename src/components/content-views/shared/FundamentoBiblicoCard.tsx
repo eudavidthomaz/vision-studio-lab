@@ -18,10 +18,10 @@ export function FundamentoBiblicoCard({
   
   return (
     <Card className="bg-card border border-border rounded-xl">
-      <CardHeader className="pb-3 border-b border-border">
-        <CardTitle className="flex items-center gap-2 text-lg text-foreground">
-          <div className="p-1.5 bg-blue-500/20 rounded-lg">
-            <Book className="w-5 h-5 text-blue-400" />
+      <CardHeader className="pb-2 sm:pb-3 px-3 sm:px-6 border-b border-border">
+        <CardTitle className="flex items-center gap-2 text-sm sm:text-base md:text-lg text-foreground">
+          <div className="p-1 sm:p-1.5 bg-blue-500/20 rounded-lg flex-shrink-0">
+            <Book className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
           </div>
           Fundamento Bíblico
         </CardTitle>

@@ -24,19 +24,19 @@ export function StrategicIdeaCard({ ideia }: StrategicIdeaCardProps) {
 
   return (
     <Card className="border-primary/30 bg-primary/5">
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-3">
-          <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Compass className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              Ideia Estratégica
+      <CardHeader className="pb-2 px-3 sm:px-6">
+        <div className="flex flex-wrap items-start gap-2 sm:gap-3">
+          <div className="space-y-1 flex-1 min-w-0">
+            <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base md:text-lg">
+              <Compass className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+              <span className="line-clamp-1">Ideia Estratégica</span>
             </CardTitle>
             {ideia.titulo && (
-              <p className="text-sm font-medium text-foreground">{ideia.titulo}</p>
+              <p className="text-xs sm:text-sm font-medium text-foreground line-clamp-2">{ideia.titulo}</p>
             )}
           </div>
           {ideia.formato_prioritario && (
-            <Badge className="bg-primary text-primary-foreground">
+            <Badge className="bg-primary text-primary-foreground text-[10px] sm:text-xs flex-shrink-0">
               {ideia.formato_prioritario}
             </Badge>
           )}
