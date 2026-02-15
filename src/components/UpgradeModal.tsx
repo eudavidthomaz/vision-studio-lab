@@ -17,7 +17,7 @@ interface UpgradeModalProps {
 const FEATURE_LABELS: Record<QuotaFeature, string> = {
   images: 'geração de imagens',
   transcriptions: 'transcrições',
-  live_captures: 'captação ao vivo',
+  live_captures: 'captação ao vivo e extração do YouTube',
 };
 
 const PLAN_FEATURES = {
@@ -28,7 +28,7 @@ const PLAN_FEATURES = {
       '1 transcrição/mês',
       'Conteúdos ilimitados',
     ],
-    notIncluded: ['Geração de imagens', 'Captação ao vivo'],
+    notIncluded: ['Geração de imagens', 'Captação ao vivo', 'Extração YouTube'],
   },
   pro: {
     name: 'Pro',
@@ -36,7 +36,7 @@ const PLAN_FEATURES = {
     features: [
       '50 imagens/mês',
       '5 transcrições/mês',
-      '5 captações ao vivo (60min)',
+      '5 captações ao vivo + YouTube',
       'Conteúdos ilimitados',
     ],
   },
@@ -46,7 +46,7 @@ const PLAN_FEATURES = {
     features: [
       '200 imagens/mês',
       '20 transcrições/mês',
-      '20 captações ao vivo (60min)',
+      '20 captações ao vivo + YouTube',
       'Conteúdos ilimitados',
     ],
   },

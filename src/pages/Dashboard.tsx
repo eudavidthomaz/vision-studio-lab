@@ -17,6 +17,9 @@ import { RecentContentSection } from "@/components/RecentContentSection";
 import { HeroHeader } from "@/components/HeroHeader";
 import { SermonCompletedModal } from "@/components/SermonCompletedModal";
 import { useSubscription } from "@/hooks/useSubscription";
+import { YouTubeCreatorCard } from "@/components/YouTubeCreatorCard";
+import { YouTubeTranscriptModal } from "@/components/YouTubeTranscriptModal";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -33,11 +36,14 @@ const Dashboard = () => {
   const [currentSermonId, setCurrentSermonId] = useState("");
   const [generatedContentsCount, setGeneratedContentsCount] = useState(0);
   const [preselectedSermonId, setPreselectedSermonId] = useState<string | undefined>();
+  const [showYouTubeModal, setShowYouTubeModal] = useState(false);
+  const [isExtractingYT, setIsExtractingYT] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
-  const { incrementUsage } = useQuota();
+  const { incrementUsage, isFeatureAvailable, canUse, userRole } = useQuota();
   const { createContent } = useContentLibrary();
   const { invalidateSubscription } = useSubscription();
 
@@ -318,6 +324,21 @@ const Dashboard = () => {
             <section data-tour="ai-creator">
               <AICreatorCard onClick={() => setShowAIModal(true)} />
             </section>
+
+            <section>
+              <YouTubeCreatorCard
+                isLocked={!isFeatureAvailable('live_captures')}
+                onClick={() => {
+                  if (!isFeatureAvailable('live_captures')) {
+                    setShowUpgradeModal(true);
+                  } else if (!canUse('live_captures')) {
+                    setShowUpgradeModal(true);
+                  } else {
+                    setShowYouTubeModal(true);
+                  }
+                }}
+              />
+            </section>
             
             <section>
               <RecentContentSection />
@@ -357,6 +378,37 @@ const Dashboard = () => {
           onGenerate={handleGenerateAIContent}
           isLoading={isGeneratingAI}
           preselectedSermonId={preselectedSermonId}
+        />
+
+        <YouTubeTranscriptModal
+          open={showYouTubeModal}
+          onOpenChange={setShowYouTubeModal}
+          isLoading={isExtractingYT}
+          onSubmit={async (youtubeUrl, instructions) => {
+            setIsExtractingYT(true);
+            try {
+              toast({ title: "📺 Extraindo conteúdo...", description: "Isso pode levar alguns segundos.", duration: Infinity });
+              const { data, error } = await supabase.functions.invoke('extract-youtube-content', {
+                body: { youtubeUrl, instructions },
+              });
+              if (error) throw error;
+              if (data?.error) throw new Error(data.error);
+              toast({ title: "🎉 Conteúdo extraído!", description: "Redirecionando...", duration: 3000 });
+              setShowYouTubeModal(false);
+              navigate(`/biblioteca/${data.content_id}`);
+            } catch (err: any) {
+              toast({ title: "❌ Erro na extração", description: err?.message || "Tente novamente.", variant: "destructive", duration: 5000 });
+            } finally {
+              setIsExtractingYT(false);
+            }
+          }}
+        />
+
+        <UpgradeModal
+          open={showUpgradeModal}
+          onOpenChange={setShowUpgradeModal}
+          feature="live_captures"
+          reason={isFeatureAvailable('live_captures') ? 'quota_exceeded' : 'feature_locked'}
         />
       </div>
     </>
