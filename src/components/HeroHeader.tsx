@@ -33,7 +33,7 @@ export const HeroHeader = ({
           </div>
           
           {/* Actions */}
-          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 flex-wrap justify-end">
             <NotificationCenter />
             <Button 
               variant="outline" 
@@ -79,7 +79,7 @@ export const HeroHeader = ({
       </div>
 
       {/* Layer 2 - Hero Message */}
-      <div className="relative bg-card/60 backdrop-blur-md border border-t-0 border-border/60 rounded-b-xl sm:rounded-b-2xl px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 md:py-10 lg:py-16 shadow-xl">
+      <div className="relative bg-card/60 backdrop-blur-md border border-t-0 border-border/60 rounded-b-xl sm:rounded-b-2xl px-4 sm:px-6 md:px-8 lg:px-12 py-4 sm:py-6 md:py-8 lg:py-14 shadow-xl">
         <div className="text-center space-y-3 sm:space-y-4 animate-fade-in animation-delay-200">
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight">
             <span className="inline-block animate-fade-in bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-[gradient_6s_ease_infinite]">

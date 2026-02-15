@@ -66,7 +66,7 @@ export function MobileContentSheet({ content, open, onClose }: MobileContentShee
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent 
         side="bottom" 
-        className="h-[96dvh] w-screen max-w-full p-0 rounded-t-2xl overflow-hidden shadow-2xl border-t border-border/50"
+        className="h-[96dvh] w-screen max-w-full p-0 rounded-t-2xl overflow-hidden shadow-2xl border-t border-border/50 pb-safe"
       >
         {/* Container com altura fixa e overflow controlado */}
         <div className="flex flex-col h-full w-full">
