@@ -1,37 +1,52 @@
 
 
-# Correção: "Invalid time value" no stripe-webhook
+# Correção: Adicionar handler para `invoice.payment_succeeded`
 
 ## Problema
 
-O webhook está **recebendo eventos corretamente** do Stripe (a configuração está 100% OK), mas falha ao processar `checkout.session.completed` com erro `"Invalid time value"`.
+O Stripe envia `invoice.payment_succeeded` a cada pagamento bem-sucedido (incluindo renovações). O webhook atual **ignora** esse evento completamente -- cai no `default` case e retorna `{"received": true}` sem executar nenhuma lógica.
 
-**Causa**: `new Date(subscription.current_period_start * 1000).toISOString()` lança exceção quando `current_period_start` é `null` ou `undefined`. Isso pode ocorrer em eventos de teste do Stripe ou em edge cases de assinaturas recém-criadas.
+O evento contém `metadata.user_id` dentro de `parent.subscription_details.metadata`, que e a forma mais confiavel de identificar o usuario (nao depende de email).
 
 ## Correção
 
 ### `supabase/functions/stripe-webhook/index.ts`
 
-Adicionar função helper para converter timestamps Unix do Stripe de forma segura:
+Adicionar um novo `case 'invoice.payment_succeeded'` antes do `case 'invoice.payment_failed'` com a seguinte logica:
+
+1. Extrair o `subscriptionId` do invoice
+2. Buscar `user_id` em 3 niveis (prioridade):
+   - `invoice.parent?.subscription_details?.metadata?.user_id` (metadata direto do evento)
+   - Tabela `subscriptions` via `stripe_subscription_id`
+   - `invoice.subscription_details?.metadata?.user_id` (formato alternativo do Stripe)
+3. Se encontrar o `user_id`:
+   - Recuperar a subscription do Stripe para obter o `product_id`
+   - Determinar a role via `PRODUCT_TO_ROLE`
+   - Atualizar `user_roles` (delete + insert)
+   - Atualizar tabela `subscriptions` com status `active` e timestamps
+4. Se nao encontrar, logar aviso e continuar
 
 ```text
-function safeTimestamp(unix: number | null | undefined): string | null {
-  if (!unix || typeof unix !== 'number') return null;
-  return new Date(unix * 1000).toISOString();
-}
+Fluxo:
+invoice.payment_succeeded
+  -> Extrair subscription_id
+  -> Buscar user_id (metadata > DB > fallback metadata)
+  -> Buscar subscription no Stripe (product_id -> role)
+  -> UPDATE user_roles (delete old + insert new role)
+  -> UPSERT subscriptions table
+  -> Log sucesso
 ```
 
-Substituir todas as ocorrencias de `new Date(subscription.current_period_start * 1000).toISOString()` e `current_period_end` por chamadas a `safeTimestamp()` nos 3 handlers:
+### Por que isso resolve
 
-- `checkout.session.completed` (linhas 83-84)
-- `customer.subscription.updated` (linhas 110-111 e 130-131)
-- `customer.subscription.deleted` (nenhum timestamp, OK)
+- `checkout.session.completed`: Ja tratado -- funciona na primeira compra
+- `invoice.payment_succeeded`: **Agora sera tratado** -- funciona em renovacoes E como redundancia na primeira compra
+- `customer.subscription.updated/deleted`: Ja tratados -- cobrem mudancas de plano e cancelamentos
 
-Isso garante que o upsert/update no banco não falhe mesmo com dados incompletos do Stripe.
+A redundancia e intencional: se o `checkout.session.completed` falhar (ex: `user_id` nao veio no `client_reference_id`), o `invoice.payment_succeeded` serve como fallback usando o `user_id` do metadata da subscription.
 
-## Arquivos Modificados
+## Arquivo Modificado
 
-| Arquivo | Mudança |
+| Arquivo | Mudanca |
 |---|---|
-| `supabase/functions/stripe-webhook/index.ts` | Adicionar `safeTimestamp()` helper e usar em todos os handlers |
-
+| `supabase/functions/stripe-webhook/index.ts` | Novo handler `invoice.payment_succeeded` com lookup de user_id via metadata e atualizacao de role |
