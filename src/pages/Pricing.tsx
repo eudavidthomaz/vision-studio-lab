@@ -223,9 +223,31 @@ export default function Pricing() {
           })}
         </div>
 
-        <div className="mt-10 text-center text-sm text-muted-foreground">
+        <div className="mt-10 text-center text-sm text-muted-foreground space-y-3">
           <p>Cancele a qualquer momento. Sem compromisso.</p>
-          <p className="mt-1">Precisa de mais? <a href="mailto:contato@ideon.app" className="text-primary underline">Entre em contato</a></p>
+          <p>Precisa de mais? <a href="mailto:contato@ideon.app" className="text-primary underline">Entre em contato</a></p>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs text-muted-foreground"
+            onClick={async () => {
+              try {
+                toast({ title: "Verificando...", description: "Sincronizando status da assinatura." });
+                await supabase.functions.invoke('check-subscription');
+                const { invalidateSubscription } = await import('@/hooks/useSubscription').then(() => {
+                  // Force refetch via query client
+                  return { invalidateSubscription: () => refetch() };
+                });
+                await refetch();
+                toast({ title: "✅ Status atualizado!", description: "Seu plano foi sincronizado." });
+              } catch {
+                toast({ title: "Erro", description: "Não foi possível atualizar.", variant: "destructive" });
+              }
+            }}
+          >
+            <Zap className="h-3 w-3 mr-1" />
+            Atualizar Status da Assinatura
+          </Button>
         </div>
       </div>
     </div>

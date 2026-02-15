@@ -46,7 +46,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.handle-checkout-success]
-verify_jwt = true
+verify_jwt = false
 
 [functions.sync-subscription-roles]
 verify_jwt = true
