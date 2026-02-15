@@ -178,7 +178,7 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
               <SelectTrigger className="h-10 sm:h-11">
                 <SelectValue placeholder="Selecione uma pregação..." />
               </SelectTrigger>
-              <SelectContent className="bg-popover max-h-[300px]">
+              <SelectContent>
                 <SelectItem value="none">Nenhuma (criar do zero)</SelectItem>
                 {sermons.map((sermon) => (
                   <SelectItem key={sermon.id} value={sermon.id}>
