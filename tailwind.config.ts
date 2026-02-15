@@ -13,6 +13,13 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        'overlay-impact': ['"Bebas Neue"', 'sans-serif'],
+        'overlay-elegant': ['"Playfair Display"', 'serif'],
+        'overlay-modern': ['"Montserrat"', 'sans-serif'],
+        'overlay-handwritten': ['"Dancing Script"', 'cursive'],
+        'overlay-clean': ['"Inter"', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

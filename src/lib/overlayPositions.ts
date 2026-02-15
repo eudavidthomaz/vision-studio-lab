@@ -36,6 +36,9 @@ export const fontSizeClasses: Record<string, string> = {
   '2xl': 'text-2xl',
   '3xl': 'text-3xl',
   '4xl': 'text-4xl',
+  '5xl': 'text-5xl',
+  '6xl': 'text-6xl',
+  '7xl': 'text-7xl',
 };
 
 export const fontWeightClasses: Record<string, string> = {
@@ -44,6 +47,14 @@ export const fontWeightClasses: Record<string, string> = {
   'semibold': 'font-semibold',
   'bold': 'font-bold',
   'extrabold': 'font-extrabold',
+};
+
+export const fontFamilyClasses: Record<string, string> = {
+  'bebas_neue': 'font-overlay-impact',
+  'playfair': 'font-overlay-elegant',
+  'montserrat': 'font-overlay-modern',
+  'dancing_script': 'font-overlay-handwritten',
+  'inter': 'font-overlay-clean',
 };
 
 export const filterClasses: Record<string, string> = {
@@ -56,6 +67,15 @@ export const filterClasses: Record<string, string> = {
   'contrast-125': 'contrast-125',
   'grayscale': 'grayscale',
   'sepia': 'sepia',
+};
+
+export const gradientStyles: Record<string, string> = {
+  'none': '',
+  'bottom_dark_strong': 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 70%)',
+  'bottom_dark_subtle': 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%)',
+  'top_dark': 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 50%)',
+  'full_dark': 'linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4))',
+  'radial_vignette': 'radial-gradient(circle, transparent 40%, rgba(0,0,0,0.7) 100%)',
 };
 
 export const availableIcons: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
@@ -94,6 +114,27 @@ export const fontSizeOptions = [
   { value: 'xl', label: 'Extra Grande' },
   { value: '2xl', label: '2x Grande' },
   { value: '3xl', label: '3x Grande' },
+  { value: '4xl', label: '4x Grande' },
+  { value: '5xl', label: '5x Grande' },
+  { value: '6xl', label: '6x Grande' },
+  { value: '7xl', label: '7x Grande' },
+];
+
+export const fontFamilyOptions = [
+  { value: 'bebas_neue', label: 'Bebas Neue (Impacto)' },
+  { value: 'playfair', label: 'Playfair Display (Elegante)' },
+  { value: 'montserrat', label: 'Montserrat (Moderno)' },
+  { value: 'dancing_script', label: 'Dancing Script (Manuscrito)' },
+  { value: 'inter', label: 'Inter (Limpo)' },
+];
+
+export const gradientOptions = [
+  { value: 'none', label: 'Sem gradiente' },
+  { value: 'bottom_dark_strong', label: 'Escuro de baixo (forte)' },
+  { value: 'bottom_dark_subtle', label: 'Escuro de baixo (suave)' },
+  { value: 'top_dark', label: 'Escuro de cima' },
+  { value: 'full_dark', label: 'Escurecimento total' },
+  { value: 'radial_vignette', label: 'Vinheta radial' },
 ];
 
 export const iconOptions = Object.keys(availableIcons).map(key => ({
@@ -108,6 +149,7 @@ export interface TextOverlay {
   color_hex: string;
   font_weight: string;
   font_size: string;
+  font_family?: string;
   background_highlight: boolean;
 }
 
@@ -124,9 +166,11 @@ export interface OverlayData {
   layout_action: string;
   overlays: Overlay[];
   image_filter: string;
+  gradient_overlay?: string;
   analysis?: {
     dominant_color: string;
     suggested_text_color: string;
     safe_zones: string[];
+    image_description?: string;
   };
 }
