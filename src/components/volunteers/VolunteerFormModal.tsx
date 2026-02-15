@@ -71,7 +71,7 @@ export function VolunteerFormModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-[500px] max-h-[90dvh] overflow-y-auto overflow-x-hidden" data-prevent-zoom>
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Editar Voluntário" : "Novo Voluntário"}
@@ -90,7 +90,7 @@ export function VolunteerFormModal({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
               <Input
@@ -113,7 +113,7 @@ export function VolunteerFormModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="role">Função Principal</Label>
               <Select

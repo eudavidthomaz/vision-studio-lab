@@ -38,7 +38,7 @@ export const SermonCompletedModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-3xl max-h-[85vh] sm:max-h-[80vh]">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-3xl max-h-[85dvh] sm:max-h-[80dvh] overflow-x-hidden" data-prevent-zoom>
         <DialogHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
             <Sparkles className="w-8 h-8 text-primary animate-pulse" />

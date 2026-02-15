@@ -75,8 +75,8 @@ export function ContentFeedModal({ content, open, onOpenChange }: ContentFeedMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-4xl lg:max-w-5xl max-h-[90vh] overflow-hidden p-0">
-        <div className="overflow-y-auto max-h-[90vh]">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-4xl lg:max-w-5xl max-h-[90dvh] overflow-hidden overflow-x-hidden p-0" data-prevent-zoom>
+        <div className="overflow-y-auto overflow-x-hidden max-h-[90dvh]">
           <ContentResultDisplay
             content={formattedContent}
             onSave={handleSave}

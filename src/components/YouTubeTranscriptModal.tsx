@@ -50,7 +50,7 @@ export const YouTubeTranscriptModal = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-lg max-h-[90dvh] overflow-y-auto overflow-x-hidden" data-prevent-zoom>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Youtube className="h-5 w-5 text-red-500" />

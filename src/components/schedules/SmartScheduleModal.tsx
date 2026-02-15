@@ -127,7 +127,7 @@ export function SmartScheduleModal({
   if (showResult && result) {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh]">
+        <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-[600px] max-h-[90dvh] overflow-x-hidden" data-prevent-zoom>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {result.success ? (
@@ -245,7 +245,7 @@ export function SmartScheduleModal({
   // Form View
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh]">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-[700px] max-h-[90dvh] overflow-x-hidden" data-prevent-zoom>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
@@ -260,7 +260,7 @@ export function SmartScheduleModal({
           <ScrollArea className="max-h-[60vh] pr-4">
             <div className="space-y-6">
               {/* Date and Service Info */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="service_date">Data do Culto *</Label>
                   <Input
@@ -284,7 +284,7 @@ export function SmartScheduleModal({
               </div>
 
               {/* Time */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="start_time" className="flex items-center gap-2">
                     <Clock className="w-4 h-4" />

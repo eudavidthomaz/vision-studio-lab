@@ -64,7 +64,7 @@ export const ShareContentDialog = ({ open, onOpenChange, content, contentType }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-md max-h-[90dvh] overflow-y-auto overflow-x-hidden" data-prevent-zoom>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />

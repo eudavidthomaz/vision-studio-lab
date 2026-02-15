@@ -65,7 +65,7 @@ export const OnboardingFlow = ({ open, onComplete }: OnboardingFlowProps) => {
 
   return (
     <Dialog open={open}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-md max-h-[90dvh] overflow-y-auto overflow-x-hidden" data-prevent-zoom>
         <div className="space-y-6 py-4">
           <div className="space-y-2">
             <Progress value={progress} className="h-1" />

@@ -157,7 +157,7 @@ export const AIPromptModal = ({ open, onOpenChange, onGenerate, isLoading, prese
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[85dvh] overflow-y-auto rounded-xl shadow-2xl border-border/50" data-prevent-zoom>
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-[650px] max-h-[85dvh] overflow-y-auto overflow-x-hidden rounded-xl shadow-2xl border-border/50" data-prevent-zoom>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl md:text-2xl">
             <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-pulse" />
