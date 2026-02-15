@@ -4,6 +4,7 @@ import { GripVertical, MoreHorizontal, Check, XCircle, RefreshCw, Trash2 } from 
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ScheduleConfirmationBadge } from "@/components/schedules/ScheduleConfirmationBadge";
+import { ScheduleShareLink } from "@/components/schedules/ScheduleShareLink";
 import { VOLUNTEER_ROLES } from "@/hooks/useVolunteers";
 import type { VolunteerSchedule } from "@/hooks/useVolunteerSchedules";
 
@@ -66,6 +67,9 @@ export function DraggableScheduleCard({ schedule, onUpdateStatus, onDelete }: Dr
           confirmedBy={schedule.confirmed_by}
           size="sm"
         />
+        {schedule.status === "scheduled" && (
+          <ScheduleShareLink schedule={schedule} />
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
