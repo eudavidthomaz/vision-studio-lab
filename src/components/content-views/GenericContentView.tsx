@@ -190,17 +190,17 @@ export const GenericContentView = ({ data, contentType, onRegenerate }: GenericC
 
       {/* Conteúdo principal */}
       <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl">{content.titulo}</CardTitle>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={copyAll}>
-                <Copy className="h-4 w-4 mr-2" />
+        <CardHeader className="pb-2 px-3 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <CardTitle className="text-base sm:text-xl flex-1 min-w-0 line-clamp-2">{content.titulo}</CardTitle>
+            <div className="flex gap-2 flex-shrink-0">
+              <Button variant="outline" size="sm" onClick={copyAll} className="h-8 text-xs sm:text-sm">
+                <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />
                 Copiar
               </Button>
               {onRegenerate && (
-                <Button variant="ghost" size="sm" onClick={onRegenerate}>
-                  <RefreshCw className="h-4 w-4" />
+                <Button variant="ghost" size="sm" onClick={onRegenerate} className="h-8 w-8 p-0">
+                  <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Button>
               )}
             </div>

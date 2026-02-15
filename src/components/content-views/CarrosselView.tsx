@@ -113,18 +113,17 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
             <div className="flex items-center justify-center gap-2 mb-2 text-xs text-muted-foreground">
               <span>← Arraste para ver mais cards →</span>
             </div>
-            <Carousel className="w-full max-w-full mx-auto px-8">
-              <CarouselContent>
+            <Carousel className="w-full max-w-full mx-auto px-0 sm:px-4">
+              <CarouselContent className="-ml-2 sm:-ml-4">
                 {slides.map((slide, index) => {
                   return (
-                    <CarouselItem key={index}>
+                    <CarouselItem key={index} className="pl-2 sm:pl-4">
                       <Card className="border-2" data-card={index + 1}>
                         <CardHeader className="bg-primary/5 p-2">
                           <CardTitle className="text-xs font-semibold line-clamp-2 leading-tight mb-2">
                             Card {index + 1}: {slide.titulo}
                           </CardTitle>
                           
-                          {/* Botões SEMPRE empilhados verticalmente no mobile */}
                           <div className="space-y-1.5">
                             <Button
                               variant={generatedImages[index + 1] ? "outline" : "default"}
@@ -171,7 +170,6 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                               />
                             </div>
                           )}
-                          {/* Texto + CTA integrados para facilitar geração de imagem */}
                           <div className="text-xs leading-relaxed break-words whitespace-pre-wrap">
                             <p>{safeString(slide.conteudo)}</p>
                             {slide.chamada_para_acao && (
@@ -186,8 +184,16 @@ export function CarrosselView({ estrutura, estrutura_visual, conteudo, dica_prod
                   );
                 })}
               </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
+              {/* Inline navigation below carousel on mobile, absolute on desktop */}
+              <div className="flex items-center justify-center gap-4 mt-3 sm:hidden">
+                <CarouselPrevious className="static translate-y-0 h-8 w-8" />
+                <span className="text-xs text-muted-foreground">Deslize ou use os botões</span>
+                <CarouselNext className="static translate-y-0 h-8 w-8" />
+              </div>
+              <div className="hidden sm:block">
+                <CarouselPrevious />
+                <CarouselNext />
+              </div>
             </Carousel>
           </CardContent>
         </Card>

@@ -164,13 +164,12 @@ export function PostSimplesView({ conteudo, imagem, data, contentType }: PostSim
             className={`w-full h-8 text-xs ${!canGenerateImages ? 'opacity-80' : ''}`}
           >
             {!canGenerateImages && (
-              <Badge variant="secondary" className="mr-1.5 bg-amber-500 text-white text-[10px] px-1 py-0">
-                <Crown className="h-2.5 w-2.5 mr-0.5" />
-                PRO
-              </Badge>
+              <Crown className="h-3 w-3 mr-1 text-amber-500 flex-shrink-0" />
             )}
-            <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
-            {isGenerating ? "Gerando..." : generatedImage ? "Regerar" : "Gerar Imagem"}
+            <ImageIcon className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+            <span className="truncate">
+              {isGenerating ? "Gerando..." : generatedImage ? "Regerar" : !canGenerateImages ? "Gerar (PRO)" : "Gerar Imagem"}
+            </span>
           </Button>
         </CardHeader>
         {generatedImage && (
