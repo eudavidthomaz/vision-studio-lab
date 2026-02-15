@@ -52,70 +52,84 @@ const Dashboard = () => {
   useEffect(() => {
     const checkoutStatus = searchParams.get('checkout');
     const sessionId = searchParams.get('session_id');
-    
-    if (checkoutStatus === 'success' && sessionId) {
-      // Remove the query params
+
+    if (checkoutStatus === 'success') {
+      // Clean URL immediately
       searchParams.delete('checkout');
       searchParams.delete('session_id');
       setSearchParams(searchParams, { replace: true });
-      
-      // Process the checkout session to link Stripe customer
-      const processCheckoutSuccess = async () => {
-        try {
-          const { error } = await supabase.functions.invoke('handle-checkout-success', {
-            body: { sessionId }
-          });
-          
-          if (error) {
-            console.error('Error processing checkout:', error);
-          }
-        } catch (err) {
-          console.error('Failed to process checkout session:', err);
+
+      // Confetti + toast immediately (UX)
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      toast({
+        title: "🎉 Plano ativado com sucesso!",
+        description: "Obrigado por assinar! Seus novos recursos já estão disponíveis.",
+        duration: 6000,
+      });
+      trackEvent('subscription_activated');
+
+      // Process checkout with retry + fallback
+      const processCheckout = async () => {
+        // Wait for auth session to be available
+        let authSession = session;
+        if (!authSession) {
+          const { data } = await supabase.auth.getSession();
+          authSession = data.session;
         }
-        
-        // Force subscription refresh regardless of processing result
+        // Retry up to 5 times waiting for session
+        for (let i = 0; i < 5 && !authSession; i++) {
+          await new Promise(r => setTimeout(r, 1000));
+          const { data } = await supabase.auth.getSession();
+          authSession = data.session;
+        }
+
+        if (sessionId && authSession) {
+          // Try handle-checkout-success with exponential backoff
+          let succeeded = false;
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              const { data, error } = await supabase.functions.invoke('handle-checkout-success', {
+                body: { sessionId },
+              });
+              if (!error && data?.success) {
+                console.log('[CHECKOUT] handle-checkout-success succeeded', data);
+                succeeded = true;
+                break;
+              }
+              console.warn(`[CHECKOUT] attempt ${attempt + 1} failed:`, error || data);
+            } catch (err) {
+              console.warn(`[CHECKOUT] attempt ${attempt + 1} exception:`, err);
+            }
+            // Exponential backoff: 1s, 2s, 4s
+            await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
+          }
+
+          // Fallback: call check-subscription to sync role from Stripe
+          if (!succeeded) {
+            console.log('[CHECKOUT] Falling back to check-subscription');
+            try {
+              await supabase.functions.invoke('check-subscription');
+            } catch (err) {
+              console.error('[CHECKOUT] check-subscription fallback failed:', err);
+            }
+          }
+        } else if (!sessionId) {
+          // Old URL without session_id — just refresh
+          try {
+            await supabase.functions.invoke('check-subscription');
+          } catch (err) {
+            console.error('[CHECKOUT] check-subscription failed:', err);
+          }
+        }
+
+        // Always invalidate cache
         invalidateSubscription();
       };
-      
-      processCheckoutSuccess();
-      
-      // Show success message with confetti
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-      
-      toast({
-        title: "🎉 Plano ativado com sucesso!",
-        description: "Obrigado por assinar! Seus novos recursos já estão disponíveis.",
-        duration: 6000,
-      });
-      
-      trackEvent('subscription_activated');
-    } else if (checkoutStatus === 'success') {
-      // Fallback for old URLs without session_id
-      searchParams.delete('checkout');
-      setSearchParams(searchParams, { replace: true });
-      invalidateSubscription();
-      
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-      
-      toast({
-        title: "🎉 Plano ativado com sucesso!",
-        description: "Obrigado por assinar! Seus novos recursos já estão disponíveis.",
-        duration: 6000,
-      });
-      
-      trackEvent('subscription_activated');
+
+      processCheckout();
     } else if (checkoutStatus === 'cancelled') {
       searchParams.delete('checkout');
       setSearchParams(searchParams, { replace: true });
-      
       toast({
         title: "Assinatura cancelada",
         description: "A assinatura foi cancelada. Você pode tentar novamente quando quiser.",
@@ -123,7 +137,7 @@ const Dashboard = () => {
         duration: 5000,
       });
     }
-  }, [searchParams, setSearchParams, invalidateSubscription, toast, trackEvent]);
+  }, [searchParams, setSearchParams, invalidateSubscription, toast, trackEvent, session]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
