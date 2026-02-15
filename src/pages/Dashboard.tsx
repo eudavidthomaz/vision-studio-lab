@@ -416,12 +416,19 @@ const Dashboard = () => {
                 throw new Error(data.error);
               }
 
-              toast({ title: "🎉 Transcrição extraída!", description: "Sermão salvo com sucesso.", duration: 3000 });
               setShowYouTubeModal(false);
               if (data.content_id) {
+                toast({ title: "🎉 Transcrição extraída!", description: "Sermão salvo com sucesso.", duration: 3000 });
                 navigate(`/biblioteca/${data.content_id}`);
               } else if (data.sermon_id) {
+                toast({ 
+                  title: "⚠️ Transcrição salva parcialmente", 
+                  description: "A transcrição foi salva, mas a análise automática falhou. Tente gerar o conteúdo novamente a partir do sermão.", 
+                  duration: 7000 
+                });
                 navigate(`/`);
+              } else {
+                toast({ title: "❌ Erro inesperado", description: "Nenhum dado foi retornado pela extração.", variant: "destructive", duration: 5000 });
               }
             } catch (err: any) {
               toast({ title: "❌ Erro na extração", description: err?.message || "Tente novamente.", variant: "destructive", duration: 5000 });
