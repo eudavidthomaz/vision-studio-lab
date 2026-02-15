@@ -416,9 +416,13 @@ const Dashboard = () => {
                 throw new Error(data.error);
               }
 
-              toast({ title: "🎉 Conteúdo extraído!", description: "Redirecionando...", duration: 3000 });
+              toast({ title: "🎉 Transcrição extraída!", description: "Sermão salvo com sucesso.", duration: 3000 });
               setShowYouTubeModal(false);
-              navigate(`/biblioteca/${data.content_id}`);
+              if (data.content_id) {
+                navigate(`/biblioteca/${data.content_id}`);
+              } else if (data.sermon_id) {
+                navigate(`/`);
+              }
             } catch (err: any) {
               toast({ title: "❌ Erro na extração", description: err?.message || "Tente novamente.", variant: "destructive", duration: 5000 });
             } finally {
