@@ -7,6 +7,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const browserHeaders: Record<string, string> = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+  "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "Cookie": "CONSENT=PENDING+987; SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg",
+};
+
 // ─── Helper: Extract video ID from various YouTube URL formats ───
 function extractVideoId(url: string): string | null {
   const patterns = [
@@ -23,69 +30,234 @@ function extractVideoId(url: string): string | null {
   return null;
 }
 
-// ─── Helper: Fetch real transcript via YouTube Innertube API ───
-async function fetchYouTubeTranscript(videoId: string): Promise<{ transcript: string; title: string }> {
-  // Step 1: Get player data with caption tracks
-  const playerResp = await fetch("https://www.youtube.com/youtubei/v1/player", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      context: {
-        client: {
-          hl: "pt",
-          gl: "BR",
-          clientName: "WEB",
-          clientVersion: "2.20240101.00.00",
-        },
+// ─── Get video metadata via oEmbed (always works) ───
+async function getVideoMetadata(videoId: string): Promise<{ title: string; author: string }> {
+  try {
+    const resp = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+    if (resp.ok) {
+      const data = await resp.json();
+      return { title: data.title || "Vídeo do YouTube", author: data.author_name || "" };
+    }
+  } catch (_) { /* ignore */ }
+  return { title: "Vídeo do YouTube", author: "" };
+}
+
+// ─── Layer 1: Try scraping approaches for captions ───
+async function tryScrapingCaptions(videoId: string): Promise<string | null> {
+  // Try embed page
+  try {
+    console.log(`[extract-youtube] Scraping: Trying embed page`);
+    const embedResp = await fetch(`https://www.youtube.com/embed/${videoId}`, { headers: browserHeaders });
+    if (embedResp.ok) {
+      const html = await embedResp.text();
+      if (html.includes('"captionTracks"')) {
+        const idx = html.indexOf('"captionTracks"');
+        const bracketStart = html.indexOf('[', idx);
+        if (bracketStart !== -1) {
+          let depth = 0, end = bracketStart;
+          for (let i = bracketStart; i < html.length; i++) {
+            if (html[i] === '[') depth++;
+            else if (html[i] === ']') { depth--; if (depth === 0) { end = i; break; } }
+          }
+          const tracks = JSON.parse(html.substring(bracketStart, end + 1));
+          const transcript = await downloadCaptionTrack(tracks);
+          if (transcript) return transcript;
+        }
+      }
+    }
+  } catch (e) {
+    console.log(`[extract-youtube] Scraping embed failed: ${e}`);
+  }
+
+  // Try watch page with consent bypass
+  try {
+    console.log(`[extract-youtube] Scraping: Trying watch page`);
+    const pageResp = await fetch(`https://www.youtube.com/watch?v=${videoId}&hl=pt&gl=BR&has_verified=1&bpctr=9999999999`, {
+      headers: {
+        ...browserHeaders,
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1",
+        "Cookie": "CONSENT=YES+cb.20210328-17-p0.en+FX+987; SOCS=CAISNQgDEitib3FfaWRlbnRpdHlmcm9udGVuZHVpc2VydmVyXzIwMjMwODI5LjA3X3AxGgJwdCACGgYIgOi_pgY",
       },
-      videoId,
+    });
+    if (pageResp.ok) {
+      const html = await pageResp.text();
+      console.log(`[extract-youtube] Watch page length: ${html.length}, hasCaptions: ${html.includes('"captionTracks"')}`);
+      if (html.includes('"captionTracks"')) {
+        const idx = html.indexOf('"captionTracks"');
+        const bracketStart = html.indexOf('[', idx);
+        if (bracketStart !== -1) {
+          let depth = 0, end = bracketStart;
+          for (let i = bracketStart; i < html.length; i++) {
+            if (html[i] === '[') depth++;
+            else if (html[i] === ']') { depth--; if (depth === 0) { end = i; break; } }
+          }
+          const tracks = JSON.parse(html.substring(bracketStart, end + 1));
+          const transcript = await downloadCaptionTrack(tracks);
+          if (transcript) return transcript;
+        }
+      }
+    }
+  } catch (e) {
+    console.log(`[extract-youtube] Scraping watch failed: ${e}`);
+  }
+
+  // Try Innertube API
+  try {
+    console.log(`[extract-youtube] Scraping: Trying Innertube API`);
+    const resp = await fetch("https://www.youtube.com/youtubei/v1/player?prettyPrint=false", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...browserHeaders },
+      body: JSON.stringify({
+        context: { client: { hl: "pt", gl: "BR", clientName: "WEB", clientVersion: "2.20250210.01.00" } },
+        videoId,
+      }),
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      const tracks = data?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+      console.log(`[extract-youtube] Innertube: playability=${data?.playabilityStatus?.status}, tracks=${tracks?.length || 0}`);
+      if (tracks && tracks.length > 0) {
+        const transcript = await downloadCaptionTrack(tracks);
+        if (transcript) return transcript;
+      }
+    }
+  } catch (e) {
+    console.log(`[extract-youtube] Innertube failed: ${e}`);
+  }
+
+  // Try direct timedtext API
+  try {
+    console.log(`[extract-youtube] Scraping: Trying timedtext API`);
+    for (const lang of ["pt", "pt-BR", "en", ""]) {
+      for (const kind of ["asr", ""]) {
+        const params = new URLSearchParams({ v: videoId, fmt: "srv1", ...(lang ? { lang } : {}), ...(kind ? { kind } : {}) });
+        const resp = await fetch(`https://www.youtube.com/api/timedtext?${params}`, { headers: browserHeaders });
+        if (resp.ok) {
+          const xml = await resp.text();
+          if (xml.includes("<text") && xml.length > 100) {
+            const transcript = parseTranscriptXml(xml);
+            if (transcript && transcript.length > 50) {
+              console.log(`[extract-youtube] Timedtext worked (lang=${lang}, kind=${kind}): ${transcript.length} chars`);
+              return transcript;
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.log(`[extract-youtube] Timedtext failed: ${e}`);
+  }
+
+  return null;
+}
+
+// ─── Helper: Download best caption track ───
+async function downloadCaptionTrack(tracks: any[]): Promise<string | null> {
+  let selected = tracks.find((t: any) => t.languageCode?.startsWith("pt"));
+  if (!selected) selected = tracks.find((t: any) => t.languageCode?.startsWith("en"));
+  if (!selected) selected = tracks[0];
+  
+  if (!selected?.baseUrl) return null;
+  
+  console.log(`[extract-youtube] Downloading caption track: ${selected.languageCode}`);
+  const resp = await fetch(selected.baseUrl, { headers: browserHeaders });
+  if (!resp.ok) return null;
+  
+  const xml = await resp.text();
+  const transcript = parseTranscriptXml(xml);
+  return transcript && transcript.length > 50 ? transcript : null;
+}
+
+// ─── Layer 2: Use Gemini to transcribe video directly ───
+async function transcribeWithGemini(videoId: string, videoTitle: string, lovableApiKey: string): Promise<string> {
+  console.log(`[extract-youtube] Gemini: Transcribing video ${videoId} directly`);
+  
+  const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  
+  const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${lovableApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-pro",
+      messages: [
+        {
+          role: "system",
+          content: `Você é um transcritor profissional. Sua tarefa é transcrever FIELMENTE o conteúdo falado no vídeo do YouTube fornecido.
+
+REGRAS ABSOLUTAS:
+- Transcreva APENAS o que é realmente falado no vídeo
+- NÃO invente, NÃO adivinhe, NÃO complete com conteúdo que não está no vídeo
+- Se não conseguir acessar o vídeo, responda EXATAMENTE: "ERRO: Não foi possível acessar o vídeo"
+- Se o vídeo não tiver áudio compreensível, responda: "ERRO: Áudio não compreensível"
+- Inclua pausas significativas como [pausa]
+- Mantenha o idioma original do falante
+- A transcrição deve ser o texto corrido do que é falado, sem timestamps`,
+        },
+        {
+          role: "user",
+          content: `Transcreva fielmente todo o conteúdo falado neste vídeo do YouTube: ${youtubeUrl}
+
+Título do vídeo: "${videoTitle}"
+
+Retorne APENAS a transcrição do que é falado, sem comentários adicionais.`,
+        },
+      ],
+      max_tokens: 16000,
+      temperature: 0.1,
     }),
   });
 
-  if (!playerResp.ok) {
-    throw new Error("Falha ao acessar dados do vídeo no YouTube");
+  if (!resp.ok) {
+    const errBody = await resp.text();
+    console.error(`[extract-youtube] Gemini transcription failed: ${resp.status} - ${errBody.substring(0, 200)}`);
+    throw new Error(`Gemini transcription failed: ${resp.status}`);
   }
 
-  const playerData = await playerResp.json();
+  const data = await resp.json();
+  const content = data.choices?.[0]?.message?.content;
 
-  const title = playerData?.videoDetails?.title || "Vídeo do YouTube";
-  const captionTracks = playerData?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-
-  if (!captionTracks || captionTracks.length === 0) {
-    throw new Error("Este vídeo não possui legendas disponíveis (nem manuais nem automáticas). Não é possível extrair a transcrição.");
+  if (!content) {
+    throw new Error("Gemini returned empty response");
   }
 
-  // Step 2: Pick best caption track (pt > en > first available)
-  let selectedTrack = captionTracks.find((t: any) => t.languageCode?.startsWith("pt"));
-  if (!selectedTrack) {
-    selectedTrack = captionTracks.find((t: any) => t.languageCode?.startsWith("en"));
-  }
-  if (!selectedTrack) {
-    selectedTrack = captionTracks[0];
+  // Check for error markers
+  if (content.startsWith("ERRO:")) {
+    throw new Error(content);
   }
 
-  const captionUrl = selectedTrack.baseUrl;
-  if (!captionUrl) {
-    throw new Error("URL de legendas não encontrada para este vídeo");
+  // Validate minimum length
+  if (content.length < 100) {
+    throw new Error(`Gemini transcript too short (${content.length} chars), likely incomplete`);
   }
 
-  console.log(`[extract-youtube] Using caption track: ${selectedTrack.languageCode} (${selectedTrack.name?.simpleText || "auto"})`);
+  console.log(`[extract-youtube] Gemini transcription: ${content.length} chars`);
+  return content;
+}
 
-  // Step 3: Download caption XML
-  const captionResp = await fetch(captionUrl);
-  if (!captionResp.ok) {
-    throw new Error("Falha ao baixar legendas do vídeo");
+// ─── Main transcript fetcher ───
+async function fetchYouTubeTranscript(videoId: string, lovableApiKey: string): Promise<{ transcript: string; title: string }> {
+  // Always get metadata first (reliable)
+  const metadata = await getVideoMetadata(videoId);
+  console.log(`[extract-youtube] Video metadata: title="${metadata.title}", author="${metadata.author}"`);
+
+  // Try scraping approaches first (most accurate)
+  const scrapedTranscript = await tryScrapingCaptions(videoId);
+  if (scrapedTranscript) {
+    console.log(`[extract-youtube] Got transcript via scraping: ${scrapedTranscript.length} chars`);
+    return { transcript: scrapedTranscript, title: metadata.title };
   }
-  const captionXml = await captionResp.text();
 
-  // Step 4: Parse XML to plain text
-  const transcript = parseTranscriptXml(captionXml);
-
-  if (!transcript || transcript.trim().length < 50) {
-    throw new Error("Legendas encontradas mas com conteúdo insuficiente para extrair transcrição");
-  }
-
-  return { transcript, title };
+  // Fallback: Use Gemini to transcribe directly
+  console.log(`[extract-youtube] All scraping methods failed. Using Gemini to transcribe video directly.`);
+  const geminiTranscript = await transcribeWithGemini(videoId, metadata.title, lovableApiKey);
+  return { transcript: geminiTranscript, title: metadata.title };
 }
 
 // ─── Helper: Parse YouTube caption XML to plain text ───
@@ -95,7 +267,6 @@ function parseTranscriptXml(xml: string): string {
   let match;
   while ((match = regex.exec(xml)) !== null) {
     let text = match[1];
-    // Decode HTML entities
     text = text.replace(/&amp;/g, "&")
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">")
@@ -205,7 +376,7 @@ serve(async (req) => {
     let transcript: string;
     let videoTitle: string;
     try {
-      const result = await fetchYouTubeTranscript(videoId);
+      const result = await fetchYouTubeTranscript(videoId, lovableApiKey);
       transcript = result.transcript;
       videoTitle = result.title;
       console.log(`[extract-youtube] Transcript fetched: ${transcript.length} chars, title: "${videoTitle}"`);
