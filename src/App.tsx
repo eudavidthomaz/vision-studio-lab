@@ -61,6 +61,7 @@ const App = () => (
           <Route path="/escalas" element={<Schedules />} />
           <Route path="/confirmar/:token" element={<ConfirmSchedule />} />
           <Route path="/instalar" element={<Install />} />
+          <Route path="/bio" element={<Bio />} />
           {/* Legacy redirects */}
           <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />
           <Route path="/conteudo/:id" element={<LegacyContentRedirect />} />
