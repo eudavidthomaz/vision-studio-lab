@@ -1,106 +1,50 @@
 
 
-# Confirmação de Escala via Link Publico (Sem Integracao Externa)
+# Build Complete `/bio` Church Landing Page
 
-## Arquitetura
+## Overview
 
-O sistema ja possui a infraestrutura de tokens e pagina publica. A solucao e completar o fluxo sem depender de e-mail ou qualquer servico externo:
+Rebuild `src/pages/Bio.tsx` as a full 11-section church landing page. Mobile-first, premium dark glass aesthetic, reusing existing components (`GlassCard`, `Button`, `Badge`, `ContainerScrollHero`, `SparklesCore`, framer-motion animations). All text content stored in a config object at the top of the file for easy future editing.
 
-```text
-Lider gera escala
-  -> Tokens criados automaticamente (1 por voluntario)
-  -> UI exibe links de confirmacao
-  -> Lider compartilha via WhatsApp / copia link
-  -> Voluntario abre link publico (sem login)
-  -> Confirma / Recusa / Pede substituto
-  -> Status atualizado em tempo real na tela do lider
-```
+## Architecture
 
-## O que ja existe (nao precisa mudar)
+Single file `src/pages/Bio.tsx` — no new components needed. All sections use the same animation pattern from Landing.tsx (`sectionVariants` with `whileInView`).
 
-- Tabela `schedule_confirmation_tokens` com token hex, expiracao 7 dias
-- Pagina `/confirmar/:token` (publica, sem autenticacao)
-- Edge Function `confirm-schedule` que valida token, atualiza status, notifica lider
+## Section Breakdown
 
-## O que precisa ser implementado
+| # | Section | Key Components Used |
+|---|---------|-------------------|
+| 1 | Hero (existing ContainerScrollHero + YouTube) | `ContainerScrollHero`, `Button`, `Badge` |
+| 2 | "Primeira vez aqui?" | `GlassCard` (4 FAQ cards), `Button` |
+| 3 | Horários e Endereço | `Card`, icons from `lucide-react` |
+| 4 | Quem Somos | 3x `GlassCard` with glow colors |
+| 5 | Ministérios | 5x glass cards in responsive grid |
+| 6 | Transmissão / Mensagens | `Button` links, YouTube embed |
+| 7 | Próximos Encontros | Event cards with date badges |
+| 8 | Pedido de Oração | `GlassCard` with WhatsApp CTA |
+| 9 | Contato | 4 icon buttons in grid |
+| 10 | Dízimos e Ofertas | Simple CTA section |
+| 11 | Footer | Minimal dark footer |
 
-### 1. Auto-criar tokens ao gerar escalas
+## Technical Details
 
-Nas Edge Functions `generate-volunteer-schedule` e `generate-smart-schedule`, apos inserir os registros em `volunteer_schedules`, inserir um token para cada escala criada na tabela `schedule_confirmation_tokens`.
+- **Config object**: `CHURCH_CONFIG` at top with all texts, links, schedule, address — single source of truth
+- **Animation**: `motion.section` with `whileInView` viewport trigger, staggered children via `itemVariants`
+- **Buttons**: Use existing `Button` component with `variant="solid"` for primary CTAs, `variant="outline"` for secondary
+- **Cards**: `GlassCard` for highlight cards (FAQ, ministries, values), standard `Card` for info blocks
+- **Icons**: `lucide-react` — MapPin, Clock, Phone, Heart, Users, Music, BookOpen, Church, ExternalLink, Instagram, Youtube, Mail, MessageCircle
+- **Mobile-first**: All grids use `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`, buttons are `w-full sm:w-auto`, generous touch targets (`min-h-[48px]`)
+- **SparklesCore**: Used in hero section and prayer section for emotional accent
+- **Scroll-to-section**: Hero CTAs use `document.getElementById().scrollIntoView()` for "Quero visitar" → scrolls to "primeira-vez" section
+- **WhatsApp links**: `https://wa.me/5511999999999` pattern (placeholder number in config)
+- **Maps link**: `https://maps.google.com/?q=...` pattern
+- **YouTube**: Embed for transmissão section, channel link button
 
-### 2. Exibir links de confirmacao na UI de escalas
+## Files
 
-Na pagina `/escalas`, ao lado de cada voluntario com status "Aguardando", exibir botoes:
+| File | Action |
+|------|--------|
+| `src/pages/Bio.tsx` | Rewrite completely |
 
-- **Copiar Link**: copia a URL `{origin}/confirmar/{token}` para a area de transferencia
-- **Compartilhar via WhatsApp**: abre `https://wa.me/?text=...` com mensagem pre-formatada contendo nome do voluntario, data, funcao e link
-
-Isso requer buscar os tokens da tabela `schedule_confirmation_tokens` junto com as escalas.
-
-### 3. Painel de confirmacoes pendentes (melhoria na pagina de escalas)
-
-Um card/secao mostrando resumo:
-- X confirmados / Y aguardando / Z recusados
-- Lista de pendentes com botao rapido de compartilhar link
-- Indicador visual de quantos dias cada token esta pendente
-
-## Detalhes Tecnicos
-
-### Edge Functions (generate-volunteer-schedule e generate-smart-schedule)
-
-Apos o `insert` em `volunteer_schedules`, iterar sobre os registros criados e inserir em `schedule_confirmation_tokens`:
-
-```text
-Para cada schedule inserido:
-  INSERT INTO schedule_confirmation_tokens (schedule_id)
-  VALUES (schedule.id)
-  -- token e expires_at sao gerados automaticamente pelo DEFAULT da tabela
-```
-
-### Frontend - Componente de link de confirmacao
-
-Novo componente `ScheduleShareLink` que recebe o token e renderiza:
-- Botao "Copiar Link" usando `navigator.clipboard.writeText()`
-- Botao "WhatsApp" que abre `https://wa.me/?text=` com mensagem formatada
-- Toast de confirmacao ao copiar
-
-### Frontend - Query de escalas com tokens
-
-Atualizar a query em `useVolunteerSchedules` para incluir os tokens:
-
-```text
-volunteer_schedules (
-  ...,
-  schedule_confirmation_tokens (
-    token,
-    used_at,
-    action_taken,
-    expires_at
-  )
-)
-```
-
-### Frontend - Pagina de escalas
-
-Na listagem de escalas, para cada voluntario com status `scheduled`:
-- Exibir os botoes de compartilhar link ao lado do badge "Aguardando"
-- Para voluntarios com status `confirmed`, exibir badge verde sem botoes
-
-## Arquivos a Modificar
-
-| Arquivo | Mudanca |
-|---|---|
-| `supabase/functions/generate-volunteer-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `supabase/functions/generate-smart-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `src/hooks/useVolunteerSchedules.tsx` | Incluir tokens na query de escalas |
-| `src/components/schedules/ScheduleShareLink.tsx` | **Novo** - botoes copiar link e WhatsApp |
-| `src/pages/Schedules.tsx` | Integrar ScheduleShareLink nos cards de escala |
-
-## Vantagens desta abordagem
-
-- Zero dependencia externa (sem Resend, sem SMTP, sem API de email)
-- Voluntario nao precisa criar conta
-- Lider tem controle total de como compartilha (WhatsApp, SMS, presencial)
-- Tokens temporarios (7 dias) com uso unico garantem seguranca
-- Pagina publica ja existe e funciona
+No routing changes needed — `/bio` route already exists.
 
