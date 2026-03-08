@@ -19,6 +19,29 @@
   }
 }
 
+@keyframes borderTravel {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 200%;
+  }
+}
+
+/* Auth page border glow animation */
+.auth-border-glow {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    hsl(263 85% 65% / 0.4) 60deg,
+    hsl(188 95% 50% / 0.3) 120deg,
+    transparent 180deg,
+    hsl(263 70% 50% / 0.2) 240deg,
+    transparent 360deg
+  );
+  animation: borderTravel 6s linear infinite;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
