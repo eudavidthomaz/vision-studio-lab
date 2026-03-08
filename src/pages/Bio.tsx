@@ -101,12 +101,12 @@ const CHURCH = {
     },
   ],
   ministries: [
-    { id: "m1", title: "Infantil", description: "Cuidado e ensino bíblico para os pequenos", tag: "Crianças" },
-    { id: "m2", title: "Jovens", description: "Comunhão, discipulado e crescimento", tag: "Juventude" },
-    { id: "m3", title: "Casais e Famílias", description: "Fortalecendo vínculos no amor de Cristo", tag: "Família" },
-    { id: "m4", title: "Pequenos Grupos", description: "Estudo bíblico e vida em comunidade", tag: "Células" },
-    { id: "m5", title: "Louvor e Serviço", description: "Adoração e serviço prático na casa de Deus", tag: "Louvor" },
-  ] satisfies CardStackItem[],
+    { id: "m1", title: "Infantil", description: ["Cuidado e ensino bíblico", "para os pequenos de 0 a 11 anos."] },
+    { id: "m2", title: "Jovens", description: ["Comunhão, discipulado", "e crescimento na fé."] },
+    { id: "m3", title: "Casais e Famílias", description: ["Fortalecendo vínculos", "no amor de Cristo."] },
+    { id: "m4", title: "Pequenos Grupos", description: ["Estudo bíblico e vida", "em comunidade durante a semana."] },
+    { id: "m5", title: "Louvor e Serviço", description: ["Adoração e serviço prático", "na casa de Deus."] },
+  ],
   events: [
     { date: "16 Mar", title: "Culto Dominical", time: "9h e 18h", tag: "Culto" },
     { date: "19 Mar", title: "Culto de Oração", time: "20h", tag: "Oração" },
