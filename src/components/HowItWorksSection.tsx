@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { CardStack, type CardStackItem } from "@/components/ui/card-stack";
+import { useIsMobile } from "@/hooks/use-mobile";
 import stepAudio from "@/assets/step-1-audio.jpg";
 import stepPack from "@/assets/step-2-pack.jpg";
 import stepPlanner from "@/assets/step-3-planner.jpg";
@@ -42,6 +43,7 @@ const sectionVariants = {
 };
 
 const HowItWorksSection = () => {
+  const isMobile = useIsMobile();
   return (
     <motion.section
       id="como-funciona"
@@ -61,13 +63,13 @@ const HowItWorksSection = () => {
 
         <CardStack
           items={howItWorksCards}
-          cardWidth={560}
-          cardHeight={340}
-          overlap={0.45}
-          spreadDeg={40}
-          depthPx={120}
-          tiltXDeg={10}
-          activeLiftPx={18}
+          cardWidth={isMobile ? 300 : 560}
+          cardHeight={isMobile ? 200 : 340}
+          overlap={isMobile ? 0.5 : 0.45}
+          spreadDeg={isMobile ? 20 : 40}
+          depthPx={isMobile ? 60 : 120}
+          tiltXDeg={isMobile ? 6 : 10}
+          activeLiftPx={isMobile ? 10 : 18}
           activeScale={1.02}
           inactiveScale={0.92}
           autoAdvance
