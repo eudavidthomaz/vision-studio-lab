@@ -18,24 +18,24 @@ export const AICreatorCard = ({ onClick }: AICreatorCardProps) => {
           </div>
         </div>
 
-        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-3 font-gunterz text-foreground uppercase">
-          Crie para o reino com apenas um clique...
+        <h2 className="sm:text-xl md:text-2xl font-bold mb-3 font-gunterz text-foreground uppercase lg:text-base text-sm">
+          VOCÊ FOI CHAMADO PARA CRIAR 
+
+  
         </h2>
 
         <p className="text-muted-foreground mb-6 max-w-lg mx-auto text-xs">
           Gere conteúdo bíblico completo, com fundamento teológico e criatividade pastoral
         </p>
 
-        <Button
-          onClick={onClick}
-          size="lg"
-          className="group/btn relative overflow-hidden bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/50 transition-all duration-300"
-        >
+        <Button onClick={onClick} size="lg"
+        className="group/btn relative overflow-hidden bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/50 transition-all duration-300">
+          
           <Sparkles className="mr-2 h-5 w-5 animate-pulse" />
-          <span className="relative z-10">Criar com IA</span>
+          <span className="relative z-10">Gerar conteúdo </span>
           <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300" />
         </Button>
       </div>
-    </GlassCard>
-  );
+    </GlassCard>);
+
 };
