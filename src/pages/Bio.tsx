@@ -424,7 +424,7 @@ const Bio = () => {
                 </motion.div>
               </section>
 
-              {/* Ministérios — CardStack fan */}
+              {/* Ministérios — Glow Grid */}
               <section className="container mx-auto px-4 pb-16 md:pb-24">
                 <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
                   <motion.div variants={fadeIn} className="text-center mb-8 md:mb-12">
@@ -432,26 +432,22 @@ const Bio = () => {
                       Há um lugar para você aqui
                     </h2>
                     <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-                      A vida da igreja acontece de muitas formas ao longo da semana. Arraste para explorar nossos ministérios.
+                      A vida da igreja acontece de muitas formas ao longo da semana.
                     </p>
                   </motion.div>
 
-                  <motion.div variants={fadeIn} className="max-w-3xl mx-auto">
-                    <CardStack
-                      items={CHURCH.ministries}
-                      cardWidth={400}
-                      cardHeight={240}
-                      maxVisible={5}
-                      overlap={0.5}
-                      spreadDeg={40}
-                      activeScale={1.05}
-                      inactiveScale={0.9}
-                      showDots
-                      autoAdvance
-                      intervalMs={3500}
-                      pauseOnHover
-                      renderCard={(item, state) => <MinistryCard item={item} state={state} />}
-                    />
+                  <motion.div variants={fadeIn} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                    {CHURCH.ministries.map((m) => {
+                      const Icon = ministryIcons[m.id] || ChurchIcon;
+                      return (
+                        <MinistryGlowCard
+                          key={m.id}
+                          title={m.title}
+                          description={m.description}
+                          icon={<Icon className="w-5 h-5" />}
+                        />
+                      );
+                    })}
                   </motion.div>
 
                   <motion.div variants={fadeIn} className="flex justify-center mt-8">
