@@ -1,106 +1,51 @@
 
 
-# Confirmação de Escala via Link Publico (Sem Integracao Externa)
+# Hero Rewrite: ContainerScroll Strategy
 
-## Arquitetura
+## Summary
 
-O sistema ja possui a infraestrutura de tokens e pagina publica. A solucao e completar o fluxo sem depender de e-mail ou qualquer servico externo:
+Replace the current `HeroScrollVideo` component (custom wheel/touch hijacking approach) with a new `ContainerScroll`-based hero that uses Framer Motion's native `useScroll` + `useTransform` for a 3D perspective card rotation effect. The video card starts rotated ~20° on X-axis and flattens to 0° as the user scrolls — no scroll hijacking, no `preventDefault`.
 
-```text
-Lider gera escala
-  -> Tokens criados automaticamente (1 por voluntario)
-  -> UI exibe links de confirmacao
-  -> Lider compartilha via WhatsApp / copia link
-  -> Voluntario abre link publico (sem login)
-  -> Confirma / Recusa / Pede substituto
-  -> Status atualizado em tempo real na tela do lider
-```
+## What Changes
 
-## O que ja existe (nao precisa mudar)
+### 1. New Component: `src/components/ContainerScrollHero.tsx`
+Adapted from the reference code, customized for our stack:
+- Uses `useScroll({ target: containerRef })` + `useTransform` for `rotateX`, `scale`, `translateY`
+- Mobile: scale `[0.7, 0.9]`, Desktop: `[1.05, 1]`
+- `rotateX` transforms from `20` → `0` as user scrolls
+- Title section translates up with scroll via `translateY`
+- Card wrapper: dark rounded container (`bg-[#222222]`, `border-[#6C6C6C]`, `rounded-[30px]`) with heavy box-shadow
+- YouTube iframe lives inside the card as `children`
+- `titleComponent` prop receives the title + subtitle + CTA markup
+- Container height: `h-[60rem] md:h-[80rem]` to create the scroll runway
 
-- Tabela `schedule_confirmation_tokens` com token hex, expiracao 7 dias
-- Pagina `/confirmar/:token` (publica, sem autenticacao)
-- Edge Function `confirm-schedule` que valida token, atualiza status, notifica lider
+### 2. Update `src/pages/Landing.tsx`
+- Replace `HeroScrollVideo` import with `ContainerScrollHero`
+- Pass title/subtitle/meta/CTA as `titleComponent`
+- Pass YouTube iframe as `children`
+- Remove `HeroScrollVideo` wrapper — the sections below now flow naturally (no more `showContent` gating)
 
-## O que precisa ser implementado
+### 3. Delete `src/components/HeroScrollVideo.tsx`
+No longer needed.
 
-### 1. Auto-criar tokens ao gerar escalas
-
-Nas Edge Functions `generate-volunteer-schedule` e `generate-smart-schedule`, apos inserir os registros em `volunteer_schedules`, inserir um token para cada escala criada na tabela `schedule_confirmation_tokens`.
-
-### 2. Exibir links de confirmacao na UI de escalas
-
-Na pagina `/escalas`, ao lado de cada voluntario com status "Aguardando", exibir botoes:
-
-- **Copiar Link**: copia a URL `{origin}/confirmar/{token}` para a area de transferencia
-- **Compartilhar via WhatsApp**: abre `https://wa.me/?text=...` com mensagem pre-formatada contendo nome do voluntario, data, funcao e link
-
-Isso requer buscar os tokens da tabela `schedule_confirmation_tokens` junto com as escalas.
-
-### 3. Painel de confirmacoes pendentes (melhoria na pagina de escalas)
-
-Um card/secao mostrando resumo:
-- X confirmados / Y aguardando / Z recusados
-- Lista de pendentes com botao rapido de compartilhar link
-- Indicador visual de quantos dias cada token esta pendente
-
-## Detalhes Tecnicos
-
-### Edge Functions (generate-volunteer-schedule e generate-smart-schedule)
-
-Apos o `insert` em `volunteer_schedules`, iterar sobre os registros criados e inserir em `schedule_confirmation_tokens`:
+## Technical Details
 
 ```text
-Para cada schedule inserido:
-  INSERT INTO schedule_confirmation_tokens (schedule_id)
-  VALUES (schedule.id)
-  -- token e expires_at sao gerados automaticamente pelo DEFAULT da tabela
+┌──────────────────────────────────┐
+│  ContainerScroll (h-[80rem])     │
+│  ┌────────────────────────────┐  │
+│  │ Header (translateY)        │  │
+│  │  Title + Subtitle + CTA   │  │
+│  └────────────────────────────┘  │
+│  ┌────────────────────────────┐  │
+│  │ Card (rotateX + scale)     │  │
+│  │  ┌──────────────────────┐  │  │
+│  │  │ YouTube iframe       │  │  │
+│  │  └──────────────────────┘  │  │
+│  └────────────────────────────┘  │
+└──────────────────────────────────┘
+│  ... rest of Landing sections    │
 ```
 
-### Frontend - Componente de link de confirmacao
-
-Novo componente `ScheduleShareLink` que recebe o token e renderiza:
-- Botao "Copiar Link" usando `navigator.clipboard.writeText()`
-- Botao "WhatsApp" que abre `https://wa.me/?text=` com mensagem formatada
-- Toast de confirmacao ao copiar
-
-### Frontend - Query de escalas com tokens
-
-Atualizar a query em `useVolunteerSchedules` para incluir os tokens:
-
-```text
-volunteer_schedules (
-  ...,
-  schedule_confirmation_tokens (
-    token,
-    used_at,
-    action_taken,
-    expires_at
-  )
-)
-```
-
-### Frontend - Pagina de escalas
-
-Na listagem de escalas, para cada voluntario com status `scheduled`:
-- Exibir os botoes de compartilhar link ao lado do badge "Aguardando"
-- Para voluntarios com status `confirmed`, exibir badge verde sem botoes
-
-## Arquivos a Modificar
-
-| Arquivo | Mudanca |
-|---|---|
-| `supabase/functions/generate-volunteer-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `supabase/functions/generate-smart-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `src/hooks/useVolunteerSchedules.tsx` | Incluir tokens na query de escalas |
-| `src/components/schedules/ScheduleShareLink.tsx` | **Novo** - botoes copiar link e WhatsApp |
-| `src/pages/Schedules.tsx` | Integrar ScheduleShareLink nos cards de escala |
-
-## Vantagens desta abordagem
-
-- Zero dependencia externa (sem Resend, sem SMTP, sem API de email)
-- Voluntario nao precisa criar conta
-- Lider tem controle total de como compartilha (WhatsApp, SMS, presencial)
-- Tokens temporarios (7 dias) com uso unico garantem seguranca
-- Pagina publica ja existe e funciona
+Key difference: Native scroll — no wheel/touch event hijacking. The tall container creates a natural scroll region that drives the animation via `scrollYProgress`.
 
