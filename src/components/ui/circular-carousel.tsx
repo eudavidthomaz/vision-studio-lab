@@ -174,7 +174,7 @@ export function CircularCarousel3D({
         className
       )}
       style={{
-        height: cardH + 60,
+        height: cardH + 80,
         perspective: "2000px",
       }}
       onPointerDown={handlePointerDown}
