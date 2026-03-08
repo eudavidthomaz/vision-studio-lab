@@ -5,7 +5,7 @@ export type HeroScrollVideoProps = {
   subtitle?: ReactNode;
   meta?: ReactNode;
   credits?: ReactNode;
-  poster?: string;
+  iframeSrc?: string;
   overlay?: {
     caption?: ReactNode;
     heading?: ReactNode;
@@ -21,7 +21,6 @@ export type HeroScrollVideoProps = {
   eases?: { container?: string; overlay?: string; text?: string };
   smoothScroll?: boolean;
   lenisOptions?: Record<string, unknown>;
-  onMediaClick?: () => void;
   className?: string;
   style?: CSSProperties;
 };
@@ -39,7 +38,7 @@ export const HeroScrollVideo: React.FC<HeroScrollVideoProps> = ({
   subtitle,
   meta,
   credits,
-  poster,
+  iframeSrc,
   overlay,
   initialBoxSize = DEFAULTS.initialBoxSize,
   targetSize = "fullscreen",
@@ -50,7 +49,6 @@ export const HeroScrollVideo: React.FC<HeroScrollVideoProps> = ({
   eases = DEFAULTS.eases,
   smoothScroll = true,
   lenisOptions,
-  onMediaClick,
   className,
   style,
 }) => {
@@ -92,7 +90,6 @@ export const HeroScrollVideo: React.FC<HeroScrollVideoProps> = ({
 
       if (cancelled) return;
 
-      // Lenis smooth scroll
       if (smoothScroll) {
         try {
           const lenisPkg = await import("lenis");
@@ -247,21 +244,23 @@ export const HeroScrollVideo: React.FC<HeroScrollVideoProps> = ({
       {/* Sticky scroll section */}
       <div data-sticky-scroll style={{ height: `${scrollHeightVh}vh` }} className="hsv-scroll">
         <div className="hsv-sticky is-sticky">
-          <div
-            ref={containerRef}
-            className="hsv-media"
-            onClick={onMediaClick}
-            role={onMediaClick ? "button" : undefined}
-            tabIndex={onMediaClick ? 0 : undefined}
-            onKeyDown={onMediaClick ? (e) => e.key === "Enter" && onMediaClick() : undefined}
-            style={{ cursor: onMediaClick ? "pointer" : undefined }}
-          >
-            <img
-              src={poster}
-              alt="Assistir vídeo de apresentação"
-              style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }}
-              loading="eager"
-            />
+          <div ref={containerRef} className="hsv-media">
+            {iframeSrc && (
+              <iframe
+                src={iframeSrc}
+                title="Video de apresentação"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                  pointerEvents: "none",
+                }}
+              />
+            )}
 
             {/* Overlay */}
             <div ref={overlayRef} className="hsv-overlay">
@@ -372,7 +371,7 @@ export const HeroScrollVideo: React.FC<HeroScrollVideoProps> = ({
           height: var(--initial-size);
           border-radius: 20px;
           overflow: hidden;
-          background: hsl(var(--background));
+          background: #000;
           display: grid;
           place-items: center;
           transition: border-radius 0.3s ease;
