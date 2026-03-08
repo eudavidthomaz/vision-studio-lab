@@ -99,7 +99,7 @@ const Landing = () => {
               <br />
               A missão continua.
             </h2>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
+            <p className="sm:text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto text-sm">
               Do altar ao feed: transforme sua pregação em uma semana de conteúdo com fundamento bíblico.
             </p>
             <Button
@@ -123,13 +123,13 @@ const Landing = () => {
       </ContainerScrollHero>
 
       {/* ═══════════════════════════════════════════
-            COMO FUNCIONA
-          ═══════════════════════════════════════════ */}
+             COMO FUNCIONA
+           ═══════════════════════════════════════════ */}
       <HowItWorksSection />
 
       {/* ═══════════════════════════════════════════
-            RECURSOS
-          ═══════════════════════════════════════════ */}
+             RECURSOS
+           ═══════════════════════════════════════════ */}
       <motion.section
         className="container mx-auto px-4 py-16 md:py-24"
         variants={sectionVariants}
@@ -150,15 +150,15 @@ const Landing = () => {
               id: i + 1,
               title: f.title,
               content: f.description,
-              icon: f.icon,
-            }))}
-          />
+              icon: f.icon
+            }))} />
+          
         </div>
       </motion.section>
 
       {/* ═══════════════════════════════════════════
-            ENTREGÁVEIS
-          ═══════════════════════════════════════════ */}
+             ENTREGÁVEIS
+           ═══════════════════════════════════════════ */}
       <motion.section
         className="container mx-auto px-4 py-16 md:py-24"
         variants={sectionVariants}
@@ -186,8 +186,8 @@ const Landing = () => {
       </motion.section>
 
       {/* ═══════════════════════════════════════════
-            TESTIMONIALS
-          ═══════════════════════════════════════════ */}
+             TESTIMONIALS
+           ═══════════════════════════════════════════ */}
       <motion.section
         className="container mx-auto px-4 py-16 md:py-24"
         variants={sectionVariants}
@@ -234,8 +234,8 @@ const Landing = () => {
       </motion.section>
 
       {/* ═══════════════════════════════════════════
-            CTA FINAL
-          ═══════════════════════════════════════════ */}
+             CTA FINAL
+           ═══════════════════════════════════════════ */}
       <motion.section
         className="container mx-auto px-4 py-16 md:py-24"
         variants={sectionVariants}
@@ -280,8 +280,8 @@ const Landing = () => {
       </motion.section>
 
       {/* ═══════════════════════════════════════════
-            FAQ
-          ═══════════════════════════════════════════ */}
+             FAQ
+           ═══════════════════════════════════════════ */}
       <motion.section
         className="container mx-auto px-4 py-16 md:py-24"
         variants={sectionVariants}
