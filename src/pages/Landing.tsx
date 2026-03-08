@@ -1,13 +1,20 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { Mic, Sparkles, Calendar, Zap, Target, CheckCircle2, ArrowRight, Play, BookOpen, Users, Layout, BookMarked } from "lucide-react";
 import logoIdeon from "@/assets/logo-ideon.png";
 
+const YOUTUBE_ID = "SGRIma5ElbY";
+const YOUTUBE_THUMB = `https://img.youtube.com/vi/${YOUTUBE_ID}/maxresdefault.jpg`;
+const YOUTUBE_NOCOOKIE = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}?autoplay=1&mute=0&loop=1&controls=0&modestbranding=1&showinfo=0&rel=0&playlist=${YOUTUBE_ID}`;
+
 const Landing = () => {
   const navigate = useNavigate();
+  const [videoOpen, setVideoOpen] = useState(false);
 
   const features = [
     {
@@ -78,7 +85,7 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Header - CTA único */}
+      {/* Header */}
       <header className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -94,66 +101,85 @@ const Landing = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-12 sm:py-16 md:py-20 lg:py-32">
-        <div className="max-w-5xl mx-auto text-center animate-fade-in">
-          <div className="inline-block mb-3 sm:mb-4 px-3 sm:px-4 py-1.5 sm:py-2 bg-primary/10 border border-primary/20 rounded-full">
-            <span className="text-primary text-xs sm:text-sm font-semibold">Beta Aberto · Uso 100% Gratuito</span>
+      {/* ═══════════════════════════════════════════
+          HERO — Primeira Dobra (Cinematic)
+      ═══════════════════════════════════════════ */}
+      <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-4 py-16 sm:py-20 overflow-hidden">
+        {/* Radial glow background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-primary/8 blur-[120px]" />
+        </div>
+
+        <div className="relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center gap-6 sm:gap-8">
+          {/* Badge */}
+          <div className="inline-block px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full animate-fade-in">
+            <span className="text-primary text-xs sm:text-sm font-semibold tracking-wide">
+              Beta Aberto · Uso 100% Gratuito
+            </span>
           </div>
-          
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-2 animate-scale-in leading-tight">
-            A câmera desliga.
-          </h1>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 sm:mb-8 animate-scale-in leading-tight">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400">
+
+          {/* Headline — font-gunterz */}
+          <h1 className="font-gunterz text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[0.95] tracking-tight animate-scale-in">
+            <span className="block text-foreground">A câmera desliga.</span>
+            <span className="block mt-1 sm:mt-2 text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-primary">
               A missão continua.
             </span>
           </h1>
-          
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-3xl mx-auto px-2">
-            Do altar ao feed: o Ide.On transforma sua pregação em uma semana de conteúdo. 
-            Carrosséis, roteiros de reels e legendas, tudo com fundamento bíblico, 
-            citações visíveis e linguagem que fala com a cidade.
+
+          {/* Subtitle */}
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in">
+            Do altar ao feed: transforme sua pregação em uma semana de conteúdo com fundamento bíblico.
           </p>
 
-          {/* Vídeo Trailer - YouTube Embed */}
-          <div className="w-full max-w-4xl mx-auto px-4 mb-8 sm:mb-10 animate-fade-in">
-            <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10">
-              <iframe
-                src="https://www.youtube.com/embed/SGRIma5ElbY?rel=0&modestbranding=1"
-                title="Ide.On - Do Altar ao Feed"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-                loading="lazy"
+          {/* CTA */}
+          <Button 
+            size="lg" 
+            onClick={() => navigate("/auth")}
+            className="text-base sm:text-lg px-8 py-5 sm:px-12 sm:py-7 bg-primary hover:bg-primary/90 group animate-fade-in"
+          >
+            Começar Grátis
+            <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform w-5 h-5 sm:w-6 sm:h-6" />
+          </Button>
+
+          {/* Poster / Thumbnail — click opens video modal */}
+          <div 
+            className="relative w-full max-w-4xl cursor-pointer group animate-fade-in"
+            onClick={() => setVideoOpen(true)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && setVideoOpen(true)}
+            aria-label="Assistir vídeo de apresentação"
+          >
+            <div className="relative aspect-video rounded-2xl overflow-hidden border border-border/30 shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.25)] transition-transform duration-500 group-hover:scale-[1.02]">
+              <img
+                src={YOUTUBE_THUMB}
+                alt="Assistir vídeo de apresentação do Ide.On"
+                className="w-full h-full object-cover"
+                loading="eager"
               />
+              {/* Dark overlay */}
+              <div className="absolute inset-0 bg-background/30 group-hover:bg-background/20 transition-colors duration-300" />
+              {/* Play button */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-background/20 backdrop-blur-md border border-foreground/10 flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/30 group-hover:border-primary/30 group-hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)]">
+                  <Play className="w-7 h-7 sm:w-9 sm:h-9 text-foreground fill-foreground ml-1" />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* CTA Único */}
-          <div className="flex justify-center mb-12 sm:mb-16 px-4">
-            <Button 
-              size="lg" 
-              onClick={() => navigate("/auth")}
-              className="text-base sm:text-lg lg:text-xl px-8 py-5 sm:px-12 sm:py-7 bg-primary hover:bg-primary/90 group w-full sm:w-auto"
-            >
-              Começar Grátis
-              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform w-5 h-5 sm:w-6 sm:h-6" />
-            </Button>
-          </div>
-
-          {/* Social Proof - Inline mobile */}
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground px-4">
+          {/* Social Proof */}
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground animate-fade-in">
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
               Mais Bíblia no feed
             </span>
-            <span className="hidden sm:inline">•</span>
+            <span className="hidden sm:inline text-border">•</span>
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
               Posts que engajam
             </span>
-            <span className="hidden sm:inline">•</span>
+            <span className="hidden sm:inline text-border">•</span>
             <span className="flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
               Alcance com propósito
@@ -162,10 +188,31 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Como Funciona - Mobile optimized */}
+      {/* ═══════════════════════════════════════════
+          VIDEO MODAL — YouTube nocookie, sem branding
+      ═══════════════════════════════════════════ */}
+      <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
+        <DialogContent className="max-w-5xl w-[95vw] p-0 border-none bg-background/95 backdrop-blur-xl overflow-hidden rounded-2xl">
+          <div className="aspect-video w-full">
+            {videoOpen && (
+              <iframe
+                src={YOUTUBE_NOCOOKIE}
+                title="Ide.On — Do Altar ao Feed"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══════════════════════════════════════════
+          COMO FUNCIONA
+      ═══════════════════════════════════════════ */}
       <section id="como-funciona" className="container mx-auto px-4 py-12 md:py-20 bg-card/5">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-[2.8125rem] md:text-[3.375rem] font-bold text-white text-center mb-4">
+          <h2 className="text-[2.8125rem] md:text-[3.375rem] font-bold text-foreground text-center mb-4">
             Como Funciona?
           </h2>
           <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
@@ -180,7 +227,7 @@ const Landing = () => {
                   <Mic className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                 </div>
                 <div className="text-primary font-bold text-sm mb-2">PASSO 1</div>
-                <h3 className="text-lg md:text-xl font-bold text-white mb-3">Grave ou Envie o Áudio</h3>
+                <h3 className="text-lg md:text-xl font-bold text-foreground mb-3">Grave ou Envie o Áudio</h3>
                 <p className="text-muted-foreground text-sm md:text-base">
                   Grave ao vivo no Ide.On ou faça upload do arquivo. A IA transcreve e identifica versículos, temas, ênfases e chamadas da sua pregação.
                 </p>
@@ -194,7 +241,7 @@ const Landing = () => {
                   <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                 </div>
                 <div className="text-primary font-bold text-sm mb-2">PASSO 2</div>
-                <h3 className="text-lg md:text-xl font-bold text-white mb-3">Gere o Pack da Semana</h3>
+                <h3 className="text-lg md:text-xl font-bold text-foreground mb-3">Gere o Pack da Semana</h3>
                 <p className="text-muted-foreground text-sm md:text-base">
                   Em minutos, você recebe estudo bíblico, resumo, frases de impacto, carrossel, roteiros de reels/shorts, legendas e hashtags — tudo coerente com a doutrina cristã histórica.
                 </p>
@@ -208,7 +255,7 @@ const Landing = () => {
                   <Calendar className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                 </div>
                 <div className="text-primary font-bold text-sm mb-2">PASSO 3</div>
-                <h3 className="text-lg md:text-xl font-bold text-white mb-3">Organize e Publique</h3>
+                <h3 className="text-lg md:text-xl font-bold text-foreground mb-3">Organize e Publique</h3>
                 <p className="text-muted-foreground text-sm md:text-base">
                   Use o planner visual para ajustar o tom, escolher os dias e exportar em PDF/Imagem ou direto para seus fluxos (Canva/CapCut/agenda de posts).
                 </p>
@@ -218,10 +265,10 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Consolidated: Resources + Deliverables with Tabs */}
+      {/* Recursos + Entregáveis */}
       <section className="container mx-auto px-4 py-12 md:py-20">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-4">
             Tudo que você precisa
           </h2>
           <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
@@ -240,7 +287,7 @@ const Landing = () => {
                   <Card key={index} className="bg-card/30 backdrop-blur border-border/50 hover:border-primary/50 transition-all">
                     <CardContent className="pt-4 md:pt-6">
                       <feature.icon className="w-8 h-8 md:w-10 md:h-10 text-primary mb-3 md:mb-4" />
-                      <h3 className="text-base md:text-lg font-bold text-white mb-2">{feature.title}</h3>
+                      <h3 className="text-base md:text-lg font-bold text-foreground mb-2">{feature.title}</h3>
                       <p className="text-muted-foreground text-xs md:text-sm">{feature.description}</p>
                     </CardContent>
                   </Card>
@@ -255,7 +302,7 @@ const Landing = () => {
                     {benefits.map((benefit, index) => (
                       <div key={index} className="flex items-start gap-2 md:gap-3">
                         <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-white text-sm md:text-base">{benefit}</span>
+                        <span className="text-foreground text-sm md:text-base">{benefit}</span>
                       </div>
                     ))}
                   </div>
@@ -266,10 +313,10 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Testimonials - Mobile optimized */}
+      {/* Testimonials */}
       <section className="container mx-auto px-4 py-12 md:py-20 bg-card/5">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-4">
             O Que Dizem Nossos Usuários
           </h2>
           <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
@@ -285,7 +332,7 @@ const Landing = () => {
                       {testimonial.image}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-white font-semibold text-sm md:text-base truncate">{testimonial.name}</p>
+                      <p className="text-foreground font-semibold text-sm md:text-base truncate">{testimonial.name}</p>
                       <p className="text-muted-foreground text-xs md:text-sm">{testimonial.role}</p>
                     </div>
                   </div>
@@ -297,12 +344,12 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* CTA Final - Simplified */}
+      {/* CTA Final */}
       <section className="container mx-auto px-4 py-12 md:py-20">
         <div className="max-w-4xl mx-auto">
-          <Card className="bg-gradient-to-br from-primary/20 to-cyan-400/20 backdrop-blur border-primary/50">
+          <Card className="bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur border-primary/50">
             <CardContent className="pt-8 pb-8 md:pt-12 md:pb-12 text-center">
-              <h2 className="text-2xl md:text-4xl font-bold text-white mb-4">
+              <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4">
                 Pronto para transformar suas pregações em impacto digital?
               </h2>
               <p className="text-base md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto">
@@ -324,10 +371,10 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* FAQ Section - Reduced to 3 questions, mobile optimized */}
+      {/* FAQ */}
       <section className="container mx-auto px-4 py-12 md:py-20 bg-card/5">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-4">
             Perguntas Frequentes
           </h2>
           <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
@@ -339,7 +386,7 @@ const Landing = () => {
               value="item-1"
               className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-4 md:px-6"
             >
-              <AccordionTrigger className="text-left font-semibold text-white hover:text-primary text-sm md:text-base py-4">
+              <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary text-sm md:text-base py-4">
                 A IA inventa versículos?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground text-sm md:text-base">
@@ -351,7 +398,7 @@ const Landing = () => {
               value="item-2"
               className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-4 md:px-6"
             >
-              <AccordionTrigger className="text-left font-semibold text-white hover:text-primary text-sm md:text-base py-4">
+              <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary text-sm md:text-base py-4">
                 Posso definir o estilo teológico?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground text-sm md:text-base">
@@ -363,7 +410,7 @@ const Landing = () => {
               value="item-3"
               className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-4 md:px-6"
             >
-              <AccordionTrigger className="text-left font-semibold text-white hover:text-primary text-sm md:text-base py-4">
+              <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary text-sm md:text-base py-4">
                 Quanto custa no Beta?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground text-sm md:text-base">
@@ -374,7 +421,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Footer - Mobile optimized */}
+      {/* Footer */}
       <footer className="border-t border-border bg-background/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="text-center text-muted-foreground">
