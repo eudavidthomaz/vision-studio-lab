@@ -111,7 +111,9 @@ const Landing = () => {
           <>
             <p className="text-sm md:text-base text-muted-foreground mb-4">Beta Aberto · Uso 100% Gratuito</p>
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-gunterz uppercase text-foreground mb-4">
-              A câmera desliga. A missão continua.
+              A câmera desliga.
+              <br />
+              A missão continua.
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
               Do altar ao feed: transforme sua pregação em uma semana de conteúdo com fundamento bíblico.
