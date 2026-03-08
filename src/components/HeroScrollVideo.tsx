@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, ReactNode, useCallback } from "react";
 import { motion } from "framer-motion";
+import { Volume2, VolumeX } from "lucide-react";
 
 interface ScrollExpandMediaProps {
   mediaSrc: string;
@@ -27,6 +28,7 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
   const [mediaFullyExpanded, setMediaFullyExpanded] = useState(false);
   const [touchStartY, setTouchStartY] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   // Reset on mediaSrc change
   useEffect(() => {
@@ -143,13 +145,15 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
   // Build YouTube embed URL with autoplay params
   const embedSrc = (() => {
     if (!mediaSrc) return "";
+    const muteParam = isMuted ? 1 : 0;
+    const startParam = !isMuted ? "&start=1" : "";
     if (mediaSrc.includes("embed")) {
       const sep = mediaSrc.includes("?") ? "&" : "?";
-      return `${mediaSrc}${sep}autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1`;
+      return `${mediaSrc}${sep}autoplay=1&mute=${muteParam}&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1${startParam}`;
     }
     if (mediaSrc.includes("youtube")) {
       const videoId = mediaSrc.split("v=")[1]?.split("&")[0];
-      return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1&playlist=${videoId}`;
+      return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=${muteParam}&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1&playlist=${videoId}${startParam}`;
     }
     return mediaSrc;
   })();
@@ -199,6 +203,20 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
                     allowFullScreen
                   />
                   <div className="absolute inset-0 z-10" style={{ pointerEvents: "none" }} />
+                  {scrollProgress > 0.3 && (
+                    <motion.button
+                      className="absolute bottom-4 right-4 z-20 p-2.5 rounded-full bg-background/20 backdrop-blur-md border border-foreground/10 text-foreground/80 hover:text-foreground hover:bg-background/30 transition-colors"
+                      style={{ pointerEvents: "auto" }}
+                      onClick={() => setIsMuted((m) => !m)}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.3 }}
+                      aria-label={isMuted ? "Ativar som" : "Desativar som"}
+                    >
+                      {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                    </motion.button>
+                  )}
                   <motion.div
                     className="absolute inset-0 bg-black/30 rounded-xl"
                     initial={{ opacity: 0.7 }}
