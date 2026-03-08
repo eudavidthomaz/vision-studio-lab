@@ -1,59 +1,106 @@
 
 
-# Rebranding CarrosselView — Galeria 3D Circular com Drag/Swipe
+# Confirmação de Escala via Link Publico (Sem Integracao Externa)
 
-## Objetivo
-Substituir o carousel flat (embla-carousel) por uma galeria 3D circular com rotação via drag/swipe, cards escuros com gradiente e glow, mantendo toda funcionalidade existente (copiar, gerar imagem, legenda, hashtags).
+## Arquitetura
 
-## Arquivos
+O sistema ja possui a infraestrutura de tokens e pagina publica. A solucao e completar o fluxo sem depender de e-mail ou qualquer servico externo:
 
-### 1. `src/components/ui/circular-carousel.tsx` (novo)
-Componente reutilizável de carousel 3D circular adaptado para contexto de modal:
-- Rotação via **drag horizontal** (mouse + touch) ao invés de scroll da página
-- `perspective: 2000px`, `preserve-3d`, `rotateY` por item
-- Props: `items`, `radius` (default ~280 para caber no modal), `onItemClick`
-- Cada item renderizado como card escuro com:
-  - Fundo `#0e131f` + gradiente roxo/cyan na base (estilo GlassCard)
-  - Noise texture overlay
-  - Borda luminosa bottom + laterais
-  - Opacidade dinâmica baseada no ângulo (frente = 1, trás = 0.3)
-- Drag state via `useRef` para posição inicial, delta, e inércia
-- Auto-rotação lenta quando idle (para após drag)
-
-### 2. `src/components/content-views/CarrosselView.tsx` (refatorar)
-Substituir o bloco `<Carousel>` de embla por `<CircularCarousel3D>`:
-- Mapear `slides[]` para items do carousel 3D
-- Cada card 3D mostra: número do slide, título, conteúdo (truncado), CTA
-- Click/tap num card expande para ver conteúdo completo + botões (copiar, gerar imagem)
-- Card expandido: overlay escuro + card ampliado com animação `framer-motion`
-- Manter seções abaixo intactas: legenda, hashtags, dicas, fundamento, estratégia, copiar tudo
-
-### 3. `src/index.css`
-Adicionar animação `@keyframes carousel-glow-pulse` para o glow pulsante nos cards 3D.
-
-## Fluxo UX
 ```text
-Modal abre → Galeria 3D com slides girando lentamente
-                ↓
-Usuário arrasta/swipa → rotação segue o dedo/mouse
-                ↓
-Toca num card → card expande (overlay) com conteúdo completo
-                ↓
-Dentro do card expandido: [Copiar] [Gerar Imagem]
-                ↓
-Fecha card → volta para galeria 3D
+Lider gera escala
+  -> Tokens criados automaticamente (1 por voluntario)
+  -> UI exibe links de confirmacao
+  -> Lider compartilha via WhatsApp / copia link
+  -> Voluntario abre link publico (sem login)
+  -> Confirma / Recusa / Pede substituto
+  -> Status atualizado em tempo real na tela do lider
 ```
 
-## Detalhes técnicos
-- Drag handler: `onPointerDown` → registra x inicial, `onPointerMove` → calcula delta e atualiza rotação, `onPointerUp` → aplica inércia com `requestAnimationFrame`
-- Cards 3D: `transform: rotateY(${angle}deg) translateZ(${radius}px)` — posicionamento circular
-- Card expandido: `AnimatePresence` + `motion.div` com `layoutId` para transição suave
-- Raio adaptativo: 280px desktop, 180px mobile (via `useIsMobile`)
-- Tamanho dos cards: 220x300px mobile, 280x380px desktop
+## O que ja existe (nao precisa mudar)
 
-## Não alterado
-- `ContentViewer.tsx` — continua mapeando `carrossel` → `CarrosselView`
-- `normalizeContentData.ts` — normalização dos dados intacta
-- Modais de imagem, upgrade, fundamento, estratégia — intactos
-- Outros 33 content types — sem mudança
+- Tabela `schedule_confirmation_tokens` com token hex, expiracao 7 dias
+- Pagina `/confirmar/:token` (publica, sem autenticacao)
+- Edge Function `confirm-schedule` que valida token, atualiza status, notifica lider
+
+## O que precisa ser implementado
+
+### 1. Auto-criar tokens ao gerar escalas
+
+Nas Edge Functions `generate-volunteer-schedule` e `generate-smart-schedule`, apos inserir os registros em `volunteer_schedules`, inserir um token para cada escala criada na tabela `schedule_confirmation_tokens`.
+
+### 2. Exibir links de confirmacao na UI de escalas
+
+Na pagina `/escalas`, ao lado de cada voluntario com status "Aguardando", exibir botoes:
+
+- **Copiar Link**: copia a URL `{origin}/confirmar/{token}` para a area de transferencia
+- **Compartilhar via WhatsApp**: abre `https://wa.me/?text=...` com mensagem pre-formatada contendo nome do voluntario, data, funcao e link
+
+Isso requer buscar os tokens da tabela `schedule_confirmation_tokens` junto com as escalas.
+
+### 3. Painel de confirmacoes pendentes (melhoria na pagina de escalas)
+
+Um card/secao mostrando resumo:
+- X confirmados / Y aguardando / Z recusados
+- Lista de pendentes com botao rapido de compartilhar link
+- Indicador visual de quantos dias cada token esta pendente
+
+## Detalhes Tecnicos
+
+### Edge Functions (generate-volunteer-schedule e generate-smart-schedule)
+
+Apos o `insert` em `volunteer_schedules`, iterar sobre os registros criados e inserir em `schedule_confirmation_tokens`:
+
+```text
+Para cada schedule inserido:
+  INSERT INTO schedule_confirmation_tokens (schedule_id)
+  VALUES (schedule.id)
+  -- token e expires_at sao gerados automaticamente pelo DEFAULT da tabela
+```
+
+### Frontend - Componente de link de confirmacao
+
+Novo componente `ScheduleShareLink` que recebe o token e renderiza:
+- Botao "Copiar Link" usando `navigator.clipboard.writeText()`
+- Botao "WhatsApp" que abre `https://wa.me/?text=` com mensagem formatada
+- Toast de confirmacao ao copiar
+
+### Frontend - Query de escalas com tokens
+
+Atualizar a query em `useVolunteerSchedules` para incluir os tokens:
+
+```text
+volunteer_schedules (
+  ...,
+  schedule_confirmation_tokens (
+    token,
+    used_at,
+    action_taken,
+    expires_at
+  )
+)
+```
+
+### Frontend - Pagina de escalas
+
+Na listagem de escalas, para cada voluntario com status `scheduled`:
+- Exibir os botoes de compartilhar link ao lado do badge "Aguardando"
+- Para voluntarios com status `confirmed`, exibir badge verde sem botoes
+
+## Arquivos a Modificar
+
+| Arquivo | Mudanca |
+|---|---|
+| `supabase/functions/generate-volunteer-schedule/index.ts` | Inserir tokens apos criar escalas |
+| `supabase/functions/generate-smart-schedule/index.ts` | Inserir tokens apos criar escalas |
+| `src/hooks/useVolunteerSchedules.tsx` | Incluir tokens na query de escalas |
+| `src/components/schedules/ScheduleShareLink.tsx` | **Novo** - botoes copiar link e WhatsApp |
+| `src/pages/Schedules.tsx` | Integrar ScheduleShareLink nos cards de escala |
+
+## Vantagens desta abordagem
+
+- Zero dependencia externa (sem Resend, sem SMTP, sem API de email)
+- Voluntario nao precisa criar conta
+- Lider tem controle total de como compartilha (WhatsApp, SMS, presencial)
+- Tokens temporarios (7 dias) com uso unico garantem seguranca
+- Pagina publica ja existe e funciona
 
