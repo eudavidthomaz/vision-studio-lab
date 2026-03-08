@@ -1,443 +1,276 @@
-import React, { CSSProperties, ReactNode, useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useRef, useState, ReactNode, useCallback } from "react";
+import { motion } from "framer-motion";
 
-export type HeroScrollVideoProps = {
-  title?: ReactNode;
-  subtitle?: ReactNode;
+interface ScrollExpandMediaProps {
+  mediaSrc: string;
+  bgImageSrc?: string;
+  title?: string;
+  subtitle?: string;
   meta?: ReactNode;
-  credits?: ReactNode;
-  iframeSrc?: string;
-  overlay?: {
-    caption?: ReactNode;
-    heading?: ReactNode;
-    paragraphs?: ReactNode[];
-    extra?: ReactNode;
-  };
-  initialBoxSize?: number;
-  targetSize?: { widthVw: number; heightVh: number; borderRadius?: number } | "fullscreen";
-  scrollHeightVh?: number;
-  showHeroExitAnimation?: boolean;
-  overlayBlur?: number;
-  overlayRevealDelay?: number;
-  eases?: { container?: string; overlay?: string; text?: string };
-  smoothScroll?: boolean;
-  lenisOptions?: Record<string, unknown>;
-  className?: string;
-  style?: CSSProperties;
-};
+  cta?: ReactNode;
+  scrollHint?: string;
+  children?: ReactNode;
+}
 
-const DEFAULTS = {
-  initialBoxSize: 360,
-  scrollHeightVh: 280,
-  overlayBlur: 10,
-  overlayRevealDelay: 0.35,
-  eases: { container: "expo.out", overlay: "expo.out", text: "power3.inOut" },
-};
-
-export const HeroScrollVideo: React.FC<HeroScrollVideoProps> = ({
-  title,
+export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
+  mediaSrc,
+  bgImageSrc,
+  title = "",
   subtitle,
   meta,
-  credits,
-  iframeSrc,
-  overlay,
-  initialBoxSize = DEFAULTS.initialBoxSize,
-  targetSize = "fullscreen",
-  scrollHeightVh = DEFAULTS.scrollHeightVh,
-  showHeroExitAnimation = true,
-  overlayBlur = DEFAULTS.overlayBlur,
-  overlayRevealDelay = DEFAULTS.overlayRevealDelay,
-  eases = DEFAULTS.eases,
-  smoothScroll = true,
-  lenisOptions,
-  className,
-  style,
+  cta,
+  scrollHint = "Role para expandir ↓",
+  children,
 }) => {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const headlineRef = useRef<HTMLDivElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const overlayCaptionRef = useRef<HTMLDivElement>(null);
-  const overlayContentRef = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showContent, setShowContent] = useState(false);
+  const [mediaFullyExpanded, setMediaFullyExpanded] = useState(false);
+  const [touchStartY, setTouchStartY] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const cssVars: CSSProperties = useMemo(
-    () => ({
-      "--initial-size": `${initialBoxSize}px`,
-      "--overlay-blur": `${overlayBlur}px`,
-    } as CSSProperties),
-    [initialBoxSize, overlayBlur]
-  );
-
+  // Reset on mediaSrc change
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    setScrollProgress(0);
+    setShowContent(false);
+    setMediaFullyExpanded(false);
+  }, [mediaSrc]);
 
-    let gsap: any;
-    let ScrollTrigger: any;
-    let lenis: any;
-    let heroTl: any;
-    let mainTl: any;
-    let overlayDarkenEl: HTMLDivElement | null = null;
-    let rafCb: ((t: number) => void) | null = null;
-    let cancelled = false;
+  // Mobile detection
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
-    (async () => {
-      const gsapPkg = await import("gsap");
-      gsap = gsapPkg.gsap || gsapPkg.default || gsapPkg;
+  // Wheel + Touch handlers
+  useEffect(() => {
+    let currentProgress = scrollProgress;
 
-      const stPkg = await import("gsap/ScrollTrigger").catch(() => import("gsap/dist/ScrollTrigger"));
-      ScrollTrigger = (stPkg as any).ScrollTrigger || (stPkg as any).default || stPkg;
-
-      gsap.registerPlugin(ScrollTrigger);
-
-      if (cancelled) return;
-
-      if (smoothScroll) {
-        try {
-          const lenisPkg = await import("lenis");
-          const LenisCtor = (lenisPkg as any).default || (lenisPkg as any).Lenis;
-          if (LenisCtor) {
-            lenis = new LenisCtor({
-              duration: 0.8,
-              smoothWheel: true,
-              gestureOrientation: "vertical" as const,
-              ...lenisOptions,
-            });
-            rafCb = (time: number) => lenis?.raf(time * 1000);
-            gsap.ticker.add(rafCb);
-            gsap.ticker.lagSmoothing(0);
-            lenis?.on?.("scroll", ScrollTrigger.update);
-          }
-        } catch {
-          // Lenis optional
+    const handleWheel = (e: WheelEvent) => {
+      if (mediaFullyExpanded && e.deltaY < 0 && window.scrollY <= 5) {
+        setMediaFullyExpanded(false);
+        setShowContent(false);
+        e.preventDefault();
+        return;
+      }
+      if (!mediaFullyExpanded) {
+        e.preventDefault();
+        const delta = e.deltaY * 0.0009;
+        const next = Math.min(Math.max(currentProgress + delta, 0), 1);
+        currentProgress = next;
+        setScrollProgress(next);
+        if (next >= 1) {
+          setMediaFullyExpanded(true);
+          setShowContent(true);
+        } else if (next < 0.75) {
+          setShowContent(false);
         }
       }
+    };
 
-      const containerEase = eases.container ?? "expo.out";
-      const overlayEase = eases.overlay ?? "expo.out";
-      const textEase = eases.text ?? "power3.inOut";
+    let touchY = 0;
 
-      const container = containerRef.current;
-      const overlayEl = overlayRef.current;
-      const overlayCaption = overlayCaptionRef.current;
-      const overlayContent = overlayContentRef.current;
-      const headline = headlineRef.current;
+    const handleTouchStart = (e: TouchEvent) => {
+      touchY = e.touches[0].clientY;
+      setTouchStartY(touchY);
+    };
 
-      if (!container || !overlayEl) return;
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!touchY) return;
+      const currentTouchY = e.touches[0].clientY;
+      const deltaY = touchY - currentTouchY;
 
-      // Darkening overlay
-      overlayDarkenEl = document.createElement("div");
-      overlayDarkenEl.style.position = "absolute";
-      overlayDarkenEl.style.inset = "0";
-      overlayDarkenEl.style.background = "rgba(0,0,0,0)";
-      overlayDarkenEl.style.pointerEvents = "none";
-      overlayDarkenEl.style.zIndex = "1";
-      container.appendChild(overlayDarkenEl);
-
-      // Headline roll-away
-      if (showHeroExitAnimation && headline) {
-        heroTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: headline,
-            start: "top top",
-            end: "top+=420 top",
-            scrub: 1.1,
-          },
-        });
-
-        headline.querySelectorAll(".hsv-headline > *").forEach((el: Element, i: number) => {
-          heroTl.to(
-            el,
-            {
-              rotationX: 80,
-              y: -36,
-              scale: 0.86,
-              opacity: 0,
-              filter: "blur(4px)",
-              transformOrigin: "center top",
-              ease: textEase,
-            },
-            i * 0.08
-          );
-        });
+      if (mediaFullyExpanded && deltaY < -20 && window.scrollY <= 5) {
+        setMediaFullyExpanded(false);
+        setShowContent(false);
+        e.preventDefault();
+        return;
       }
-
-      // Main sticky expansion
-      const triggerEl = rootRef.current?.querySelector("[data-sticky-scroll]") as HTMLElement;
-      if (!triggerEl) return;
-
-      mainTl = gsap.timeline({
-        scrollTrigger: {
-          trigger: triggerEl,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: 1.1,
-        },
-      });
-
-      const target = (() => {
-        if (targetSize === "fullscreen") {
-          return { width: "92vw", height: "92vh", borderRadius: 0 };
+      if (!mediaFullyExpanded) {
+        e.preventDefault();
+        const factor = deltaY < 0 ? 0.008 : 0.005;
+        const delta = deltaY * factor;
+        const next = Math.min(Math.max(currentProgress + delta, 0), 1);
+        currentProgress = next;
+        setScrollProgress(next);
+        if (next >= 1) {
+          setMediaFullyExpanded(true);
+          setShowContent(true);
+        } else if (next < 0.75) {
+          setShowContent(false);
         }
-        return {
-          width: `${targetSize.widthVw ?? 92}vw`,
-          height: `${targetSize.heightVh ?? 92}vh`,
-          borderRadius: targetSize.borderRadius ?? 0,
-        };
-      })();
-
-      gsap.set(container, {
-        width: initialBoxSize,
-        height: initialBoxSize,
-        borderRadius: 20,
-        filter: "none",
-        clipPath: "inset(0 0 0 0)",
-      });
-      gsap.set(overlayEl, { clipPath: "inset(100% 0 0 0)" });
-      if (overlayContent) {
-        gsap.set(overlayContent, { filter: `blur(${overlayBlur}px)`, scale: 1.05 });
-        gsap.set(overlayContent, { y: 30 });
+        touchY = currentTouchY;
       }
-      if (overlayCaption) gsap.set(overlayCaption, { y: 30 });
+    };
 
-      mainTl
-        .to(container, { width: target.width, height: target.height, borderRadius: target.borderRadius, ease: containerEase }, 0)
-        .to(overlayDarkenEl, { backgroundColor: "rgba(0,0,0,0.4)", ease: "power2.out" }, 0)
-        .to(overlayEl, { clipPath: "inset(0% 0 0 0)", backdropFilter: `blur(${overlayBlur}px)`, ease: overlayEase }, overlayRevealDelay);
+    const handleTouchEnd = () => {
+      touchY = 0;
+      setTouchStartY(0);
+    };
 
-      if (overlayCaption) {
-        mainTl.to(overlayCaption, { y: 0, ease: overlayEase }, overlayRevealDelay + 0.05);
+    const handleScroll = () => {
+      if (!mediaFullyExpanded) {
+        window.scrollTo(0, 0);
       }
-      if (overlayContent) {
-        mainTl.to(overlayContent, { y: 0, filter: "blur(0px)", scale: 1, ease: overlayEase }, overlayRevealDelay + 0.05);
-      }
-    })();
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("touchstart", handleTouchStart, { passive: false });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd);
 
     return () => {
-      cancelled = true;
-      try { heroTl?.kill?.(); mainTl?.kill?.(); } catch {}
-      try {
-        if (ScrollTrigger?.getAll) {
-          ScrollTrigger.getAll().forEach((t: any) => {
-            if (rootRef.current?.contains(t.trigger)) t.kill(true);
-          });
-        }
-      } catch {}
-      try { overlayDarkenEl?.parentElement?.removeChild(overlayDarkenEl); } catch {}
-      try {
-        if (rafCb && gsap?.ticker) { gsap.ticker.remove(rafCb); gsap.ticker.lagSmoothing(1000, 16); }
-      } catch {}
-      try { lenis?.off?.("scroll", ScrollTrigger?.update); lenis?.destroy?.(); } catch {}
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [initialBoxSize, targetSize, scrollHeightVh, overlayBlur, overlayRevealDelay, eases.container, eases.overlay, eases.text, showHeroExitAnimation, smoothScroll, lenisOptions]);
+  }, [scrollProgress, mediaFullyExpanded]);
+
+  // Computed dimensions
+  const mediaWidth = 300 + scrollProgress * (isMobile ? 650 : 1250);
+  const mediaHeight = 400 + scrollProgress * (isMobile ? 200 : 400);
+  const textTranslateX = scrollProgress * (isMobile ? 180 : 150);
+
+  // Split title into first word and rest
+  const words = title.split(" ");
+  const firstLine = words.slice(0, Math.ceil(words.length / 2)).join(" ");
+  const secondLine = words.slice(Math.ceil(words.length / 2)).join(" ");
+
+  // Build YouTube embed URL with autoplay params
+  const embedSrc = (() => {
+    if (!mediaSrc) return "";
+    if (mediaSrc.includes("embed")) {
+      const sep = mediaSrc.includes("?") ? "&" : "?";
+      return `${mediaSrc}${sep}autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1`;
+    }
+    if (mediaSrc.includes("youtube")) {
+      const videoId = mediaSrc.split("v=")[1]?.split("&")[0];
+      return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1&playlist=${videoId}`;
+    }
+    return mediaSrc;
+  })();
 
   return (
-    <div ref={rootRef} className={`hsv-root ${className ?? ""}`} style={{ ...cssVars, ...style }}>
-      {/* Headline / Hero area */}
-      <div ref={headlineRef} className="hsv-container">
-        <div className="hsv-headline" style={{ transformStyle: "preserve-3d" }}>
-          <div className="hsv-title">{title}</div>
-          {subtitle && <div className="hsv-subtitle">{subtitle}</div>}
-          {meta && <div className="hsv-meta">{meta}</div>}
-          {credits && <div className="hsv-credits">{credits}</div>}
-        </div>
-      </div>
-
-      {/* Sticky scroll section */}
-      <div data-sticky-scroll style={{ height: `${scrollHeightVh}vh` }} className="hsv-scroll">
-        <div className="hsv-sticky is-sticky">
-          <div ref={containerRef} className="hsv-media">
-            {iframeSrc && (
-              <iframe
-                src={iframeSrc}
-                title="Video de apresentação"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  border: "none",
-                  pointerEvents: "none",
-                }}
+    <div className="overflow-x-hidden">
+      <section className="relative flex flex-col items-center justify-start min-h-[100dvh]">
+        <div className="relative w-full flex flex-col items-center min-h-[100dvh]">
+          {/* Background image */}
+          {bgImageSrc && (
+            <motion.div
+              className="absolute inset-0 z-0 h-full"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 - scrollProgress }}
+              transition={{ duration: 0.1 }}
+            >
+              <img
+                src={bgImageSrc}
+                alt="Background"
+                className="w-screen h-screen object-cover object-center"
               />
-            )}
+              <div className="absolute inset-0 bg-black/10" />
+            </motion.div>
+          )}
 
-            {/* Overlay */}
-            <div ref={overlayRef} className="hsv-overlay">
-              {overlay?.caption && (
-                <div ref={overlayCaptionRef} className="hsv-caption">
-                  {overlay.caption}
+          <div className="container mx-auto flex flex-col items-center justify-start relative z-10">
+            <div className="flex flex-col items-center justify-center w-full h-[100dvh] relative">
+              {/* Expanding media box */}
+              <div
+                className="absolute z-0 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl overflow-hidden"
+                style={{
+                  width: `${mediaWidth}px`,
+                  height: `${mediaHeight}px`,
+                  maxWidth: "95vw",
+                  maxHeight: "85vh",
+                  boxShadow: "0px 0px 50px hsl(var(--primary) / 0.2)",
+                }}
+              >
+                {/* YouTube iframe */}
+                <div className="relative w-full h-full pointer-events-none">
+                  <iframe
+                    src={embedSrc}
+                    title="Video de apresentação"
+                    className="w-full h-full rounded-xl"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                  <div className="absolute inset-0 z-10" style={{ pointerEvents: "none" }} />
+                  <motion.div
+                    className="absolute inset-0 bg-black/30 rounded-xl"
+                    initial={{ opacity: 0.7 }}
+                    animate={{ opacity: 0.5 - scrollProgress * 0.3 }}
+                    transition={{ duration: 0.2 }}
+                  />
                 </div>
-              )}
-              <div ref={overlayContentRef} className="hsv-overlay-content">
-                {overlay?.heading && <h3>{overlay.heading}</h3>}
-                {overlay?.paragraphs?.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-                {overlay?.extra}
+
+                {/* Below-media hints */}
+                <div className="flex flex-col items-center text-center relative z-10 mt-4">
+                  {subtitle && (
+                    <p
+                      className="text-muted-foreground text-sm md:text-base max-w-md"
+                      style={{ transform: `translateX(-${textTranslateX}vw)` }}
+                    >
+                      {subtitle}
+                    </p>
+                  )}
+                  {scrollHint && scrollProgress < 0.8 && (
+                    <motion.p
+                      className="text-muted-foreground/60 font-medium text-center text-xs mt-2"
+                      animate={{ opacity: 1 - scrollProgress * 2 }}
+                    >
+                      {scrollHint}
+                    </motion.p>
+                  )}
+                </div>
               </div>
+
+              {/* Title text — splits and slides apart */}
+              <div className="flex items-center justify-center text-center gap-3 md:gap-4 w-full relative z-10 flex-col mix-blend-difference">
+                <motion.h2
+                  className="font-gunterz text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white tracking-tight"
+                  style={{ transform: `translateX(-${textTranslateX}vw)` }}
+                >
+                  {firstLine}
+                </motion.h2>
+                <motion.h2
+                  className="font-gunterz text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white tracking-tight"
+                  style={{ transform: `translateX(${textTranslateX}vw)` }}
+                >
+                  {secondLine}
+                </motion.h2>
+              </div>
+
+              {/* Meta badge + CTA — visible when not scrolling */}
+              <motion.div
+                className="absolute bottom-12 md:bottom-16 z-20 flex flex-col items-center gap-4"
+                animate={{ opacity: scrollProgress < 0.3 ? 1 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {meta && (
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold tracking-wide bg-primary/10 border border-primary/20 text-primary">
+                    {meta}
+                  </div>
+                )}
+                {cta}
+              </motion.div>
             </div>
+
+            {/* Children content — fades in after full expansion */}
+            <motion.section
+              className="flex flex-col w-full"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: showContent ? 1 : 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              {children}
+            </motion.section>
           </div>
         </div>
-      </div>
-
-      <style>{`
-        .hsv-root {
-          --bg: hsl(var(--background));
-          --text: hsl(var(--foreground));
-          --muted: hsl(var(--muted-foreground));
-          --muted-bg: hsl(var(--muted) / 0.15);
-          --muted-border: hsl(var(--border));
-          --overlay-bg: hsl(var(--background) / 0.55);
-          --overlay-text: hsl(var(--foreground));
-          --accent: hsl(var(--primary));
-          --accent-2: hsl(var(--accent));
-          --shadow: 0 12px 36px hsl(var(--primary) / 0.15);
-        }
-
-        .hsv-container {
-          height: 100vh;
-          display: grid;
-          place-items: center;
-          padding: clamp(16px, 3vw, 40px);
-          perspective: 900px;
-        }
-
-        .hsv-headline {
-          text-align: center;
-          transform-style: preserve-3d;
-          max-width: min(100%, 1100px);
-        }
-        .hsv-headline > * {
-          transform-style: preserve-3d;
-          backface-visibility: hidden;
-          transform-origin: center top;
-        }
-
-        .hsv-title {
-          margin: 0 0 .6rem 0;
-          font-family: 'Gunterz', sans-serif;
-          font-size: clamp(40px, 8vw, 96px);
-          line-height: 0.98;
-          font-weight: 900;
-          letter-spacing: -0.02em;
-          text-wrap: balance;
-          background: linear-gradient(90deg, hsl(var(--foreground)) 0%, hsl(var(--foreground)) 50%, hsl(var(--primary)) 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          filter: drop-shadow(0 2px 0 rgba(0,0,0,0.05));
-        }
-        .hsv-subtitle {
-          margin: 0 0 1.25rem 0;
-          font-size: clamp(16px, 3vw, 24px);
-          font-weight: 500;
-          color: hsl(var(--muted-foreground));
-          max-width: 600px;
-          margin-left: auto;
-          margin-right: auto;
-          line-height: 1.5;
-        }
-        .hsv-meta {
-          display: inline-flex;
-          align-items: center;
-          gap: .5rem;
-          padding: .5rem 1rem;
-          border-radius: 999px;
-          font-size: .875rem;
-          font-weight: 600;
-          letter-spacing: .02em;
-          background: hsl(var(--primary) / 0.1);
-          border: 1px solid hsl(var(--primary) / 0.2);
-          color: hsl(var(--primary));
-          margin: 1rem 0 0 0;
-        }
-        .hsv-credits {
-          margin-top: 1.5rem;
-        }
-
-        .hsv-scroll { position: relative; }
-        .hsv-sticky.is-sticky {
-          position: sticky;
-          top: 0;
-          height: 100vh;
-          display: grid;
-          place-items: center;
-        }
-
-        .hsv-media {
-          position: relative;
-          width: var(--initial-size);
-          height: var(--initial-size);
-          border-radius: 20px;
-          overflow: hidden;
-          background: #000;
-          display: grid;
-          place-items: center;
-          transition: border-radius 0.3s ease;
-          box-shadow: var(--shadow);
-        }
-
-        .hsv-overlay {
-          position: absolute;
-          inset: 0;
-          background: hsl(var(--background) / 0.55);
-          color: hsl(var(--foreground));
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          text-align: center;
-          padding: clamp(16px, 4vw, 40px);
-          clip-path: inset(100% 0 0 0);
-          backdrop-filter: blur(var(--overlay-blur));
-          z-index: 2;
-        }
-
-        .hsv-caption {
-          font-size: 0.85rem;
-          text-transform: uppercase;
-          letter-spacing: 0.14em;
-          position: absolute;
-          top: clamp(8px, 3vw, 24px);
-          left: 0;
-          width: 100%;
-          text-align: center;
-          opacity: 0.95;
-          font-weight: 600;
-          color: hsl(var(--primary));
-        }
-
-        .hsv-overlay-content {
-          max-width: 68ch;
-          display: grid;
-          gap: 0.9rem;
-        }
-        .hsv-overlay-content h3 {
-          font-family: 'Gunterz', sans-serif;
-          font-size: clamp(26px, 5vw, 50px);
-          line-height: 1.02;
-          margin: 0;
-          font-weight: 900;
-          letter-spacing: -0.01em;
-          background: linear-gradient(90deg, hsl(var(--foreground)) 0%, hsl(var(--foreground)) 40%, hsl(var(--primary)) 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          text-wrap: balance;
-        }
-        .hsv-overlay-content p {
-          font-size: clamp(15px, 2.1vw, 19px);
-          line-height: 1.75;
-          margin: 0;
-          color: hsl(var(--muted-foreground));
-          opacity: 0.95;
-        }
-
-        @media (max-width: 900px) {
-          .hsv-overlay-content { max-width: 40ch; }
-        }
-      `}</style>
+      </section>
     </div>
   );
 };
