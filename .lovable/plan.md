@@ -1,106 +1,57 @@
 
 
-# Confirmação de Escala via Link Publico (Sem Integracao Externa)
+# Refactor "Como Funciona?" with Centralized SVG Diagram
 
-## Arquitetura
+## Overview
 
-O sistema ja possui a infraestrutura de tokens e pagina publica. A solucao e completar o fluxo sem depender de e-mail ou qualquer servico externo:
+Replace the current 3-column GlassCard grid with a custom SVG-based visual component inspired by the `DatabaseWithRestApi` reference. The diagram will be a centralized visual showing the Ide.On "engine" at the center with the 3 steps radiating outward — depicting the flow from audio input → AI processing → content output.
 
+## New Component: `src/components/HowItWorksEngine.tsx`
+
+A self-contained SVG + HTML hybrid component with:
+
+### Visual Structure
 ```text
-Lider gera escala
-  -> Tokens criados automaticamente (1 por voluntario)
-  -> UI exibe links de confirmacao
-  -> Lider compartilha via WhatsApp / copia link
-  -> Voluntario abre link publico (sem login)
-  -> Confirma / Recusa / Pede substituto
-  -> Status atualizado em tempo real na tela do lider
+         ┌─────────────┐
+         │  🎤 Áudio   │  ← Step 1 badge (top)
+         └──────┬──────┘
+                │ animated path
+        ┌───────▼────────┐
+        │   IDE.ON AI    │  ← Central glowing box
+        │  (logo + ring) │
+        └───┬────────┬───┘
+  path ↙              ↘ path
+┌──────────┐    ┌──────────┐
+│ ✨ Pack  │    │ 📅 Planner│  ← Step 2 & 3 badges
+└──────────┘    └──────────┘
 ```
 
-## O que ja existe (nao precisa mudar)
+### Technical Details
+- **Central element**: Glass-styled box with logo, pulsing ring, and title "Motor de IA Bíblica"
+- **3 orbiting badges**: Rounded pill badges for each step, connected by animated SVG paths with gradient strokes
+- **Animated light dots**: Small circles traveling along the paths (SVG `animateMotion`) — same pattern as the reference component
+- **Glass styling**: `backdrop-blur`, `bg-white/5`, `border-white/10` consistent with project
+- **Glow effects**: Primary-colored radial gradients behind the center box
+- **Mobile**: Stack vertically with simplified connecting lines (no complex SVG paths on small screens)
 
-- Tabela `schedule_confirmation_tokens` com token hex, expiracao 7 dias
-- Pagina `/confirmar/:token` (publica, sem autenticacao)
-- Edge Function `confirm-schedule` que valida token, atualiza status, notifica lider
+### Updated Copy (Strategic & Simplified)
 
-## O que precisa ser implementado
+| Step | Title | Description |
+|------|-------|-------------|
+| 1 | Envie sua pregação | Grave ao vivo ou faça upload. A IA transcreve e mapeia versículos, temas e aplicações. |
+| 2 | Receba o pack completo | Em minutos: posts, stories, carrosséis, roteiros de vídeo, estudo bíblico e mais — tudo fiel à Palavra. |
+| 3 | Organize e publique | Ajuste o tom, escolha os dias e exporte. Sua equipe de mídia começa a semana pronta. |
 
-### 1. Auto-criar tokens ao gerar escalas
+## Landing.tsx Changes
 
-Nas Edge Functions `generate-volunteer-schedule` e `generate-smart-schedule`, apos inserir os registros em `volunteer_schedules`, inserir um token para cada escala criada na tabela `schedule_confirmation_tokens`.
+- Replace the "Como Funciona" section (lines 143–186) with `<HowItWorksEngine />`
+- Update the `steps` array with the new simplified copy
+- Remove unused `GlassCard` grid for steps
 
-### 2. Exibir links de confirmacao na UI de escalas
+## Files
 
-Na pagina `/escalas`, ao lado de cada voluntario com status "Aguardando", exibir botoes:
-
-- **Copiar Link**: copia a URL `{origin}/confirmar/{token}` para a area de transferencia
-- **Compartilhar via WhatsApp**: abre `https://wa.me/?text=...` com mensagem pre-formatada contendo nome do voluntario, data, funcao e link
-
-Isso requer buscar os tokens da tabela `schedule_confirmation_tokens` junto com as escalas.
-
-### 3. Painel de confirmacoes pendentes (melhoria na pagina de escalas)
-
-Um card/secao mostrando resumo:
-- X confirmados / Y aguardando / Z recusados
-- Lista de pendentes com botao rapido de compartilhar link
-- Indicador visual de quantos dias cada token esta pendente
-
-## Detalhes Tecnicos
-
-### Edge Functions (generate-volunteer-schedule e generate-smart-schedule)
-
-Apos o `insert` em `volunteer_schedules`, iterar sobre os registros criados e inserir em `schedule_confirmation_tokens`:
-
-```text
-Para cada schedule inserido:
-  INSERT INTO schedule_confirmation_tokens (schedule_id)
-  VALUES (schedule.id)
-  -- token e expires_at sao gerados automaticamente pelo DEFAULT da tabela
-```
-
-### Frontend - Componente de link de confirmacao
-
-Novo componente `ScheduleShareLink` que recebe o token e renderiza:
-- Botao "Copiar Link" usando `navigator.clipboard.writeText()`
-- Botao "WhatsApp" que abre `https://wa.me/?text=` com mensagem formatada
-- Toast de confirmacao ao copiar
-
-### Frontend - Query de escalas com tokens
-
-Atualizar a query em `useVolunteerSchedules` para incluir os tokens:
-
-```text
-volunteer_schedules (
-  ...,
-  schedule_confirmation_tokens (
-    token,
-    used_at,
-    action_taken,
-    expires_at
-  )
-)
-```
-
-### Frontend - Pagina de escalas
-
-Na listagem de escalas, para cada voluntario com status `scheduled`:
-- Exibir os botoes de compartilhar link ao lado do badge "Aguardando"
-- Para voluntarios com status `confirmed`, exibir badge verde sem botoes
-
-## Arquivos a Modificar
-
-| Arquivo | Mudanca |
-|---|---|
-| `supabase/functions/generate-volunteer-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `supabase/functions/generate-smart-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `src/hooks/useVolunteerSchedules.tsx` | Incluir tokens na query de escalas |
-| `src/components/schedules/ScheduleShareLink.tsx` | **Novo** - botoes copiar link e WhatsApp |
-| `src/pages/Schedules.tsx` | Integrar ScheduleShareLink nos cards de escala |
-
-## Vantagens desta abordagem
-
-- Zero dependencia externa (sem Resend, sem SMTP, sem API de email)
-- Voluntario nao precisa criar conta
-- Lider tem controle total de como compartilha (WhatsApp, SMS, presencial)
-- Tokens temporarios (7 dias) com uso unico garantem seguranca
-- Pagina publica ja existe e funciona
+| File | Action |
+|------|--------|
+| `src/components/HowItWorksEngine.tsx` | Create |
+| `src/pages/Landing.tsx` | Edit lines 143–186 |
 
