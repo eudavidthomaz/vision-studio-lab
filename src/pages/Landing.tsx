@@ -5,7 +5,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useNavigate } from "react-router-dom";
 import { Mic, Sparkles, Calendar, Zap, Target, CheckCircle2, ArrowRight, BookOpen, Users, Layout, BookMarked } from "lucide-react";
 import logoIdeon from "@/assets/logo-ideon.png";
-import { HeroScrollVideo } from "@/components/HeroScrollVideo";
+import { ContainerScrollHero } from "@/components/ContainerScrollHero";
 
 const YOUTUBE_ID = "SGRIma5ElbY";
 const YOUTUBE_EMBED = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}`;
@@ -99,24 +99,37 @@ const Landing = () => {
       </header>
 
       {/* ═══════════════════════════════════════════
-           HERO — Scroll-Expand Media
+           HERO — ContainerScroll 3D
         ═══════════════════════════════════════════ */}
-      <HeroScrollVideo
-        mediaSrc={YOUTUBE_EMBED}
-        title="A câmera desliga. A missão continua."
-        subtitle="Do altar ao feed: transforme sua pregação em uma semana de conteúdo com fundamento bíblico."
-        meta={<>Beta Aberto · Uso 100% Gratuito</>}
-        cta={
-        <Button
-          size="lg"
-          onClick={() => navigate("/auth")}
-          className="text-base sm:text-lg px-8 py-5 sm:px-12 sm:py-7 bg-primary hover:bg-primary/90 group">
-          
-            Começar Grátis
-            <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform w-5 h-5 sm:w-6 sm:h-6" />
-          </Button>
-        }>
-        
+      <ContainerScrollHero
+        titleComponent={
+          <>
+            <p className="text-sm md:text-base text-muted-foreground mb-4">Beta Aberto · Uso 100% Gratuito</p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4">
+              A câmera desliga. A missão continua.
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto">
+              Do altar ao feed: transforme sua pregação em uma semana de conteúdo com fundamento bíblico.
+            </p>
+            <Button
+              size="lg"
+              onClick={() => navigate("/auth")}
+              className="text-base sm:text-lg px-8 py-5 sm:px-12 sm:py-7 bg-primary hover:bg-primary/90 group">
+              Começar Grátis
+              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform w-5 h-5 sm:w-6 sm:h-6" />
+            </Button>
+          </>
+        }
+      >
+        <iframe
+          src={`${YOUTUBE_EMBED}?autoplay=0&controls=1&rel=0&modestbranding=1`}
+          title="Ide.On Demo"
+          className="w-full h-full rounded-2xl"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </ContainerScrollHero>
+
         {/* ═══════════════════════════════════════════
              COMO FUNCIONA
           ═══════════════════════════════════════════ */}
@@ -344,7 +357,7 @@ const Landing = () => {
             </div>
           </div>
         </footer>
-      </HeroScrollVideo>
+    
     </div>);
 
 };
