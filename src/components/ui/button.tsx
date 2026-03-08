@@ -1,8 +1,11 @@
 import * as React from "react";
+import { useState } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-
 import { cn } from "@/lib/utils";
+import { SparklesCore } from "@/components/ui/sparkles";
+
+const SPARKLES_DISABLED_VARIANTS = new Set(["destructive", "secondary", "link"]);
 
 const buttonVariants = cva(
   "relative group inline-flex items-center justify-center gap-2 whitespace-nowrap border text-sm font-medium text-foreground rounded-full ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -37,19 +40,16 @@ const buttonVariants = cva(
   }
 );
 
-const NEON_DISABLED_VARIANTS = new Set(["destructive", "secondary", "link"]);
-
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
-  neon?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, neon, children, ...props }, ref) => {
-    const resolvedNeon =
-      neon ?? !NEON_DISABLED_VARIANTS.has(variant || "default");
+  ({ className, variant, size, asChild = false, children, ...props }, ref) => {
+    const [hovered, setHovered] = useState(false);
+    const showSparkles = !SPARKLES_DISABLED_VARIANTS.has(variant || "default");
 
     if (asChild) {
       return (
@@ -63,17 +63,26 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <button
-        className={cn(buttonVariants({ variant, size }), className)}
+        className={cn(buttonVariants({ variant, size }), "overflow-hidden", className)}
         ref={ref}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         {...props}
       >
-        {resolvedNeon && (
-          <span className="absolute h-px opacity-0 group-hover:opacity-100 transition-all duration-500 ease-in-out inset-x-0 inset-y-0 bg-gradient-to-r w-3/4 mx-auto from-transparent via-primary to-transparent" />
+        {showSparkles && hovered && (
+          <div className="absolute inset-0 z-0 pointer-events-none animate-fade-in">
+            <SparklesCore
+              background="transparent"
+              minSize={0.6}
+              maxSize={1.4}
+              particleDensity={40}
+              particleColor="hsl(var(--primary))"
+              speed={3}
+              className="w-full h-full"
+            />
+          </div>
         )}
-        {children}
-        {resolvedNeon && (
-          <span className="absolute group-hover:opacity-30 transition-all duration-500 ease-in-out inset-x-0 h-px -bottom-px bg-gradient-to-r w-3/4 mx-auto from-transparent via-primary to-transparent" />
-        )}
+        <span className="relative z-[1]">{children}</span>
       </button>
     );
   }
