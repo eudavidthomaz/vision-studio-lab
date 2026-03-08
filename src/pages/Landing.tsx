@@ -3,12 +3,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useNavigate } from "react-router-dom";
 import { Mic, Sparkles, Calendar, Zap, Target, CheckCircle2, ArrowRight, BookOpen, Users, Layout, BookMarked } from "lucide-react";
 import logoIdeon from "@/assets/logo-ideon.png";
-import { HeroScrollVideo } from "@/components/HeroScrollVideo";
+import { ContainerScrollHero } from "@/components/ContainerScrollHero";
 import { GlassCard } from "@/components/ui/glass-card";
 import { motion } from "framer-motion";
 
 const YOUTUBE_ID = "SGRIma5ElbY";
-const YOUTUBE_EMBED = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}`;
 
 /* ── Animation helpers ── */
 const sectionVariants = {
@@ -87,6 +86,18 @@ const faqs = [
 const Landing = () => {
   const navigate = useNavigate();
 
+  const youtubeParams = new URLSearchParams({
+    autoplay: "0",
+    loop: "1",
+    controls: "1",
+    rel: "0",
+    modestbranding: "1",
+    showinfo: "0",
+    playsinline: "1",
+    playlist: YOUTUBE_ID,
+  });
+  const embedUrl = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}?${youtubeParams.toString()}`;
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -102,264 +113,282 @@ const Landing = () => {
         </div>
       </header>
 
-      {/* HERO */}
-      <HeroScrollVideo
-        mediaSrc={YOUTUBE_EMBED}
-        title="A câmera desliga. A missão continua."
-        subtitle="Do altar ao feed: transforme sua pregação em uma semana de conteúdo com fundamento bíblico."
-        meta={<>Beta Aberto · Uso 100% Gratuito</>}
-        cta={
-          <Button
-            size="lg"
-            onClick={() => navigate("/auth")}
-            className="text-base sm:text-lg px-8 py-5 sm:px-12 sm:py-7 bg-primary hover:bg-primary/90 group"
-          >
-            Começar Grátis
-            <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform w-5 h-5 sm:w-6 sm:h-6" />
-          </Button>
+      {/* HERO — ContainerScroll */}
+      <ContainerScrollHero
+        titleComponent={
+          <div className="flex flex-col items-center gap-4 mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold tracking-wide bg-primary/10 border border-primary/20 text-primary">
+              Beta Aberto · Uso 100% Gratuito
+            </div>
+            <h2 className="font-gunterz text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-foreground tracking-tight uppercase leading-tight">
+              A câmera desliga.
+              <br />
+              A missão continua.
+            </h2>
+            <p className="text-muted-foreground text-sm md:text-base max-w-md mx-auto">
+              Do altar ao feed: transforme sua pregação em uma semana de conteúdo com fundamento bíblico.
+            </p>
+            <Button
+              size="lg"
+              onClick={() => navigate("/auth")}
+              className="text-base sm:text-lg px-8 py-5 sm:px-12 sm:py-7 bg-primary hover:bg-primary/90 group"
+            >
+              Começar Grátis
+              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform w-5 h-5 sm:w-6 sm:h-6" />
+            </Button>
+          </div>
         }
       >
-        {/* ═══════════════════════════════════════════
-            COMO FUNCIONA — Animated Steps
-        ═══════════════════════════════════════════ */}
-        <motion.section
-          className="container mx-auto px-4 py-16 md:py-28"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          <div className="max-w-6xl mx-auto">
-            <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
-              Como Funciona
-            </h2>
-            <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg max-w-xl mx-auto">
-              3 passos simples para transformar sua pregação em conteúdo estratégico
-            </p>
+        <iframe
+          src={embedUrl}
+          title="Video de apresentação"
+          className="w-full h-full rounded-xl"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </ContainerScrollHero>
 
-            <motion.div
-              className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8"
-              variants={stagger}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-            >
-              {steps.map((s) => (
-                <motion.div key={s.step} variants={itemVariants}>
-                  <GlassCard glowColor={s.glow} className="h-full">
-                    <div className="p-6 md:p-8">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="font-gunterz text-3xl md:text-4xl font-black text-primary/30">{s.step}</span>
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                          <s.icon className="w-5 h-5 text-primary" />
-                        </div>
+      {/* ═══════════════════════════════════════════
+          COMO FUNCIONA — Animated Steps
+      ═══════════════════════════════════════════ */}
+      <motion.section
+        className="container mx-auto px-4 py-16 md:py-28"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
+            Como Funciona
+          </h2>
+          <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg max-w-xl mx-auto">
+            3 passos simples para transformar sua pregação em conteúdo estratégico
+          </p>
+
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8"
+            variants={stagger}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+          >
+            {steps.map((s) => (
+              <motion.div key={s.step} variants={itemVariants}>
+                <GlassCard glowColor={s.glow} className="h-full">
+                  <div className="p-6 md:p-8">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="font-gunterz text-3xl md:text-4xl font-black text-primary/30">{s.step}</span>
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <s.icon className="w-5 h-5 text-primary" />
                       </div>
-                      <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">{s.title}</h3>
-                      <p className="text-muted-foreground text-sm md:text-base leading-relaxed">{s.description}</p>
                     </div>
-                  </GlassCard>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </motion.section>
-
-        {/* ═══════════════════════════════════════════
-            RECURSOS — Features Grid
-        ═══════════════════════════════════════════ */}
-        <motion.section
-          className="container mx-auto px-4 py-16 md:py-28"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          <div className="max-w-6xl mx-auto">
-            <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
-              Tudo que você precisa
-            </h2>
-            <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg max-w-xl mx-auto">
-              Recursos poderosos e entregáveis prontos para usar
-            </p>
-
-            <motion.div
-              className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6"
-              variants={stagger}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.15 }}
-            >
-              {features.map((f, i) => (
-                <motion.div key={i} variants={itemVariants}>
-                  <GlassCard glowColor={i % 3 === 0 ? "primary" : i % 3 === 1 ? "blue" : "cyan"} className="h-full">
-                    <div className="p-6">
-                      <f.icon className="w-8 h-8 text-primary mb-4" />
-                      <h3 className="text-base md:text-lg font-bold text-foreground mb-1.5">{f.title}</h3>
-                      <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">{f.description}</p>
-                    </div>
-                  </GlassCard>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Deliverables checklist */}
-            <motion.div
-              className="mt-12 md:mt-16"
-              variants={sectionVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-            >
-              <GlassCard glowColor="primary" className="max-w-4xl mx-auto">
-                <div className="p-6 md:p-10">
-                  <h3 className="font-gunterz text-xl md:text-2xl font-black text-foreground mb-6 uppercase tracking-tight text-center">
-                    Entregáveis
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                    {deliverables.map((d, i) => (
-                      <div key={i} className="flex items-start gap-2.5">
-                        <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-foreground text-sm md:text-base">{d}</span>
-                      </div>
-                    ))}
+                    <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">{s.title}</h3>
+                    <p className="text-muted-foreground text-sm md:text-base leading-relaxed">{s.description}</p>
                   </div>
-                </div>
-              </GlassCard>
-            </motion.div>
-          </div>
-        </motion.section>
+                </GlassCard>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </motion.section>
 
-        {/* ═══════════════════════════════════════════
-            DEPOIMENTOS — Testimonials
-        ═══════════════════════════════════════════ */}
-        <motion.section
-          className="container mx-auto px-4 py-16 md:py-28"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          <div className="max-w-6xl mx-auto">
-            <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
-              O que dizem
-            </h2>
-            <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg max-w-xl mx-auto">
-              Líderes de todo o Brasil já transformam pregações em impacto digital
-            </p>
+      {/* ═══════════════════════════════════════════
+          RECURSOS — Features Grid
+      ═══════════════════════════════════════════ */}
+      <motion.section
+        className="container mx-auto px-4 py-16 md:py-28"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
+            Tudo que você precisa
+          </h2>
+          <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg max-w-xl mx-auto">
+            Recursos poderosos e entregáveis prontos para usar
+          </p>
 
-            <motion.div
-              className="grid grid-cols-1 md:grid-cols-3 gap-6"
-              variants={stagger}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-            >
-              {testimonials.map((t, i) => (
-                <motion.div key={i} variants={itemVariants}>
-                  <GlassCard glowColor={t.glow} className="h-full">
-                    <div className="p-6 md:p-8">
-                      <div className="flex items-center gap-3 mb-5">
-                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-2xl flex-shrink-0">
-                          {t.emoji}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-foreground font-semibold text-sm md:text-base truncate">{t.name}</p>
-                          <p className="text-muted-foreground text-xs md:text-sm">{t.role}</p>
-                        </div>
-                      </div>
-                      <p className="text-muted-foreground text-sm italic leading-relaxed">"{t.content}"</p>
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6"
+            variants={stagger}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
+            {features.map((f, i) => (
+              <motion.div key={i} variants={itemVariants}>
+                <GlassCard glowColor={i % 3 === 0 ? "primary" : i % 3 === 1 ? "blue" : "cyan"} className="h-full">
+                  <div className="p-6">
+                    <f.icon className="w-8 h-8 text-primary mb-4" />
+                    <h3 className="text-base md:text-lg font-bold text-foreground mb-1.5">{f.title}</h3>
+                    <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">{f.description}</p>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Deliverables checklist */}
+          <motion.div
+            className="mt-12 md:mt-16"
+            variants={sectionVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+          >
+            <GlassCard glowColor="primary" className="max-w-4xl mx-auto">
+              <div className="p-6 md:p-10">
+                <h3 className="font-gunterz text-xl md:text-2xl font-black text-foreground mb-6 uppercase tracking-tight text-center">
+                  Entregáveis
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                  {deliverables.map((d, i) => (
+                    <div key={i} className="flex items-start gap-2.5">
+                      <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-foreground text-sm md:text-base">{d}</span>
                     </div>
-                  </GlassCard>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </motion.section>
-
-        {/* ═══════════════════════════════════════════
-            CTA FINAL
-        ═══════════════════════════════════════════ */}
-        <motion.section
-          className="container mx-auto px-4 py-16 md:py-28"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-        >
-          <div className="max-w-4xl mx-auto">
-            <GlassCard glowColor="primary">
-              <div className="p-8 md:p-14 text-center">
-                <h2 className="font-gunterz text-2xl md:text-4xl font-black text-foreground mb-4 uppercase tracking-tight">
-                  Pronto para transformar suas pregações?
-                </h2>
-                <p className="text-base md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                  Domingo você prega. Na segunda a mídia já tem tudo pronto.
-                </p>
-                <Button
-                  size="lg"
-                  onClick={() => navigate("/auth")}
-                  className="text-base md:text-lg px-10 py-6 md:px-14 md:py-7 bg-primary hover:bg-primary/90 group"
-                >
-                  Começar Agora Grátis
-                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                <p className="text-xs md:text-sm text-muted-foreground mt-5">Beta com uso liberado</p>
-              </div>
-            </GlassCard>
-          </div>
-        </motion.section>
-
-        {/* ═══════════════════════════════════════════
-            FAQ
-        ═══════════════════════════════════════════ */}
-        <motion.section
-          className="container mx-auto px-4 py-16 md:py-28"
-          variants={sectionVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
-        >
-          <div className="max-w-3xl mx-auto">
-            <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
-              Perguntas Frequentes
-            </h2>
-            <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg">
-              Tudo que você precisa saber
-            </p>
-
-            <GlassCard glowColor="blue">
-              <div className="p-4 md:p-8">
-                <Accordion type="single" collapsible className="space-y-2">
-                  {faqs.map((faq, i) => (
-                    <AccordionItem
-                      key={i}
-                      value={`item-${i}`}
-                      className="border-b border-white/5 last:border-0"
-                    >
-                      <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary text-sm md:text-base py-4">
-                        {faq.q}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground text-sm md:text-base pb-4">
-                        {faq.a}
-                      </AccordionContent>
-                    </AccordionItem>
                   ))}
-                </Accordion>
+                </div>
               </div>
             </GlassCard>
-          </div>
-        </motion.section>
+          </motion.div>
+        </div>
+      </motion.section>
 
-        {/* Footer */}
-        <footer className="border-t border-white/5 py-10 md:py-14">
-          <div className="container mx-auto px-4 flex flex-col items-center gap-3">
-            <img src={logoIdeon} alt="Ide.On" className="h-8 w-8 rounded-lg object-contain opacity-60" />
-            <p className="text-muted-foreground text-xs">
-              © 2024 Ide.On · Transformando pregações em impacto digital
-            </p>
-          </div>
-        </footer>
-      </HeroScrollVideo>
+      {/* ═══════════════════════════════════════════
+          DEPOIMENTOS — Testimonials
+      ═══════════════════════════════════════════ */}
+      <motion.section
+        className="container mx-auto px-4 py-16 md:py-28"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
+        <div className="max-w-6xl mx-auto">
+          <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
+            O que dizem
+          </h2>
+          <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg max-w-xl mx-auto">
+            Líderes de todo o Brasil já transformam pregações em impacto digital
+          </p>
+
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            variants={stagger}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+          >
+            {testimonials.map((t, i) => (
+              <motion.div key={i} variants={itemVariants}>
+                <GlassCard glowColor={t.glow} className="h-full">
+                  <div className="p-6 md:p-8">
+                    <div className="flex items-center gap-3 mb-5">
+                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-2xl flex-shrink-0">
+                        {t.emoji}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-foreground font-semibold text-sm md:text-base truncate">{t.name}</p>
+                        <p className="text-muted-foreground text-xs md:text-sm">{t.role}</p>
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground text-sm italic leading-relaxed">"{t.content}"</p>
+                  </div>
+                </GlassCard>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* ═══════════════════════════════════════════
+          CTA FINAL
+      ═══════════════════════════════════════════ */}
+      <motion.section
+        className="container mx-auto px-4 py-16 md:py-28"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
+        <div className="max-w-4xl mx-auto">
+          <GlassCard glowColor="primary">
+            <div className="p-8 md:p-14 text-center">
+              <h2 className="font-gunterz text-2xl md:text-4xl font-black text-foreground mb-4 uppercase tracking-tight">
+                Pronto para transformar suas pregações?
+              </h2>
+              <p className="text-base md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+                Domingo você prega. Na segunda a mídia já tem tudo pronto.
+              </p>
+              <Button
+                size="lg"
+                onClick={() => navigate("/auth")}
+                className="text-base md:text-lg px-10 py-6 md:px-14 md:py-7 bg-primary hover:bg-primary/90 group"
+              >
+                Começar Agora Grátis
+                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <p className="text-xs md:text-sm text-muted-foreground mt-5">Beta com uso liberado</p>
+            </div>
+          </GlassCard>
+        </div>
+      </motion.section>
+
+      {/* ═══════════════════════════════════════════
+          FAQ
+      ═══════════════════════════════════════════ */}
+      <motion.section
+        className="container mx-auto px-4 py-16 md:py-28"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
+        <div className="max-w-3xl mx-auto">
+          <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
+            Perguntas Frequentes
+          </h2>
+          <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg">
+            Tudo que você precisa saber
+          </p>
+
+          <GlassCard glowColor="blue">
+            <div className="p-4 md:p-8">
+              <Accordion type="single" collapsible className="space-y-2">
+                {faqs.map((faq, i) => (
+                  <AccordionItem
+                    key={i}
+                    value={`item-${i}`}
+                    className="border-b border-white/5 last:border-0"
+                  >
+                    <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary text-sm md:text-base py-4">
+                      {faq.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground text-sm md:text-base pb-4">
+                      {faq.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          </GlassCard>
+        </div>
+      </motion.section>
+
+      {/* Footer */}
+      <footer className="border-t border-white/5 py-10 md:py-14">
+        <div className="container mx-auto px-4 flex flex-col items-center gap-3">
+          <img src={logoIdeon} alt="Ide.On" className="h-8 w-8 rounded-lg object-contain opacity-60" />
+          <p className="text-muted-foreground text-xs">
+            © 2024 Ide.On · Transformando pregações em impacto digital
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
