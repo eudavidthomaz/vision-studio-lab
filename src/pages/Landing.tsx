@@ -6,7 +6,7 @@ import { Zap, Target, CheckCircle2, ArrowRight, BookOpen, Users, Layout, BookMar
 import logoIdeon from "@/assets/logo-ideon.png";
 import { ContainerScrollHero } from "@/components/ContainerScrollHero";
 import { GlassCard } from "@/components/ui/glass-card";
-import HowItWorksEngine from "@/components/HowItWorksEngine";
+import HowItWorksSection from "@/components/HowItWorksSection";
 import { SparklesCore } from "@/components/ui/sparkles";
 import RadialOrbitalTimeline from "@/components/RadialOrbitalTimeline";
 import type { TimelineItem } from "@/components/RadialOrbitalTimeline";
@@ -125,25 +125,7 @@ const Landing = () => {
       {/* ═══════════════════════════════════════════
             COMO FUNCIONA
           ═══════════════════════════════════════════ */}
-      <motion.section
-        id="como-funciona"
-        className="container mx-auto px-4 py-16 md:py-24"
-        variants={sectionVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}>
-        
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl md:text-5xl font-gunterz uppercase text-foreground text-center mb-4">
-            Como Funciona?
-          </h2>
-          <p className="text-muted-foreground text-center mb-10 md:mb-16 text-base md:text-lg">
-            3 passos simples para transformar sua pregação em conteúdo estratégico
-          </p>
-
-          <HowItWorksEngine />
-        </div>
-      </motion.section>
+      <HowItWorksSection />
 
       {/* ═══════════════════════════════════════════
             RECURSOS
