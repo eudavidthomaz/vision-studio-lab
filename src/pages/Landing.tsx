@@ -357,7 +357,7 @@ const Landing = () => {
             </div>
           </div>
         </footer>
-      </ContainerScrollHero>
+    
     </div>);
 
 };
