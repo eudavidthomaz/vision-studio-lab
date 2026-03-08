@@ -85,7 +85,7 @@ export const HeroHeader = ({
               Ide por todo o mundo,
             </span>
             <br />
-            <span className="inline-block font-robin font-normal animate-fade-in animation-delay-300 text-white uppercase">
+            <span className="inline-block font-brother font-bold animate-fade-in animation-delay-300 text-white uppercase">
               inclusive no digital
             </span>
             {" "}
