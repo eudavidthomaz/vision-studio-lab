@@ -25,7 +25,7 @@ export function CircularCarousel3D({
   className,
 }: CircularCarousel3DProps) {
   const isMobile = useIsMobile();
-  const radius = radiusProp ?? (isMobile ? 180 : 280);
+  const radius = radiusProp ?? (isMobile ? 300 : 450);
   const cardW = isMobile ? 220 : 280;
   const cardH = isMobile ? 300 : 380;
 
