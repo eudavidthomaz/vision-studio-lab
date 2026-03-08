@@ -366,6 +366,16 @@ All colors MUST be HSL.
   }
 }
 
+/* Carousel 3D glow pulse */
+.carousel-glow-pulse {
+  animation: carousel-glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes carousel-glow-pulse {
+  0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.8; transform: translateX(-50%) scale(1.1); }
+}
+
 /* Melhorar scroll em iOS */
 .overscroll-contain {
   overscroll-behavior: contain;
