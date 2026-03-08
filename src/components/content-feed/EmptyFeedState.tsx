@@ -1,6 +1,7 @@
 import { Sparkles, AudioLines } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import logoIdeon from "@/assets/logo-ideon.png";
 
 export function EmptyFeedState() {
   const navigate = useNavigate();
