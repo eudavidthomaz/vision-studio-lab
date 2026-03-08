@@ -1,84 +1,91 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { Mic, Sparkles, Calendar, Zap, Target, CheckCircle2, ArrowRight, BookOpen, Users, Layout, BookMarked } from "lucide-react";
 import logoIdeon from "@/assets/logo-ideon.png";
 import { HeroScrollVideo } from "@/components/HeroScrollVideo";
+import { GlassCard } from "@/components/ui/glass-card";
+import { motion } from "framer-motion";
 
 const YOUTUBE_ID = "SGRIma5ElbY";
 const YOUTUBE_EMBED = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}`;
 
+/* ── Animation helpers ── */
+const sectionVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0, 0, 0.2, 1] as const } },
+};
+
+const stagger = {
+  visible: { transition: { staggerChildren: 0.15 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0, 0, 0.2, 1] as const } },
+};
+
+/* ── Data ── */
+const steps = [
+  {
+    icon: Mic,
+    step: "01",
+    title: "Grave ou Envie o Áudio",
+    description: "Grave ao vivo no Ide.On ou faça upload do arquivo. A IA transcreve e identifica versículos, temas, ênfases e chamadas da sua pregação.",
+    glow: "primary" as const,
+  },
+  {
+    icon: Sparkles,
+    step: "02",
+    title: "Gere o Pack da Semana",
+    description: "Em minutos, você recebe estudo bíblico, resumo, frases de impacto, carrossel, roteiros de reels/shorts, legendas e hashtags.",
+    glow: "blue" as const,
+  },
+  {
+    icon: Calendar,
+    step: "03",
+    title: "Organize e Publique",
+    description: "Use o planner visual para ajustar o tom, escolher os dias e exportar em PDF/Imagem ou direto para seus fluxos.",
+    glow: "cyan" as const,
+  },
+];
+
+const features = [
+  { icon: BookOpen, title: "Teologia Sólida", description: "Conteúdo com referências bíblicas claras e aplicações que respeitam a ortodoxia." },
+  { icon: Users, title: "Feito para Equipes", description: "Roteiros, carrosséis e legendas prontos para design e edição." },
+  { icon: Zap, title: "Rápido de Verdade", description: "De uma pregação para 7 dias de conteúdo em minutos." },
+  { icon: Layout, title: "Planner Visual", description: "Arraste e solte, ajuste o tom e publique com ritmo." },
+  { icon: Target, title: "Foco em Crescimento", description: "Conteúdos alinhados aos 5 pilares: Edificar, Alcançar, Conectar, Servir e Anunciar." },
+  { icon: BookMarked, title: "Biblioteca Inteligente", description: "Tudo salvo, pesquisável por tema/verso/série e pronto para reaproveitar." },
+];
+
+const deliverables = [
+  "Posts completos para Instagram e Facebook",
+  "Stories interativos (enquetes, perguntas, caixinhas)",
+  "Roteiros de Reels/Shorts com ganchos e CTAs",
+  "Carrosséis educativos com estrutura de slide pronta",
+  "Legendas com variações de tom",
+  "Frases de impacto e clips destacados",
+  "Hashtags e CTAs otimizados",
+  "Sugestões de dias e horários para postar",
+  "Estudo bíblico + contexto histórico + aplicação",
+  "Exportação em PDF/Imagem",
+];
+
+const testimonials = [
+  { name: "Pr. João", role: "Igreja Batista Central", content: "O Ide.On nos deu constância. Em minutos temos uma semana pronta — e fiel ao que pregamos.", emoji: "👨‍💼", glow: "primary" as const },
+  { name: "Pastora Maria", role: "Comunidade Evangélica", content: "A IA entende o coração da mensagem e traduz para a linguagem da internet. Nosso engajamento triplicou.", emoji: "👩‍💼", glow: "blue" as const },
+  { name: "Pedro", role: "Líder de Mídia", content: "Ferramenta indispensável para quem lidera mídia. O planner acabou com as nossas madrugadas de domingo.", emoji: "👨‍💻", glow: "cyan" as const },
+];
+
+const faqs = [
+  { q: "A IA inventa versículos?", a: "Não. O Ide.On exige referência e exibe a versão bíblica usada. Você revisa antes de publicar." },
+  { q: "Posso definir o estilo teológico?", a: "Sim. Presets de tom e guard-rails doutrinários para manter fidelidade." },
+  { q: "Quanto custa no Beta?", a: "Grátis durante a validação. Depois, planos acessíveis para igrejas de todos os tamanhos." },
+];
+
 const Landing = () => {
   const navigate = useNavigate();
-
-  const features = [
-    {
-      icon: BookOpen,
-      title: "Teologia Sólida, Linguagem Viva",
-      description: "Nada de \"IA sem noção\". O conteúdo nasce com referências bíblicas claras e aplicações que respeitam a ortodoxia."
-    },
-    {
-      icon: Users,
-      title: "Feito para Equipes de Mídia",
-      description: "Roteiros, carrosséis e legends prontos para design e edição. Menos retrabalho, mais consistência."
-    },
-    {
-      icon: Zap,
-      title: "Rápido de Verdade",
-      description: "De uma pregação para 7 dias de conteúdo em minutos."
-    },
-    {
-      icon: Layout,
-      title: "Planner Visual",
-      description: "Arraste e solte, ajuste o tom (pastoral, jovem, institucional, evangelístico) e publique com ritmo."
-    },
-    {
-      icon: Target,
-      title: "Foco em Crescimento",
-      description: "Conteúdos alinhados aos 5 pilares: Edificar, Alcançar, Conectar, Servir e Anunciar."
-    },
-    {
-      icon: BookMarked,
-      title: "Biblioteca Inteligente",
-      description: "Tudo salvo, pesquisável por tema/verso/série e pronto para reaproveitar."
-    }
-  ];
-
-  const benefits = [
-    "Posts completos para Instagram e Facebook",
-    "Stories interativos (enquetes, perguntas, caixinhas)",
-    "Roteiros de Reels/Shorts com ganchos e CTAs",
-    "Carrosséis educativos com estrutura de slide pronta",
-    "Legendas com variações de tom (jovem, pastoral, institucional)",
-    "Frases de impacto e clips destacados da mensagem",
-    "Hashtags e CTAs otimizados",
-    "Sugestões de dias e horários para postar",
-    "Estudo bíblico + contexto histórico + aplicação",
-    "Exportação em PDF/Imagem (pronto pra enviar no grupo da equipe)"
-  ];
-
-  const testimonials = [
-    {
-      name: "Pr. João",
-      role: "Igreja Batista Central",
-      content: "O Ide.On nos deu constância. Em minutos temos uma semana pronta — e fiel ao que pregamos.",
-      image: "👨‍💼"
-    },
-    {
-      name: "Pastora Maria",
-      role: "Comunidade Evangélica",
-      content: "A IA entende o coração da mensagem e traduz para a linguagem da internet. Nosso engajamento triplicou.",
-      image: "👩‍💼"
-    },
-    {
-      name: "Pedro",
-      role: "Líder de Mídia",
-      content: "Ferramenta indispensável para quem lidera mídia. O planner acabou com as nossas madrugadas de domingo.",
-      image: "👨‍💻"
-    }
-  ];
 
   return (
     <div className="min-h-screen">
@@ -89,18 +96,13 @@ const Landing = () => {
             <img src={logoIdeon} alt="Ide.On" className="h-8 w-8 rounded-lg object-contain" />
             <h1 className="text-2xl font-bold text-foreground">Ide.On</h1>
           </div>
-          <Button 
-            onClick={() => navigate("/auth")}
-            className="bg-primary hover:bg-primary/90"
-          >
+          <Button onClick={() => navigate("/auth")} className="bg-primary hover:bg-primary/90">
             Começar Grátis
           </Button>
         </div>
       </header>
 
-      {/* ═══════════════════════════════════════════
-          HERO — Scroll-Expand Media
-      ═══════════════════════════════════════════ */}
+      {/* HERO */}
       <HeroScrollVideo
         mediaSrc={YOUTUBE_EMBED}
         title="A câmera desliga. A missão continua."
@@ -118,230 +120,243 @@ const Landing = () => {
         }
       >
         {/* ═══════════════════════════════════════════
-            COMO FUNCIONA
+            COMO FUNCIONA — Animated Steps
         ═══════════════════════════════════════════ */}
-        <section id="como-funciona" className="container mx-auto px-4 py-12 md:py-20 bg-card/5">
+        <motion.section
+          className="container mx-auto px-4 py-16 md:py-28"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+        >
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-[2.8125rem] md:text-[3.375rem] font-bold text-foreground text-center mb-4">
-              Como Funciona?
+            <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
+              Como Funciona
             </h2>
-            <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
+            <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg max-w-xl mx-auto">
               3 passos simples para transformar sua pregação em conteúdo estratégico
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              <Card className="bg-card/50 backdrop-blur border-border/50 relative overflow-hidden group hover:border-primary/50 transition-all">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
-                <CardContent className="pt-6 md:pt-8 relative z-10">
-                  <div className="w-12 h-12 md:w-16 md:h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-                    <Mic className="w-6 h-6 md:w-8 md:h-8 text-primary" />
-                  </div>
-                  <div className="text-primary font-bold text-sm mb-2">PASSO 1</div>
-                  <h3 className="text-lg md:text-xl font-bold text-foreground mb-3">Grave ou Envie o Áudio</h3>
-                  <p className="text-muted-foreground text-sm md:text-base">
-                    Grave ao vivo no Ide.On ou faça upload do arquivo. A IA transcreve e identifica versículos, temas, ênfases e chamadas da sua pregação.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card/50 backdrop-blur border-border/50 relative overflow-hidden group hover:border-primary/50 transition-all">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
-                <CardContent className="pt-6 md:pt-8 relative z-10">
-                  <div className="w-12 h-12 md:w-16 md:h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-                    <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-primary" />
-                  </div>
-                  <div className="text-primary font-bold text-sm mb-2">PASSO 2</div>
-                  <h3 className="text-lg md:text-xl font-bold text-foreground mb-3">Gere o Pack da Semana</h3>
-                  <p className="text-muted-foreground text-sm md:text-base">
-                    Em minutos, você recebe estudo bíblico, resumo, frases de impacto, carrossel, roteiros de reels/shorts, legendas e hashtags — tudo coerente com a doutrina cristã histórica.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-card/50 backdrop-blur border-border/50 relative overflow-hidden group hover:border-primary/50 transition-all">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500" />
-                <CardContent className="pt-6 md:pt-8 relative z-10">
-                  <div className="w-12 h-12 md:w-16 md:h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-                    <Calendar className="w-6 h-6 md:w-8 md:h-8 text-primary" />
-                  </div>
-                  <div className="text-primary font-bold text-sm mb-2">PASSO 3</div>
-                  <h3 className="text-lg md:text-xl font-bold text-foreground mb-3">Organize e Publique</h3>
-                  <p className="text-muted-foreground text-sm md:text-base">
-                    Use o planner visual para ajustar o tom, escolher os dias e exportar em PDF/Imagem ou direto para seus fluxos (Canva/CapCut/agenda de posts).
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8"
+              variants={stagger}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              {steps.map((s) => (
+                <motion.div key={s.step} variants={itemVariants}>
+                  <GlassCard glowColor={s.glow} className="h-full">
+                    <div className="p-6 md:p-8">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="font-gunterz text-3xl md:text-4xl font-black text-primary/30">{s.step}</span>
+                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                          <s.icon className="w-5 h-5 text-primary" />
+                        </div>
+                      </div>
+                      <h3 className="text-lg md:text-xl font-bold text-foreground mb-2">{s.title}</h3>
+                      <p className="text-muted-foreground text-sm md:text-base leading-relaxed">{s.description}</p>
+                    </div>
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
 
-        {/* Recursos + Entregáveis */}
-        <section className="container mx-auto px-4 py-12 md:py-20">
+        {/* ═══════════════════════════════════════════
+            RECURSOS — Features Grid
+        ═══════════════════════════════════════════ */}
+        <motion.section
+          className="container mx-auto px-4 py-16 md:py-28"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+        >
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-4">
+            <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
               Tudo que você precisa
             </h2>
-            <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
+            <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg max-w-xl mx-auto">
               Recursos poderosos e entregáveis prontos para usar
             </p>
 
-            <Tabs defaultValue="recursos" className="w-full">
-              <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
-                <TabsTrigger value="recursos">Recursos</TabsTrigger>
-                <TabsTrigger value="entregaveis">Entregáveis</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="recursos" className="mt-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-                  {features.map((feature, index) => (
-                    <Card key={index} className="bg-card/30 backdrop-blur border-border/50 hover:border-primary/50 transition-all">
-                      <CardContent className="pt-4 md:pt-6">
-                        <feature.icon className="w-8 h-8 md:w-10 md:h-10 text-primary mb-3 md:mb-4" />
-                        <h3 className="text-base md:text-lg font-bold text-foreground mb-2">{feature.title}</h3>
-                        <p className="text-muted-foreground text-xs md:text-sm">{feature.description}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="entregaveis" className="mt-0">
-                <Card className="bg-card/50 backdrop-blur border-border/50 max-w-4xl mx-auto">
-                  <CardContent className="pt-6 md:pt-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                      {benefits.map((benefit, index) => (
-                        <div key={index} className="flex items-start gap-2 md:gap-3">
-                          <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                          <span className="text-foreground text-sm md:text-base">{benefit}</span>
-                        </div>
-                      ))}
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-6"
+              variants={stagger}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.15 }}
+            >
+              {features.map((f, i) => (
+                <motion.div key={i} variants={itemVariants}>
+                  <GlassCard glowColor={i % 3 === 0 ? "primary" : i % 3 === 1 ? "blue" : "cyan"} className="h-full">
+                    <div className="p-6">
+                      <f.icon className="w-8 h-8 text-primary mb-4" />
+                      <h3 className="text-base md:text-lg font-bold text-foreground mb-1.5">{f.title}</h3>
+                      <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">{f.description}</p>
                     </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </section>
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </motion.div>
 
-        {/* Testimonials */}
-        <section className="container mx-auto px-4 py-12 md:py-20 bg-card/5">
+            {/* Deliverables checklist */}
+            <motion.div
+              className="mt-12 md:mt-16"
+              variants={sectionVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              <GlassCard glowColor="primary" className="max-w-4xl mx-auto">
+                <div className="p-6 md:p-10">
+                  <h3 className="font-gunterz text-xl md:text-2xl font-black text-foreground mb-6 uppercase tracking-tight text-center">
+                    Entregáveis
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                    {deliverables.map((d, i) => (
+                      <div key={i} className="flex items-start gap-2.5">
+                        <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                        <span className="text-foreground text-sm md:text-base">{d}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </GlassCard>
+            </motion.div>
+          </div>
+        </motion.section>
+
+        {/* ═══════════════════════════════════════════
+            DEPOIMENTOS — Testimonials
+        ═══════════════════════════════════════════ */}
+        <motion.section
+          className="container mx-auto px-4 py-16 md:py-28"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+        >
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-4">
-              O Que Dizem Nossos Usuários
+            <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
+              O que dizem
             </h2>
-            <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
-              Líderes de todo o Brasil já estão transformando suas pregações em impacto digital
+            <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg max-w-xl mx-auto">
+              Líderes de todo o Brasil já transformam pregações em impacto digital
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
-              {testimonials.map((testimonial, index) => (
-                <Card key={index} className="bg-card/30 backdrop-blur border-border/50">
-                  <CardContent className="pt-4 md:pt-6">
-                    <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                      <div className="w-10 h-10 md:w-12 md:h-12 bg-primary/20 rounded-full flex items-center justify-center text-xl md:text-2xl flex-shrink-0">
-                        {testimonial.image}
+            <motion.div
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+              variants={stagger}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              {testimonials.map((t, i) => (
+                <motion.div key={i} variants={itemVariants}>
+                  <GlassCard glowColor={t.glow} className="h-full">
+                    <div className="p-6 md:p-8">
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-2xl flex-shrink-0">
+                          {t.emoji}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-foreground font-semibold text-sm md:text-base truncate">{t.name}</p>
+                          <p className="text-muted-foreground text-xs md:text-sm">{t.role}</p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-foreground font-semibold text-sm md:text-base truncate">{testimonial.name}</p>
-                        <p className="text-muted-foreground text-xs md:text-sm">{testimonial.role}</p>
-                      </div>
+                      <p className="text-muted-foreground text-sm italic leading-relaxed">"{t.content}"</p>
                     </div>
-                    <p className="text-muted-foreground text-xs md:text-sm italic">"{testimonial.content}"</p>
-                  </CardContent>
-                </Card>
+                  </GlassCard>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
-        </section>
+        </motion.section>
 
-        {/* CTA Final */}
-        <section className="container mx-auto px-4 py-12 md:py-20">
+        {/* ═══════════════════════════════════════════
+            CTA FINAL
+        ═══════════════════════════════════════════ */}
+        <motion.section
+          className="container mx-auto px-4 py-16 md:py-28"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
           <div className="max-w-4xl mx-auto">
-            <Card className="bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur border-primary/50">
-              <CardContent className="pt-8 pb-8 md:pt-12 md:pb-12 text-center">
-                <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4">
-                  Pronto para transformar suas pregações em impacto digital?
+            <GlassCard glowColor="primary">
+              <div className="p-8 md:p-14 text-center">
+                <h2 className="font-gunterz text-2xl md:text-4xl font-black text-foreground mb-4 uppercase tracking-tight">
+                  Pronto para transformar suas pregações?
                 </h2>
-                <p className="text-base md:text-xl text-muted-foreground mb-6 md:mb-8 max-w-2xl mx-auto">
+                <p className="text-base md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
                   Domingo você prega. Na segunda a mídia já tem tudo pronto.
                 </p>
-                <Button 
+                <Button
                   size="lg"
                   onClick={() => navigate("/auth")}
-                  className="text-base md:text-lg px-8 py-5 md:px-12 md:py-6 bg-primary hover:bg-primary/90 group"
+                  className="text-base md:text-lg px-10 py-6 md:px-14 md:py-7 bg-primary hover:bg-primary/90 group"
                 >
                   Começar Agora Grátis
                   <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
-                <p className="text-xs md:text-sm text-muted-foreground mt-4">
-                  Beta com uso liberado
-                </p>
-              </CardContent>
-            </Card>
+                <p className="text-xs md:text-sm text-muted-foreground mt-5">Beta com uso liberado</p>
+              </div>
+            </GlassCard>
           </div>
-        </section>
+        </motion.section>
 
-        {/* FAQ */}
-        <section className="container mx-auto px-4 py-12 md:py-20 bg-card/5">
+        {/* ═══════════════════════════════════════════
+            FAQ
+        ═══════════════════════════════════════════ */}
+        <motion.section
+          className="container mx-auto px-4 py-16 md:py-28"
+          variants={sectionVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+        >
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground text-center mb-4">
+            <h2 className="font-gunterz text-3xl md:text-5xl font-black text-foreground text-center mb-3 uppercase tracking-tight">
               Perguntas Frequentes
             </h2>
-            <p className="text-muted-foreground text-center mb-8 md:mb-12 text-base md:text-lg">
+            <p className="text-muted-foreground text-center mb-12 md:mb-16 text-base md:text-lg">
               Tudo que você precisa saber
             </p>
 
-            <Accordion type="single" collapsible className="space-y-4">
-              <AccordionItem 
-                value="item-1"
-                className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-4 md:px-6"
-              >
-                <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary text-sm md:text-base py-4">
-                  A IA inventa versículos?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-sm md:text-base">
-                  Não. O Ide.On exige referência e exibe a versão bíblica usada. Você revisa antes de publicar.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem 
-                value="item-2"
-                className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-4 md:px-6"
-              >
-                <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary text-sm md:text-base py-4">
-                  Posso definir o estilo teológico?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-sm md:text-base">
-                  Sim. Presets de tom e guard-rails doutrinários para manter fidelidade.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem 
-                value="item-3"
-                className="bg-card/50 backdrop-blur border border-border/50 rounded-lg px-4 md:px-6"
-              >
-                <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary text-sm md:text-base py-4">
-                  Quanto custa no Beta?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-sm md:text-base">
-                  Grátis durante a validação. Depois, planos acessíveis para igrejas de todos os tamanhos.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            <GlassCard glowColor="blue">
+              <div className="p-4 md:p-8">
+                <Accordion type="single" collapsible className="space-y-2">
+                  {faqs.map((faq, i) => (
+                    <AccordionItem
+                      key={i}
+                      value={`item-${i}`}
+                      className="border-b border-white/5 last:border-0"
+                    >
+                      <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary text-sm md:text-base py-4">
+                        {faq.q}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-muted-foreground text-sm md:text-base pb-4">
+                        {faq.a}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
+            </GlassCard>
           </div>
-        </section>
+        </motion.section>
 
         {/* Footer */}
-        <footer className="border-t border-border bg-background/50 backdrop-blur-sm">
-          <div className="container mx-auto px-4 py-8 md:py-12">
-            <div className="text-center text-muted-foreground">
-              <p className="text-xs md:text-sm">
-                © 2024 Ide.On. Todos os direitos reservados.
-              </p>
-              <p className="text-xs mt-2">
-                Transformando pregações em impacto digital
-              </p>
-            </div>
+        <footer className="border-t border-white/5 py-10 md:py-14">
+          <div className="container mx-auto px-4 flex flex-col items-center gap-3">
+            <img src={logoIdeon} alt="Ide.On" className="h-8 w-8 rounded-lg object-contain opacity-60" />
+            <p className="text-muted-foreground text-xs">
+              © 2024 Ide.On · Transformando pregações em impacto digital
+            </p>
           </div>
         </footer>
       </HeroScrollVideo>
