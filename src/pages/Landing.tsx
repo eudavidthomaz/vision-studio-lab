@@ -68,9 +68,11 @@ const faqItems = [
   { q: "Quanto custa no Beta?", a: "Grátis durante a validação. Depois, planos acessíveis para igrejas de todos os tamanhos." },
 ];
 
+const ease = [0, 0, 0.2, 1] as const;
+
 const sectionVariants = {
   hidden: { opacity: 0, y: 50 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0, 0, 0.2, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: ease as unknown as [number, number, number, number] } },
 };
 
 const itemVariants = {
@@ -78,7 +80,7 @@ const itemVariants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, delay: i * 0.12, ease: [0, 0, 0.2, 1] },
+    transition: { duration: 0.5, delay: i * 0.12, ease: ease as unknown as [number, number, number, number] },
   }),
 };
 
