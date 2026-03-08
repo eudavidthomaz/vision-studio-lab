@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, ReactNode, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Volume2, VolumeX } from "lucide-react";
 
 interface ScrollExpandMediaProps {
   mediaSrc: string;
