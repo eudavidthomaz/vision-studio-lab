@@ -255,7 +255,8 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
                 className="absolute bottom-[12%] md:bottom-[15%] left-1/2 -translate-x-1/2 z-10 font-gunterz text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white tracking-tight text-center mix-blend-difference whitespace-nowrap"
                 style={{ transform: `translateX(-50%) translateX(${textTranslateX}vw)` }}
               >
-
+                {secondLine}
+              </motion.h2>
               {/* Meta badge + CTA — visible when not scrolling */}
               <motion.div
                 className="absolute bottom-12 md:bottom-16 z-20 flex flex-col items-center gap-4"
