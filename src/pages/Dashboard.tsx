@@ -327,7 +327,7 @@ const Dashboard = () => {
       <NPSModal isOpen={showNPSModal} onClose={() => setShowNPSModal(false)} />
       <FeedbackButton />
 
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen">
         <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 max-w-7xl">
           <HeroHeader 
             onNavigateToContent={() => navigate('/biblioteca')}

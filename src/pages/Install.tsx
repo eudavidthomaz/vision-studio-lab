@@ -54,7 +54,7 @@ const Install = () => {
 
   if (isInstalled) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen ter justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardHeader>
             <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-green-500/10 flex items-center justify-center">
@@ -76,7 +76,7 @@ const Install = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       <div className="container max-w-2xl mx-auto px-4 py-8">
         <Button 
           variant="ghost" 

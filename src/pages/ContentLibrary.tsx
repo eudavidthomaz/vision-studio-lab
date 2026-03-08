@@ -307,7 +307,7 @@ export default function ContentLibrary() {
   return (
     <div className="min-h-screen overflow-x-clip">
       {/* Header fixo no topo */}
-      <div className="sticky top-0 z-50 bg-background/98 backdrop-blur-xl supports-[backdrop-filter]:bg-background/95 border-b border-border/50 shadow-sm">
+      <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-sm">
         <div className="mx-auto px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 max-w-7xl">
           {/* Bulk Actions Bar */}
           <BulkActionsBar

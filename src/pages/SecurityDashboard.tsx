@@ -151,7 +151,7 @@ export default function SecurityDashboard() {
     : '0';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Header */}
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">

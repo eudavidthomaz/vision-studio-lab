@@ -69,7 +69,7 @@ export default function ConfirmSchedule() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -77,7 +77,7 @@ export default function ConfirmSchedule() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             <AlertCircle className="w-12 h-12 mx-auto text-destructive mb-4" />
@@ -99,7 +99,7 @@ export default function ConfirmSchedule() {
     const msg = actionMessages[submittedAction as keyof typeof actionMessages] || actionMessages.confirm;
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             {msg.icon}
@@ -113,7 +113,7 @@ export default function ConfirmSchedule() {
 
   if (schedule?.already_responded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             <Check className="w-12 h-12 mx-auto text-primary mb-4" />
@@ -126,7 +126,7 @@ export default function ConfirmSchedule() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
