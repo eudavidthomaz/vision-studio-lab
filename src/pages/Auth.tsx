@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { Loader2, AlertTriangle } from "lucide-react";
+import logoIdeon from "@/assets/logo-ideon.png";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 // Tradução de mensagens de erro do Supabase para português
