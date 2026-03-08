@@ -1,75 +1,108 @@
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-interface ShapeProps {
+function ElegantShape({
+  className,
+  delay = 0,
+  width = 400,
+  height = 100,
+  rotate = 0,
+  gradient = "from-white/[0.08]",
+}: {
   className?: string;
-  delay?: string;
-  size?: string;
+  delay?: number;
+  width?: number;
+  height?: number;
+  rotate?: number;
   gradient?: string;
-}
-
-function Shape({ className, delay = "0s", size = "w-[400px] h-[100px]", gradient = "from-white/[0.08]" }: ShapeProps) {
+}) {
   return (
-    <div
-      className={cn(
-        "absolute rounded-3xl blur-3xl",
-        "bg-gradient-to-r to-transparent",
-        size,
-        gradient,
-        className
-      )}
-      style={{
-        opacity: 0,
-        animation: `geo-float 8s ease-in-out infinite, geo-fade-in 1.5s ease-out forwards`,
-        animationDelay: delay,
+    <motion.div
+      initial={{ opacity: 0, y: -150, rotate: rotate - 15 }}
+      animate={{ opacity: 1, y: 0, rotate }}
+      transition={{
+        duration: 2.4,
+        delay,
+        ease: [0.23, 0.86, 0.39, 0.96],
+        opacity: { duration: 1.2 },
       }}
-    />
+      className={cn("absolute", className)}
+    >
+      <motion.div
+        animate={{ y: [0, 15, 0] }}
+        transition={{
+          duration: 12,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        style={{ width, height }}
+        className="relative"
+      >
+        <div
+          className={cn(
+            "absolute inset-0 rounded-full",
+            "bg-gradient-to-r to-transparent",
+            gradient,
+            "backdrop-blur-[2px] border-2 border-white/[0.15]",
+            "shadow-[0_8px_32px_0_rgba(255,255,255,0.1)]"
+          )}
+        />
+      </motion.div>
+    </motion.div>
   );
 }
 
 export default function GeometricBackground() {
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-      {/* Shape 1 — top left, large, rotated */}
-      <Shape
-        className="top-[-10%] left-[-5%] rotate-12"
-        size="w-[500px] h-[140px]"
-        gradient="from-white/[0.12]"
-        delay="0s"
+      <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e]/[0.3] via-transparent to-[#1a1a2e]/[0.3]" />
+
+      <ElegantShape
+        className="top-[-10%] left-[-5%]"
+        width={500}
+        height={140}
+        rotate={12}
+        gradient="from-primary/[0.12]"
+        delay={0}
       />
 
-      {/* Shape 2 — center right, primary tint */}
-      <Shape
-        className="top-[30%] right-[-8%] -rotate-12"
-        size="w-[450px] h-[120px]"
+      <ElegantShape
+        className="top-[30%] right-[-8%]"
+        width={450}
+        height={120}
+        rotate={-12}
         gradient="from-primary/[0.10]"
-        delay="0.4s"
+        delay={0.4}
       />
 
-      {/* Shape 3 — bottom left, accent tint */}
-      <Shape
-        className="bottom-[15%] left-[5%] rotate-6"
-        size="w-[380px] h-[100px]"
+      <ElegantShape
+        className="bottom-[15%] left-[5%]"
+        width={380}
+        height={100}
+        rotate={6}
         gradient="from-accent/[0.08]"
-        delay="0.8s"
+        delay={0.8}
       />
 
-      {/* Shape 4 — top right, subtle */}
-      <Shape
-        className="top-[10%] right-[15%] -rotate-[20deg]"
-        size="w-[300px] h-[80px]"
+      <ElegantShape
+        className="top-[10%] right-[15%]"
+        width={300}
+        height={80}
+        rotate={-20}
         gradient="from-white/[0.07]"
-        delay="1.2s"
+        delay={1.2}
       />
 
-      {/* Shape 5 — bottom center, primary glow */}
-      <Shape
-        className="bottom-[5%] left-[40%] rotate-[15deg]"
-        size="w-[420px] h-[110px]"
+      <ElegantShape
+        className="bottom-[5%] left-[40%]"
+        width={420}
+        height={110}
+        rotate={15}
         gradient="from-primary/[0.08]"
-        delay="1.6s"
+        delay={1.6}
       />
 
-      {/* Noise/grain overlay */}
+      {/* Noise overlay */}
       <div
         className="absolute inset-0 opacity-[0.015]"
         style={{
