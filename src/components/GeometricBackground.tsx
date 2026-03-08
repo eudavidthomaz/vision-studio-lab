@@ -11,13 +11,14 @@ function Shape({ className, delay = "0s", size = "w-[400px] h-[100px]", gradient
   return (
     <div
       className={cn(
-        "absolute rounded-3xl blur-3xl opacity-0",
+        "absolute rounded-3xl blur-3xl",
         "bg-gradient-to-r to-transparent",
         size,
         gradient,
         className
       )}
       style={{
+        opacity: 0,
         animation: `geo-float 8s ease-in-out infinite, geo-fade-in 1.5s ease-out forwards`,
         animationDelay: delay,
       }}
