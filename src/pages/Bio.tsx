@@ -240,27 +240,31 @@ const Bio = () => {
             <TabsList className="w-full flex justify-start md:justify-center gap-1 bg-transparent h-auto p-2 overflow-x-auto scrollbar-none">
               <TabsTrigger
                 value="inicio"
-                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
+                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium gap-1.5 items-center data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
               >
-                🏠 Início
+                <ChurchIcon className="w-4 h-4" />
+                Início
               </TabsTrigger>
               <TabsTrigger
                 value="sobre"
-                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
+                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium gap-1.5 items-center data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
               >
-                ✝️ Sobre
+                <BookOpen className="w-4 h-4" />
+                Sobre
               </TabsTrigger>
               <TabsTrigger
                 value="midia"
-                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
+                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium gap-1.5 items-center data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
               >
-                📺 Mídia
+                <Play className="w-4 h-4" />
+                Mídia
               </TabsTrigger>
               <TabsTrigger
                 value="contato"
-                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
+                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium gap-1.5 items-center data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
               >
-                💬 Contato
+                <MessageCircle className="w-4 h-4" />
+                Contato
               </TabsTrigger>
             </TabsList>
           </div>
