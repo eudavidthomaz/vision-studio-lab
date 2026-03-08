@@ -25,7 +25,7 @@ export const AICreatorCard = ({ onClick }: AICreatorCardProps) => {
         </h2>
 
         <p className="text-muted-foreground mb-6 max-w-lg mx-auto text-xs">
-          Gere conteúdo bíblico completo, com fundamento teológico e criatividade pastoral
+          Conteúdo bíblico completo, com fundamento teológico e criatividade pastoral
         </p>
 
         <Button onClick={onClick} size="lg"
