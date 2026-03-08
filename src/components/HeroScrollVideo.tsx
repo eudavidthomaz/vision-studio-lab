@@ -27,7 +27,7 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
   const [mediaFullyExpanded, setMediaFullyExpanded] = useState(false);
   const [touchStartY, setTouchStartY] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  
 
   // Reset on mediaSrc change
   useEffect(() => {
