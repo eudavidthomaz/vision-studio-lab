@@ -99,7 +99,7 @@ export default function ConfirmSchedule() {
     const msg = actionMessages[submittedAction as keyof typeof actionMessages] || actionMessages.confirm;
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             {msg.icon}
