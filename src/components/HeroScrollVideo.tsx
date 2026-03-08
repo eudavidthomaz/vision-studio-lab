@@ -202,7 +202,7 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
                 }}
               >
                 {/* YouTube iframe */}
-                <div className="relative w-full h-full pointer-events-none">
+                <div className="relative w-full h-full">
                   <iframe
                     src={embedSrc}
                     title="Video de apresentação"
