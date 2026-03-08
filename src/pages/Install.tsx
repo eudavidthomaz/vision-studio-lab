@@ -76,7 +76,8 @@ const Install = () => {
   }
 
   return (
-    <div className="min-h-screen bg-backgroundclassName="container max-w-2xl mx-auto px-4 py-8">
+    <div className="min-h-screen">
+      <div className="container max-w-2xl mx-auto px-4 py-8">
         <Button 
           variant="ghost" 
           onClick={() => navigate(-1)}

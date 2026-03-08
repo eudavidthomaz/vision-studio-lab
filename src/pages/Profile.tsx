@@ -91,7 +91,8 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-backgroundclassName="container mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-8">
+    <div className="min-h-screen">
+      <div className="container mx-auto max-w-5xl px-4 sm:px-6 py-6 sm:py-8">
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
             <BreadcrumbItem>
