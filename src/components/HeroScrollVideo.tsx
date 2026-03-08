@@ -144,15 +144,26 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
   // Build YouTube embed URL with autoplay params
   const embedSrc = (() => {
     if (!mediaSrc) return "";
-    const muteParam = isMuted ? 1 : 0;
-    const startParam = !isMuted ? "&start=1" : "";
-    if (mediaSrc.includes("embed")) {
-      const sep = mediaSrc.includes("?") ? "&" : "?";
-      return `${mediaSrc}${sep}autoplay=1&mute=${muteParam}&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1${startParam}`;
+    // Extract video ID from any YouTube URL format
+    let videoId = "";
+    if (mediaSrc.includes("embed/")) {
+      videoId = mediaSrc.split("embed/")[1]?.split("?")[0]?.split("&")[0] ?? "";
+    } else if (mediaSrc.includes("v=")) {
+      videoId = mediaSrc.split("v=")[1]?.split("&")[0] ?? "";
     }
-    if (mediaSrc.includes("youtube")) {
-      const videoId = mediaSrc.split("v=")[1]?.split("&")[0];
-      return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=${muteParam}&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1&playlist=${videoId}${startParam}`;
+    if (videoId) {
+      const params = new URLSearchParams({
+        autoplay: "1",
+        loop: "1",
+        controls: "0",
+        rel: "0",
+        modestbranding: "1",
+        showinfo: "0",
+        disablekb: "1",
+        playsinline: "1",
+        playlist: videoId,
+      });
+      return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`;
     }
     return mediaSrc;
   })();
