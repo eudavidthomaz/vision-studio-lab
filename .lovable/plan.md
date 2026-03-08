@@ -1,106 +1,29 @@
 
 
-# Confirmação de Escala via Link Publico (Sem Integracao Externa)
+# Fix Mobile Cropping on "Como Funciona?" CardStack
 
-## Arquitetura
+## Root Cause
 
-O sistema ja possui a infraestrutura de tokens e pagina publica. A solucao e completar o fluxo sem depender de e-mail ou qualquer servico externo:
+The `CardStack` is rendered with fixed `cardWidth={560}` and `cardHeight={340}`. On mobile screens (~375px wide), the 560px card overflows and gets clipped by `overflow-x: hidden` on the body.
 
-```text
-Lider gera escala
-  -> Tokens criados automaticamente (1 por voluntario)
-  -> UI exibe links de confirmacao
-  -> Lider compartilha via WhatsApp / copia link
-  -> Voluntario abre link publico (sem login)
-  -> Confirma / Recusa / Pede substituto
-  -> Status atualizado em tempo real na tela do lider
-```
+## Solution
 
-## O que ja existe (nao precisa mudar)
+Make `HowItWorksSection.tsx` responsive by using `useIsMobile()` to pass smaller card dimensions and adjusted fan parameters on mobile:
 
-- Tabela `schedule_confirmation_tokens` com token hex, expiracao 7 dias
-- Pagina `/confirmar/:token` (publica, sem autenticacao)
-- Edge Function `confirm-schedule` que valida token, atualiza status, notifica lider
+### `src/components/HowItWorksSection.tsx`
 
-## O que precisa ser implementado
+- Import `useIsMobile` hook
+- On mobile: `cardWidth={300}`, `cardHeight={200}`, `spreadDeg={20}`, `overlap={0.5}`, `depthPx={60}`, `activeLiftPx={10}`
+- On desktop: keep current values
+- Adjust section container height accordingly via the `cardHeight` change (the component already computes height from `cardHeight + 80`)
 
-### 1. Auto-criar tokens ao gerar escalas
+### `src/components/ui/card-stack.tsx`
 
-Nas Edge Functions `generate-volunteer-schedule` e `generate-smart-schedule`, apos inserir os registros em `volunteer_schedules`, inserir um token para cada escala criada na tabela `schedule_confirmation_tokens`.
+- Add `overflow-hidden` to the outer stage container (line 130) to prevent any residual bleed
+- No other changes needed — the component already works with any `cardWidth`/`cardHeight` passed as props
 
-### 2. Exibir links de confirmacao na UI de escalas
-
-Na pagina `/escalas`, ao lado de cada voluntario com status "Aguardando", exibir botoes:
-
-- **Copiar Link**: copia a URL `{origin}/confirmar/{token}` para a area de transferencia
-- **Compartilhar via WhatsApp**: abre `https://wa.me/?text=...` com mensagem pre-formatada contendo nome do voluntario, data, funcao e link
-
-Isso requer buscar os tokens da tabela `schedule_confirmation_tokens` junto com as escalas.
-
-### 3. Painel de confirmacoes pendentes (melhoria na pagina de escalas)
-
-Um card/secao mostrando resumo:
-- X confirmados / Y aguardando / Z recusados
-- Lista de pendentes com botao rapido de compartilhar link
-- Indicador visual de quantos dias cada token esta pendente
-
-## Detalhes Tecnicos
-
-### Edge Functions (generate-volunteer-schedule e generate-smart-schedule)
-
-Apos o `insert` em `volunteer_schedules`, iterar sobre os registros criados e inserir em `schedule_confirmation_tokens`:
-
-```text
-Para cada schedule inserido:
-  INSERT INTO schedule_confirmation_tokens (schedule_id)
-  VALUES (schedule.id)
-  -- token e expires_at sao gerados automaticamente pelo DEFAULT da tabela
-```
-
-### Frontend - Componente de link de confirmacao
-
-Novo componente `ScheduleShareLink` que recebe o token e renderiza:
-- Botao "Copiar Link" usando `navigator.clipboard.writeText()`
-- Botao "WhatsApp" que abre `https://wa.me/?text=` com mensagem formatada
-- Toast de confirmacao ao copiar
-
-### Frontend - Query de escalas com tokens
-
-Atualizar a query em `useVolunteerSchedules` para incluir os tokens:
-
-```text
-volunteer_schedules (
-  ...,
-  schedule_confirmation_tokens (
-    token,
-    used_at,
-    action_taken,
-    expires_at
-  )
-)
-```
-
-### Frontend - Pagina de escalas
-
-Na listagem de escalas, para cada voluntario com status `scheduled`:
-- Exibir os botoes de compartilhar link ao lado do badge "Aguardando"
-- Para voluntarios com status `confirmed`, exibir badge verde sem botoes
-
-## Arquivos a Modificar
-
-| Arquivo | Mudanca |
-|---|---|
-| `supabase/functions/generate-volunteer-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `supabase/functions/generate-smart-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `src/hooks/useVolunteerSchedules.tsx` | Incluir tokens na query de escalas |
-| `src/components/schedules/ScheduleShareLink.tsx` | **Novo** - botoes copiar link e WhatsApp |
-| `src/pages/Schedules.tsx` | Integrar ScheduleShareLink nos cards de escala |
-
-## Vantagens desta abordagem
-
-- Zero dependencia externa (sem Resend, sem SMTP, sem API de email)
-- Voluntario nao precisa criar conta
-- Lider tem controle total de como compartilha (WhatsApp, SMS, presencial)
-- Tokens temporarios (7 dias) com uso unico garantem seguranca
-- Pagina publica ja existe e funciona
+| File | Change |
+|------|--------|
+| `src/components/HowItWorksSection.tsx` | Add responsive card dimensions |
+| `src/components/ui/card-stack.tsx` | Add `overflow-hidden` to stage |
 
