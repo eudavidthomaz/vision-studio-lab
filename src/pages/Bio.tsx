@@ -587,7 +587,16 @@ const Bio = () => {
         {/* ━━━ TAB 4 — CONTATO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <TabsContent value="contato" className="mt-0 outline-none">
           <AnimatePresence mode="wait">
-            <motion.div key="contato" {...tabContent}>
+            <motion.div key="contato" {...tabContent} className="relative">
+              <AnimatedGridPattern
+                numSquares={20}
+                maxOpacity={0.08}
+                duration={4}
+                className={cn(
+                  "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
+                  "fill-primary/10 stroke-primary/10"
+                )}
+              />
               {/* Pedido de Oração — GlassCard + Sparkles */}
               <section className="container mx-auto px-4 py-12 md:py-20">
                 <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
