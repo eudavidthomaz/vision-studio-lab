@@ -80,12 +80,12 @@ export const HeroHeader = ({
       {/* Layer 2 - Hero Message */}
       <div className="relative bg-card/60 backdrop-blur-md border border-t-0 border-border/60 rounded-b-xl sm:rounded-b-2xl px-4 sm:px-6 md:px-8 lg:px-12 py-4 sm:py-6 md:py-8 lg:py-14 shadow-xl">
         <div className="text-center space-y-3 sm:space-y-4 animate-fade-in animation-delay-200">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight">
-            <span className="inline-block font-robin animate-fade-in text-white uppercase">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl leading-tight">
+            <span className="inline-block font-robin font-normal animate-fade-in text-white uppercase">
               Ide por todo o mundo,
             </span>
             <br />
-            <span className="inline-block font-robin animate-fade-in animation-delay-300 text-white uppercase">
+            <span className="inline-block font-robin font-normal animate-fade-in animation-delay-300 text-white uppercase">
               inclusive no digital
             </span>
             {" "}
