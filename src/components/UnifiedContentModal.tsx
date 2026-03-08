@@ -1,7 +1,6 @@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileContentSheet } from "./MobileContentSheet";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ContentViewer } from "./ContentViewer";
 import { ContentLibraryItem } from "@/hooks/useContentLibrary";
 import { Badge } from "@/components/ui/badge";
