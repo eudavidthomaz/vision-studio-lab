@@ -102,6 +102,48 @@
   font-display: block;
 }
 
+/* Gunterz */
+@font-face {
+  font-family: 'Gunterz';
+  src: url('./assets/fonts/Gunterz-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Gunterz';
+  src: url('./assets/fonts/Gunterz-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Gunterz';
+  src: url('./assets/fonts/Gunterz-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Gunterz';
+  src: url('./assets/fonts/Gunterz-Black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: block;
+}
+
+/* BROTHER */
+@font-face {
+  font-family: 'BROTHER';
+  src: url('./assets/fonts/BROTHER-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
 /* Inter */
 @font-face {
   font-family: 'Inter';

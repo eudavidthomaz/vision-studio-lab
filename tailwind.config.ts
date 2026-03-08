@@ -28,6 +28,8 @@ export default {
         'overlay-modern': ['"Montserrat"', 'sans-serif'],
         'overlay-handwritten': ['"Dancing Script"', 'cursive'],
         'overlay-clean': ['"Inter"', 'sans-serif'],
+        'gunterz': ['"Gunterz"', 'sans-serif'],
+        'brother': ['"BROTHER"', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
