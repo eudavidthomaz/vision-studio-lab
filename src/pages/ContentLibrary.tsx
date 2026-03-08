@@ -396,7 +396,7 @@ export default function ContentLibrary() {
           <Card className="p-8 sm:p-10 md:p-12 text-center shadow-lg border-border/50">
             <div className="flex flex-col items-center gap-3 sm:gap-4">
               <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center animate-pulse">
-                <Sparkles className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+                <img src={logoIdeon} alt="Ide.On" className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-contain" />
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-semibold mb-2">Nenhum conteúdo encontrado</h3>

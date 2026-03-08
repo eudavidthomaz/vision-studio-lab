@@ -221,6 +221,7 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-6 sm:mb-8 animate-fade-in">
+          <img src={logoIdeon} alt="Ide.On" className="h-16 w-16 mx-auto mb-3 rounded-xl object-contain" />
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">Ide.On</h1>
           <p className="text-sm sm:text-base text-muted-foreground">Transforme suas pregações em conteúdo</p>
         </div>

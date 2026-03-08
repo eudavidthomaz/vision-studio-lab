@@ -90,9 +90,9 @@ const Install = () => {
 
         <div className="text-center mb-8">
           <img 
-            src="/logo.png" 
-            alt="Midias.app" 
-            className="h-20 w-20 mx-auto mb-4 rounded-2xl"
+            src={logoIdeon} 
+            alt="Ide.On" 
+            className="h-20 w-20 mx-auto mb-4 rounded-2xl object-contain"
           />
           <h1 className="text-3xl font-bold mb-2">Instalar Midias.app</h1>
           <p className="text-muted-foreground">
