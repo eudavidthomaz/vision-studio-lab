@@ -145,13 +145,15 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
   // Build YouTube embed URL with autoplay params
   const embedSrc = (() => {
     if (!mediaSrc) return "";
+    const muteParam = isMuted ? 1 : 0;
+    const startParam = !isMuted ? "&start=1" : "";
     if (mediaSrc.includes("embed")) {
       const sep = mediaSrc.includes("?") ? "&" : "?";
-      return `${mediaSrc}${sep}autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1`;
+      return `${mediaSrc}${sep}autoplay=1&mute=${muteParam}&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1${startParam}`;
     }
     if (mediaSrc.includes("youtube")) {
       const videoId = mediaSrc.split("v=")[1]?.split("&")[0];
-      return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1&playlist=${videoId}`;
+      return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=${muteParam}&loop=1&controls=0&showinfo=0&rel=0&disablekb=1&modestbranding=1&playlist=${videoId}${startParam}`;
     }
     return mediaSrc;
   })();
