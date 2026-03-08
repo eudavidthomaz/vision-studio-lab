@@ -120,19 +120,14 @@ const HowItWorksEngine = () => {
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, ease0} />
-        </motion.div>
-
-        {/* ── Central Engine ── */}
+          transition={{ duration: 0.6, ease        {/* ── Central Engine ── */}
         <motion.div
           className="absolute left-1/2 -translate-x-1/2 top-[200px] w-[220px]"
           initial={{ opacity: 0, scale: 0.8 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.2, ease: ease as unknown as number[]ralEngine />
-        </motionp 2 Badge (bottom-left) ── */}
-        <motion.div
-          className="absolute left-[8%] lg:left-[12%] bottom-0 w-[260px]"
+        </motionp 2 Badge (bottom-left) ─�       className="absolute left-[8%] lg:left-[12%] bottom-0 w-[260px]"
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -141,17 +136,14 @@ const HowItWorksEngine = () => {
           <Step1} />
         </motion.div>
 
-        {/* ── Step 3 Badge (bottom-right) ── */}
-        <motion.div
+        {/* ── Step 3 Bad        <motion.div
           className="absolute right-[8%] lg:right-[12%] bottom-0 w-[260px]"
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.6, ease: ease as unknown as number[] }}
         >
-          <StepBadge step={steps[2]} index={2} />
-        </motion.div>
-      </div>
+          <StepBadge step={steps[2]} index={     </div>
 
       {/* ───── MOBILE: Vertical Timeline ───── */}
       <div className="md:hidden space-y-0">
