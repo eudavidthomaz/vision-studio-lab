@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { SparklesCore } from "@/components/ui/sparkles";
 
 interface GlassCardProps {
   children: React.ReactNode;
@@ -15,33 +16,29 @@ const glowColors = {
     spotA: "hsl(263 85% 65% / 0.7)",
     spotB: "hsl(188 95% 50% / 0.7)",
     spotCenter: "hsl(263 70% 50% / 0.7)",
-    border: "hsl(263 85% 65% / 0.8)",
-    borderHover: "hsl(263 85% 65% / 0.9)",
     shadow: "hsl(263 85% 65% / 0.25)",
+    particle: "#a855f7",
   },
   red: {
     spotA: "hsl(0 85% 60% / 0.7)",
     spotB: "hsl(20 90% 55% / 0.7)",
     spotCenter: "hsl(0 75% 55% / 0.7)",
-    border: "hsl(0 85% 60% / 0.8)",
-    borderHover: "hsl(0 85% 60% / 0.9)",
     shadow: "hsl(0 85% 60% / 0.25)",
+    particle: "#ef4444",
   },
   blue: {
     spotA: "hsl(230 80% 65% / 0.7)",
     spotB: "hsl(200 90% 55% / 0.7)",
     spotCenter: "hsl(230 70% 55% / 0.7)",
-    border: "hsl(230 80% 65% / 0.8)",
-    borderHover: "hsl(230 80% 65% / 0.9)",
     shadow: "hsl(230 80% 65% / 0.25)",
+    particle: "#6366f1",
   },
   cyan: {
     spotA: "hsl(188 95% 50% / 0.7)",
     spotB: "hsl(170 85% 45% / 0.7)",
     spotCenter: "hsl(188 85% 50% / 0.7)",
-    border: "hsl(188 95% 50% / 0.8)",
-    borderHover: "hsl(188 95% 50% / 0.9)",
     shadow: "hsl(188 95% 50% / 0.25)",
+    particle: "#06b6d4",
   },
 };
 
@@ -134,50 +131,18 @@ export function GlassCard({
         transition={{ duration: 0.4, ease: "easeOut" }}
       />
 
-      {/* Bottom border glow */}
-      <motion.div
-        className="absolute bottom-0 left-0 right-0 h-[2px] z-[5]"
-        style={{
-          background: "linear-gradient(90deg, hsl(0 0% 100% / 0.05) 0%, hsl(0 0% 100% / 0.6) 50%, hsl(0 0% 100% / 0.05) 100%)",
-        }}
-        animate={{
-          boxShadow: isHovered
-            ? `0 0 20px 4px ${colors.borderHover}, 0 0 40px 8px ${colors.shadow}`
-            : `0 0 15px 3px ${colors.border}, 0 0 30px 6px ${colors.shadow}`,
-          opacity: isHovered ? 1 : 0.85,
-        }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-      />
-
-      {/* Left border glow */}
-      <motion.div
-        className="absolute bottom-0 left-0 h-1/4 w-[1px] z-[5] rounded-full"
-        style={{
-          background: "linear-gradient(to top, hsl(0 0% 100% / 0.6) 0%, hsl(0 0% 100% / 0.3) 40%, transparent 80%)",
-        }}
-        animate={{
-          boxShadow: isHovered
-            ? `0 0 15px 3px ${colors.borderHover}`
-            : `0 0 10px 2px ${colors.border}`,
-          opacity: isHovered ? 1 : 0.85,
-        }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-      />
-
-      {/* Right border glow */}
-      <motion.div
-        className="absolute bottom-0 right-0 h-1/4 w-[1px] z-[5] rounded-full"
-        style={{
-          background: "linear-gradient(to top, hsl(0 0% 100% / 0.6) 0%, hsl(0 0% 100% / 0.3) 40%, transparent 80%)",
-        }}
-        animate={{
-          boxShadow: isHovered
-            ? `0 0 15px 3px ${colors.borderHover}`
-            : `0 0 10px 2px ${colors.border}`,
-          opacity: isHovered ? 1 : 0.85,
-        }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-      />
+      {/* Sparkles particle layer at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-[40%] z-[5] pointer-events-none">
+        <SparklesCore
+          background="transparent"
+          minSize={0.6}
+          maxSize={1.8}
+          particleDensity={35}
+          particleColor={colors.particle}
+          speed={2}
+          className="w-full h-full"
+        />
+      </div>
 
       {/* Glass reflection */}
       <motion.div
