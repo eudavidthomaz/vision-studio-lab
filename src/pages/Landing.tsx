@@ -115,8 +115,7 @@ const Landing = () => {
             <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
         }
-        poster={YOUTUBE_THUMB}
-        onMediaClick={() => setVideoOpen(true)}
+        iframeSrc={YOUTUBE_EMBED}
         overlay={{
           caption: "IDE.ON · PLATAFORMA",
           heading: "Do Altar ao Feed",
@@ -124,37 +123,10 @@ const Landing = () => {
             "Transforme uma pregação em 7 dias de conteúdo com fundamento bíblico, pronto para publicar.",
             "Posts, carrosséis, roteiros de reels, legendas e hashtags — gerados em minutos.",
           ],
-          extra: (
-            <div className="flex items-center justify-center gap-3 mt-4">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 flex items-center justify-center shadow-lg">
-                <Play className="w-6 h-6 sm:w-7 sm:h-7 text-primary fill-primary ml-0.5" />
-              </div>
-              <span className="text-sm font-medium text-muted-foreground">Assistir vídeo</span>
-            </div>
-          ),
         }}
         initialBoxSize={360}
         scrollHeightVh={280}
       />
-
-      {/* ═══════════════════════════════════════════
-          VIDEO MODAL — YouTube nocookie, sem branding
-      ═══════════════════════════════════════════ */}
-      <Dialog open={videoOpen} onOpenChange={setVideoOpen}>
-        <DialogContent className="max-w-5xl w-[95vw] p-0 border-none bg-background/95 backdrop-blur-xl overflow-hidden rounded-2xl">
-          <div className="aspect-video w-full">
-            {videoOpen && (
-              <iframe
-                src={YOUTUBE_NOCOOKIE}
-                title="Ide.On — Do Altar ao Feed"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* ═══════════════════════════════════════════
           COMO FUNCIONA
