@@ -18,7 +18,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import RadialOrbitalTimeline from "@/components/RadialOrbitalTimeline";
-import { CardStack, type CardStackItem } from "@/components/ui/card-stack";
+import MinistryGlowCard from "@/components/bio/MinistryGlowCard";
 import {
   MapPin,
   Clock,
@@ -101,12 +101,12 @@ const CHURCH = {
     },
   ],
   ministries: [
-    { id: "m1", title: "Infantil", description: "Cuidado e ensino bíblico para os pequenos", tag: "Crianças" },
-    { id: "m2", title: "Jovens", description: "Comunhão, discipulado e crescimento", tag: "Juventude" },
-    { id: "m3", title: "Casais e Famílias", description: "Fortalecendo vínculos no amor de Cristo", tag: "Família" },
-    { id: "m4", title: "Pequenos Grupos", description: "Estudo bíblico e vida em comunidade", tag: "Células" },
-    { id: "m5", title: "Louvor e Serviço", description: "Adoração e serviço prático na casa de Deus", tag: "Louvor" },
-  ] satisfies CardStackItem[],
+    { id: "m1", title: "Infantil", description: ["Cuidado e ensino bíblico", "para os pequenos de 0 a 11 anos."] },
+    { id: "m2", title: "Jovens", description: ["Comunhão, discipulado", "e crescimento na fé."] },
+    { id: "m3", title: "Casais e Famílias", description: ["Fortalecendo vínculos", "no amor de Cristo."] },
+    { id: "m4", title: "Pequenos Grupos", description: ["Estudo bíblico e vida", "em comunidade durante a semana."] },
+    { id: "m5", title: "Louvor e Serviço", description: ["Adoração e serviço prático", "na casa de Deus."] },
+  ],
   events: [
     { date: "16 Mar", title: "Culto Dominical", time: "9h e 18h", tag: "Culto" },
     { date: "19 Mar", title: "Culto de Oração", time: "20h", tag: "Oração" },
@@ -135,7 +135,7 @@ const tabContent = {
   exit: { opacity: 0, y: -12, transition: { duration: 0.25 } },
 };
 
-// ─── MINISTRY CARD RENDERER ─────────────────────────────────────────────────
+// ─── MINISTRY ICON MAP ──────────────────────────────────────────────────────
 const ministryIcons: Record<string, React.ElementType> = {
   m1: Baby,
   m2: Users,
@@ -143,26 +143,6 @@ const ministryIcons: Record<string, React.ElementType> = {
   m4: BookOpen,
   m5: Music,
 };
-
-function MinistryCard({ item, state }: { item: CardStackItem; state: { active: boolean } }) {
-  const Icon = ministryIcons[item.id] || ChurchIcon;
-  return (
-    <div className="relative h-full w-full bg-gradient-to-br from-background via-background to-primary/5 p-6 flex flex-col justify-end">
-      <div className="absolute top-5 right-5 p-2.5 rounded-xl bg-primary/10">
-        <Icon className="w-6 h-6 text-primary" />
-      </div>
-      {item.tag && (
-        <Badge variant="outline" className="self-start mb-3 text-[10px] bg-primary/10 border-primary/20 text-primary">
-          {item.tag}
-        </Badge>
-      )}
-      <h3 className="text-lg font-bold text-foreground mb-1">{item.title}</h3>
-      {item.description && (
-        <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
-      )}
-    </div>
-  );
-}
 
 // ─── PAGE ────────────────────────────────────────────────────────────────────
 const TAB_KEYS = ["inicio", "sobre", "midia", "contato"];
@@ -424,7 +404,7 @@ const Bio = () => {
                 </motion.div>
               </section>
 
-              {/* Ministérios — CardStack fan */}
+              {/* Ministérios — Glow Grid */}
               <section className="container mx-auto px-4 pb-16 md:pb-24">
                 <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
                   <motion.div variants={fadeIn} className="text-center mb-8 md:mb-12">
@@ -432,26 +412,22 @@ const Bio = () => {
                       Há um lugar para você aqui
                     </h2>
                     <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-                      A vida da igreja acontece de muitas formas ao longo da semana. Arraste para explorar nossos ministérios.
+                      A vida da igreja acontece de muitas formas ao longo da semana.
                     </p>
                   </motion.div>
 
-                  <motion.div variants={fadeIn} className="max-w-3xl mx-auto">
-                    <CardStack
-                      items={CHURCH.ministries}
-                      cardWidth={400}
-                      cardHeight={240}
-                      maxVisible={5}
-                      overlap={0.5}
-                      spreadDeg={40}
-                      activeScale={1.05}
-                      inactiveScale={0.9}
-                      showDots
-                      autoAdvance
-                      intervalMs={3500}
-                      pauseOnHover
-                      renderCard={(item, state) => <MinistryCard item={item} state={state} />}
-                    />
+                  <motion.div variants={fadeIn} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                    {CHURCH.ministries.map((m) => {
+                      const Icon = ministryIcons[m.id] || ChurchIcon;
+                      return (
+                        <MinistryGlowCard
+                          key={m.id}
+                          title={m.title}
+                          description={m.description}
+                          icon={<Icon className="w-5 h-5" />}
+                        />
+                      );
+                    })}
                   </motion.div>
 
                   <motion.div variants={fadeIn} className="flex justify-center mt-8">
