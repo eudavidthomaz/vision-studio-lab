@@ -22,6 +22,7 @@ export default {
     },
     extend: {
       fontFamily: {
+        'robin': ['"Robin Alts"', 'sans-serif'],
         'overlay-impact': ['"Bebas Neue"', 'sans-serif'],
         'overlay-elegant': ['"Playfair Display"', 'serif'],
         'overlay-modern': ['"Montserrat"', 'sans-serif'],
