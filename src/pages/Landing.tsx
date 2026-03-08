@@ -7,6 +7,8 @@ import logoIdeon from "@/assets/logo-ideon.png";
 import { ContainerScrollHero } from "@/components/ContainerScrollHero";
 import { GlassCard } from "@/components/ui/glass-card";
 import { SparklesCore } from "@/components/ui/sparkles";
+import RadialOrbitalTimeline from "@/components/RadialOrbitalTimeline";
+import type { TimelineItem } from "@/components/RadialOrbitalTimeline";
 
 const YOUTUBE_ID = "SGRIma5ElbY";
 const YOUTUBE_EMBED = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}`;
