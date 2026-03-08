@@ -17,7 +17,7 @@ export const AICreatorCard = ({
           </div>
         </div>
         
-        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-normal mb-3 font-robin text-white uppercase">
           Crie para o reino com apenas um clique...
         </h2>
         
