@@ -51,7 +51,7 @@ const Welcome = () => {
   return (
     <>
       <OnboardingFlow open={showOnboarding} onComplete={handleOnboardingComplete} />
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
       <div className="max-w-4xl w-full animate-fade-in">
         {/* Header */}
         <div className="text-center mb-12">

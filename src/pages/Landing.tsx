@@ -76,7 +76,7 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screenssName="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 border bg-backgroundclassName="container mx-auto px-4 py-4 flex justify-between items-center">
+    <div className="min-h-screenop-blur-sm sticky top-0 border bg-backgroundclassName="container mx-auto px-4 border bg-backgroundtween items-center">
           <h1 className="text-2xl font-bold text-white">Ide.On</h1>
           <Button 
             onClick={() => navigate("/auth")}
@@ -369,7 +369,7 @@ const Landing = () => {
 
       {/* Footer - Mobile optimized */}
       <footer className="border-t border-gray-800 bg-gray-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-8 md:py-12">
+        <diborder bg-backgrounder mx-auto px-4 py-8 md:py-12">
           <div className="text-center text-muted-foreground">
             <p className="text-xs md:text-sm">
               © 2024 Ide.On. Todos os direitos reservados.

@@ -28,14 +28,11 @@ function Shape({ className, delay = "0s", size = "w-[400px] h-[100px]", gradient
 export default function GeometricBackground() {
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-      {/* Gradient base overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background" />
-
       {/* Shape 1 — top left, large, rotated */}
       <Shape
         className="top-[-10%] left-[-5%] rotate-12"
         size="w-[500px] h-[140px]"
-        gradient="from-white/[0.06]"
+        gradient="from-white/[0.12]"
         delay="0s"
       />
 
@@ -43,7 +40,7 @@ export default function GeometricBackground() {
       <Shape
         className="top-[30%] right-[-8%] -rotate-12"
         size="w-[450px] h-[120px]"
-        gradient="from-primary/[0.05]"
+        gradient="from-primary/[0.10]"
         delay="0.4s"
       />
 
@@ -51,7 +48,7 @@ export default function GeometricBackground() {
       <Shape
         className="bottom-[15%] left-[5%] rotate-6"
         size="w-[380px] h-[100px]"
-        gradient="from-accent/[0.04]"
+        gradient="from-accent/[0.08]"
         delay="0.8s"
       />
 
@@ -59,7 +56,7 @@ export default function GeometricBackground() {
       <Shape
         className="top-[10%] right-[15%] -rotate-[20deg]"
         size="w-[300px] h-[80px]"
-        gradient="from-white/[0.04]"
+        gradient="from-white/[0.07]"
         delay="1.2s"
       />
 
@@ -67,7 +64,7 @@ export default function GeometricBackground() {
       <Shape
         className="bottom-[5%] left-[40%] rotate-[15deg]"
         size="w-[420px] h-[110px]"
-        gradient="from-primary/[0.03]"
+        gradient="from-primary/[0.08]"
         delay="1.6s"
       />
 
