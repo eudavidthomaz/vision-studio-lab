@@ -248,6 +248,7 @@ const Bio = () => {
           title="Última transmissão - Igreja Presbiteriana Bethaville"
         />
       </ContainerScrollHero>
+      </div>
 
       {/* ━━━ STICKY TAB BAR ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
