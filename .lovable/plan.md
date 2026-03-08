@@ -1,106 +1,62 @@
 
 
-# Confirmação de Escala via Link Publico (Sem Integracao Externa)
+# New Approach: Wheel-Driven Scroll Expand Hero
 
-## Arquitetura
+## What Changes
 
-O sistema ja possui a infraestrutura de tokens e pagina publica. A solucao e completar o fluxo sem depender de e-mail ou qualquer servico externo:
+Replace the GSAP ScrollTrigger hero with a **state-driven scroll expansion** using wheel/touch events. No GSAP, no Lenis — just React state (`scrollProgress` 0→1) controlling the media box size via inline styles. The page scroll is locked until the media fully expands, then normal scrolling resumes.
 
-```text
-Lider gera escala
-  -> Tokens criados automaticamente (1 por voluntario)
-  -> UI exibe links de confirmacao
-  -> Lider compartilha via WhatsApp / copia link
-  -> Voluntario abre link publico (sem login)
-  -> Confirma / Recusa / Pede substituto
-  -> Status atualizado em tempo real na tela do lider
-```
-
-## O que ja existe (nao precisa mudar)
-
-- Tabela `schedule_confirmation_tokens` com token hex, expiracao 7 dias
-- Pagina `/confirmar/:token` (publica, sem autenticacao)
-- Edge Function `confirm-schedule` que valida token, atualiza status, notifica lider
-
-## O que precisa ser implementado
-
-### 1. Auto-criar tokens ao gerar escalas
-
-Nas Edge Functions `generate-volunteer-schedule` e `generate-smart-schedule`, apos inserir os registros em `volunteer_schedules`, inserir um token para cada escala criada na tabela `schedule_confirmation_tokens`.
-
-### 2. Exibir links de confirmacao na UI de escalas
-
-Na pagina `/escalas`, ao lado de cada voluntario com status "Aguardando", exibir botoes:
-
-- **Copiar Link**: copia a URL `{origin}/confirmar/{token}` para a area de transferencia
-- **Compartilhar via WhatsApp**: abre `https://wa.me/?text=...` com mensagem pre-formatada contendo nome do voluntario, data, funcao e link
-
-Isso requer buscar os tokens da tabela `schedule_confirmation_tokens` junto com as escalas.
-
-### 3. Painel de confirmacoes pendentes (melhoria na pagina de escalas)
-
-Um card/secao mostrando resumo:
-- X confirmados / Y aguardando / Z recusados
-- Lista de pendentes com botao rapido de compartilhar link
-- Indicador visual de quantos dias cada token esta pendente
-
-## Detalhes Tecnicos
-
-### Edge Functions (generate-volunteer-schedule e generate-smart-schedule)
-
-Apos o `insert` em `volunteer_schedules`, iterar sobre os registros criados e inserir em `schedule_confirmation_tokens`:
+## Architecture
 
 ```text
-Para cada schedule inserido:
-  INSERT INTO schedule_confirmation_tokens (schedule_id)
-  VALUES (schedule.id)
-  -- token e expires_at sao gerados automaticamente pelo DEFAULT da tabela
+┌─────────────────────────────────────┐
+│  LOCKED VIEWPORT (100dvh)           │
+│                                     │
+│  Background image fades out         │
+│                                     │
+│  ┌─────────┐  ← 300px start        │
+│  │ YouTube  │  wheel/touch grows    │
+│  │ iframe   │  to ~95vw / 85vh      │
+│  └─────────┘                        │
+│                                     │
+│  "A câmera"  ←── slides left        │
+│  "desliga."  ←── slides right       │
+│                                     │
+│  "scroll to expand" hint            │
+│  "Beta Aberto" badge                │
+├─────────────────────────────────────┤
+│  Once progress=1, scroll unlocks    │
+│  → Como Funciona, Recursos, etc.    │
+└─────────────────────────────────────┘
 ```
 
-### Frontend - Componente de link de confirmacao
+## Changes
 
-Novo componente `ScheduleShareLink` que recebe o token e renderiza:
-- Botao "Copiar Link" usando `navigator.clipboard.writeText()`
-- Botao "WhatsApp" que abre `https://wa.me/?text=` com mensagem formatada
-- Toast de confirmacao ao copiar
+### 1. Rewrite `src/components/HeroScrollVideo.tsx`
+- Drop GSAP/Lenis entirely — pure React + framer-motion (already installed)
+- State: `scrollProgress` (0-1), `mediaFullyExpanded`, `showContent`, `isMobile`
+- Wheel handler: `deltaY * 0.0009` increments progress, `preventDefault` until expanded
+- Touch handler: same logic with `touchStartY` delta tracking
+- Media box: `width = 300 + progress * (mobile ? 650 : 1250)`, `height = 400 + progress * (mobile ? 200 : 400)`
+- Title splits into two `<h2>` lines that slide apart horizontally (`translateX`)
+- YouTube iframe with autoplay params inside the expanding box
+- Dark overlay on iframe fades as progress increases
+- Background image slot (optional `bgImageSrc` prop) fades out with progress
+- After `progress >= 1`: sets `mediaFullyExpanded`, unlocks native scroll, fades in children
+- Keep Gunterz font on title
 
-### Frontend - Query de escalas com tokens
+### 2. Update `src/pages/Landing.tsx`
+- Pass the rest of the page (Como Funciona → Footer) as `children` of the new component
+- Props: `mediaSrc={YOUTUBE_EMBED}`, `title="A câmera desliga. A missão continua."`, `bgImageSrc` (YouTube thumb or dark gradient)
+- Remove old overlay props (caption, heading, paragraphs) — not used in this pattern
+- The `children` content appears with fade after full expansion
 
-Atualizar a query em `useVolunteerSchedules` para incluir os tokens:
+### 3. Remove `gsap` dependency
+- No longer needed. `lenis` also unused. Can be removed from package.json.
 
-```text
-volunteer_schedules (
-  ...,
-  schedule_confirmation_tokens (
-    token,
-    used_at,
-    action_taken,
-    expires_at
-  )
-)
-```
-
-### Frontend - Pagina de escalas
-
-Na listagem de escalas, para cada voluntario com status `scheduled`:
-- Exibir os botoes de compartilhar link ao lado do badge "Aguardando"
-- Para voluntarios com status `confirmed`, exibir badge verde sem botoes
-
-## Arquivos a Modificar
-
-| Arquivo | Mudanca |
-|---|---|
-| `supabase/functions/generate-volunteer-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `supabase/functions/generate-smart-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `src/hooks/useVolunteerSchedules.tsx` | Incluir tokens na query de escalas |
-| `src/components/schedules/ScheduleShareLink.tsx` | **Novo** - botoes copiar link e WhatsApp |
-| `src/pages/Schedules.tsx` | Integrar ScheduleShareLink nos cards de escala |
-
-## Vantagens desta abordagem
-
-- Zero dependencia externa (sem Resend, sem SMTP, sem API de email)
-- Voluntario nao precisa criar conta
-- Lider tem controle total de como compartilha (WhatsApp, SMS, presencial)
-- Tokens temporarios (7 dias) com uso unico garantem seguranca
-- Pagina publica ja existe e funciona
+## Key Adaptations from Reference
+- `next/image` → standard `<img>` tag
+- YouTube iframe handling preserved from reference (autoplay, mute, loop, no controls)
+- Framer-motion `motion.div` for opacity transitions (already in deps)
+- Mobile detection via `window.innerWidth < 768`
 
