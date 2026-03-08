@@ -135,7 +135,7 @@ const tabContent = {
   exit: { opacity: 0, y: -12, transition: { duration: 0.25 } },
 };
 
-// ─── MINISTRY CARD RENDERER ─────────────────────────────────────────────────
+// ─── MINISTRY ICON MAP ──────────────────────────────────────────────────────
 const ministryIcons: Record<string, React.ElementType> = {
   m1: Baby,
   m2: Users,
@@ -143,26 +143,6 @@ const ministryIcons: Record<string, React.ElementType> = {
   m4: BookOpen,
   m5: Music,
 };
-
-function MinistryCard({ item, state }: { item: CardStackItem; state: { active: boolean } }) {
-  const Icon = ministryIcons[item.id] || ChurchIcon;
-  return (
-    <div className="relative h-full w-full bg-gradient-to-br from-background via-background to-primary/5 p-6 flex flex-col justify-end">
-      <div className="absolute top-5 right-5 p-2.5 rounded-xl bg-primary/10">
-        <Icon className="w-6 h-6 text-primary" />
-      </div>
-      {item.tag && (
-        <Badge variant="outline" className="self-start mb-3 text-[10px] bg-primary/10 border-primary/20 text-primary">
-          {item.tag}
-        </Badge>
-      )}
-      <h3 className="text-lg font-bold text-foreground mb-1">{item.title}</h3>
-      {item.description && (
-        <p className="text-muted-foreground text-sm leading-relaxed">{item.description}</p>
-      )}
-    </div>
-  );
-}
 
 // ─── PAGE ────────────────────────────────────────────────────────────────────
 const TAB_KEYS = ["inicio", "sobre", "midia", "contato"];
