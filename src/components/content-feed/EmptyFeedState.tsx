@@ -1,6 +1,7 @@
 import { Sparkles, AudioLines } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import logoIdeon from "@/assets/logo-ideon.png";
 
 export function EmptyFeedState() {
   const navigate = useNavigate();
@@ -8,8 +9,8 @@ export function EmptyFeedState() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 text-center">
       <div className="flex gap-4 mb-6">
-        <div className="p-4 rounded-full bg-primary/10 animate-pulse">
-          <Sparkles className="h-8 w-8 text-primary" />
+        <div className="p-3 rounded-full bg-primary/10 animate-pulse">
+          <img src={logoIdeon} alt="Ide.On" className="h-10 w-10 rounded-lg object-contain" />
         </div>
         <div className="p-4 rounded-full bg-accent/10 animate-pulse delay-150">
           <AudioLines className="h-8 w-8 text-accent" />

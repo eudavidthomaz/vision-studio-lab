@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { Mic, Sparkles, Calendar, Zap, Target, CheckCircle2, ArrowRight, Play, BookOpen, Users, Layout, BookMarked } from "lucide-react";
+import logoIdeon from "@/assets/logo-ideon.png";
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -80,7 +81,10 @@ const Landing = () => {
       {/* Header - CTA único */}
       <header className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-white">Ide.On</h1>
+          <div className="flex items-center gap-2">
+            <img src={logoIdeon} alt="Ide.On" className="h-8 w-8 rounded-lg object-contain" />
+            <h1 className="text-2xl font-bold text-foreground">Ide.On</h1>
+          </div>
           <Button 
             onClick={() => navigate("/auth")}
             className="bg-primary hover:bg-primary/90"

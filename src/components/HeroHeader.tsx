@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Library, User, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logoIdeon from "@/assets/logo-ideon.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 interface HeroHeaderProps {
@@ -24,9 +25,7 @@ export const HeroHeader = ({
         <div className="flex items-center justify-between gap-2 sm:gap-3">
           {/* Logo */}
           <div className="flex items-center gap-2 animate-fade-in">
-            <div className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-primary via-accent to-primary shadow-[0_0_20px_rgba(124,58,237,0.5)] flex items-center justify-center animate-pulse">
-              <span className="text-white font-bold text-xs sm:text-sm md:text-base">I.O</span>
-            </div>
+            <img src={logoIdeon} alt="Ide.On" className="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-lg object-contain" />
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-[gradient_8s_ease_infinite] bg-[length:200%_auto]">
               Ide.On
             </h1>

@@ -1,5 +1,6 @@
 import { Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
+import logoIdeon from "@/assets/logo-ideon.png";
 interface AICreatorCardProps {
   onClick: () => void;
 }
@@ -11,7 +12,7 @@ export const AICreatorCard = ({
       <div className="relative bg-card rounded-xl p-4 sm:p-6 md:p-8 lg:p-12 text-center border border-border shadow-lg">
         <div className="flex justify-center mb-6">
           <div className="relative">
-            <Sparkles className="w-16 h-16 md:w-20 md:h-20 text-primary animate-pulse" />
+            <img src={logoIdeon} alt="Ide.On" className="w-16 h-16 md:w-20 md:h-20 rounded-xl object-contain" />
             <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-ping"></div>
           </div>
         </div>

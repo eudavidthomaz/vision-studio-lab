@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, Smartphone, Monitor, Apple, CheckCircle2, ArrowLeft } from 'lucide-react';
+import logoIdeon from "@/assets/logo-ideon.png";
 import { useNavigate } from 'react-router-dom';
 
 interface BeforeInstallPromptEvent extends Event {
@@ -89,9 +90,9 @@ const Install = () => {
 
         <div className="text-center mb-8">
           <img 
-            src="/logo.png" 
-            alt="Midias.app" 
-            className="h-20 w-20 mx-auto mb-4 rounded-2xl"
+            src={logoIdeon} 
+            alt="Ide.On" 
+            className="h-20 w-20 mx-auto mb-4 rounded-2xl object-contain"
           />
           <h1 className="text-3xl font-bold mb-2">Instalar Midias.app</h1>
           <p className="text-muted-foreground">
