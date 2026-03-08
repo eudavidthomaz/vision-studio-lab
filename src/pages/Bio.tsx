@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { LimelightNav, type NavItem } from "@/components/ui/limelight-nav";
 import {
   Accordion,
   AccordionItem,
