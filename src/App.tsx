@@ -20,6 +20,7 @@ import Schedules from "./pages/Schedules";
 import ConfirmSchedule from "./pages/ConfirmSchedule";
 import VolunteerReports from "./pages/VolunteerReports";
 import Install from "./pages/Install";
+import Bio from "./pages/Bio";
 
 const queryClient = new QueryClient({
   defaultOptions: {
