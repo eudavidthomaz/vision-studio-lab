@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { LimelightNav, type NavItem } from "@/components/ui/limelight-nav";
 import {
   Accordion,
   AccordionItem,
@@ -164,6 +165,15 @@ function MinistryCard({ item, state }: { item: CardStackItem; state: { active: b
 }
 
 // ─── PAGE ────────────────────────────────────────────────────────────────────
+const TAB_KEYS = ["inicio", "sobre", "midia", "contato"];
+
+const navItems: NavItem[] = [
+  { id: "inicio", icon: <ChurchIcon />, label: "Início" },
+  { id: "sobre", icon: <BookOpen />, label: "Sobre" },
+  { id: "midia", icon: <Play />, label: "Mídia" },
+  { id: "contato", icon: <MessageCircle />, label: "Contato" },
+];
+
 const Bio = () => {
   const [activeTab, setActiveTab] = useState("inicio");
 
@@ -252,38 +262,19 @@ const Bio = () => {
 
       {/* ━━━ STICKY TAB BAR ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="hidden">
+          <TabsTrigger value="inicio" />
+          <TabsTrigger value="sobre" />
+          <TabsTrigger value="midia" />
+          <TabsTrigger value="contato" />
+        </TabsList>
         <div className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/20">
-          <div className="container mx-auto px-4">
-            <TabsList className="w-full flex justify-start md:justify-center gap-1 bg-transparent h-auto p-2 overflow-x-auto scrollbar-none">
-              <TabsTrigger
-                value="inicio"
-                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium gap-1.5 items-center data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
-              >
-                <ChurchIcon className="w-4 h-4" />
-                Início
-              </TabsTrigger>
-              <TabsTrigger
-                value="sobre"
-                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium gap-1.5 items-center data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
-              >
-                <BookOpen className="w-4 h-4" />
-                Sobre
-              </TabsTrigger>
-              <TabsTrigger
-                value="midia"
-                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium gap-1.5 items-center data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
-              >
-                <Play className="w-4 h-4" />
-                Mídia
-              </TabsTrigger>
-              <TabsTrigger
-                value="contato"
-                className="flex-shrink-0 rounded-lg px-4 py-2.5 text-xs sm:text-sm font-medium gap-1.5 items-center data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none transition-colors"
-              >
-                <MessageCircle className="w-4 h-4" />
-                Contato
-              </TabsTrigger>
-            </TabsList>
+          <div className="container mx-auto px-4 flex justify-center py-3">
+            <LimelightNav
+              items={navItems}
+              activeIndex={TAB_KEYS.indexOf(activeTab)}
+              onTabChange={(index) => setActiveTab(TAB_KEYS[index])}
+            />
           </div>
         </div>
 
