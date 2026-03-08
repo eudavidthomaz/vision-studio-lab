@@ -242,22 +242,21 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
                 </div>
               </div>
 
-              {/* Title text — splits and slides apart */}
-              <div className="flex items-center justify-center text-center gap-3 md:gap-4 w-full relative z-10 flex-col mix-blend-difference">
-                <motion.h2
-                  className="font-gunterz text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white tracking-tight"
-                  style={{ transform: `translateX(-${textTranslateX}vw)` }}
-                >
-                  {firstLine}
-                </motion.h2>
-                <motion.h2
-                  className="font-gunterz text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white tracking-tight"
-                  style={{ transform: `translateX(${textTranslateX}vw)` }}
-                >
-                  {secondLine}
-                </motion.h2>
-              </div>
+              {/* Title text — above video */}
+              <motion.h2
+                className="absolute top-[12%] md:top-[15%] left-1/2 -translate-x-1/2 z-10 font-gunterz text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white tracking-tight text-center mix-blend-difference whitespace-nowrap"
+                style={{ transform: `translateX(-50%) translateX(-${textTranslateX}vw)` }}
+              >
+                {firstLine}
+              </motion.h2>
 
+              {/* Title text — below video */}
+              <motion.h2
+                className="absolute bottom-[12%] md:bottom-[15%] left-1/2 -translate-x-1/2 z-10 font-gunterz text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white tracking-tight text-center mix-blend-difference whitespace-nowrap"
+                style={{ transform: `translateX(-50%) translateX(${textTranslateX}vw)` }}
+              >
+                {secondLine}
+              </motion.h2>
               {/* Meta badge + CTA — visible when not scrolling */}
               <motion.div
                 className="absolute bottom-12 md:bottom-16 z-20 flex flex-col items-center gap-4"
