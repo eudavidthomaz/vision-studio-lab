@@ -76,9 +76,9 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+    <div className="min-h-screen">
       {/* Header - CTA único */}
-      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-white">Ide.On</h1>
           <Button 
@@ -371,7 +371,7 @@ const Landing = () => {
       </section>
 
       {/* Footer - Mobile optimized */}
-      <footer className="border-t border-gray-800 bg-gray-900/50 backdrop-blur-sm">
+      <footer className="border-t border-border bg-background/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="text-center text-muted-foreground">
             <p className="text-xs md:text-sm">
