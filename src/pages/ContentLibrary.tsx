@@ -15,6 +15,7 @@ import ContentListView from "@/components/ContentListView";
 import ContentGalleryView from "@/components/ContentGalleryView";
 import TagManagerDialog from "@/components/TagManagerDialog";
 import { ArrowLeft, RefreshCw, Trash2, Eye, Calendar, Star, Pin, Copy, Sparkles } from "lucide-react";
+import logoIdeon from "@/assets/logo-ideon.png";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
