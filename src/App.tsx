@@ -41,6 +41,7 @@ function LegacyContentRedirect() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <GeometricBackground />
       <Toaster />
       <Sonner />
       <BrowserRouter>

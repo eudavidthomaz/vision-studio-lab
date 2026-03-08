@@ -144,6 +144,22 @@ export default {
             transform: "rotate(360deg)",
           },
         },
+        "geo-float": {
+          "0%, 100%": {
+            transform: "translateY(0) rotate(var(--tw-rotate, 0))",
+          },
+          "50%": {
+            transform: "translateY(-20px) rotate(var(--tw-rotate, 0))",
+          },
+        },
+        "geo-fade-in": {
+          "0%": {
+            opacity: "0",
+          },
+          "100%": {
+            opacity: "1",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
