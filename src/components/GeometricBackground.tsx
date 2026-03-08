@@ -1,116 +1,132 @@
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
+import { useEffect, useRef } from 'react';
+import * as THREE from 'three';
 
-function ElegantShape({
-  className,
-  delay = 0,
-  width = 400,
-  height = 100,
-  rotate = 0,
-  gradient = "from-white/[0.08]",
-}: {
-  className?: string;
-  delay?: number;
-  width?: number;
-  height?: number;
-  rotate?: number;
-  gradient?: string;
-}) {
+export default function GeometricBackground({ className }: { className?: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<{
+    scene: THREE.Scene;
+    camera: THREE.PerspectiveCamera;
+    renderer: THREE.WebGLRenderer;
+    animationId: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const SEPARATION = 150;
+    const AMOUNTX = 40;
+    const AMOUNTY = 60;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x0a0a0f, 2000, 10000);
+
+    const camera = new THREE.PerspectiveCamera(
+      60,
+      window.innerWidth / window.innerHeight,
+      1,
+      10000,
+    );
+    camera.position.set(0, 355, 1220);
+
+    const renderer = new THREE.WebGLRenderer({
+      alpha: true,
+      antialias: true,
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 0);
+
+    containerRef.current.appendChild(renderer.domElement);
+
+    const positions: number[] = [];
+    const colors: number[] = [];
+    const geometry = new THREE.BufferGeometry();
+
+    for (let ix = 0; ix < AMOUNTX; ix++) {
+      for (let iy = 0; iy < AMOUNTY; iy++) {
+        const x = ix * SEPARATION - (AMOUNTX * SEPARATION) / 2;
+        const z = iy * SEPARATION - (AMOUNTY * SEPARATION) / 2;
+        positions.push(x, 0, z);
+        colors.push(0.7, 0.6, 0.9);
+      }
+    }
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+    const material = new THREE.PointsMaterial({
+      size: 8,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.6,
+      sizeAttenuation: true,
+    });
+
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    let count = 0;
+    let animationId: number;
+
+    const animate = () => {
+      animationId = requestAnimationFrame(animate);
+
+      const posAttr = geometry.attributes.position;
+      const pos = posAttr.array as Float32Array;
+
+      let i = 0;
+      for (let ix = 0; ix < AMOUNTX; ix++) {
+        for (let iy = 0; iy < AMOUNTY; iy++) {
+          pos[i * 3 + 1] =
+            Math.sin((ix + count) * 0.3) * 50 +
+            Math.sin((iy + count) * 0.5) * 50;
+          i++;
+        }
+      }
+
+      posAttr.needsUpdate = true;
+      renderer.render(scene, camera);
+      count += 0.1;
+    };
+
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+    animate();
+
+    sceneRef.current = { scene, camera, renderer, animationId };
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (sceneRef.current) {
+        cancelAnimationFrame(sceneRef.current.animationId);
+        sceneRef.current.scene.traverse((object) => {
+          if (object instanceof THREE.Points) {
+            object.geometry.dispose();
+            if (Array.isArray(object.material)) {
+              object.material.forEach((m) => m.dispose());
+            } else {
+              object.material.dispose();
+            }
+          }
+        });
+        sceneRef.current.renderer.dispose();
+        if (containerRef.current && sceneRef.current.renderer.domElement) {
+          containerRef.current.removeChild(sceneRef.current.renderer.domElement);
+        }
+      }
+    };
+  }, []);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -150, rotate: rotate - 15 }}
-      animate={{ opacity: 1, y: 0, rotate }}
-      transition={{
-        duration: 2.4,
-        delay,
-        ease: [0.23, 0.86, 0.39, 0.96],
-        opacity: { duration: 1.2 },
-      }}
-      className={cn("absolute", className)}
-    >
-      <motion.div
-        animate={{ y: [0, 15, 0] }}
-        transition={{
-          duration: 12,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        style={{ width, height }}
-        className="relative"
-      >
-        <div
-          className={cn(
-            "absolute inset-0 rounded-full",
-            "bg-gradient-to-r to-transparent",
-            gradient,
-            "backdrop-blur-[2px] border-2 border-white/[0.15]",
-            "shadow-[0_8px_32px_0_rgba(255,255,255,0.1)]"
-          )}
-        />
-      </motion.div>
-    </motion.div>
-  );
-}
-
-export default function GeometricBackground() {
-  return (
-    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e]/[0.3] via-transparent to-[#1a1a2e]/[0.3]" />
-
-      <ElegantShape
-        className="top-[-10%] left-[-5%]"
-        width={500}
-        height={140}
-        rotate={12}
-        gradient="from-primary/[0.12]"
-        delay={0}
-      />
-
-      <ElegantShape
-        className="top-[30%] right-[-8%]"
-        width={450}
-        height={120}
-        rotate={-12}
-        gradient="from-primary/[0.10]"
-        delay={0.4}
-      />
-
-      <ElegantShape
-        className="bottom-[15%] left-[5%]"
-        width={380}
-        height={100}
-        rotate={6}
-        gradient="from-accent/[0.08]"
-        delay={0.8}
-      />
-
-      <ElegantShape
-        className="top-[10%] right-[15%]"
-        width={300}
-        height={80}
-        rotate={-20}
-        gradient="from-white/[0.07]"
-        delay={1.2}
-      />
-
-      <ElegantShape
-        className="bottom-[5%] left-[40%]"
-        width={420}
-        height={110}
-        rotate={15}
-        gradient="from-primary/[0.08]"
-        delay={1.6}
-      />
-
-      {/* Noise overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.015]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
-          backgroundRepeat: "repeat",
-          backgroundSize: "256px 256px",
-        }}
-      />
-    </div>
+    <div
+      ref={containerRef}
+      className={cn('fixed inset-0 -z-10 overflow-hidden pointer-events-none', className)}
+    />
   );
 }
