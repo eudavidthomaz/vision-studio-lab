@@ -120,7 +120,7 @@ const HowItWorksEngine = () => {
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, easeBadge step={steps[0]} index={0} />
+          transition={{ duration: 0.6, ease0} />
         </motion.div>
 
         {/* ── Central Engine ── */}
@@ -130,9 +130,7 @@ const HowItWorksEngine = () => {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.2, ease: ease as unknown as number[]ralEngine />
-        </motion.div>
-
-        {/* ── Step 2 Badge (bottom-left) ── */}
+        </motionp 2 Badge (bottom-left) ── */}
         <motion.div
           className="absolute left-[8%] lg:left-[12%] bottom-0 w-[260px]"
           initial={{ opacity: 0, x: -30 }}
@@ -140,7 +138,7 @@ const HowItWorksEngine = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4, ease: ease as unknown as number[] }}
         >
-          <StepBadge step={steps[1]} index={1} />
+          <Step1} />
         </motion.div>
 
         {/* ── Step 3 Badge (bottom-right) ── */}
