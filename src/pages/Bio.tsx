@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import ThemeSwitch from "@/components/ui/theme-switch";
 import { motion, AnimatePresence } from "framer-motion";
 import { ContainerScrollHero } from "@/components/ContainerScrollHero";
+import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
+import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -170,7 +172,17 @@ const Bio = () => {
       <div className="fixed top-4 right-4 z-[60]">
         <ThemeSwitch />
       </div>
-      {/* ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="relative">
+        <AnimatedGridPattern
+          numSquares={30}
+          maxOpacity={0.15}
+          duration={3}
+          repeatDelay={1}
+          className={cn(
+            "[mask-image:radial-gradient(600px_circle_at_center,white,transparent)]",
+            "fill-primary/20 stroke-primary/20"
+          )}
+        />
       <ContainerScrollHero
         titleComponent={
           <div className="flex flex-col items-center gap-3 sm:gap-4 px-4">
@@ -236,6 +248,7 @@ const Bio = () => {
           title="Última transmissão - Igreja Presbiteriana Bethaville"
         />
       </ContainerScrollHero>
+      </div>
 
       {/* ━━━ STICKY TAB BAR ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
