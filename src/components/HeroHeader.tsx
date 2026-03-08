@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Library, User, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logoIdeon from "@/assets/logo-ideon.png";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 interface HeroHeaderProps {
