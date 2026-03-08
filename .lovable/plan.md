@@ -1,44 +1,106 @@
 
 
-# Rebranding: Botões com Efeito Neon
+# Confirmação de Escala via Link Publico (Sem Integracao Externa)
 
-## Contexto
+## Arquitetura
 
-O botão atual usa o padrão shadcn/ui (retangular, `rounded-md`). O novo design é rounded-full com efeito neon (gradiente luminoso no hover). O projeto usa 84+ arquivos com o Button -- a migração precisa ser retrocompatível.
+O sistema ja possui a infraestrutura de tokens e pagina publica. A solucao e completar o fluxo sem depender de e-mail ou qualquer servico externo:
 
-## Estratégia
+```text
+Lider gera escala
+  -> Tokens criados automaticamente (1 por voluntario)
+  -> UI exibe links de confirmacao
+  -> Lider compartilha via WhatsApp / copia link
+  -> Voluntario abre link publico (sem login)
+  -> Confirma / Recusa / Pede substituto
+  -> Status atualizado em tempo real na tela do lider
+```
 
-Adaptar o componente `button.tsx` para o novo design, mantendo `asChild` (usado por shadcn) e mapeando os 6 variants existentes para o novo estilo. As cores usarão CSS variables do tema (`primary` = roxo 263°) ao invés do `blue-500` hardcoded da referência.
+## O que ja existe (nao precisa mudar)
 
-### Mapeamento de Variants
+- Tabela `schedule_confirmation_tokens` com token hex, expiracao 7 dias
+- Pagina `/confirmar/:token` (publica, sem autenticacao)
+- Edge Function `confirm-schedule` que valida token, atualiza status, notifica lider
 
-| Atual | Novo (equivalente) | Neon |
-|---|---|---|
-| `default` | `default` (bg primary/5, border primary/20) | Sim |
-| `solid` (novo) | — adicionado como variant extra | Sim |
-| `destructive` | bg destructive, border transparent | Não |
-| `outline` | border-input, bg transparent, hover bg-white/10 | Sim |
-| `secondary` | bg secondary, border secondary | Não |
-| `ghost` | border transparent, hover border + bg white/10 | Sim |
-| `link` | sem mudança visual significativa | Não |
+## O que precisa ser implementado
 
-### Prop `neon`
+### 1. Auto-criar tokens ao gerar escalas
 
-Adicionada ao ButtonProps (default `true`). Controla visibilidade dos spans de gradiente luminoso (top e bottom glow lines). Desabilitado automaticamente para `destructive`, `secondary`, `link`.
+Nas Edge Functions `generate-volunteer-schedule` e `generate-smart-schedule`, apos inserir os registros em `volunteer_schedules`, inserir um token para cada escala criada na tabela `schedule_confirmation_tokens`.
 
-### Prop `asChild`
+### 2. Exibir links de confirmacao na UI de escalas
 
-Mantida. Quando `asChild=true`, renderiza `<Slot>` sem os spans neon (incompatível com Slot).
+Na pagina `/escalas`, ao lado de cada voluntario com status "Aguardando", exibir botoes:
 
-## Arquivo Modificado
+- **Copiar Link**: copia a URL `{origin}/confirmar/{token}` para a area de transferencia
+- **Compartilhar via WhatsApp**: abre `https://wa.me/?text=...` com mensagem pre-formatada contendo nome do voluntario, data, funcao e link
 
-| Arquivo | Mudança |
+Isso requer buscar os tokens da tabela `schedule_confirmation_tokens` junto com as escalas.
+
+### 3. Painel de confirmacoes pendentes (melhoria na pagina de escalas)
+
+Um card/secao mostrando resumo:
+- X confirmados / Y aguardando / Z recusados
+- Lista de pendentes com botao rapido de compartilhar link
+- Indicador visual de quantos dias cada token esta pendente
+
+## Detalhes Tecnicos
+
+### Edge Functions (generate-volunteer-schedule e generate-smart-schedule)
+
+Apos o `insert` em `volunteer_schedules`, iterar sobre os registros criados e inserir em `schedule_confirmation_tokens`:
+
+```text
+Para cada schedule inserido:
+  INSERT INTO schedule_confirmation_tokens (schedule_id)
+  VALUES (schedule.id)
+  -- token e expires_at sao gerados automaticamente pelo DEFAULT da tabela
+```
+
+### Frontend - Componente de link de confirmacao
+
+Novo componente `ScheduleShareLink` que recebe o token e renderiza:
+- Botao "Copiar Link" usando `navigator.clipboard.writeText()`
+- Botao "WhatsApp" que abre `https://wa.me/?text=` com mensagem formatada
+- Toast de confirmacao ao copiar
+
+### Frontend - Query de escalas com tokens
+
+Atualizar a query em `useVolunteerSchedules` para incluir os tokens:
+
+```text
+volunteer_schedules (
+  ...,
+  schedule_confirmation_tokens (
+    token,
+    used_at,
+    action_taken,
+    expires_at
+  )
+)
+```
+
+### Frontend - Pagina de escalas
+
+Na listagem de escalas, para cada voluntario com status `scheduled`:
+- Exibir os botoes de compartilhar link ao lado do badge "Aguardando"
+- Para voluntarios com status `confirmed`, exibir badge verde sem botoes
+
+## Arquivos a Modificar
+
+| Arquivo | Mudanca |
 |---|---|
-| `src/components/ui/button.tsx` | Reescrita completa: rounded-full, neon spans, novo variant `solid`, prop `neon`, mapeamento de cores para CSS vars |
+| `supabase/functions/generate-volunteer-schedule/index.ts` | Inserir tokens apos criar escalas |
+| `supabase/functions/generate-smart-schedule/index.ts` | Inserir tokens apos criar escalas |
+| `src/hooks/useVolunteerSchedules.tsx` | Incluir tokens na query de escalas |
+| `src/components/schedules/ScheduleShareLink.tsx` | **Novo** - botoes copiar link e WhatsApp |
+| `src/pages/Schedules.tsx` | Integrar ScheduleShareLink nos cards de escala |
 
-## Impacto
+## Vantagens desta abordagem
 
-- Todos os 84+ arquivos que importam `Button` recebem o novo visual automaticamente
-- `size="icon"` mantém aspect ratio quadrado com rounded-full
-- Nenhum arquivo consumidor precisa ser alterado (API retrocompatível)
+- Zero dependencia externa (sem Resend, sem SMTP, sem API de email)
+- Voluntario nao precisa criar conta
+- Lider tem controle total de como compartilha (WhatsApp, SMS, presencial)
+- Tokens temporarios (7 dias) com uso unico garantem seguranca
+- Pagina publica ja existe e funciona
 
