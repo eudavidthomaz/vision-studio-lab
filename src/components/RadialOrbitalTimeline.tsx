@@ -186,27 +186,81 @@ export default function RadialOrbitalTimeline({
         })}
       </div>
 
-      {/* ───── Mobile Vertical View ───── */}
-      <div className="md:hidden space-y-4">
-        {timelineData.map((item) => {
+      {/* ───── Mobile Timeline View ───── */}
+      <div className="md:hidden relative pl-8">
+        {/* Timeline spine */}
+        <div className="absolute left-[18px] top-4 bottom-4 w-px bg-gradient-to-b from-primary/40 via-primary/20 to-transparent" />
+
+        {timelineData.map((item, index) => {
           const Icon = item.icon;
+          const isActive = activeNodeId === item.id;
+
           return (
-            <div
+            <motion.div
               key={item.id}
-              className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5"
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.4, delay: index * 0.08 }}
+              className="relative pb-5 last:pb-0"
             >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-5 h-5 text-primary" />
+              {/* Timeline dot */}
+              <div
+                className={cn(
+                  "absolute -left-8 top-5 w-[10px] h-[10px] rounded-full transition-all duration-300 z-10",
+                  isActive
+                    ? "bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.6)] scale-125"
+                    : "bg-primary/50"
+                )}
+              />
+
+              {/* Card */}
+              <motion.div
+                layout
+                onClick={() => toggleItem(item.id)}
+                className={cn(
+                  "rounded-2xl border backdrop-blur-md p-5 cursor-pointer transition-all duration-300",
+                  isActive
+                    ? "bg-white/10 border-primary/50 shadow-[0_0_25px_hsl(var(--primary)/0.15)]"
+                    : "bg-white/5 border-white/10 active:scale-[0.98]"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300",
+                      isActive
+                        ? "bg-primary/25 shadow-[0_0_15px_hsl(var(--primary)/0.3)]"
+                        : "bg-primary/15"
+                    )}
+                  >
+                    <Icon className={cn("w-5 h-5 transition-colors", isActive ? "text-primary" : "text-primary/70")} />
+                  </div>
+                  <h4 className={cn(
+                    "text-sm font-gunterz uppercase transition-colors",
+                    isActive ? "text-primary" : "text-foreground"
+                  )}>
+                    {item.title}
+                  </h4>
                 </div>
-                <h4 className="text-sm font-gunterz uppercase text-foreground">
-                  {item.title}
-                </h4>
-              </div>
-              <p className="text-muted-foreground text-xs leading-relaxed pl-[52px]">
-                {item.content}
-              </p>
-            </div>
+
+                <AnimatePresence>
+                  {isActive && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <p className="text-muted-foreground text-xs leading-relaxed pt-3 pl-[52px]">
+                        {item.content}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </motion.div>
           );
         })}
       </div>
