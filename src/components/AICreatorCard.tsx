@@ -1,5 +1,6 @@
 import { Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
+import logoIdeon from "@/assets/logo-ideon.png";
 interface AICreatorCardProps {
   onClick: () => void;
 }
