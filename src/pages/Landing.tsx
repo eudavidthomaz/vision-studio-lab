@@ -1,21 +1,17 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
-import { Mic, Sparkles, Calendar, Zap, Target, CheckCircle2, ArrowRight, Play, BookOpen, Users, Layout, BookMarked } from "lucide-react";
+import { Mic, Sparkles, Calendar, Zap, Target, CheckCircle2, ArrowRight, BookOpen, Users, Layout, BookMarked } from "lucide-react";
 import logoIdeon from "@/assets/logo-ideon.png";
 import { HeroScrollVideo } from "@/components/HeroScrollVideo";
 
 const YOUTUBE_ID = "SGRIma5ElbY";
-const YOUTUBE_THUMB = `https://img.youtube.com/vi/${YOUTUBE_ID}/maxresdefault.jpg`;
-const YOUTUBE_NOCOOKIE = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}?autoplay=1&mute=0&loop=1&controls=0&modestbranding=1&showinfo=0&rel=0&playlist=${YOUTUBE_ID}`;
+const YOUTUBE_EMBED = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&showinfo=0&rel=0&playlist=${YOUTUBE_ID}`;
 
 const Landing = () => {
   const navigate = useNavigate();
-  const [videoOpen, setVideoOpen] = useState(false);
 
   const features = [
     {
