@@ -43,6 +43,7 @@ const sectionVariants = {
 };
 
 const HowItWorksSection = () => {
+  const isMobile = useIsMobile();
   return (
     <motion.section
       id="como-funciona"
