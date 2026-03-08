@@ -479,7 +479,16 @@ const Bio = () => {
         {/* ━━━ TAB 3 — MÍDIA ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <TabsContent value="midia" className="mt-0 outline-none">
           <AnimatePresence mode="wait">
-            <motion.div key="midia" {...tabContent}>
+            <motion.div key="midia" {...tabContent} className="relative">
+              <AnimatedGridPattern
+                numSquares={20}
+                maxOpacity={0.08}
+                duration={4}
+                className={cn(
+                  "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
+                  "fill-primary/10 stroke-primary/10"
+                )}
+              />
               {/* Transmissão */}
               <section className="container mx-auto px-4 py-12 md:py-20">
                 <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
