@@ -243,7 +243,7 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
               </div>
 
               {/* Title text — splits and slides apart */}
-              <div className="flex items-center justify-center text-center gap-3 md:gap-4 w-full relative z-10 flex-col mix-blend-difference -mt-24 md:-mt-32">
+              <div className="flex items-center justify-center text-center gap-3 md:gap-4 w-full relative z-10 flex-col mix-blend-difference">
                 <motion.h2
                   className="font-gunterz text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white tracking-tight"
                   style={{ transform: `translateX(-${textTranslateX}vw)` }}
