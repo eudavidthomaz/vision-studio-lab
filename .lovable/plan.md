@@ -1,106 +1,72 @@
 
 
-# Confirmação de Escala via Link Publico (Sem Integracao Externa)
+# Redesign `/bio` — Tabbed Layout + Component Variety
 
-## Arquitetura
+## Strategy
 
-O sistema ja possui a infraestrutura de tokens e pagina publica. A solucao e completar o fluxo sem depender de e-mail ou qualquer servico externo:
+Keep **Hero + Footer** as standalone sections. Everything in between goes into a **horizontal sticky tab bar** with 4 tabs, drastically reducing scroll length while keeping all content accessible.
 
-```text
-Lider gera escala
-  -> Tokens criados automaticamente (1 por voluntario)
-  -> UI exibe links de confirmacao
-  -> Lider compartilha via WhatsApp / copia link
-  -> Voluntario abre link publico (sem login)
-  -> Confirma / Recusa / Pede substituto
-  -> Status atualizado em tempo real na tela do lider
-```
+Each tab uses **different visual components** to avoid repetition:
 
-## O que ja existe (nao precisa mudar)
-
-- Tabela `schedule_confirmation_tokens` com token hex, expiracao 7 dias
-- Pagina `/confirmar/:token` (publica, sem autenticacao)
-- Edge Function `confirm-schedule` que valida token, atualiza status, notifica lider
-
-## O que precisa ser implementado
-
-### 1. Auto-criar tokens ao gerar escalas
-
-Nas Edge Functions `generate-volunteer-schedule` e `generate-smart-schedule`, apos inserir os registros em `volunteer_schedules`, inserir um token para cada escala criada na tabela `schedule_confirmation_tokens`.
-
-### 2. Exibir links de confirmacao na UI de escalas
-
-Na pagina `/escalas`, ao lado de cada voluntario com status "Aguardando", exibir botoes:
-
-- **Copiar Link**: copia a URL `{origin}/confirmar/{token}` para a area de transferencia
-- **Compartilhar via WhatsApp**: abre `https://wa.me/?text=...` com mensagem pre-formatada contendo nome do voluntario, data, funcao e link
-
-Isso requer buscar os tokens da tabela `schedule_confirmation_tokens` junto com as escalas.
-
-### 3. Painel de confirmacoes pendentes (melhoria na pagina de escalas)
-
-Um card/secao mostrando resumo:
-- X confirmados / Y aguardando / Z recusados
-- Lista de pendentes com botao rapido de compartilhar link
-- Indicador visual de quantos dias cada token esta pendente
-
-## Detalhes Tecnicos
-
-### Edge Functions (generate-volunteer-schedule e generate-smart-schedule)
-
-Apos o `insert` em `volunteer_schedules`, iterar sobre os registros criados e inserir em `schedule_confirmation_tokens`:
+## Architecture
 
 ```text
-Para cada schedule inserido:
-  INSERT INTO schedule_confirmation_tokens (schedule_id)
-  VALUES (schedule.id)
-  -- token e expires_at sao gerados automaticamente pelo DEFAULT da tabela
+┌─────────────────────────────────┐
+│  HERO (ContainerScrollHero)     │  ← stays as-is
+├─────────────────────────────────┤
+│  STICKY TAB BAR                 │  ← Tabs component, sticky top
+├─────────────────────────────────┤
+│  TAB CONTENT (swaps on click)   │
+├─────────────────────────────────┤
+│  FOOTER                         │  ← stays as-is
+└─────────────────────────────────┘
 ```
 
-### Frontend - Componente de link de confirmacao
+## Tab Breakdown + Component Variety
 
-Novo componente `ScheduleShareLink` que recebe o token e renderiza:
-- Botao "Copiar Link" usando `navigator.clipboard.writeText()`
-- Botao "WhatsApp" que abre `https://wa.me/?text=` com mensagem formatada
-- Toast de confirmacao ao copiar
+| Tab | Label | Sections | Visual Components |
+|-----|-------|----------|-------------------|
+| 1 | **Início** | First visit FAQ + Schedule/Address | **Accordion** for FAQ (not cards), **GlassCard** split for schedule+map |
+| 2 | **Sobre** | Who we are + Ministries | **RadialOrbitalTimeline** for 3 values, **CardStack** fan for ministries |
+| 3 | **Mídia** | Transmission + Upcoming events | YouTube embed + event cards with **date badges** |
+| 4 | **Contato** | Prayer + Contact + Tithes/Offerings | **GlassCard with SparklesCore** (prayer), icon grid (contact), simple CTA (tithes) |
 
-### Frontend - Query de escalas com tokens
+## Key Design Decisions
 
-Atualizar a query em `useVolunteerSchedules` para incluir os tokens:
+### Sticky Tab Bar
+- Uses `Tabs` + `TabsList` + `TabsTrigger` from `@radix-ui/react-tabs`
+- Sticky below hero with `sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/20`
+- Tab labels: 🏠 Início · ✝️ Sobre · 📺 Mídia · 💬 Contato
+- Mobile: full-width, scrollable horizontally
 
-```text
-volunteer_schedules (
-  ...,
-  schedule_confirmation_tokens (
-    token,
-    used_at,
-    action_taken,
-    expires_at
-  )
-)
-```
+### Tab 1 — Início (varied layout)
+- **Accordion** (expandable FAQ) replaces the 4 identical GlassCards — more compact, more interactive
+- Schedule + Address: **two-column GlassCard** layout with different `glowColor` per card (primary + cyan)
+- CTA buttons remain prominent
 
-### Frontend - Pagina de escalas
+### Tab 2 — Sobre (most creative)
+- **RadialOrbitalTimeline** for the 3 values (Nossa mensagem / Nossa cultura / Nosso desejo) — orbital animated nodes with content reveal on click
+- **CardStack** fan component for ministries — users swipe through ministry cards instead of static grid
+- Both components are already imported and unused on this page
 
-Na listagem de escalas, para cada voluntario com status `scheduled`:
-- Exibir os botoes de compartilhar link ao lado do badge "Aguardando"
-- Para voluntarios com status `confirmed`, exibir badge verde sem botoes
+### Tab 3 — Mídia
+- YouTube embed in a `Card` (simple, clean)
+- Event agenda as horizontal scrollable cards (`flex overflow-x-auto snap-x`) instead of grid — more dynamic on mobile
 
-## Arquivos a Modificar
+### Tab 4 — Contato
+- Prayer section with **GlassCard + SparklesCore** (emotional, already proven pattern)
+- Contact icons as large touch-friendly `Button` grid
+- Tithes as minimal text + single CTA
 
-| Arquivo | Mudanca |
-|---|---|
-| `supabase/functions/generate-volunteer-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `supabase/functions/generate-smart-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `src/hooks/useVolunteerSchedules.tsx` | Incluir tokens na query de escalas |
-| `src/components/schedules/ScheduleShareLink.tsx` | **Novo** - botoes copiar link e WhatsApp |
-| `src/pages/Schedules.tsx` | Integrar ScheduleShareLink nos cards de escala |
+## Animation
+- Each `TabsContent` wraps content in `motion.div` with `fade-in` on mount via `AnimatePresence`
+- `whileInView` animations inside each tab for staggered reveals
 
-## Vantagens desta abordagem
+## File Changes
 
-- Zero dependencia externa (sem Resend, sem SMTP, sem API de email)
-- Voluntario nao precisa criar conta
-- Lider tem controle total de como compartilha (WhatsApp, SMS, presencial)
-- Tokens temporarios (7 dias) com uso unico garantem seguranca
-- Pagina publica ja existe e funciona
+| File | Action |
+|------|--------|
+| `src/pages/Bio.tsx` | Full rewrite |
+
+No new files, no routing changes.
 
