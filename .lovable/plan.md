@@ -1,9 +1,8 @@
 
 
-# Substituir fonte Robin-Alts
+# Atualizar tipografia da frase do Hero
 
-## Mudança única
-Remover `src/assets/fonts/Robin-Alts.otf` atual e copiar `user-uploads://Robin-Alts-2.otf` para `src/assets/fonts/Robin-Alts.otf`.
+## Mudanças em `src/components/HeroHeader.tsx`
 
-Nenhuma mudança em CSS, Tailwind config ou componentes — tudo já referencia o mesmo caminho.
+**Linhas 84-90**: Remover classes de gradiente (`bg-gradient-to-r`, `bg-clip-text`, `text-transparent`, `bg-[length:200%_auto]`, `animate-[gradient_*]`) dos dois `<span>`. Adicionar `text-white uppercase` e manter `font-robin`.
 
