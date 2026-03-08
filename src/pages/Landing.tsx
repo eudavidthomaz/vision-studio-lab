@@ -203,51 +203,43 @@ const Landing = () => {
             Recursos poderosos para sua estratégia de conteúdo
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {features.map((feature, i) =>
-            <motion.div
-              key={i}
-              custom={i}
-              variants={itemVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}>
-              
-                <GlassCard glowColor={glowCycle[i % 3]} className="h-full">
-                  <div className="p-6">
-                    <feature.icon className="w-8 h-8 md:w-10 md:h-10 text-primary mb-3 md:mb-4" />
-                    <h3 className="text-base md:text-lg font-gunterz uppercase text-foreground mb-2">{feature.title}</h3>
-                    <p className="text-muted-foreground text-xs md:text-sm">{feature.description}</p>
-                  </div>
-                </GlassCard>
-              </motion.div>
-            )}
-          </div>
+          <RadialOrbitalTimeline
+            timelineData={features.map((f, i): TimelineItem => ({
+              id: i + 1,
+              title: f.title,
+              content: f.description,
+              icon: f.icon,
+            }))}
+          />
+        </div>
+      </motion.section>
 
-          {/* Entregáveis */}
-          <motion.div
-            className="mt-12"
-            variants={sectionVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}>
-            
-            <h3 className="text-2xl md:text-3xl font-gunterz uppercase text-foreground text-center mb-8">
-              Entregáveis Prontos
-            </h3>
-            <GlassCard glowColor="cyan" className="max-w-4xl mx-auto">
-              <div className="p-6 md:p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                  {benefits.map((benefit, i) =>
-                  <div key={i} className="flex items-start gap-2 md:gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-foreground text-sm md:text-base">{benefit}</span>
-                    </div>
-                  )}
-                </div>
+      {/* ═══════════════════════════════════════════
+            ENTREGÁVEIS
+          ═══════════════════════════════════════════ */}
+      <motion.section
+        className="container mx-auto px-4 py-16 md:py-24"
+        variants={sectionVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}>
+        
+        <div className="max-w-4xl mx-auto">
+          <h3 className="text-2xl md:text-3xl font-gunterz uppercase text-foreground text-center mb-8">
+            Entregáveis Prontos
+          </h3>
+          <GlassCard glowColor="cyan">
+            <div className="p-6 md:p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                {benefits.map((benefit, i) =>
+                <div key={i} className="flex items-start gap-2 md:gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                    <span className="text-foreground text-sm md:text-base">{benefit}</span>
+                  </div>
+                )}
               </div>
-            </GlassCard>
-          </motion.div>
+            </div>
+          </GlassCard>
         </div>
       </motion.section>
 
