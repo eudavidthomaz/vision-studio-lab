@@ -167,6 +167,9 @@ const Bio = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <div className="fixed top-4 right-4 z-[60]">
+        <ThemeSwitch />
+      </div>
       {/* ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <ContainerScrollHero
         titleComponent={
