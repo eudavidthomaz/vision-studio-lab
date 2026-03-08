@@ -120,9 +120,7 @@ const HowItWorksEngine = () => {
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, ease }}
-        >
-          <StepBadge step={steps[0]} index={0} />
+          transition={{ duration: 0.6, easeBadge step={steps[0]} index={0} />
         </motion.div>
 
         {/* ── Central Engine ── */}
@@ -131,9 +129,7 @@ const HowItWorksEngine = () => {
           initial={{ opacity: 0, scale: 0.8 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.2, ease: ease as unknown as number[] }}
-        >
-          <CentralEngine />
+          transition={{ duration: 0.7, delay: 0.2, ease: ease as unknown as number[]ralEngine />
         </motion.div>
 
         {/* ── Step 2 Badge (bottom-left) ── */}
