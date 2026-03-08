@@ -1,106 +1,54 @@
 
 
-# Confirmação de Escala via Link Publico (Sem Integracao Externa)
+# Replace "Tudo que você precisa" with Radial Orbital Timeline
 
-## Arquitetura
+## What Changes
 
-O sistema ja possui a infraestrutura de tokens e pagina publica. A solucao e completar o fluxo sem depender de e-mail ou qualquer servico externo:
+Replace the current grid-based features section (lines 186–250) with a new `RadialOrbitalTimeline` component adapted to the project's dark glass design system.
 
-```text
-Lider gera escala
-  -> Tokens criados automaticamente (1 por voluntario)
-  -> UI exibe links de confirmacao
-  -> Lider compartilha via WhatsApp / copia link
-  -> Voluntario abre link publico (sem login)
-  -> Confirma / Recusa / Pede substituto
-  -> Status atualizado em tempo real na tela do lider
+## New Component: `src/components/RadialOrbitalTimeline.tsx`
+
+Create a self-contained radial orbital timeline adapted from the reference code, with these adjustments:
+
+- **Dark theme alignment**: Replace black/white color scheme with the project's `hsl` tokens (`foreground`, `muted-foreground`, `primary`, `border`, `background`).
+- **Glass styling**: Use `backdrop-blur`, `bg-white/5`, `border-white/10` for nodes and expanded cards — consistent with the GlassCard design language.
+- **Glow accents**: Node rings and energy bars use `bg-primary` with glow shadows matching the existing palette.
+- **Mobile fallback**: On screens < `md`, switch from orbital view to a vertical stacked list (the orbital layout requires ~500px minimum to be usable).
+- **No external dependencies** beyond what's already installed (`lucide-react`, `framer-motion` for entrance animation of the section wrapper).
+
+### Data mapping
+
+The existing `features` array will be mapped to `TimelineItem[]`:
+
+```tsx
+const timelineData: TimelineItem[] = features.map((f, i) => ({
+  id: i + 1,
+  title: f.title,
+  date: "",            // unused visually, kept for interface compat
+  content: f.description,
+  category: "feature",
+  icon: f.icon,
+  relatedIds: [],      // no cross-links needed for features
+  status: "completed" as const,
+  energy: 100,         // all features "fully available"
+}));
 ```
 
-## O que ja existe (nao precisa mudar)
+### Simplified interface
 
-- Tabela `schedule_confirmation_tokens` com token hex, expiracao 7 dias
-- Pagina `/confirmar/:token` (publica, sem autenticacao)
-- Edge Function `confirm-schedule` que valida token, atualiza status, notifica lider
+Remove unused fields from the reference (`date`, `relatedIds`, `energy`, `status`) in the UI rendering — keep the data shape for the rotation/positioning logic but don't render cards with progress bars or connected-nodes sections. The expanded state shows only: icon, title, description.
 
-## O que precisa ser implementado
+## Landing.tsx Changes
 
-### 1. Auto-criar tokens ao gerar escalas
+- **Remove**: The features grid (lines 204–223) and the "Entregáveis Prontos" sub-section (lines 225–248).
+- **Keep**: Section wrapper with `motion.section`, heading "Tudo que você precisa", subtitle.
+- **Add**: `<RadialOrbitalTimeline timelineData={timelineData} />` below the subtitle.
+- **Move "Entregáveis"** to its own small section below the orbital, keeping the existing `GlassCard` + `CheckCircle2` list.
 
-Nas Edge Functions `generate-volunteer-schedule` e `generate-smart-schedule`, apos inserir os registros em `volunteer_schedules`, inserir um token para cada escala criada na tabela `schedule_confirmation_tokens`.
+## File Summary
 
-### 2. Exibir links de confirmacao na UI de escalas
-
-Na pagina `/escalas`, ao lado de cada voluntario com status "Aguardando", exibir botoes:
-
-- **Copiar Link**: copia a URL `{origin}/confirmar/{token}` para a area de transferencia
-- **Compartilhar via WhatsApp**: abre `https://wa.me/?text=...` com mensagem pre-formatada contendo nome do voluntario, data, funcao e link
-
-Isso requer buscar os tokens da tabela `schedule_confirmation_tokens` junto com as escalas.
-
-### 3. Painel de confirmacoes pendentes (melhoria na pagina de escalas)
-
-Um card/secao mostrando resumo:
-- X confirmados / Y aguardando / Z recusados
-- Lista de pendentes com botao rapido de compartilhar link
-- Indicador visual de quantos dias cada token esta pendente
-
-## Detalhes Tecnicos
-
-### Edge Functions (generate-volunteer-schedule e generate-smart-schedule)
-
-Apos o `insert` em `volunteer_schedules`, iterar sobre os registros criados e inserir em `schedule_confirmation_tokens`:
-
-```text
-Para cada schedule inserido:
-  INSERT INTO schedule_confirmation_tokens (schedule_id)
-  VALUES (schedule.id)
-  -- token e expires_at sao gerados automaticamente pelo DEFAULT da tabela
-```
-
-### Frontend - Componente de link de confirmacao
-
-Novo componente `ScheduleShareLink` que recebe o token e renderiza:
-- Botao "Copiar Link" usando `navigator.clipboard.writeText()`
-- Botao "WhatsApp" que abre `https://wa.me/?text=` com mensagem formatada
-- Toast de confirmacao ao copiar
-
-### Frontend - Query de escalas com tokens
-
-Atualizar a query em `useVolunteerSchedules` para incluir os tokens:
-
-```text
-volunteer_schedules (
-  ...,
-  schedule_confirmation_tokens (
-    token,
-    used_at,
-    action_taken,
-    expires_at
-  )
-)
-```
-
-### Frontend - Pagina de escalas
-
-Na listagem de escalas, para cada voluntario com status `scheduled`:
-- Exibir os botoes de compartilhar link ao lado do badge "Aguardando"
-- Para voluntarios com status `confirmed`, exibir badge verde sem botoes
-
-## Arquivos a Modificar
-
-| Arquivo | Mudanca |
+| File | Action |
 |---|---|
-| `supabase/functions/generate-volunteer-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `supabase/functions/generate-smart-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `src/hooks/useVolunteerSchedules.tsx` | Incluir tokens na query de escalas |
-| `src/components/schedules/ScheduleShareLink.tsx` | **Novo** - botoes copiar link e WhatsApp |
-| `src/pages/Schedules.tsx` | Integrar ScheduleShareLink nos cards de escala |
-
-## Vantagens desta abordagem
-
-- Zero dependencia externa (sem Resend, sem SMTP, sem API de email)
-- Voluntario nao precisa criar conta
-- Lider tem controle total de como compartilha (WhatsApp, SMS, presencial)
-- Tokens temporarios (7 dias) com uso unico garantem seguranca
-- Pagina publica ja existe e funciona
+| `src/components/RadialOrbitalTimeline.tsx` | Create |
+| `src/pages/Landing.tsx` | Edit section lines 186–250 |
 
