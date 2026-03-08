@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useState } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
@@ -48,7 +47,6 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, children, ...props }, ref) => {
-    const [hovered, setHovered] = useState(false);
     const showSparkles = !SPARKLES_DISABLED_VARIANTS.has(variant || "default");
 
     if (asChild) {
@@ -63,14 +61,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     return (
       <button
-        className={cn(buttonVariants({ variant, size }), "overflow-hidden", className)}
+        className={cn(buttonVariants({ variant, size }), className)}
         ref={ref}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
         {...props}
       >
-        {showSparkles && hovered && (
-          <div className="absolute inset-0 z-0 pointer-events-none animate-fade-in">
+        {showSparkles && (
+          <div className="absolute inset-0 overflow-hidden rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-0">
             <SparklesCore
               background="transparent"
               minSize={0.6}
@@ -82,7 +78,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             />
           </div>
         )}
-        <span className="relative z-[1]">{children}</span>
+        {children}
       </button>
     );
   }
