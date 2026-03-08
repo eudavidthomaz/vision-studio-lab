@@ -165,6 +165,15 @@ function MinistryCard({ item, state }: { item: CardStackItem; state: { active: b
 }
 
 // ─── PAGE ────────────────────────────────────────────────────────────────────
+const TAB_KEYS = ["inicio", "sobre", "midia", "contato"];
+
+const navItems: NavItem[] = [
+  { id: "inicio", icon: <ChurchIcon />, label: "Início" },
+  { id: "sobre", icon: <BookOpen />, label: "Sobre" },
+  { id: "midia", icon: <Play />, label: "Mídia" },
+  { id: "contato", icon: <MessageCircle />, label: "Contato" },
+];
+
 const Bio = () => {
   const [activeTab, setActiveTab] = useState("inicio");
 
