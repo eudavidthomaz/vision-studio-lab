@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ThemeSwitch from "@/components/ui/theme-switch";
 import { motion, AnimatePresence } from "framer-motion";
 import { ContainerScrollHero } from "@/components/ContainerScrollHero";
 import { GlassCard } from "@/components/ui/glass-card";
@@ -166,6 +167,9 @@ const Bio = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
+      <div className="fixed top-4 right-4 z-[60]">
+        <ThemeSwitch />
+      </div>
       {/* ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <ContainerScrollHero
         titleComponent={
