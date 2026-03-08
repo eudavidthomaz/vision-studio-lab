@@ -371,8 +371,8 @@ const Landing = () => {
       </section>
 
       {/* Footer - Mobile optimized */}
-      <footer className="border-t border-gray-800 bg-gray-900/50 backdrop-blur-sm">
-        <diborder bg-backgrounder mx-auto px-4 py-8 md:py-12">
+      <footer className="border-t border-border bg-background/50 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="text-center text-muted-foreground">
             <p className="text-xs md:text-sm">
               © 2024 Ide.On. Todos os direitos reservados.
