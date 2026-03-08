@@ -2,10 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mic, Sparkles, Calendar, Zap, Target, CheckCircle2, ArrowRight, BookOpen, Users, Layout, BookMarked } from "lucide-react";
+import { Zap, Target, CheckCircle2, ArrowRight, BookOpen, Users, Layout, BookMarked } from "lucide-react";
 import logoIdeon from "@/assets/logo-ideon.png";
 import { ContainerScrollHero } from "@/components/ContainerScrollHero";
 import { GlassCard } from "@/components/ui/glass-card";
+import HowItWorksEngine from "@/components/HowItWorksEngine";
 import { SparklesCore } from "@/components/ui/sparkles";
 import RadialOrbitalTimeline from "@/components/RadialOrbitalTimeline";
 import type { TimelineItem } from "@/components/RadialOrbitalTimeline";
@@ -15,25 +16,6 @@ const YOUTUBE_EMBED = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}`;
 
 const glowCycle = ["primary", "blue", "cyan"] as const;
 
-const steps = [
-{
-  icon: Mic,
-  label: "PASSO 1",
-  title: "Grave ou Envie o Áudio",
-  description: "Grave ao vivo no Ide.On ou faça upload do arquivo. A IA transcreve e identifica versículos, temas, ênfases e chamadas da sua pregação."
-},
-{
-  icon: Sparkles,
-  label: "PASSO 2",
-  title: "Gere o Pack da Semana",
-  description: "Em minutos, você recebe estudo bíblico, resumo, frases de impacto, carrossel, roteiros de reels/shorts, legendas e hashtags — tudo coerente com a doutrina cristã histórica."
-},
-{
-  icon: Calendar,
-  label: "PASSO 3",
-  title: "Organize e Publique",
-  description: "Use o planner visual para ajustar o tom, escolher os dias e exportar em PDF/Imagem ou direto para seus fluxos (Canva/CapCut/agenda de posts)."
-}];
 
 
 const features = [
@@ -159,29 +141,7 @@ const Landing = () => {
             3 passos simples para transformar sua pregação em conteúdo estratégico
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {steps.map((step, i) =>
-            <motion.div
-              key={i}
-              custom={i}
-              variants={itemVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}>
-              
-                <GlassCard glowColor={glowCycle[i % 3]} className="h-full">
-                  <div className="p-6 md:p-8">
-                    <div className="w-12 h-12 md:w-16 md:h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-                      <step.icon className="w-6 h-6 md:w-8 md:h-8 text-primary" />
-                    </div>
-                    <div className="text-primary font-bold text-sm mb-2">{step.label}</div>
-                    <h3 className="text-lg md:text-xl font-gunterz uppercase text-foreground mb-3">{step.title}</h3>
-                    <p className="text-muted-foreground text-sm md:text-base">{step.description}</p>
-                  </div>
-                </GlassCard>
-              </motion.div>
-            )}
-          </div>
+          <HowItWorksEngine />
         </div>
       </motion.section>
 
