@@ -16,25 +16,6 @@ const YOUTUBE_EMBED = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}`;
 
 const glowCycle = ["primary", "blue", "cyan"] as const;
 
-const steps = [
-{
-  icon: Mic,
-  label: "PASSO 1",
-  title: "Grave ou Envie o Áudio",
-  description: "Grave ao vivo no Ide.On ou faça upload do arquivo. A IA transcreve e identifica versículos, temas, ênfases e chamadas da sua pregação."
-},
-{
-  icon: Sparkles,
-  label: "PASSO 2",
-  title: "Gere o Pack da Semana",
-  description: "Em minutos, você recebe estudo bíblico, resumo, frases de impacto, carrossel, roteiros de reels/shorts, legendas e hashtags — tudo coerente com a doutrina cristã histórica."
-},
-{
-  icon: Calendar,
-  label: "PASSO 3",
-  title: "Organize e Publique",
-  description: "Use o planner visual para ajustar o tom, escolher os dias e exportar em PDF/Imagem ou direto para seus fluxos (Canva/CapCut/agenda de posts)."
-}];
 
 
 const features = [
