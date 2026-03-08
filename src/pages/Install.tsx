@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, Smartphone, Monitor, Apple, CheckCircle2, ArrowLeft } from 'lucide-react';
+import logoIdeon from "@/assets/logo-ideon.png";
 import { useNavigate } from 'react-router-dom';
 
 interface BeforeInstallPromptEvent extends Event {
