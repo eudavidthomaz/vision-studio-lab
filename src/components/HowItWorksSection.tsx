@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { CardStack, type CardStackItem } from "@/components/ui/card-stack";
+import { useIsMobile } from "@/hooks/use-mobile";
 import stepAudio from "@/assets/step-1-audio.jpg";
 import stepPack from "@/assets/step-2-pack.jpg";
 import stepPlanner from "@/assets/step-3-planner.jpg";
