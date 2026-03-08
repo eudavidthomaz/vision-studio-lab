@@ -217,7 +217,7 @@ export function ContentViewer({ content, onRegenerate }: ContentViewerProps) {
   
   return (
     <div className="
-      w-full min-w-0 max-w-full overflow-x-hidden
+      w-full min-w-0 max-w-full
       [&_*]:max-w-full
       [&_button]:max-w-full
       [&_img]:w-full [&_img]:h-auto

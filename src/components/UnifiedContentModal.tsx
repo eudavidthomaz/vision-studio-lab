@@ -1,7 +1,6 @@
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileContentSheet } from "./MobileContentSheet";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ContentViewer } from "./ContentViewer";
 import { ContentLibraryItem } from "@/hooks/useContentLibrary";
 import { Badge } from "@/components/ui/badge";
@@ -127,12 +126,12 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
         </DialogHeader>
 
         {/* Conteúdo scrollável */}
-        <ScrollArea className="max-h-[calc(90dvh-110px)]">
+        <div className="overflow-y-auto max-h-[calc(90dvh-110px)]">
           <div className="
             px-3 sm:px-4 md:px-5 lg:px-6 
             py-3 sm:py-4 md:py-5 
             w-full min-w-0 
-            break-words overflow-x-hidden
+            break-words
             text-xs sm:text-sm md:text-base
             [&_img]:max-w-full [&_img]:h-auto [&_img]:object-contain [&_img]:rounded-lg
             [&_video]:max-w-full [&_video]:h-auto [&_video]:object-contain [&_video]:rounded-lg
@@ -150,7 +149,7 @@ export function UnifiedContentModal({ content, open, onClose }: UnifiedContentMo
           ">
             <ContentViewer content={content} />
           </div>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
