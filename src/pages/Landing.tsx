@@ -94,7 +94,7 @@ const Landing = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <img src={logoIdeon} alt="Ide.On" className="h-8 w-8 rounded-lg object-contain" />
-            <h1 className="text-2xl font-gunterz uppercase text-foreground">Ide.On</h1>
+            <h1 className="text-2xl font-brother uppercase text-foreground">Ide.On</h1>
           </div>
           <Button
             onClick={() => navigate("/auth")}
