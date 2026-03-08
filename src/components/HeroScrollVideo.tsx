@@ -205,7 +205,6 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
                 {/* YouTube iframe */}
                 <div className="relative w-full h-full pointer-events-none">
                   <iframe
-                    key={isMuted ? "muted" : "unmuted"}
                     src={embedSrc}
                     title="Video de apresentação"
                     className="w-full h-full rounded-xl"
@@ -214,20 +213,6 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
                     allowFullScreen
                   />
                   <div className="absolute inset-0 z-10" style={{ pointerEvents: "none" }} />
-                  {scrollProgress > 0.3 && (
-                    <motion.button
-                      className="absolute bottom-4 right-4 z-20 p-2.5 rounded-full bg-background/20 backdrop-blur-md border border-foreground/10 text-foreground/80 hover:text-foreground hover:bg-background/30 transition-colors"
-                      style={{ pointerEvents: "auto" }}
-                      onClick={() => setIsMuted((m) => !m)}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.3 }}
-                      aria-label={isMuted ? "Ativar som" : "Desativar som"}
-                    >
-                      {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                    </motion.button>
-                  )}
                   <motion.div
                     className="absolute inset-0 bg-black/30 rounded-xl"
                     initial={{ opacity: 0.7 }}
