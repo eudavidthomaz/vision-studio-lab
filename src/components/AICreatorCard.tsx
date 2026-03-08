@@ -18,7 +18,7 @@ export const AICreatorCard = ({ onClick }: AICreatorCardProps) => {
           </div>
         </div>
 
-        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-normal mb-3 font-robin text-foreground uppercase">
+        <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-3 font-gunterz text-foreground uppercase">
           Crie para o reino com apenas um clique...
         </h2>
 
