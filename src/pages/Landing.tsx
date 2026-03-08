@@ -8,7 +8,7 @@ import logoIdeon from "@/assets/logo-ideon.png";
 import { HeroScrollVideo } from "@/components/HeroScrollVideo";
 
 const YOUTUBE_ID = "SGRIma5ElbY";
-const YOUTUBE_EMBED = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}?autoplay=1&mute=1&loop=1&controls=0&modestbranding=1&showinfo=0&rel=0&playlist=${YOUTUBE_ID}`;
+const YOUTUBE_EMBED = `https://www.youtube-nocookie.com/embed/${YOUTUBE_ID}`;
 
 const Landing = () => {
   const navigate = useNavigate();
