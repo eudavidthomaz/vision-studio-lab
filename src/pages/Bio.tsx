@@ -706,8 +706,17 @@ const Bio = () => {
       </Tabs>
 
       {/* ━━━ FOOTER ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
-      <footer className="border-t border-border/30 py-10 md:py-14">
-        <div className="container mx-auto px-4">
+      <footer className="relative border-t border-border/30 py-10 md:py-14">
+        <AnimatedGridPattern
+          numSquares={15}
+          maxOpacity={0.06}
+          duration={5}
+          className={cn(
+            "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]",
+            "fill-primary/10 stroke-primary/10"
+          )}
+        />
+        <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 max-w-4xl mx-auto">
             <div className="text-center md:text-left">
               <h3 className="font-bold text-foreground text-base sm:text-lg mb-2">{CHURCH.name}</h3>
