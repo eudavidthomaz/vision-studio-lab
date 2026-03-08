@@ -77,7 +77,7 @@ export default function ConfirmSchedule() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
             <AlertCircle className="w-12 h-12 mx-auto text-destructive mb-4" />
