@@ -6,7 +6,7 @@ import { Zap, Target, CheckCircle2, ArrowRight, BookOpen, Users, Layout, BookMar
 import logoIdeon from "@/assets/logo-ideon.png";
 import { ContainerScrollHero } from "@/components/ContainerScrollHero";
 import { GlassCard } from "@/components/ui/glass-card";
-import HowItWorksEngine from "@/components/HowItWorksEngine";
+import HowItWorksSection from "@/components/HowItWorksSection";
 import { SparklesCore } from "@/components/ui/sparkles";
 import RadialOrbitalTimeline from "@/components/RadialOrbitalTimeline";
 import type { TimelineItem } from "@/components/RadialOrbitalTimeline";
