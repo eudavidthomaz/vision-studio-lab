@@ -1,106 +1,91 @@
 
 
-# Confirmação de Escala via Link Publico (Sem Integracao Externa)
+# Rebranding da Tela de Login
 
-## Arquitetura
+## Objetivo
+Redesenhar `src/pages/Auth.tsx` inspirando-se no design de referência fornecido (card glassmorphism com efeito 3D, inputs com ícones, toggle de senha, glow animado), adaptado para a identidade Ide.On e usando framer-motion (já instalado).
 
-O sistema ja possui a infraestrutura de tokens e pagina publica. A solucao e completar o fluxo sem depender de e-mail ou qualquer servico externo:
-
-```text
-Lider gera escala
-  -> Tokens criados automaticamente (1 por voluntario)
-  -> UI exibe links de confirmacao
-  -> Lider compartilha via WhatsApp / copia link
-  -> Voluntario abre link publico (sem login)
-  -> Confirma / Recusa / Pede substituto
-  -> Status atualizado em tempo real na tela do lider
-```
-
-## O que ja existe (nao precisa mudar)
-
-- Tabela `schedule_confirmation_tokens` com token hex, expiracao 7 dias
-- Pagina `/confirmar/:token` (publica, sem autenticacao)
-- Edge Function `confirm-schedule` que valida token, atualiza status, notifica lider
-
-## O que precisa ser implementado
-
-### 1. Auto-criar tokens ao gerar escalas
-
-Nas Edge Functions `generate-volunteer-schedule` e `generate-smart-schedule`, apos inserir os registros em `volunteer_schedules`, inserir um token para cada escala criada na tabela `schedule_confirmation_tokens`.
-
-### 2. Exibir links de confirmacao na UI de escalas
-
-Na pagina `/escalas`, ao lado de cada voluntario com status "Aguardando", exibir botoes:
-
-- **Copiar Link**: copia a URL `{origin}/confirmar/{token}` para a area de transferencia
-- **Compartilhar via WhatsApp**: abre `https://wa.me/?text=...` com mensagem pre-formatada contendo nome do voluntario, data, funcao e link
-
-Isso requer buscar os tokens da tabela `schedule_confirmation_tokens` junto com as escalas.
-
-### 3. Painel de confirmacoes pendentes (melhoria na pagina de escalas)
-
-Um card/secao mostrando resumo:
-- X confirmados / Y aguardando / Z recusados
-- Lista de pendentes com botao rapido de compartilhar link
-- Indicador visual de quantos dias cada token esta pendente
-
-## Detalhes Tecnicos
-
-### Edge Functions (generate-volunteer-schedule e generate-smart-schedule)
-
-Apos o `insert` em `volunteer_schedules`, iterar sobre os registros criados e inserir em `schedule_confirmation_tokens`:
+## Design
 
 ```text
-Para cada schedule inserido:
-  INSERT INTO schedule_confirmation_tokens (schedule_id)
-  VALUES (schedule.id)
-  -- token e expires_at sao gerados automaticamente pelo DEFAULT da tabela
+┌─────────────────────────────────────┐
+│  Background: gradiente radial       │
+│  com glow spots animados            │
+│                                     │
+│   ┌───────────────────────────┐     │
+│   │  Glass card (3D tilt)     │     │
+│   │                           │     │
+│   │   [Logo Ide.On]           │     │
+│   │   "Bem-vindo de volta"    │     │
+│   │   "Entre para continuar"  │     │
+│   │                           │     │
+│   │   [📧 Email input      ] │     │
+│   │   [🔒 Senha input   👁] │     │
+│   │                           │     │
+│   │   [☐ Lembrar] [Esqueci?] │     │
+│   │                           │     │
+│   │   [===== Entrar =====]   │     │
+│   │                           │     │
+│   │   ── ou ──                │     │
+│   │                           │     │
+│   │   [G  Google Sign In  ]  │     │
+│   │                           │     │
+│   │   Não tem conta? Cadastre │     │
+│   └───────────────────────────┘     │
+└─────────────────────────────────────┘
 ```
 
-### Frontend - Componente de link de confirmacao
+## Mudanças
 
-Novo componente `ScheduleShareLink` que recebe o token e renderiza:
-- Botao "Copiar Link" usando `navigator.clipboard.writeText()`
-- Botao "WhatsApp" que abre `https://wa.me/?text=` com mensagem formatada
-- Toast de confirmacao ao copiar
+### `src/pages/Auth.tsx` — Rewrite completo do JSX/UI
 
-### Frontend - Query de escalas com tokens
+**Preservar 100%:** Toda a lógica de estado, handlers (`handleAuth`, `handleGoogleSignIn`, `handleResetPassword`, `handleTabChange`), `useEffect`, `translateAuthError`, Dialog de reset. Zero mudanças na lógica de autenticação.
 
-Atualizar a query em `useVolunteerSchedules` para incluir os tokens:
+**Adicionar:**
+- `framer-motion` imports (`motion`, `useMotionValue`, `useTransform`) para efeito 3D no card
+- Estados: `showPassword`, `focusedInput` para UX dos inputs
+- Ícones: `Mail`, `Lock`, `Eye`, `EyeClosed`, `ArrowRight` do lucide-react
 
-```text
-volunteer_schedules (
-  ...,
-  schedule_confirmation_tokens (
-    token,
-    used_at,
-    action_taken,
-    expires_at
-  )
-)
-```
+**UI — Background:**
+- Gradiente radial escuro (roxo/primary para preto) cobrindo a tela inteira
+- 2-3 blobs animados com `framer-motion` (glow spots em roxo/cyan, `animate` com loop)
+- Overlay de noise sutil via CSS
 
-### Frontend - Pagina de escalas
+**UI — Card:**
+- Container `motion.div` com `style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}` reagindo ao mouse
+- Glassmorphism: `bg-white/[0.03] backdrop-blur-xl border border-white/[0.08]`
+- Borda glow animada (traveling light beam via CSS `@keyframes`)
+- Logo Ide.On centralizada com anel de glow
+- Títulos: "Bem-vindo de volta" / "Crie sua conta" conforme `isLogin`
 
-Na listagem de escalas, para cada voluntario com status `scheduled`:
-- Exibir os botoes de compartilhar link ao lado do badge "Aguardando"
-- Para voluntarios com status `confirmed`, exibir badge verde sem botoes
+**UI — Inputs:**
+- Wrapper relativo com ícone à esquerda (Mail / Lock) em `text-white/40`
+- Input com fundo `bg-white/5`, border transparente, focus `border-white/20 bg-white/10`
+- Campo de senha com botão Eye/EyeClosed à direita
+- Highlight animado no focus (barra inferior com gradient)
 
-## Arquivos a Modificar
+**UI — Ações:**
+- Linha "Lembrar-me" + "Esqueci minha senha" (somente no modo login)
+- Botão principal: gradiente primary, glow effect, ícone ArrowRight, loading spinner
+- Divider "ou" minimalista
+- Botão Google: outline glassmorphism com SVG do Google
+- Link "Não tem conta? Cadastre-se" / "Já tem conta? Entre"
 
-| Arquivo | Mudanca |
-|---|---|
-| `supabase/functions/generate-volunteer-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `supabase/functions/generate-smart-schedule/index.ts` | Inserir tokens apos criar escalas |
-| `src/hooks/useVolunteerSchedules.tsx` | Incluir tokens na query de escalas |
-| `src/components/schedules/ScheduleShareLink.tsx` | **Novo** - botoes copiar link e WhatsApp |
-| `src/pages/Schedules.tsx` | Integrar ScheduleShareLink nos cards de escala |
+**UI — Alert de tentativas falhas:** Manter, estilizar com glassmorphism
 
-## Vantagens desta abordagem
+### `src/index.css` — Adicionar keyframes
 
-- Zero dependencia externa (sem Resend, sem SMTP, sem API de email)
-- Voluntario nao precisa criar conta
-- Lider tem controle total de como compartilha (WhatsApp, SMS, presencial)
-- Tokens temporarios (7 dias) com uso unico garantem seguranca
-- Pagina publica ja existe e funciona
+- `@keyframes borderTravel` para o efeito de luz percorrendo a borda do card
+- `@keyframes float` para os glow spots do background
+
+### Componentes reutilizados
+- `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogDescription` — mantidos para reset de senha
+- `Button` (variant solid) — usado no botão principal e Google
+- `Input` — usado dentro dos wrappers customizados
+- `Label` — mantido no dialog de reset
+
+### Não alterado
+- Nenhum outro arquivo é modificado
+- Toda a lógica de auth, navegação, toasts, analytics permanece intacta
+- O Dialog de reset de senha mantém o design atual (shadcn)
 
