@@ -172,7 +172,17 @@ const Bio = () => {
       <div className="fixed top-4 right-4 z-[60]">
         <ThemeSwitch />
       </div>
-      {/* ━━━ HERO ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <div className="relative">
+        <AnimatedGridPattern
+          numSquares={30}
+          maxOpacity={0.15}
+          duration={3}
+          repeatDelay={1}
+          className={cn(
+            "[mask-image:radial-gradient(600px_circle_at_center,white,transparent)]",
+            "fill-primary/20 stroke-primary/20"
+          )}
+        />
       <ContainerScrollHero
         titleComponent={
           <div className="flex flex-col items-center gap-3 sm:gap-4 px-4">
