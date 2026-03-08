@@ -18,7 +18,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import RadialOrbitalTimeline from "@/components/RadialOrbitalTimeline";
-import { CardStack, type CardStackItem } from "@/components/ui/card-stack";
+import MinistryGlowCard from "@/components/bio/MinistryGlowCard";
 import {
   MapPin,
   Clock,
