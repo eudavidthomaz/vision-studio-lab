@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { Mic, Sparkles, Calendar, Zap, Target, CheckCircle2, ArrowRight, Play, BookOpen, Users, Layout, BookMarked } from "lucide-react";
+import logoIdeon from "@/assets/logo-ideon.png";
 
 const Landing = () => {
   const navigate = useNavigate();
