@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import ThemeSwitch from "@/components/ui/theme-switch";
 import { motion, AnimatePresence } from "framer-motion";
 import { ContainerScrollHero } from "@/components/ContainerScrollHero";
+import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
+import { cn } from "@/lib/utils";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
