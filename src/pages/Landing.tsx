@@ -103,91 +103,43 @@ const Landing = () => {
       </header>
 
       {/* ═══════════════════════════════════════════
-          HERO — Primeira Dobra (Cinematic)
+          HERO — Scroll-Animated Expansion
       ═══════════════════════════════════════════ */}
-      <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-4 py-16 sm:py-20 overflow-hidden">
-        {/* Radial glow background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-primary/8 blur-[120px]" />
-        </div>
-
-        <div className="relative z-10 max-w-5xl mx-auto text-center flex flex-col items-center gap-6 sm:gap-8">
-          {/* Badge */}
-          <div className="inline-block px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full animate-fade-in">
-            <span className="text-primary text-xs sm:text-sm font-semibold tracking-wide">
-              Beta Aberto · Uso 100% Gratuito
-            </span>
-          </div>
-
-          {/* Headline — font-gunterz */}
-          <h1 className="font-gunterz text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[0.95] tracking-tight animate-scale-in">
-            <span className="block text-foreground">A câmera desliga.</span>
-            <span className="block mt-1 sm:mt-2 text-transparent bg-clip-text bg-gradient-to-r from-foreground via-foreground to-primary">
-              A missão continua.
-            </span>
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed animate-fade-in">
-            Do altar ao feed: transforme sua pregação em uma semana de conteúdo com fundamento bíblico.
-          </p>
-
-          {/* CTA */}
-          <Button 
-            size="lg" 
+      <HeroScrollVideo
+        title={<>A câmera desliga.<br />A missão continua.</>}
+        subtitle="Do altar ao feed: transforme sua pregação em uma semana de conteúdo com fundamento bíblico."
+        meta={<>Beta Aberto · Uso 100% Gratuito</>}
+        credits={
+          <Button
+            size="lg"
             onClick={() => navigate("/auth")}
-            className="text-base sm:text-lg px-8 py-5 sm:px-12 sm:py-7 bg-primary hover:bg-primary/90 group animate-fade-in"
+            className="text-base sm:text-lg px-8 py-5 sm:px-12 sm:py-7 bg-primary hover:bg-primary/90 group"
           >
             Começar Grátis
             <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform w-5 h-5 sm:w-6 sm:h-6" />
           </Button>
-
-          {/* Poster / Thumbnail — click opens video modal */}
-          <div 
-            className="relative w-full max-w-4xl cursor-pointer group animate-fade-in"
-            onClick={() => setVideoOpen(true)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && setVideoOpen(true)}
-            aria-label="Assistir vídeo de apresentação"
-          >
-            <div className="relative aspect-video rounded-2xl overflow-hidden border border-border/30 shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.25)] transition-transform duration-500 group-hover:scale-[1.02]">
-              <img
-                src={YOUTUBE_THUMB}
-                alt="Assistir vídeo de apresentação do Ide.On"
-                className="w-full h-full object-cover"
-                loading="eager"
-              />
-              {/* Dark overlay */}
-              <div className="absolute inset-0 bg-background/30 group-hover:bg-background/20 transition-colors duration-300" />
-              {/* Play button */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-background/20 backdrop-blur-md border border-foreground/10 flex items-center justify-center shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/30 group-hover:border-primary/30 group-hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)]">
-                  <Play className="w-7 h-7 sm:w-9 sm:h-9 text-foreground fill-foreground ml-1" />
-                </div>
+        }
+        poster={YOUTUBE_THUMB}
+        onMediaClick={() => setVideoOpen(true)}
+        overlay={{
+          caption: "IDE.ON · PLATAFORMA",
+          heading: "Do Altar ao Feed",
+          paragraphs: [
+            "Transforme uma pregação em 7 dias de conteúdo com fundamento bíblico, pronto para publicar.",
+            "Posts, carrosséis, roteiros de reels, legendas e hashtags — gerados em minutos.",
+          ],
+          extra: (
+            <div className="flex items-center justify-center gap-3 mt-4">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 flex items-center justify-center shadow-lg">
+                <Play className="w-6 h-6 sm:w-7 sm:h-7 text-primary fill-primary ml-0.5" />
               </div>
+              <span className="text-sm font-medium text-muted-foreground">Assistir vídeo</span>
             </div>
-          </div>
-
-          {/* Social Proof */}
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground animate-fade-in">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-              Mais Bíblia no feed
-            </span>
-            <span className="hidden sm:inline text-border">•</span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-              Posts que engajam
-            </span>
-            <span className="hidden sm:inline text-border">•</span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-              Alcance com propósito
-            </span>
-          </div>
-        </div>
-      </section>
+          ),
+        }}
+        initialBoxSize={360}
+        scrollHeightVh={280}
+      />
 
       {/* ═══════════════════════════════════════════
           VIDEO MODAL — YouTube nocookie, sem branding
