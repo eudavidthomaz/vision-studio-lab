@@ -218,7 +218,7 @@ const Bio = () => {
               variant="outline"
               className="bg-white/10 border-white/10 backdrop-blur-sm text-xs text-muted-foreground px-4 py-1.5 mt-2"
             >
-              🔴 última transmissão
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block" /> última transmissão
             </Badge>
           </div>
         }
