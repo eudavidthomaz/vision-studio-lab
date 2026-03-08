@@ -1,5 +1,5 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Mic, Sparkles, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logoIdeon from "@/assets/logo-ideon.png";
@@ -28,14 +28,13 @@ const steps = [
   },
 ];
 
-const ease = [0, 0, 0.2, 1] as [number, number, number, number];
+const cubicEase: [number, number, number, number] = [0, 0, 0.2, 1];
 
 const HowItWorksEngine = () => {
   return (
     <div className="w-full max-w-5xl mx-auto">
       {/* ───── DESKTOP: SVG Diagram ───── */}
       <div className="hidden md:block relative" style={{ height: 520 }}>
-        {/* SVG layer */}
         <svg
           viewBox="0 0 900 520"
           fill="none"
@@ -43,21 +42,19 @@ const HowItWorksEngine = () => {
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            {/* Gradient for paths */}
-            <linearGradient id="path-grad-1" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="hw-pg1" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.6" />
               <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.1" />
             </linearGradient>
-            <linearGradient id="path-grad-2" x1="0.5" y1="0" x2="0" y2="1">
+            <linearGradient id="hw-pg2" x1="0.5" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.1" />
               <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.6" />
             </linearGradient>
-            <linearGradient id="path-grad-3" x1="0.5" y1="0" x2="1" y2="1">
+            <linearGradient id="hw-pg3" x1="0.5" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.1" />
               <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.6" />
             </linearGradient>
-            {/* Glow filter */}
-            <filter id="glow">
+            <filter id="hw-glow">
               <feGaussianBlur stdDeviation="4" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
@@ -68,86 +65,97 @@ const HowItWorksEngine = () => {
 
           {/* Path: Step 1 (top) → Center */}
           <path
-            id="flow-1"
+            id="hw-flow1"
             d="M 450 70 C 450 130, 450 170, 450 210"
-            stroke="url(#path-grad-1)"
+            stroke="url(#hw-pg1)"
             strokeWidth="2"
             strokeDasharray="6 4"
             fill="none"
           />
-          {/* Light dot on path 1 */}
-          <circle r="4" fill="hsl(var(--primary))" filter="url(#glow)">
+          <circle r="4" fill="hsl(var(--primary))" filter="url(#hw-glow)">
             <animateMotion dur="2.5s" repeatCount="indefinite">
-              <mpath href="#flow-1" />
+              <mpath href="#hw-flow1" />
             </animateMotion>
           </circle>
 
           {/* Path: Center → Step 2 (bottom-left) */}
           <path
-            id="flow-2"
+            id="hw-flow2"
             d="M 400 330 C 370 380, 300 420, 230 450"
-            stroke="url(#path-grad-2)"
+            stroke="url(#hw-pg2)"
             strokeWidth="2"
             strokeDasharray="6 4"
             fill="none"
           />
-          <circle r="4" fill="hsl(var(--primary))" filter="url(#glow)">
+          <circle r="4" fill="hsl(var(--primary))" filter="url(#hw-glow)">
             <animateMotion dur="2.5s" repeatCount="indefinite" begin="0.8s">
-              <mpath href="#flow-2" />
+              <mpath href="#hw-flow2" />
             </animateMotion>
           </circle>
 
           {/* Path: Center → Step 3 (bottom-right) */}
           <path
-            id="flow-3"
+            id="hw-flow3"
             d="M 500 330 C 530 380, 600 420, 670 450"
-            stroke="url(#path-grad-3)"
+            stroke="url(#hw-pg3)"
             strokeWidth="2"
             strokeDasharray="6 4"
             fill="none"
           />
-          <circle r="4" fill="hsl(var(--primary))" filter="url(#glow)">
+          <circle r="4" fill="hsl(var(--primary))" filter="url(#hw-glow)">
             <animateMotion dur="2.5s" repeatCount="indefinite" begin="1.6s">
-              <mpath href="#flow-3" />
+              <mpath href="#hw-flow3" />
             </animateMotion>
           </circle>
         </svg>
 
-        {/* HTML overlays */}
-        {/* ── Step 1 Badge (top center) ── */}
+        {/* Step 1 Badge (top center) */}
         <motion.div
           className="absolute left-1/2 -translate-x-1/2 top-0 w-[260px]"
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, ease        {/* ── Central Engine ── */}
+          transition={{ duration: 0.6, ease: cubicEase }}
+        >
+          <StepBadge step={steps[0]} />
+        </motion.div>
+
+        {/* Central Engine */}
         <motion.div
           className="absolute left-1/2 -translate-x-1/2 top-[200px] w-[220px]"
           initial={{ opacity: 0, scale: 0.8 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.2, ease: ease as unknown as number[]ralEngine />
-        </motionp 2 Badge (bottom-left) ─�       className="absolute left-[8%] lg:left-[12%] bottom-0 w-[260px]"
+          transition={{ duration: 0.7, delay: 0.2, ease: cubicEase }}
+        >
+          <CentralEngine />
+        </motion.div>
+
+        {/* Step 2 Badge (bottom-left) */}
+        <motion.div
+          className="absolute left-[8%] lg:left-[12%] bottom-0 w-[260px]"
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4, ease: ease as unknown as number[] }}
+          transition={{ duration: 0.6, delay: 0.4, ease: cubicEase }}
         >
-          <Step1} />
+          <StepBadge step={steps[1]} />
         </motion.div>
 
-        {/* ── Step 3 Bad        <motion.div
+        {/* Step 3 Badge (bottom-right) */}
+        <motion.div
           className="absolute right-[8%] lg:right-[12%] bottom-0 w-[260px]"
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.6, ease: ease as unknown as number[] }}
+          transition={{ duration: 0.6, delay: 0.6, ease: cubicEase }}
         >
-          <StepBadge step={steps[2]} index={     </div>
+          <StepBadge step={steps[2]} />
+        </motion.div>
+      </div>
 
       {/* ───── MOBILE: Vertical Timeline ───── */}
       <div className="md:hidden space-y-0">
-        {/* Central engine first on mobile */}
         <motion.div
           className="flex justify-center mb-8"
           initial={{ opacity: 0, scale: 0.85 }}
@@ -159,7 +167,6 @@ const HowItWorksEngine = () => {
         </motion.div>
 
         <div className="relative pl-8 ml-4">
-          {/* Vertical spine */}
           <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-primary/40 via-primary/20 to-transparent" />
 
           {steps.map((step, i) => (
@@ -171,9 +178,8 @@ const HowItWorksEngine = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.15 }}
             >
-              {/* Node dot */}
               <div className="absolute left-[-8px] top-2 w-4 h-4 rounded-full border-2 border-primary bg-background shadow-[0_0_10px_hsl(var(--primary)/0.5)]" />
-              <StepBadge step={step} index={i} />
+              <StepBadge step={step} />
             </motion.div>
           ))}
         </div>
@@ -186,10 +192,9 @@ const HowItWorksEngine = () => {
 
 interface StepBadgeProps {
   step: (typeof steps)[number];
-  index: number;
 }
 
-const StepBadge = ({ step, index }: StepBadgeProps) => {
+const StepBadge = ({ step }: StepBadgeProps) => {
   const Icon = step.icon;
   return (
     <div className="rounded-2xl border border-border/30 backdrop-blur-md bg-card/60 p-5 transition-all hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.1)]">
@@ -214,9 +219,7 @@ const StepBadge = ({ step, index }: StepBadgeProps) => {
 const CentralEngine = () => {
   return (
     <div className="relative flex flex-col items-center">
-      {/* Pulsing ring */}
       <div className="absolute inset-0 -m-3 rounded-2xl animate-pulse opacity-30 bg-primary/20 blur-xl" />
-
       <div className="relative rounded-2xl border border-primary/30 backdrop-blur-md bg-card/80 p-6 flex flex-col items-center gap-3 shadow-[0_0_40px_hsl(var(--primary)/0.15)]">
         <img
           src={logoIdeon}
