@@ -153,13 +153,12 @@ export const HeroScrollVideo: React.FC<ScrollExpandMediaProps> = ({
     }
     if (videoId) {
       const params = new URLSearchParams({
-        autoplay: "1",
+        autoplay: "0",
         loop: "1",
-        controls: "0",
+        controls: "1",
         rel: "0",
         modestbranding: "1",
         showinfo: "0",
-        disablekb: "1",
         playsinline: "1",
         playlist: videoId,
       });
