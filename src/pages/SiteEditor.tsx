@@ -248,24 +248,25 @@ export default function SiteEditor() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Preview toggle */}
-          <div className="flex items-center border border-border/40 rounded-lg p-1">
-            <Button
-              variant={previewMode === "desktop" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setPreviewMode("desktop")}
-              className="px-2"
-            >
-              <Monitor className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={previewMode === "mobile" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setPreviewMode("mobile")}
-              className="px-2"
-            >
-              <Smartphone className="w-4 h-4" />
-            </Button>
+          {/* Breakpoint selector */}
+          <div className="flex items-center border border-border/40 rounded-lg p-1 gap-0.5">
+            {PREVIEW_BREAKPOINTS.map((bp) => {
+              const Icon = bp.icon;
+              const isActive = previewWidth === bp.width;
+              return (
+                <Button
+                  key={bp.width}
+                  variant={isActive ? "solid" : "ghost"}
+                  size="sm"
+                  onClick={() => setPreviewWidth(bp.width)}
+                  className={`px-2.5 text-xs ${isActive ? "ring-2 ring-primary/50" : ""}`}
+                  title={bp.label}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span className="hidden xl:inline ml-1">{bp.label}</span>
+                </Button>
+              );
+            })}
           </div>
 
           <Button
