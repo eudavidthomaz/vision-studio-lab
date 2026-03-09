@@ -512,13 +512,32 @@ export default function SiteEditor() {
                     events={localConfig.events}
                     siteId={site.id}
                     onAdd={async (event) => {
-                      await addEvent.mutateAsync({ siteId: site.id, event });
+                      const result = await addEvent.mutateAsync({ siteId: site.id, event });
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        events: [...prev.events, {
+                          id: result.id,
+                          title: result.title,
+                          date: result.event_date,
+                          time: result.event_time,
+                          tag: result.tag,
+                          sortOrder: result.sort_order || 0,
+                        }],
+                      } : prev);
                     }}
                     onUpdate={async (id, updates) => {
                       await updateEvent.mutateAsync({ id, updates });
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        events: prev.events.map(e => e.id === id ? { ...e, ...updates } : e),
+                      } : prev);
                     }}
                     onDelete={async (id) => {
                       await deleteEvent.mutateAsync(id);
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        events: prev.events.filter(e => e.id !== id),
+                      } : prev);
                     }}
                   />
                 </EditorSection>
