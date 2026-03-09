@@ -112,6 +112,7 @@ export type Database = {
           is_published: boolean | null
           media: Json | null
           schedule: Json | null
+          section_titles: Json | null
           sections_visibility: Json | null
           seo: Json | null
           slug: string
@@ -132,6 +133,7 @@ export type Database = {
           is_published?: boolean | null
           media?: Json | null
           schedule?: Json | null
+          section_titles?: Json | null
           sections_visibility?: Json | null
           seo?: Json | null
           slug: string
@@ -152,6 +154,7 @@ export type Database = {
           is_published?: boolean | null
           media?: Json | null
           schedule?: Json | null
+          section_titles?: Json | null
           sections_visibility?: Json | null
           seo?: Json | null
           slug?: string
