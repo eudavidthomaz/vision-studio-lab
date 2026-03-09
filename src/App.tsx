@@ -22,6 +22,9 @@ import ConfirmSchedule from "./pages/ConfirmSchedule";
 import VolunteerReports from "./pages/VolunteerReports";
 import Install from "./pages/Install";
 import Bio from "./pages/Bio";
+import Sites from "./pages/Sites";
+import SiteEditor from "./pages/SiteEditor";
+import ChurchSite from "./pages/ChurchSite";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -65,6 +68,10 @@ const App = () => (
           <Route path="/confirmar/:token" element={<ConfirmSchedule />} />
           <Route path="/instalar" element={<Install />} />
           <Route path="/bio" element={<Bio />} />
+          {/* Church Site Routes */}
+          <Route path="/sites" element={<Sites />} />
+          <Route path="/sites/editor" element={<SiteEditor />} />
+          <Route path="/igreja/:slug" element={<ChurchSite />} />
           {/* Legacy redirects */}
           <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />
           <Route path="/conteudo/:id" element={<LegacyContentRedirect />} />
