@@ -156,13 +156,24 @@ const navItems: NavItem[] = [
 
 const Bio = () => {
   const [activeTab, setActiveTab] = useState("inicio");
+  const [bioTheme, setBioTheme] = useState<"light" | "dark">("dark");
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div
+      className={cn(
+        "min-h-screen bg-background overflow-x-hidden",
+        bioTheme === "dark" ? "bio-theme-dark" : "bio-theme-light"
+      )}
+    >
       <div className="fixed top-4 right-4 z-[60]">
-        <ThemeSwitch />
+        <ThemeSwitch
+          theme={bioTheme}
+          setTheme={setBioTheme}
+          ariaLabel="Alternar tema da página Bio"
+        />
       </div>
       <div className="relative">
+
         <AnimatedGridPattern
           numSquares={30}
           maxOpacity={0.15}
