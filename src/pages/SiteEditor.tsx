@@ -140,18 +140,22 @@ export default function SiteEditor() {
   // Debounced auto-save
   const debouncedConfig = useDebounce(localConfig, 2000);
 
-  useEffect(() => {
-    if (debouncedConfig && hasChanges && site) {
-      handleSave();
-    }
-  }, [debouncedConfig]);
+  // Use ref to always have fresh references for auto-save
+  const localConfigRef = React.useRef(localConfig);
+  const siteRef = React.useRef(site);
+  const hasChangesRef = React.useRef(hasChanges);
+  localConfigRef.current = localConfig;
+  siteRef.current = site;
+  hasChangesRef.current = hasChanges;
 
-  const handleSave = async () => {
-    if (!localConfig || !site) return;
+  const handleSave = useCallback(async () => {
+    const currentConfig = localConfigRef.current;
+    const currentSite = siteRef.current;
+    if (!currentConfig || !currentSite) return;
     
     setIsSaving(true);
     try {
-      await updateSite.mutateAsync({ id: site.id, updates: localConfig });
+      await updateSite.mutateAsync({ id: currentSite.id, updates: currentConfig });
       setHasChanges(false);
       toast.success("Alterações salvas");
     } catch (error) {
@@ -159,7 +163,13 @@ export default function SiteEditor() {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [updateSite]);
+
+  useEffect(() => {
+    if (debouncedConfig && hasChangesRef.current && siteRef.current) {
+      handleSave();
+    }
+  }, [debouncedConfig, handleSave]);
 
   const updateConfig = useCallback(<K extends keyof ChurchSiteConfig>(
     key: K,
