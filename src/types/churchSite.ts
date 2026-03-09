@@ -8,7 +8,6 @@
 
 export interface ChurchSiteBranding {
   name: string;
-  tagline: string;
   logoUrl?: string | null;
   primaryColor: string;
   secondaryColor: string;
@@ -187,7 +186,6 @@ export interface ChurchSiteRow {
 
 export const DEFAULT_BRANDING: ChurchSiteBranding = {
   name: '',
-  tagline: '',
   logoUrl: null,
   primaryColor: '#8B5CF6',
   secondaryColor: '#6366F1',
