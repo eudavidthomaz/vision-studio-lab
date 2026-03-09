@@ -763,7 +763,7 @@ export default function SiteEditor() {
                 }`}
               >
                 <div className="h-full overflow-auto">
-                  <MemoizedChurchSiteTemplate config={localConfig} isPreview />
+                  {previewConfig && <ChurchSiteTemplate config={previewConfig} isPreview />}
                 </div>
               </div>
             </div>
