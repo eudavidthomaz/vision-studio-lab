@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useChurchSite } from "@/hooks/useChurchSite";
@@ -115,29 +115,8 @@ export default function SiteEditor() {
     }
   }, [site, localConfig]);
 
-  // Sync ministries and events from site (they come from separate tables)
-  // Use ref-based comparison to prevent infinite re-render loops
-  const prevMinistriesRef = useRef<string>("");
-  const prevEventsRef = useRef<string>("");
-
-  useEffect(() => {
-    if (!site || !localConfig) return;
-    const ministriesKey = JSON.stringify(site.ministries.map(m => m.id + m.title + m.icon));
-    const eventsKey = JSON.stringify(site.events.map(e => e.id + e.title + e.date));
-
-    const ministriesChanged = ministriesKey !== prevMinistriesRef.current;
-    const eventsChanged = eventsKey !== prevEventsRef.current;
-
-    if (ministriesChanged || eventsChanged) {
-      prevMinistriesRef.current = ministriesKey;
-      prevEventsRef.current = eventsKey;
-      setLocalConfig(prev => prev ? {
-        ...prev,
-        ministries: site.ministries,
-        events: site.events,
-      } : prev);
-    }
-  }, [site?.ministries, site?.events]);
+  // Debounced config for preview — prevents re-render on every keystroke
+  const previewConfig = useDebounce(localConfig, 300);
 
   // Auth check
   useEffect(() => {
@@ -216,8 +195,6 @@ export default function SiteEditor() {
     setHasChanges(true);
   }, []);
 
-  // Memoize preview to prevent re-renders on every keystroke
-  const MemoizedChurchSiteTemplate = useMemo(() => React.memo(ChurchSiteTemplate), []);
 
   if (!user) return null;
 
@@ -500,13 +477,31 @@ export default function SiteEditor() {
                     ministries={localConfig.ministries}
                     siteId={site.id}
                     onAdd={async (ministry) => {
-                      await addMinistry.mutateAsync({ siteId: site.id, ministry });
+                      const result = await addMinistry.mutateAsync({ siteId: site.id, ministry });
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        ministries: [...prev.ministries, {
+                          id: result.id,
+                          title: result.title,
+                          description: result.description || [],
+                          icon: result.icon || 'Heart',
+                          sortOrder: result.sort_order || 0,
+                        }],
+                      } : prev);
                     }}
                     onUpdate={async (id, updates) => {
                       await updateMinistry.mutateAsync({ id, updates });
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        ministries: prev.ministries.map(m => m.id === id ? { ...m, ...updates } : m),
+                      } : prev);
                     }}
                     onDelete={async (id) => {
                       await deleteMinistry.mutateAsync(id);
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        ministries: prev.ministries.filter(m => m.id !== id),
+                      } : prev);
                     }}
                   />
                 </EditorSection>
@@ -517,13 +512,32 @@ export default function SiteEditor() {
                     events={localConfig.events}
                     siteId={site.id}
                     onAdd={async (event) => {
-                      await addEvent.mutateAsync({ siteId: site.id, event });
+                      const result = await addEvent.mutateAsync({ siteId: site.id, event });
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        events: [...prev.events, {
+                          id: result.id,
+                          title: result.title,
+                          date: result.event_date,
+                          time: result.event_time,
+                          tag: result.tag,
+                          sortOrder: result.sort_order || 0,
+                        }],
+                      } : prev);
                     }}
                     onUpdate={async (id, updates) => {
                       await updateEvent.mutateAsync({ id, updates });
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        events: prev.events.map(e => e.id === id ? { ...e, ...updates } : e),
+                      } : prev);
                     }}
                     onDelete={async (id) => {
                       await deleteEvent.mutateAsync(id);
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        events: prev.events.filter(e => e.id !== id),
+                      } : prev);
                     }}
                   />
                 </EditorSection>
@@ -749,7 +763,7 @@ export default function SiteEditor() {
                 }`}
               >
                 <div className="h-full overflow-auto">
-                  <MemoizedChurchSiteTemplate config={localConfig} isPreview />
+                  {previewConfig && <ChurchSiteTemplate config={previewConfig} isPreview />}
                 </div>
               </div>
             </div>

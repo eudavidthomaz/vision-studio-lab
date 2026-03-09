@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import ThemeSwitch from "@/components/ui/theme-switch";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
+import { StaticGridPattern } from "@/components/ui/static-grid-pattern";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LimelightNav, type NavItem } from "@/components/ui/limelight-nav";
 import { AnimatePresence, motion } from "framer-motion";
@@ -41,11 +42,59 @@ interface ChurchSiteTemplateProps {
   isPreview?: boolean;
 }
 
-export function ChurchSiteTemplate({ config, isPreview = false }: ChurchSiteTemplateProps) {
+// Grid pattern component — animated for public, static for preview
+function GridPattern({ isPreview, className }: { isPreview: boolean; className: string }) {
+  if (isPreview) {
+    return (
+      <StaticGridPattern
+        numSquares={20}
+        maxOpacity={0.08}
+        className={className}
+      />
+    );
+  }
+  return (
+    <AnimatedGridPattern
+      numSquares={20}
+      maxOpacity={0.08}
+      duration={4}
+      className={className}
+    />
+  );
+}
+
+// Tab content wrapper — animated for public, plain div for preview
+function TabContentWrapper({
+  isPreview,
+  tabKey,
+  children,
+}: {
+  isPreview: boolean;
+  tabKey: string;
+  children: React.ReactNode;
+}) {
+  if (isPreview) {
+    return <div className="relative">{children}</div>;
+  }
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div key={tabKey} {...tabContent} className="relative">
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+function ChurchSiteTemplateInner({ config, isPreview = false }: ChurchSiteTemplateProps) {
   const [activeTab, setActiveTab] = useState("inicio");
   const [siteTheme, setSiteTheme] = useState<"light" | "dark">(config.themeConfig.defaultMode);
 
   const { sectionsVisibility, themeConfig } = config;
+
+  const gridClass = cn(
+    "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
+    "fill-church-primary/10 stroke-church-primary/10"
+  );
 
   return (
     <div
@@ -61,7 +110,10 @@ export function ChurchSiteTemplate({ config, isPreview = false }: ChurchSiteTemp
     >
       {/* Theme Toggle */}
       {themeConfig.allowToggle && (
-        <div className="fixed top-4 right-4 z-[60]">
+        <div className={cn(
+          "top-4 right-4 z-[60]",
+          isPreview ? "absolute" : "fixed"
+        )}>
           <ThemeSwitch
             theme={siteTheme}
             setTheme={setSiteTheme}
@@ -71,7 +123,7 @@ export function ChurchSiteTemplate({ config, isPreview = false }: ChurchSiteTemp
       )}
 
       {/* Hero Section */}
-      {sectionsVisibility.hero && <HeroSection config={config} />}
+      {sectionsVisibility.hero && <HeroSection config={config} isPreview={isPreview} />}
 
       {/* Navigation Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -81,7 +133,10 @@ export function ChurchSiteTemplate({ config, isPreview = false }: ChurchSiteTemp
           ))}
         </TabsList>
 
-        <div className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/20">
+        <div className={cn(
+          "top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/20",
+          isPreview ? "relative" : "sticky"
+        )}>
           <div className="container mx-auto px-4 flex justify-center py-3">
             <LimelightNav
               items={navItems}
@@ -93,79 +148,39 @@ export function ChurchSiteTemplate({ config, isPreview = false }: ChurchSiteTemp
 
         {/* Tab 1 - Início */}
         <TabsContent value="inicio" className="mt-0 outline-none">
-          <AnimatePresence mode="wait">
-            <motion.div key="inicio" {...tabContent} className="relative">
-              <AnimatedGridPattern
-                numSquares={20}
-                maxOpacity={0.08}
-                duration={4}
-                className={cn(
-                  "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
-                  "fill-church-primary/10 stroke-church-primary/10"
-                )}
-              />
-              {sectionsVisibility.firstTime && <FirstTimeSection config={config} />}
-              {sectionsVisibility.schedule && <ScheduleSection config={config} />}
-            </motion.div>
-          </AnimatePresence>
+          <TabContentWrapper isPreview={isPreview} tabKey="inicio">
+            <GridPattern isPreview={isPreview} className={gridClass} />
+            {sectionsVisibility.firstTime && <FirstTimeSection config={config} />}
+            {sectionsVisibility.schedule && <ScheduleSection config={config} />}
+          </TabContentWrapper>
         </TabsContent>
 
         {/* Tab 2 - Sobre */}
         <TabsContent value="sobre" className="mt-0 outline-none">
-          <AnimatePresence mode="wait">
-            <motion.div key="sobre" {...tabContent} className="relative">
-              <AnimatedGridPattern
-                numSquares={20}
-                maxOpacity={0.08}
-                duration={4}
-                className={cn(
-                  "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
-                  "fill-church-primary/10 stroke-church-primary/10"
-                )}
-              />
-              {sectionsVisibility.about && <AboutSection config={config} />}
-              {sectionsVisibility.ministries && <MinistriesSection config={config} />}
-            </motion.div>
-          </AnimatePresence>
+          <TabContentWrapper isPreview={isPreview} tabKey="sobre">
+            <GridPattern isPreview={isPreview} className={gridClass} />
+            {sectionsVisibility.about && <AboutSection config={config} />}
+            {sectionsVisibility.ministries && <MinistriesSection config={config} />}
+          </TabContentWrapper>
         </TabsContent>
 
         {/* Tab 3 - Mídia */}
         <TabsContent value="midia" className="mt-0 outline-none">
-          <AnimatePresence mode="wait">
-            <motion.div key="midia" {...tabContent} className="relative">
-              <AnimatedGridPattern
-                numSquares={20}
-                maxOpacity={0.08}
-                duration={4}
-                className={cn(
-                  "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
-                  "fill-church-primary/10 stroke-church-primary/10"
-                )}
-              />
-              {sectionsVisibility.media && <MediaSection config={config} />}
-              {sectionsVisibility.events && <EventsSection config={config} />}
-            </motion.div>
-          </AnimatePresence>
+          <TabContentWrapper isPreview={isPreview} tabKey="midia">
+            <GridPattern isPreview={isPreview} className={gridClass} />
+            {sectionsVisibility.media && <MediaSection config={config} />}
+            {sectionsVisibility.events && <EventsSection config={config} />}
+          </TabContentWrapper>
         </TabsContent>
 
         {/* Tab 4 - Contato */}
         <TabsContent value="contato" className="mt-0 outline-none">
-          <AnimatePresence mode="wait">
-            <motion.div key="contato" {...tabContent} className="relative">
-              <AnimatedGridPattern
-                numSquares={20}
-                maxOpacity={0.08}
-                duration={4}
-                className={cn(
-                  "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
-                  "fill-church-primary/10 stroke-church-primary/10"
-                )}
-              />
-              {sectionsVisibility.prayer && <PrayerSection config={config} />}
-              {sectionsVisibility.contact && <ContactSection config={config} />}
-              {sectionsVisibility.giving && <GivingSection config={config} />}
-            </motion.div>
-          </AnimatePresence>
+          <TabContentWrapper isPreview={isPreview} tabKey="contato">
+            <GridPattern isPreview={isPreview} className={gridClass} />
+            {sectionsVisibility.prayer && <PrayerSection config={config} />}
+            {sectionsVisibility.contact && <ContactSection config={config} />}
+            {sectionsVisibility.giving && <GivingSection config={config} />}
+          </TabContentWrapper>
         </TabsContent>
       </Tabs>
 
@@ -174,5 +189,10 @@ export function ChurchSiteTemplate({ config, isPreview = false }: ChurchSiteTemp
     </div>
   );
 }
+
+export const ChurchSiteTemplate = React.memo(ChurchSiteTemplateInner, (prev, next) => {
+  return prev.isPreview === next.isPreview &&
+    JSON.stringify(prev.config) === JSON.stringify(next.config);
+});
 
 export default ChurchSiteTemplate;
