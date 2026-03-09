@@ -1,209 +1,90 @@
-# Plano: Feature "Site da Igreja" — Template Multi-Tenant
 
-## Status de Implementação
 
-| # | Tarefa | Status |
-|---|--------|--------|
-| 1 | Criar tabela `church_sites` + RLS | ✅ Concluído |
-| 2 | Criar tabelas auxiliares (`events`, `ministries`) | ✅ Concluído |
-| 3 | Criar tipos TypeScript (`src/types/churchSite.ts`) | ✅ Concluído |
-| 4 | Criar hook `useChurchSite` | ✅ Concluído |
-| 5 | Refatorar Bio.tsx → seções isoladas | 🔲 Pendente |
-| 6 | Criar `ChurchSiteTemplate.tsx` | 🔲 Pendente |
-| 7 | Criar página pública `/igreja/:slug` | 🔲 Pendente |
-| 8 | Criar página `/sites` (listagem) | 🔲 Pendente |
-| 9 | Criar editor com preview | 🔲 Pendente |
-| 10 | Implementar auto-save | 🔲 Pendente |
-| 11 | Sistema de publicação com validação de slug | 🔲 Pendente |
-| 12 | Adicionar rotas no App.tsx | 🔲 Pendente |
+# Auditoria Completa: Church Site Feature
 
----
+## BUGS CONFIRMADOS
 
-## Visão Geral
+### BUG 1: `section_titles` NÃO incluído no `createSite`
+**Arquivo**: `src/hooks/useChurchSite.tsx` L170-187
+**Gravidade**: Media
+**Impacto**: Ao criar um site novo, a coluna `section_titles` não é enviada no insert. O banco usa o DEFAULT, então funciona, mas se o default do banco estiver desalinhado do `DEFAULT_SECTION_TITLES` do TypeScript, haverá inconsistência silenciosa. Deveria ser explícito.
 
-Transformar a página `/bio` atual em um **produto SaaS escalável** onde cada usuário pode criar, editar e publicar seu próprio site de igreja através de um painel administrativo dentro do app.
+### BUG 2: Pages NÃO são lazy-loaded (contradiz memory de arquitetura)
+**Arquivo**: `src/App.tsx` L25-27
+**Gravidade**: Media
+**Impacto**: `Sites`, `SiteEditor`, e `ChurchSite` são imports estáticos (`import Sites from "./pages/Sites"`). Segundo a memória `debugging/lazy-loading-suspense-error-handling`, todas as pages (exceto Landing) devem usar `React.lazy()` + Suspense. Isso aumenta o bundle inicial e contradiz o padrão do projeto.
 
----
+### BUG 3: `youtubeChannelUrl` da Media nunca é editável
+**Arquivo**: `src/pages/SiteEditor.tsx`
+**Gravidade**: Baixa
+**Impacto**: O campo `media.youtubeChannelUrl` existe no type `ChurchSiteMedia` e no banco, mas não há input no editor para preenchê-lo. O `MediaSection` usa `socialLinks.youtube` para os botões "Assistir ao vivo" e "YouTube", tornando `youtubeChannelUrl` dead data.
 
-## Arquitetura Proposta
+### BUG 4: Botão "Quero visitar" não faz nada
+**Arquivo**: `src/components/church-site/sections/HeroSection.tsx` L72-76
+**Gravidade**: Media
+**Impacto**: O botão "Quero visitar" é um `<Button>` sem `onClick`, `href`, ou `asChild`. Clicar nele não faz nada. Deveria abrir WhatsApp ou scroll to contact.
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                        FRONTEND                                  │
-├─────────────────────────────────────────────────────────────────┤
-│  /sites              → Listagem + CTA criar site                │
-│  /sites/editor       → Painel de edição com preview             │
-│  /igreja/:slug       → Página pública (template renderizado)    │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       DATABASE                                   │
-├─────────────────────────────────────────────────────────────────┤
-│  church_sites        → Configuração completa do site            │
-│  church_site_events  → Agenda de eventos (1:N)                  │
-│  church_site_ministries → Ministérios (1:N)                     │
-└─────────────────────────────────────────────────────────────────┘
-```
+### BUG 5: `Button variant="solid"` perde sparkles quando `asChild`
+**Arquivo**: `src/components/ui/button.tsx` L52-59
+**Gravidade**: Cosmetica
+**Impacto**: Quando `asChild={true}`, o button renderiza via `Slot` e pula o bloco de sparkles. Todos os botões `variant="solid" asChild` nas seções (Prayer, Giving, FirstTime, etc.) não têm sparkles no hover. Comportamento inconsistente mas não é breaking.
+
+### BUG 6: Preview no editor herda tema global
+**Arquivo**: `src/components/church-site/ChurchSiteTemplate.tsx` L56-59
+**Gravidade**: Media
+**Impacto**: O template usa `bio-theme-dark`/`bio-theme-light` que sobrescreve CSS variables globais (`--background`, `--foreground`). No preview do editor, isso causa conflito visual: o painel do editor e o preview compartilham o mesmo DOM, então as variáveis CSS do preview podem "vazar" e afetar o editor.
+
+### BUG 7: Cor hex vs HSL — cores customizadas incompatíveis
+**Arquivo**: `ChurchSiteTemplate.tsx` + `index.css`
+**Gravidade**: ALTA
+**Impacto**: O banco armazena cores como HEX (`#8B5CF6`), mas o fallback no template é HSL (`hsl(263 70% 50%)`). O `color-mix(in srgb, ...)` funciona com ambos os formatos, então tecnicamente OK. **MAS** — o `input type="color"` retorna HEX, e as CSS variables recebem HEX diretamente. Funciona, mas o fallback deveria ser HEX também para consistência.
+
+### BUG 8: Auto-save dispara com referência stale de `handleSave`
+**Arquivo**: `src/pages/SiteEditor.tsx` L143-147
+**Gravidade**: Media
+**Impacto**: O `useEffect` para auto-save referencia `handleSave` sem incluí-lo no array de dependências. `handleSave` captura `localConfig` e `site` por closure. Se `debouncedConfig` muda, `handleSave` pode usar um `localConfig` stale. Resultado: possível perda de dados se múltiplas edições rápidas acontecem.
 
 ---
 
-## Fase 1: Infraestrutura de Dados ✅
+## TRUNCAMENTOS / DEAD CODE
 
-### Tabela `church_sites` ✅
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `user_id` | uuid | FK → auth.users |
-| `slug` | text | Único, URL pública |
-| `is_published` | boolean | Se está visível |
-| `branding` | jsonb | Nome, tagline, logo_url, cores |
-| `contact` | jsonb | WhatsApp, email, endereço, maps_url |
-| `social_links` | jsonb | Instagram, YouTube, Facebook, etc. |
-| `hero` | jsonb | Título, subtítulo, imagem, botões ativos |
-| `about` | jsonb | Quem somos, valores (array de 3) |
-| `schedule` | jsonb | Horários dos cultos |
-| `faq` | jsonb | Perguntas frequentes (array) |
-| `media` | jsonb | YouTube embed, playlist |
-| `giving` | jsonb | PIX, instruções de oferta |
-| `sections_visibility` | jsonb | Toggles para cada seção |
-| `theme_config` | jsonb | Modo padrão (light/dark), cores |
-| `seo` | jsonb | Title, description, og_image |
-| `created_at` / `updated_at` | timestamp | Controle |
-
-### Tabelas Auxiliares ✅
-
-- **`church_site_events`**: `id, site_id, title, date, time, tag, order`
-- **`church_site_ministries`**: `id, site_id, title, description, icon, order`
-
-### RLS Policies ✅
-
-- SELECT/UPDATE/DELETE: `auth.uid() = user_id`
-- INSERT: `auth.uid() = user_id`
-- SELECT público: `is_published = true` (para renderização da página pública)
-
-### Função de Validação de Slug ✅
-
-- `is_slug_reserved(slug)` - Verifica slugs reservados
-- Trigger `check_slug_not_reserved` - Impede uso de slugs reservados
+| Item | Arquivo | Problema |
+|------|---------|----------|
+| `media.youtubeChannelUrl` | Type + DB | Campo existe mas nunca editado nem usado |
+| `socialLinks.facebook` | Type + editor | Editável, mas nenhuma seção renderiza link do Facebook |
+| `seo.ogImageUrl` | Type + DB | Existe no type/DB mas sem campo de upload no editor e sem uso no meta tags |
+| Seção "Mídia" vazia no editor | `SiteEditor.tsx` L583 | Comentário `{/* Media Section - YouTube is now configured in Hero */}` sem conteúdo. Seção fantasma |
 
 ---
 
-## Fase 2: Refatoração do Template
+## PLANO DE CORREÇÃO (por prioridade)
 
-### Estrutura de Arquivos
+### P0 — Crítico
+1. **Fix auto-save stale closure** — Extrair handleSave para `useCallback` com deps corretas, ou usar ref
+2. **Fix "Quero visitar" button** — Conectar ao WhatsApp ou scroll para seção de contato
 
-```text
-src/
-├── components/
-│   └── church-site/
-│       ├── ChurchSiteTemplate.tsx    ← Template principal (recebe config)
-│       ├── sections/
-│       │   ├── HeroSection.tsx
-│       │   ├── FirstTimeSection.tsx
-│       │   ├── ScheduleSection.tsx
-│       │   ├── AboutSection.tsx
-│       │   ├── MinistriesSection.tsx
-│       │   ├── MediaSection.tsx
-│       │   ├── EventsSection.tsx
-│       │   ├── PrayerSection.tsx
-│       │   ├── ContactSection.tsx
-│       │   ├── GivingSection.tsx
-│       │   └── FooterSection.tsx
-│       └── editor/
-│           ├── SiteEditor.tsx        ← Painel principal
-│           ├── BrandingEditor.tsx
-│           ├── SectionsEditor.tsx
-│           ├── ContactEditor.tsx
-│           ├── EventsEditor.tsx
-│           ├── MinistriesEditor.tsx
-│           └── PreviewPane.tsx
-├── pages/
-│   ├── Sites.tsx                     ← Listagem
-│   ├── SiteEditor.tsx                ← Editor com preview
-│   └── ChurchSite.tsx                ← /igreja/:slug (público)
-├── hooks/
-│   └── useChurchSite.tsx             ← CRUD do site ✅
-└── types/
-    └── churchSite.ts                 ← Tipagem TypeScript ✅
-```
+### P1 — Importante
+3. **Lazy-load pages** — Converter `Sites`, `SiteEditor`, `ChurchSite` para `React.lazy()` com Suspense
+4. **Incluir `section_titles` no createSite** — Adicionar `section_titles: toJson(DEFAULT_SECTION_TITLES)` no insert
+5. **Fix fallback HSL → HEX** — Mudar fallback para `'#8B5CF6'` e `'#6366F1'`
+6. **Isolar preview do editor** — Adicionar `isolation: isolate` ou usar iframe para o preview
 
-### Transformação do Bio.tsx
-
-O arquivo atual `Bio.tsx` será congelado como referência. O novo `ChurchSiteTemplate.tsx`:
-
-1. Recebe `config: ChurchSiteConfig` como prop
-2. Renderiza seções condicionalmente baseado em `sections_visibility`
-3. Usa dados do config ao invés de hardcoded
-4. Mantém estrutura visual idêntica
+### P2 — Limpeza
+7. **Remover `youtubeChannelUrl`** — Dead field (ou adicionar campo no editor)
+8. **Adicionar input para `seo.ogImageUrl`** — Ou remover do type
+9. **Adicionar Facebook ao FooterSection** — Ou remover do editor
+10. **Remover comentário vazio da seção Mídia** no editor
 
 ---
 
-## Fase 3: Sistema de Edição
+## ARQUIVOS A MODIFICAR
 
-### Painel do Editor (2 colunas)
+| Arquivo | Alterações |
+|---------|-----------|
+| `src/App.tsx` | Lazy-load Sites, SiteEditor, ChurchSite |
+| `src/pages/SiteEditor.tsx` | Fix auto-save closure; remover seção mídia vazia; add ogImage upload |
+| `src/hooks/useChurchSite.tsx` | Add `section_titles` ao createSite insert |
+| `src/components/church-site/sections/HeroSection.tsx` | Fix botão "Quero visitar" |
+| `src/components/church-site/ChurchSiteTemplate.tsx` | Fix fallback HEX; isolar preview |
+| `src/components/church-site/sections/FooterSection.tsx` | Add Facebook link |
 
-| Esquerda (40%) | Direita (60%) |
-|----------------|---------------|
-| Accordion com seções | Preview responsivo |
-| Campos de formulário | Atualiza em tempo real |
-| Toggles de visibilidade | Desktop/Mobile switch |
-
-### Seções Editáveis
-
-1. **Marca & Identidade**: Nome, tagline, logo, cores
-2. **Hero**: Título, subtítulo, imagem de fundo, CTAs
-3. **Primeira Vez**: FAQ items (add/remove/reorder)
-4. **Horários**: Dias e horários dos cultos
-5. **Sobre Nós**: Texto institucional, 3 valores
-6. **Ministérios**: Lista com ícone, título, descrição
-7. **Mídia**: Link do YouTube, embed
-8. **Agenda**: Eventos com data, horário, tag
-9. **Oração**: Texto do pedido de oração
-10. **Contato**: WhatsApp, Instagram, Email, Maps
-11. **Ofertas**: Texto, chave PIX
-12. **SEO**: Title, description
-
----
-
-## Fase 4: Publicação
-
-### Fluxo
-
-1. Usuário edita site no painel
-2. Auto-save a cada mudança (debounced)
-3. Clica em "Publicar"
-4. Sistema valida slug único
-5. `is_published = true`
-6. Site acessível em `/igreja/:slug`
-
-### Validação de Slug ✅
-
-- Lowercase, sem espaços
-- Apenas letras, números, hífens
-- Único no sistema
-- Reservados: `admin`, `api`, `app`, etc.
-
----
-
-## Fase 5: Rotas e Navegação
-
-```text
-Rotas Protegidas (requer auth):
-├── /sites                    → Lista do site do usuário
-└── /sites/editor             → Editor completo
-
-Rota Pública:
-└── /igreja/:slug             → Renderiza ChurchSiteTemplate
-```
-
----
-
-## Próximos Passos
-
-1. **Refatorar Bio.tsx** → Extrair seções para componentes isolados
-2. **Criar ChurchSiteTemplate.tsx** → Template data-driven
-3. **Criar página /igreja/:slug** → Rota pública
-4. **Criar página /sites** → Listagem e criação
-5. **Criar editor** → Painel de edição com preview
