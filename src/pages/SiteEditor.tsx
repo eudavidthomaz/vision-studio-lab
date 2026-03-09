@@ -42,7 +42,7 @@ import {
   HelpCircle,
   Heart,
   CalendarDays,
-  Image,
+  Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
