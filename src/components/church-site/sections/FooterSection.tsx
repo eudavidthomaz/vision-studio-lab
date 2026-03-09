@@ -86,6 +86,23 @@ export function FooterSection({ config, isPreview = false }: FooterSectionProps)
             </div>
           )}
         </div>
+        {!isPreview && (
+          <div className="text-center mt-6 flex flex-col items-center gap-2">
+            <img src="/logo.png" alt="Ide.On" className="w-6 h-6 object-contain opacity-60" />
+            <p className="text-muted-foreground/50 text-[10px] sm:text-xs">
+              Criado com{" "}
+              <a
+                href="https://midias.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-brother underline underline-offset-2 hover:text-primary transition-colors"
+              >
+                Ide.On
+              </a>
+              {" "}— Crie o site da sua igreja
+            </p>
+          </div>
+        )}
         <div className="text-center mt-8">
           <p className="text-muted-foreground/50 text-[10px] sm:text-xs">
             © {new Date().getFullYear()} {branding.name}. Todos os direitos reservados.
