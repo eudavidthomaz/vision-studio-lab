@@ -81,7 +81,7 @@ export function ValuesEditor({ values, onChange }: ValuesEditorProps) {
             <Input
               value={val.title}
               onChange={(e) => handleUpdate(index, "title", e.target.value)}
-              placeholder="Ex: Missão, Visão, Valores, Crenças..."
+              placeholder="Ex: Missão, Visão, Valores, Crenças...ão, Valores, Crenças..."
               className="flex-1 font-medium"
             />
             <Button variant="ghost" size="icon" onClick={() => handleRemove(index)} className="shrink-0 text-destructive hover:text-destructive">
@@ -91,7 +91,7 @@ export function ValuesEditor({ values, onChange }: ValuesEditorProps) {
           <Textarea
             value={val.content}
             onChange={(e) => handleUpdate(index, "content", e.target.value)}
-            placeholder="Descrição deste valor..."
+     eva este princípio da igreja="Descrição deste valor..."
             rows={2}
           />
         </div>
