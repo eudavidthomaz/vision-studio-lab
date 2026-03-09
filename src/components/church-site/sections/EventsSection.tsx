@@ -66,11 +66,11 @@ export function EventsSection({ config }: EventsSectionProps) {
                 <Card className="p-5 sm:p-6 h-full">
                   <div className="flex flex-col gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex flex-col items-center justify-center w-14 h-14 rounded-xl bg-primary/10 shrink-0">
-                        <span className="text-primary font-bold text-base leading-none">
+                      <div className="flex flex-col items-center justify-center w-14 h-14 rounded-xl bg-church-primary/10 shrink-0">
+                        <span className="text-church-primary font-bold text-base leading-none">
                           {day}
                         </span>
-                        <span className="text-primary/70 text-[10px] uppercase">
+                        <span className="text-church-primary/70 text-[10px] uppercase">
                           {month}
                         </span>
                       </div>

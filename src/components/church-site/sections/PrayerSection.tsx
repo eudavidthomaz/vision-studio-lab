@@ -29,7 +29,6 @@ export function PrayerSection({ config }: PrayerSectionProps) {
 
   if (!contact.whatsapp) return null;
 
-  // Split subtitle into two parts if it contains a period
   const subtitleParts = (titles?.subtitle || "Você não precisa caminhar sozinho. Envie seu pedido de oração. Nossa equipe terá alegria em interceder pela sua vida.").split(". ");
   const firstPart = subtitleParts[0] ? subtitleParts[0] + "." : "";
   const secondPart = subtitleParts.slice(1).join(". ");
@@ -52,8 +51,8 @@ export function PrayerSection({ config }: PrayerSectionProps) {
             </div>
             <div className="relative z-[10]">
               <div className="flex justify-center mb-5">
-                <div className="p-3 rounded-xl bg-primary/10">
-                  <HandHeart className="w-7 h-7 text-primary" />
+                <div className="p-3 rounded-xl bg-church-primary/10">
+                  <HandHeart className="w-7 h-7 text-church-primary" />
                 </div>
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
