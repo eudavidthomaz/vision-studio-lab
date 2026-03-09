@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import MinistryGlowCard from "@/components/bio/MinistryGlowCard";
+import MinistryGlowCard from "@/components/church-site/MinistryGlowCard";
 import {
   Baby,
   Users,
