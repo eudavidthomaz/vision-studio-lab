@@ -24,6 +24,7 @@ import {
   ArrowLeft,
   Save,
   Smartphone,
+  Tablet,
   Monitor,
   ChevronDown,
   Palette,
@@ -57,6 +58,15 @@ import { EventsEditor } from "@/components/church-site/editor/EventsEditor";
 import { ImageUpload } from "@/components/church-site/editor/ImageUpload";
 import { SectionTitlesEditor } from "@/components/church-site/editor/SectionTitlesEditor";
 
+const PREVIEW_BREAKPOINTS = [
+  { label: "Fluid",          width: 0,    icon: Monitor },
+  { label: "Desktop · 1280", width: 1280, icon: Monitor },
+  { label: "Laptop · 1024",  width: 1024, icon: Monitor },
+  { label: "Tablet · 768",   width: 768,  icon: Tablet },
+  { label: "Mobile · 640",   width: 640,  icon: Smartphone },
+  { label: "Mobile · 375",   width: 375,  icon: Smartphone },
+] as const;
+
 // Editor section component
 interface EditorSectionProps {
   title: string;
@@ -89,7 +99,7 @@ function EditorSection({ title, icon, children, defaultOpen = false }: EditorSec
 export default function SiteEditor() {
   const navigate = useNavigate();
   const [user, setUser] = useState<{ id: string } | null>(null);
-  const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
+  const [previewWidth, setPreviewWidth] = useState(0);
   const [localConfig, setLocalConfig] = useState<ChurchSiteConfig | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -238,24 +248,25 @@ export default function SiteEditor() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Preview toggle */}
-          <div className="flex items-center border border-border/40 rounded-lg p-1">
-            <Button
-              variant={previewMode === "desktop" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setPreviewMode("desktop")}
-              className="px-2"
-            >
-              <Monitor className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={previewMode === "mobile" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setPreviewMode("mobile")}
-              className="px-2"
-            >
-              <Smartphone className="w-4 h-4" />
-            </Button>
+          {/* Breakpoint selector */}
+          <div className="flex items-center border border-border/40 rounded-lg p-1 gap-0.5">
+            {PREVIEW_BREAKPOINTS.map((bp) => {
+              const Icon = bp.icon;
+              const isActive = previewWidth === bp.width;
+              return (
+                <Button
+                  key={bp.width}
+                  variant={isActive ? "solid" : "ghost"}
+                  size="sm"
+                  onClick={() => setPreviewWidth(bp.width)}
+                  className={`px-2.5 text-xs ${isActive ? "ring-2 ring-primary/50" : ""}`}
+                  title={bp.label}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span className="hidden xl:inline ml-1">{bp.label}</span>
+                </Button>
+              );
+            })}
           </div>
 
           <Button
@@ -752,13 +763,14 @@ export default function SiteEditor() {
 
           {/* Preview Panel */}
           <ResizablePanel defaultSize={65}>
-            <div className="h-full bg-muted/30 flex items-center justify-center p-4 overflow-hidden">
+            <div className="h-full bg-muted/30 flex items-start justify-center p-4 overflow-auto">
               <div
-                className={`bg-background rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ${
-                  previewMode === "mobile"
-                    ? "w-[375px] h-[667px]"
-                    : "w-full h-full max-w-[1200px]"
-                }`}
+                className="bg-background rounded-lg shadow-2xl overflow-hidden transition-all duration-300 mx-auto"
+                style={{
+                  width: previewWidth === 0 ? '100%' : `${previewWidth}px`,
+                  maxWidth: '100%',
+                  height: previewWidth === 0 ? '100%' : '85vh',
+                }}
               >
                 <div className="h-full overflow-auto">
                   {previewConfig && <ChurchSiteTemplate config={previewConfig} isPreview />}
