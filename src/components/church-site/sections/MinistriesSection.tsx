@@ -13,6 +13,10 @@ import {
   Star,
   Globe,
   ArrowRight,
+  Mic,
+  Camera,
+  Shield,
+  Sparkles,
 } from "lucide-react";
 import type { ChurchSiteConfig, ChurchSiteMinistry } from "@/types/churchSite";
 
@@ -40,6 +44,11 @@ const ministryIcons: Record<string, React.ElementType> = {
   Church,
   Star,
   Globe,
+  Mic,
+  Camera,
+  Shield,
+  Sparkles,
+  HandHeart: Heart,
 };
 
 interface MinistriesSectionProps {
@@ -47,7 +56,8 @@ interface MinistriesSectionProps {
 }
 
 export function MinistriesSection({ config }: MinistriesSectionProps) {
-  const { ministries, contact } = config;
+  const { ministries, contact, sectionTitles } = config;
+  const titles = sectionTitles?.ministries;
 
   if (ministries.length === 0) return null;
 
@@ -56,10 +66,10 @@ export function MinistriesSection({ config }: MinistriesSectionProps) {
       <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
         <motion.div variants={fadeIn} className="text-center mb-8 md:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
-            Há um lugar para você aqui
+            {titles?.title || "Há um lugar para você aqui"}
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            A vida da igreja acontece de muitas formas ao longo da semana.
+            {titles?.subtitle || "A vida da igreja acontece de muitas formas ao longo da semana."}
           </p>
         </motion.div>
 

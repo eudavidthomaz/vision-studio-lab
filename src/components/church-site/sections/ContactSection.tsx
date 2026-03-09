@@ -22,7 +22,8 @@ interface ContactSectionProps {
 }
 
 export function ContactSection({ config }: ContactSectionProps) {
-  const { contact, socialLinks } = config;
+  const { contact, socialLinks, sectionTitles } = config;
+  const titles = sectionTitles?.contact;
 
   const contactItems = [
     { icon: MessageCircle, label: "WhatsApp", href: contact.whatsapp, glow: "primary" as const },
@@ -37,9 +38,11 @@ export function ContactSection({ config }: ContactSectionProps) {
     <section className="container mx-auto px-4 pb-12 md:pb-16">
       <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
         <motion.div variants={fadeIn} className="text-center mb-10">
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">Fale com a gente</h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
+            {titles?.title || "Fale com a gente"}
+          </h2>
           <p className="text-muted-foreground text-sm sm:text-base">
-            Estamos aqui para ajudar você.
+            {titles?.subtitle || "Estamos aqui para ajudar você."}
           </p>
         </motion.div>
 

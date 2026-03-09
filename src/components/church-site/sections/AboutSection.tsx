@@ -1,7 +1,18 @@
 import React from "react";
 import { motion } from "framer-motion";
 import RadialOrbitalTimeline from "@/components/RadialOrbitalTimeline";
-import { BookOpen, Heart, Sparkles, Users, Star, Globe } from "lucide-react";
+import {
+  BookOpen,
+  Heart,
+  Sparkles,
+  Star,
+  Globe,
+  Users,
+  Flame,
+  Church,
+  Music,
+  HandHeart,
+} from "lucide-react";
 import type { ChurchSiteConfig, ChurchSiteValue } from "@/types/churchSite";
 
 const fadeIn = {
@@ -22,9 +33,14 @@ const valueIcons: Record<string, React.ElementType> = {
   BookOpen,
   Heart,
   Sparkles,
-  Users,
   Star,
   Globe,
+  Users,
+  Flame,
+  Church,
+  Music,
+  HandHeart,
+  Cross: Church,
 };
 
 interface AboutSectionProps {
@@ -32,11 +48,13 @@ interface AboutSectionProps {
 }
 
 export function AboutSection({ config }: AboutSectionProps) {
-  const { about } = config;
+  const { about, sectionTitles } = config;
+  const titles = sectionTitles?.about;
 
+  // Skip if no description and no values
   if (!about.description && about.values.length === 0) return null;
 
-  // Transform values for RadialOrbitalTimeline
+  // Transform values to timeline format
   const timelineData = about.values.map((value, index) => ({
     id: index + 1,
     icon: valueIcons[value.icon] || Heart,
@@ -49,13 +67,11 @@ export function AboutSection({ config }: AboutSectionProps) {
       <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
         <motion.div variants={fadeIn} className="text-center mb-8 md:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
-            Quem somos
+            {titles?.title || "Quem somos"}
           </h2>
-          {about.description && (
-            <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-              {about.description}
-            </p>
-          )}
+          <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+            {about.description || titles?.subtitle || "Somos uma igreja comprometida com o evangelho de Jesus, com a centralidade da Palavra e com uma vida cristã vivida em comunidade."}
+          </p>
         </motion.div>
 
         {timelineData.length > 0 && (

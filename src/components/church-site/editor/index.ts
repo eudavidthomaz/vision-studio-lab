@@ -4,3 +4,4 @@ export { ValuesEditor } from "./ValuesEditor";
 export { MinistriesEditor } from "./MinistriesEditor";
 export { EventsEditor } from "./EventsEditor";
 export { ImageUpload } from "./ImageUpload";
+export { SectionTitlesEditor } from "./SectionTitlesEditor";

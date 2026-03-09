@@ -55,6 +55,7 @@ import { ValuesEditor } from "@/components/church-site/editor/ValuesEditor";
 import { MinistriesEditor } from "@/components/church-site/editor/MinistriesEditor";
 import { EventsEditor } from "@/components/church-site/editor/EventsEditor";
 import { ImageUpload } from "@/components/church-site/editor/ImageUpload";
+import { SectionTitlesEditor } from "@/components/church-site/editor/SectionTitlesEditor";
 
 // Editor section component
 interface EditorSectionProps {
@@ -662,6 +663,14 @@ export default function SiteEditor() {
                       </div>
                     </div>
                   </div>
+                </EditorSection>
+
+                {/* Section Titles - Customization */}
+                <EditorSection title="Textos das Seções" icon={<Layout className="w-4 h-4 text-primary" />}>
+                  <SectionTitlesEditor
+                    sectionTitles={localConfig.sectionTitles}
+                    onChange={(sectionTitles) => updateConfig("sectionTitles", sectionTitles)}
+                  />
                 </EditorSection>
 
                 {/* SEO */}
