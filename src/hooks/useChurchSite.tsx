@@ -47,7 +47,6 @@ function toJson<T>(value: T): Json {
 // ---------------------
 
 async function fetchUserSite(userId: string): Promise<ChurchSiteConfig | null> {
-  // Fetch main site
   const { data: siteData, error: siteError } = await supabase
     .from('church_sites')
     .select('*')
@@ -57,14 +56,12 @@ async function fetchUserSite(userId: string): Promise<ChurchSiteConfig | null> {
   if (siteError) throw siteError;
   if (!siteData) return null;
 
-  // Fetch ministries
   const { data: ministriesData } = await supabase
     .from('church_site_ministries')
     .select('*')
     .eq('site_id', siteData.id)
     .order('sort_order');
 
-  // Fetch events
   const { data: eventsData } = await supabase
     .from('church_site_events')
     .select('*')
@@ -92,7 +89,6 @@ async function fetchUserSite(userId: string): Promise<ChurchSiteConfig | null> {
 }
 
 async function fetchSiteBySlug(slug: string): Promise<ChurchSiteConfig | null> {
-  // Fetch main site (public)
   const { data: siteData, error: siteError } = await supabase
     .from('church_sites')
     .select('*')
@@ -103,14 +99,12 @@ async function fetchSiteBySlug(slug: string): Promise<ChurchSiteConfig | null> {
   if (siteError) throw siteError;
   if (!siteData) return null;
 
-  // Fetch ministries
   const { data: ministriesData } = await supabase
     .from('church_site_ministries')
     .select('*')
     .eq('site_id', siteData.id)
     .order('sort_order');
 
-  // Fetch events
   const { data: eventsData } = await supabase
     .from('church_site_events')
     .select('*')
@@ -144,7 +138,6 @@ async function fetchSiteBySlug(slug: string): Promise<ChurchSiteConfig | null> {
 export function useChurchSite() {
   const queryClient = useQueryClient();
 
-  // Get current user's site
   const {
     data: site,
     isLoading,
@@ -207,12 +200,11 @@ export function useChurchSite() {
     },
   });
 
-  // Update site
+  // Update site — no invalidateQueries (editor manages local state)
   const updateSite = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ChurchSiteConfig> }) => {
       const rowUpdates = transformConfigToRow(updates);
       
-      // Convert to Json type for Supabase
       const supabaseUpdates: Record<string, Json | boolean | string> = {};
       for (const [key, value] of Object.entries(rowUpdates)) {
         if (typeof value === 'boolean' || typeof value === 'string') {
@@ -228,9 +220,6 @@ export function useChurchSite() {
         .eq('id', id);
 
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: churchSiteKeys.all });
     },
     onError: (error) => {
       toast.error('Erro ao salvar alterações');
@@ -287,11 +276,8 @@ export function useChurchSite() {
   // Delete site
   const deleteSite = useMutation({
     mutationFn: async (id: string) => {
-      // Delete ministries first
       await supabase.from('church_site_ministries').delete().eq('site_id', id);
-      // Delete events
       await supabase.from('church_site_events').delete().eq('site_id', id);
-      // Delete site
       const { error } = await supabase.from('church_sites').delete().eq('id', id);
       if (error) throw error;
     },
@@ -305,12 +291,12 @@ export function useChurchSite() {
   });
 
   // ---------------------
-  // Ministries CRUD
+  // Ministries CRUD — return data, no invalidateQueries
   // ---------------------
 
   const addMinistry = useMutation({
     mutationFn: async ({ siteId, ministry }: { siteId: string; ministry: Omit<ChurchSiteMinistry, 'id'> }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('church_site_ministries')
         .insert({
           site_id: siteId,
@@ -318,18 +304,18 @@ export function useChurchSite() {
           description: ministry.description,
           icon: ministry.icon,
           sort_order: ministry.sortOrder || 0,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: churchSiteKeys.all });
+      return data;
     },
   });
 
   const updateMinistry = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ChurchSiteMinistry> }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('church_site_ministries')
         .update({
           title: updates.title,
@@ -337,12 +323,12 @@ export function useChurchSite() {
           icon: updates.icon,
           sort_order: updates.sortOrder,
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
 
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: churchSiteKeys.all });
+      return data;
     },
   });
 
@@ -351,18 +337,15 @@ export function useChurchSite() {
       const { error } = await supabase.from('church_site_ministries').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: churchSiteKeys.all });
-    },
   });
 
   // ---------------------
-  // Events CRUD
+  // Events CRUD — return data, no invalidateQueries
   // ---------------------
 
   const addEvent = useMutation({
     mutationFn: async ({ siteId, event }: { siteId: string; event: Omit<ChurchSiteEvent, 'id'> }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('church_site_events')
         .insert({
           site_id: siteId,
@@ -371,18 +354,18 @@ export function useChurchSite() {
           event_time: event.time,
           tag: event.tag,
           sort_order: event.sortOrder || 0,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: churchSiteKeys.all });
+      return data;
     },
   });
 
   const updateEvent = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ChurchSiteEvent> }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('church_site_events')
         .update({
           title: updates.title,
@@ -391,12 +374,12 @@ export function useChurchSite() {
           tag: updates.tag,
           sort_order: updates.sortOrder,
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
 
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: churchSiteKeys.all });
+      return data;
     },
   });
 
@@ -404,9 +387,6 @@ export function useChurchSite() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('church_site_events').delete().eq('id', id);
       if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: churchSiteKeys.all });
     },
   });
 
@@ -438,6 +418,6 @@ export function usePublicChurchSite(slug: string) {
     queryKey: churchSiteKeys.bySlug(slug),
     queryFn: () => fetchSiteBySlug(slug),
     enabled: !!slug,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }
