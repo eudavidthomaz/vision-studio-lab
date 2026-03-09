@@ -477,13 +477,31 @@ export default function SiteEditor() {
                     ministries={localConfig.ministries}
                     siteId={site.id}
                     onAdd={async (ministry) => {
-                      await addMinistry.mutateAsync({ siteId: site.id, ministry });
+                      const result = await addMinistry.mutateAsync({ siteId: site.id, ministry });
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        ministries: [...prev.ministries, {
+                          id: result.id,
+                          title: result.title,
+                          description: result.description || [],
+                          icon: result.icon || 'Heart',
+                          sortOrder: result.sort_order || 0,
+                        }],
+                      } : prev);
                     }}
                     onUpdate={async (id, updates) => {
                       await updateMinistry.mutateAsync({ id, updates });
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        ministries: prev.ministries.map(m => m.id === id ? { ...m, ...updates } : m),
+                      } : prev);
                     }}
                     onDelete={async (id) => {
                       await deleteMinistry.mutateAsync(id);
+                      setLocalConfig(prev => prev ? {
+                        ...prev,
+                        ministries: prev.ministries.filter(m => m.id !== id),
+                      } : prev);
                     }}
                   />
                 </EditorSection>
