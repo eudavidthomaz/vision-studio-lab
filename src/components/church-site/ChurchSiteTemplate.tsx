@@ -185,7 +185,7 @@ function ChurchSiteTemplateInner({ config, isPreview = false }: ChurchSiteTempla
       </Tabs>
 
       {/* Footer */}
-      <FooterSection config={config} />
+      <FooterSection config={config} isPreview={isPreview} />
     </div>
   );
 }

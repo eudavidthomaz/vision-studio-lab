@@ -54,14 +54,13 @@ function IconPickerButton({ value, onChange }: { value: string; onChange: (v: st
 
 interface MinistriesEditorProps {
   ministries: ChurchSiteMinistry[];
-  siteId: string;
   onAdd: (ministry: Omit<ChurchSiteMinistry, "id">) => Promise<void>;
   onUpdate: (id: string, updates: Partial<ChurchSiteMinistry>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   isLoading?: boolean;
 }
 
-export function MinistriesEditor({ ministries, siteId, onAdd, onUpdate, onDelete, isLoading }: MinistriesEditorProps) {
+export function MinistriesEditor({ ministries, onAdd, onUpdate, onDelete, isLoading }: MinistriesEditorProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");

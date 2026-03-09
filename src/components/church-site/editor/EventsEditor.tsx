@@ -7,13 +7,12 @@ import type { ChurchSiteEvent } from "@/types/churchSite";
 
 interface EventsEditorProps {
   events: ChurchSiteEvent[];
-  siteId: string;
   onAdd: (event: Omit<ChurchSiteEvent, "id">) => Promise<void>;
   onUpdate: (id: string, updates: Partial<ChurchSiteEvent>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }
 
-export function EventsEditor({ events, siteId, onAdd, onUpdate, onDelete }: EventsEditorProps) {
+export function EventsEditor({ events, onAdd, onUpdate, onDelete }: EventsEditorProps) {
   const [newTitle, setNewTitle] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");

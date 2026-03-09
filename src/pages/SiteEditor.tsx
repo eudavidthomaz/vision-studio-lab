@@ -508,7 +508,6 @@ export default function SiteEditor() {
                 <EditorSection title="Eventos / Agenda" icon={<CalendarDays className="w-4 h-4 text-primary" />}>
                   <EventsEditor
                     events={localConfig.events}
-                    siteId={site.id}
                     onAdd={async (event) => {
                       const result = await addEvent.mutateAsync({ siteId: site.id, event });
                       setLocalConfig(prev => prev ? {
