@@ -1,7 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import RadialOrbitalTimeline from "@/components/RadialOrbitalTimeline";
-import { Card } from "@/components/ui/card";
 import {
   BookOpen,
   Heart,
@@ -84,26 +83,27 @@ export function AboutSection({ config, isPreview = false }: AboutSectionProps) {
         </motion.div>
 
         {timelineData.length > 0 && (
-          <motion.div variants={isPreview ? undefined : fadeIn} className="max-w-3xl mx-auto">
+          <motion.div variants={isPreview ? undefined : fadeIn} className="max-w-2xl mx-auto">
             {isPreview ? (
-              // Static list for preview — no RadialOrbitalTimeline animation overhead
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              // Institutional vertical layout for preview — distinct from ministries grid
+              <div className="space-y-4">
                 {timelineData.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <Card key={item.id} className="p-4 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-church-primary/10 flex items-center justify-center">
-                          <Icon className="w-4 h-4 text-church-primary" />
-                        </div>
-                        <h4 className="font-semibold text-sm text-foreground">{item.title}</h4>
+                    <div key={item.id} className="flex gap-4 p-4 rounded-lg border-l-2 border-church-primary bg-muted/30">
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-church-primary/10 flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-church-primary" />
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{item.content}</p>
-                    </Card>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-foreground mb-1">{item.title}</h4>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{item.content}</p>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
             ) : (
+              // Premium RadialOrbitalTimeline for public site — matches /bio reference
               <RadialOrbitalTimeline timelineData={timelineData} />
             )}
           </motion.div>

@@ -81,7 +81,7 @@ export function ValuesEditor({ values, onChange }: ValuesEditorProps) {
             <Input
               value={val.title}
               onChange={(e) => handleUpdate(index, "title", e.target.value)}
-              placeholder="Título do valor"
+              placeholder="Ex: Missão, Visão, Valores, Crenças...ão, Valores, Crenças..."
               className="flex-1 font-medium"
             />
             <Button variant="ghost" size="icon" onClick={() => handleRemove(index)} className="shrink-0 text-destructive hover:text-destructive">
@@ -91,7 +91,7 @@ export function ValuesEditor({ values, onChange }: ValuesEditorProps) {
           <Textarea
             value={val.content}
             onChange={(e) => handleUpdate(index, "content", e.target.value)}
-            placeholder="Descrição deste valor..."
+     placeholder="Descreva este princípio da igreja..."
             rows={2}
           />
         </div>
@@ -105,7 +105,7 @@ export function ValuesEditor({ values, onChange }: ValuesEditorProps) {
 
       {values.length === 0 && (
         <p className="text-xs text-muted-foreground text-center py-2">
-          Adicione os valores/pilares da sua igreja (ex: Palavra, Comunhão, Missão).
+          Descreva a identidade da sua igreja: missão, visão, valores e crenças.
         </p>
       )}
     </div>
