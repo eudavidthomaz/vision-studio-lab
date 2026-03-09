@@ -99,7 +99,7 @@ function EditorSection({ title, icon, children, defaultOpen = false }: EditorSec
 export default function SiteEditor() {
   const navigate = useNavigate();
   const [user, setUser] = useState<{ id: string } | null>(null);
-  const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
+  const [previewWidth, setPreviewWidth] = useState(0);
   const [localConfig, setLocalConfig] = useState<ChurchSiteConfig | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
