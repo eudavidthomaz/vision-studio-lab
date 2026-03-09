@@ -580,22 +580,7 @@ export default function SiteEditor() {
                   </div>
                 </EditorSection>
 
-                {/* Media Section */}
-                <EditorSection title="Mídia / YouTube" icon={<Play className="w-4 h-4 text-primary" />}>
-                  <div className="space-y-3">
-                    <div>
-                      <Label>Link embed do YouTube (vídeo destacado)</Label>
-                      <Input
-                        value={localConfig.media.youtubeEmbedUrl || ""}
-                        onChange={(e) => updateNestedConfig("media", "youtubeEmbedUrl", e.target.value || null)}
-                        placeholder="https://www.youtube-nocookie.com/embed/VIDEO_ID"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Use o formato embed: youtube-nocookie.com/embed/VIDEO_ID
-                      </p>
-                    </div>
-                  </div>
-                </EditorSection>
+                {/* Media Section - YouTube is now configured in Hero */}
 
                 {/* Giving Section */}
                 <EditorSection title="Dízimos e Ofertas" icon={<HandHeart className="w-4 h-4 text-primary" />}>
