@@ -1,9 +1,8 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ContentViewer } from "./ContentViewer";
 import { ContentLibraryItem } from "@/hooks/useContentLibrary";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Tag } from "lucide-react";
+import { Calendar, Tag, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -66,13 +65,27 @@ export function MobileContentSheet({ content, open, onClose }: MobileContentShee
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent 
         side="bottom" 
-        className="h-[96dvh] w-screen max-w-full p-0 rounded-t-2xl overflow-hidden shadow-2xl border-t border-border/50 pb-safe"
+        className="h-[88dvh] w-screen max-w-full p-0 rounded-t-2xl overflow-hidden shadow-2xl border-t border-border/50 pb-safe"
       >
+        {/* Handle de arrastar */}
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+          <div className="w-10 h-1.5 rounded-full bg-muted-foreground/30" />
+        </div>
+
         {/* Container com altura fixa e overflow controlado */}
-        <div className="flex flex-col h-full w-full">
+        <div className="flex flex-col h-[calc(100%-1.75rem)] w-full">
           {/* Header fixo - não rola */}
-          <SheetHeader className="flex-shrink-0 px-3 py-2.5 border-b border-border/50 bg-background/95 backdrop-blur-xl z-10 space-y-2">
-            <SheetTitle className="text-sm font-semibold line-clamp-2 text-left pr-8 leading-tight">
+          <SheetHeader className="relative flex-shrink-0 px-3 py-2.5 border-b border-border/50 bg-background/95 backdrop-blur-xl z-10 space-y-2">
+            {/* Botão fechar explícito */}
+            <button
+              onClick={onClose}
+              className="absolute right-3 top-2.5 z-20 flex items-center justify-center h-8 w-8 rounded-full bg-muted/80 hover:bg-muted transition-colors"
+              aria-label="Fechar"
+            >
+              <X className="h-4 w-4 text-foreground" />
+            </button>
+
+            <SheetTitle className="text-sm font-semibold line-clamp-2 text-left pr-10 leading-tight">
               {content.title}
             </SheetTitle>
             

@@ -3,6 +3,7 @@ import { NormalizedContent } from "@/hooks/useContentFeed";
 import { ContentResultDisplay } from "@/components/ContentResultDisplay";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { X } from "lucide-react";
 
 interface ContentFeedModalProps {
   content: NormalizedContent | null;
@@ -63,7 +64,6 @@ export function ContentFeedModal({ content, open, onOpenChange }: ContentFeedMod
   } else if (rawData.content_type === 'discipulado') {
     formattedContent = { discipulado: rawData.discipulado, content_type: 'discipulado' };
   } else {
-    // Default format for creative content (posts, reels, carousels)
     formattedContent = {
       fundamento_biblico: rawData.fundamento_biblico,
       conteudo: rawData.conteudo,
@@ -76,6 +76,15 @@ export function ContentFeedModal({ content, open, onOpenChange }: ContentFeedMod
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-4xl lg:max-w-5xl max-h-[90dvh] overflow-hidden overflow-x-hidden p-0" data-prevent-zoom>
+        {/* Botão fechar explícito */}
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute right-3 top-3 z-20 flex items-center justify-center h-8 w-8 rounded-full bg-muted/80 hover:bg-muted transition-colors"
+          aria-label="Fechar"
+        >
+          <X className="h-4 w-4 text-foreground" />
+        </button>
+
         <div className="overflow-y-auto overflow-x-hidden max-h-[90dvh]">
           <ContentResultDisplay
             content={formattedContent}
