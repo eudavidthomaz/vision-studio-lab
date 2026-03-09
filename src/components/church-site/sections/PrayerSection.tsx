@@ -56,17 +56,9 @@ export function PrayerSection({ config }: PrayerSectionProps) {
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
                 {titles?.title || "Podemos orar por você?"}
               </h2>
-              {firstPart && (
-                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-2">
-                  {firstPart}
-                </p>
-              )}
-              {secondPart && (
-                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-8">
-                  {secondPart}
-                </p>
-              )}
-              {!secondPart && firstPart && <div className="mb-8" />}
+              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-8">
+                {subtitle}
+              </p>
               <Button variant="solid" asChild className="min-h-[48px]">
                 <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer">
                   <Heart className="w-4 h-4" /> Enviar pedido de oração

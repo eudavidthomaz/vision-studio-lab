@@ -229,6 +229,9 @@ export default function SiteEditor() {
     );
   }
 
+  // Memoize preview to prevent re-renders on every keystroke
+  const MemoizedChurchSiteTemplate = useMemo(() => React.memo(ChurchSiteTemplate), []);
+
   if (!site) {
     navigate("/sites");
     return null;

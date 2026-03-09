@@ -260,6 +260,10 @@ export const DEFAULT_SECTION_TITLES: ChurchSiteSectionTitles = {
     title: 'É sua primeira vez por aqui?',
     subtitle: 'Queremos tornar sua visita leve, simples e acolhedora. Aqui você encontra uma comunidade que ama a Deus, ama pessoas e deseja caminhar com você.',
   },
+  schedule: {
+    title: 'Horários dos cultos',
+    subtitle: 'Confira os dias e horários dos nossos cultos e programações.',
+  },
   about: {
     title: 'Quem somos',
     subtitle: 'Somos uma igreja comprometida com o evangelho de Jesus, com a centralidade da Palavra e com uma vida cristã vivida em comunidade.',
