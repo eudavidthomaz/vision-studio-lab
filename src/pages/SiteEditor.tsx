@@ -237,6 +237,17 @@ export default function SiteEditor() {
     return null;
   }
 
+  if (!localConfig) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="space-y-4 text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">Carregando editor...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Header */}

@@ -15,6 +15,7 @@ interface SectionTitlesEditorProps {
 
 const SECTION_LABELS: Record<keyof ChurchSiteSectionTitles, string> = {
   firstTime: "Primeira Vez (FAQ)",
+  schedule: "Horários dos Cultos",
   about: "Sobre Nós",
   ministries: "Ministérios",
   media: "Mídia / YouTube",
