@@ -52,8 +52,8 @@ export function ContactSection({ config }: ContactSectionProps) {
               <a href={item.href!} target="_blank" rel="noopener noreferrer" className="block">
                 <GlassCard glowColor={item.glow} className="p-5 sm:p-6 text-center cursor-pointer hover:scale-[1.02] transition-transform">
                   <div className="relative z-[10] flex flex-col items-center gap-3">
-                    <div className="p-3 rounded-xl bg-primary/10">
-                      <item.icon className="w-5 h-5 text-primary" />
+                    <div className="p-3 rounded-xl bg-church-primary/10">
+                      <item.icon className="w-5 h-5 text-church-primary" />
                     </div>
                     <span className="text-foreground text-xs sm:text-sm font-medium">{item.label}</span>
                   </div>

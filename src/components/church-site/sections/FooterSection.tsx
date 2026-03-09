@@ -30,7 +30,7 @@ export function FooterSection({ config }: FooterSectionProps) {
         duration={5}
         className={cn(
           "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]",
-          "fill-primary/10 stroke-primary/10"
+          "fill-church-primary/10 stroke-church-primary/10"
         )}
       />
       <div className="container mx-auto px-4 relative z-10">
@@ -64,7 +64,7 @@ export function FooterSection({ config }: FooterSectionProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={item.label}
-                  className="p-2.5 rounded-full border border-border/30 hover:border-primary/30 hover:bg-primary/5 transition-colors"
+                  className="p-2.5 rounded-full border border-border/30 hover:border-church-primary/30 hover:bg-church-primary/5 transition-colors"
                 >
                   <item.icon className="w-4 h-4 text-muted-foreground" />
                 </a>

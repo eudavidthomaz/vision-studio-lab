@@ -41,8 +41,8 @@ export function ScheduleSection({ config }: ScheduleSectionProps) {
             <GlassCard glowColor="primary" className="p-6 sm:p-8 h-full">
               <div className="relative z-[10]">
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2.5 rounded-lg bg-primary/10">
-                    <Clock className="w-5 h-5 text-primary" />
+                  <div className="p-2.5 rounded-lg bg-church-primary/10">
+                    <Clock className="w-5 h-5 text-church-primary" />
                   </div>
                   <h3 className="font-semibold text-foreground text-lg">Horários dos cultos</h3>
                 </div>
@@ -50,7 +50,7 @@ export function ScheduleSection({ config }: ScheduleSectionProps) {
                   {schedule.map((s, index) => (
                     <div key={index} className="flex items-center justify-between border-b border-border/20 pb-3 last:border-0">
                       <span className="text-foreground font-medium text-sm sm:text-base">{s.day}</span>
-                      <span className="text-primary font-semibold text-sm sm:text-base">{s.times.join(" e ")}</span>
+                      <span className="text-church-primary font-semibold text-sm sm:text-base">{s.times.join(" e ")}</span>
                     </div>
                   ))}
                 </div>
@@ -64,8 +64,8 @@ export function ScheduleSection({ config }: ScheduleSectionProps) {
             <GlassCard glowColor="cyan" className="p-6 sm:p-8 h-full">
               <div className="relative z-[10]">
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="p-2.5 rounded-lg bg-primary/10">
-                    <MapPin className="w-5 h-5 text-primary" />
+                  <div className="p-2.5 rounded-lg bg-church-primary/10">
+                    <MapPin className="w-5 h-5 text-church-primary" />
                   </div>
                   <h3 className="font-semibold text-foreground text-lg">Endereço</h3>
                 </div>

@@ -51,7 +51,7 @@ export function FirstTimeSection({ config }: FirstTimeSectionProps) {
             <Accordion type="single" collapsible className="w-full">
               {faq.map((item, i) => (
                 <AccordionItem key={i} value={`faq-${i}`} className="border-border/20">
-                  <AccordionTrigger className="text-sm sm:text-base text-foreground hover:text-primary hover:no-underline py-4">
+                  <AccordionTrigger className="text-sm sm:text-base text-foreground hover:text-church-primary hover:no-underline py-4">
                     {item.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-muted-foreground text-sm leading-relaxed">

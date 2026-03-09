@@ -506,6 +506,23 @@ All colors MUST be HSL.
   50% { opacity: 0.8; transform: translateX(-50%) scale(1.1); }
 }
 
+/* Church site custom color utilities */
+.text-church-primary { color: var(--church-primary); }
+.bg-church-primary { background-color: var(--church-primary); }
+.bg-church-primary\/5 { background-color: color-mix(in srgb, var(--church-primary) 5%, transparent); }
+.bg-church-primary\/10 { background-color: color-mix(in srgb, var(--church-primary) 10%, transparent); }
+.bg-church-primary\/20 { background-color: color-mix(in srgb, var(--church-primary) 20%, transparent); }
+.border-church-primary\/20 { border-color: color-mix(in srgb, var(--church-primary) 20%, transparent); }
+.border-church-primary\/30 { border-color: color-mix(in srgb, var(--church-primary) 30%, transparent); }
+.text-church-primary\/70 { color: color-mix(in srgb, var(--church-primary) 70%, transparent); }
+.hover\:text-church-primary:hover { color: var(--church-primary); }
+.hover\:border-church-primary\/30:hover { border-color: color-mix(in srgb, var(--church-primary) 30%, transparent); }
+.hover\:bg-church-primary\/5:hover { background-color: color-mix(in srgb, var(--church-primary) 5%, transparent); }
+.fill-church-primary\/10 { fill: color-mix(in srgb, var(--church-primary) 10%, transparent); }
+.fill-church-primary\/20 { fill: color-mix(in srgb, var(--church-primary) 20%, transparent); }
+.stroke-church-primary\/10 { stroke: color-mix(in srgb, var(--church-primary) 10%, transparent); }
+.stroke-church-primary\/20 { stroke: color-mix(in srgb, var(--church-primary) 20%, transparent); }
+
 /* Melhorar scroll em iOS */
 .overscroll-contain {
   overscroll-behavior: contain;

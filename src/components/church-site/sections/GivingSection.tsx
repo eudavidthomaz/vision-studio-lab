@@ -53,8 +53,8 @@ export function GivingSection({ config }: GivingSectionProps) {
       >
         <motion.div variants={fadeIn} className="text-center">
           <div className="flex justify-center mb-5">
-            <div className="p-3 rounded-xl bg-primary/10">
-              <HandHeart className="w-7 h-7 text-primary" />
+            <div className="p-3 rounded-xl bg-church-primary/10">
+              <HandHeart className="w-7 h-7 text-church-primary" />
             </div>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">

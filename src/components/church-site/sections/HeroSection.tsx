@@ -28,7 +28,7 @@ export function HeroSection({ config }: HeroSectionProps) {
         repeatDelay={1}
         className={cn(
           "[mask-image:radial-gradient(600px_circle_at_center,white,transparent)]",
-          "fill-primary/20 stroke-primary/20"
+          "fill-church-primary/20 stroke-church-primary/20"
         )}
       />
       <ContainerScrollHero
@@ -56,12 +56,12 @@ export function HeroSection({ config }: HeroSectionProps) {
             {schedule.length > 0 && (
               <div className="flex flex-col items-center gap-1 mt-1">
                 <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                  <Clock className="w-3.5 h-3.5 text-primary" />
+                  <Clock className="w-3.5 h-3.5 text-church-primary" />
                   <span>{scheduleText}</span>
                 </div>
                 {contact.address && (
                   <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                    <MapPin className="w-3.5 h-3.5 text-primary" />
+                    <MapPin className="w-3.5 h-3.5 text-church-primary" />
                     <span>{contact.address.split(",")[0]}</span>
                   </div>
                 )}
