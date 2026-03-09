@@ -87,9 +87,10 @@ export function FooterSection({ config, isPreview = false }: FooterSectionProps)
           )}
         </div>
         {!isPreview && (
-          <div className="text-center mt-6 flex flex-col items-center gap-2">
-            <img src="/logo.png" alt="Ide.On" className="w-6 h-6 object-contain opacity-60" />
-            <p className="text-muted-foreground/50 text-[10px] sm:text-xs">
+          <div className="text-center mt-6 flex flex-col items-center gap-3">
+            <img src="/logo-ideon-dark.png" alt="Ide.On" className="bio-theme-dark:hidden w-10 h-10 object-contain opacity-50" />
+            <img src="/logo-ideon-light.png" alt="Ide.On" className="hidden bio-theme-dark:block w-10 h-10 object-contain opacity-50" />
+            <p className="text-muted-foreground/50 text-xs sm:text-sm">
               Criado com{" "}
               <a
                 href="https://midias.app"
