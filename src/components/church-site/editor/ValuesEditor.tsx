@@ -91,7 +91,7 @@ export function ValuesEditor({ values, onChange }: ValuesEditorProps) {
           <Textarea
             value={val.content}
             onChange={(e) => handleUpdate(index, "content", e.target.value)}
-     eva este princípio da igreja="Descrição deste valor..."
+     placeholder="Descreva este princípio da igreja..."
             rows={2}
           />
         </div>
