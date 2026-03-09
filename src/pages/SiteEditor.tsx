@@ -195,8 +195,6 @@ export default function SiteEditor() {
     setHasChanges(true);
   }, []);
 
-  // Memoize preview to prevent re-renders on every keystroke
-  const MemoizedChurchSiteTemplate = useMemo(() => React.memo(ChurchSiteTemplate), []);
 
   if (!user) return null;
 
