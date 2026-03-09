@@ -105,6 +105,8 @@ export default function SiteEditor() {
   const [localConfig, setLocalConfig] = useState<ChurchSiteConfig | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
+  const [editorMode, setEditorMode] = useState<"edit" | "preview">("edit");
 
   const { 
     site, 
