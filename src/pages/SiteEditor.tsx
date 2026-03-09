@@ -665,6 +665,14 @@ export default function SiteEditor() {
                   </div>
                 </EditorSection>
 
+                {/* Section Titles - Customization */}
+                <EditorSection title="Textos das Seções" icon={<Layout className="w-4 h-4 text-primary" />}>
+                  <SectionTitlesEditor
+                    sectionTitles={localConfig.sectionTitles}
+                    onChange={(sectionTitles) => updateConfig("sectionTitles", sectionTitles)}
+                  />
+                </EditorSection>
+
                 {/* SEO */}
                 <EditorSection title="SEO" icon={<Globe className="w-4 h-4 text-primary" />}>
                   <div className="space-y-3">
