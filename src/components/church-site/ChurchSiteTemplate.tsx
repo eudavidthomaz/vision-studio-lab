@@ -50,13 +50,13 @@ export function ChurchSiteTemplate({ config, isPreview = false }: ChurchSiteTemp
   return (
     <div
       style={{
-        '--church-primary': config.branding.primaryColor || 'hsl(263 70% 50%)',
-        '--church-secondary': config.branding.secondaryColor || 'hsl(188 95% 40%)',
+        '--church-primary': config.branding.primaryColor || '#8B5CF6',
+        '--church-secondary': config.branding.secondaryColor || '#6366F1',
       } as React.CSSProperties}
       className={cn(
         "min-h-screen bg-background overflow-x-hidden",
         siteTheme === "dark" ? "bio-theme-dark" : "bio-theme-light",
-        isPreview && "pointer-events-auto"
+        isPreview && "pointer-events-auto isolate"
       )}
     >
       {/* Theme Toggle */}

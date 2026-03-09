@@ -70,9 +70,24 @@ export function HeroSection({ config }: HeroSectionProps) {
 
             <div className="flex flex-wrap justify-center gap-2 mt-3">
               {hero.showVisitButton && (
-                <Button variant="solid" size="sm" className="min-h-[44px]">
-                  Quero visitar
-                </Button>
+                contact.whatsapp ? (
+                  <Button variant="solid" size="sm" asChild className="min-h-[44px]">
+                    <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer">
+                      Quero visitar
+                    </a>
+                  </Button>
+                ) : (
+                  <Button
+                    variant="solid"
+                    size="sm"
+                    className="min-h-[44px]"
+                    onClick={() => {
+                      document.getElementById('church-contact-section')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  >
+                    Quero visitar
+                  </Button>
+                )
               )}
               {hero.showMapButton && contact.mapsUrl && (
                 <Button variant="outline" size="sm" asChild className="min-h-[44px]">

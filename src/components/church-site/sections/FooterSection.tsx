@@ -1,7 +1,7 @@
 import React from "react";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { cn } from "@/lib/utils";
-import { Instagram, Youtube, MessageCircle, MapPin } from "lucide-react";
+import { Instagram, Youtube, MessageCircle, MapPin, Facebook } from "lucide-react";
 import type { ChurchSiteConfig } from "@/types/churchSite";
 
 interface FooterSectionProps {
@@ -18,6 +18,7 @@ export function FooterSection({ config }: FooterSectionProps) {
   const socialItems = [
     { icon: Instagram, href: socialLinks.instagram, label: "Instagram" },
     { icon: Youtube, href: socialLinks.youtube, label: "YouTube" },
+    { icon: Facebook, href: socialLinks.facebook, label: "Facebook" },
     { icon: MessageCircle, href: contact.whatsapp, label: "WhatsApp" },
     { icon: MapPin, href: contact.mapsUrl, label: "Mapa" },
   ].filter(item => item.href);
