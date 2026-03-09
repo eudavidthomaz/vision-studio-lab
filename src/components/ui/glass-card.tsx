@@ -9,6 +9,7 @@ interface GlassCardProps {
   glowColor?: "primary" | "red" | "blue" | "cyan";
   as?: "div" | "button";
   onClick?: () => void;
+  isStatic?: boolean;
 }
 
 const glowColors = {
@@ -48,12 +49,92 @@ export function GlassCard({
   glowColor = "primary",
   as = "div",
   onClick,
+  isStatic = false,
 }: GlassCardProps) {
+  const colors = glowColors[glowColor];
+
+  // ── Static mode: no motion, no sparkles, no mouse tracking ──
+  if (isStatic) {
+    const Tag = as === "button" ? "button" : "div";
+    return (
+      <Tag
+        className={cn("relative rounded-2xl overflow-hidden", className)}
+        style={{
+          backgroundColor: "hsl(var(--card))",
+          boxShadow: `0 -10px 80px 5px ${colors.shadow}, 0 0 10px 0 hsl(0 0% 0% / 0.5)`,
+        }}
+        onClick={onClick}
+      >
+        {/* Dark base */}
+        <div className="absolute inset-0 z-0 bg-background" />
+
+        {/* Noise texture */}
+        <div className="absolute inset-0 opacity-30 mix-blend-overlay z-[1] card-noise-layer" />
+
+        {/* Glow spots — static opacity */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-2/3 z-[2]"
+          style={{
+            background: `
+              radial-gradient(ellipse at bottom right, ${colors.spotA} -10%, transparent 70%),
+              radial-gradient(ellipse at bottom left, ${colors.spotB} -10%, transparent 70%)
+            `,
+            filter: "blur(40px)",
+            opacity: 0.7,
+          }}
+        />
+
+        {/* Central glow — static */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-2/3 z-[3]"
+          style={{
+            background: `radial-gradient(circle at bottom center, ${colors.spotCenter} -20%, transparent 60%)`,
+            filter: "blur(45px)",
+            opacity: 0.65,
+            transform: "translateY(15%)",
+          }}
+        />
+
+        {/* Glass reflection — static */}
+        <div
+          className="absolute inset-0 z-[6] pointer-events-none"
+          style={{
+            background: "linear-gradient(135deg, hsl(0 0% 100% / 0.08) 0%, transparent 40%, transparent 80%, hsl(0 0% 100% / 0.04) 100%)",
+            opacity: 0.5,
+          }}
+        />
+
+        {/* Content */}
+        <div className="relative z-[10]">{children}</div>
+      </Tag>
+    );
+  }
+
+  // ── Animated mode: full effects ──
+  return <GlassCardAnimated className={className} glowColor={glowColor} as={as} onClick={onClick} colors={colors}>
+    {children}
+  </GlassCardAnimated>;
+}
+
+// Separate animated component to avoid hooks running in static mode
+function GlassCardAnimated({
+  children,
+  className,
+  glowColor,
+  as,
+  onClick,
+  colors,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  glowColor: string;
+  as: "div" | "button";
+  onClick?: () => void;
+  colors: typeof glowColors[keyof typeof glowColors];
+}) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
-
-  const colors = glowColors[glowColor];
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!cardRef.current) return;

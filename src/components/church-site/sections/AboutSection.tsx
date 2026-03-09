@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import RadialOrbitalTimeline from "@/components/RadialOrbitalTimeline";
+import { Card } from "@/components/ui/card";
 import {
   BookOpen,
   Heart,
@@ -45,16 +46,15 @@ const valueIcons: Record<string, React.ElementType> = {
 
 interface AboutSectionProps {
   config: ChurchSiteConfig;
+  isPreview?: boolean;
 }
 
-export function AboutSection({ config }: AboutSectionProps) {
+export function AboutSection({ config, isPreview = false }: AboutSectionProps) {
   const { about, sectionTitles } = config;
   const titles = sectionTitles?.about;
 
-  // Skip if no description and no values
   if (!about.description && about.values.length === 0) return null;
 
-  // Transform values to timeline format
   const timelineData = about.values.map((value, index) => ({
     id: index + 1,
     icon: valueIcons[value.icon] || Heart,
@@ -62,10 +62,14 @@ export function AboutSection({ config }: AboutSectionProps) {
     content: value.content,
   }));
 
+  const motionProps = isPreview
+    ? { initial: false as const }
+    : { initial: "hidden" as const, whileInView: "visible" as const, viewport: { once: true } };
+
   return (
     <section className="container mx-auto px-4 py-12 md:py-20">
-      <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-        <motion.div variants={fadeIn} className="text-center mb-8 md:mb-12">
+      <motion.div variants={stagger} {...motionProps}>
+        <motion.div variants={isPreview ? undefined : fadeIn} className="text-center mb-8 md:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
             {titles?.title || "Quem somos"}
           </h2>
@@ -80,8 +84,28 @@ export function AboutSection({ config }: AboutSectionProps) {
         </motion.div>
 
         {timelineData.length > 0 && (
-          <motion.div variants={fadeIn} className="max-w-3xl mx-auto">
-            <RadialOrbitalTimeline timelineData={timelineData} />
+          <motion.div variants={isPreview ? undefined : fadeIn} className="max-w-3xl mx-auto">
+            {isPreview ? (
+              // Static list for preview — no RadialOrbitalTimeline animation overhead
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {timelineData.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Card key={item.id} className="p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-church-primary/10 flex items-center justify-center">
+                          <Icon className="w-4 h-4 text-church-primary" />
+                        </div>
+                        <h4 className="font-semibold text-sm text-foreground">{item.title}</h4>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{item.content}</p>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <RadialOrbitalTimeline timelineData={timelineData} />
+            )}
           </motion.div>
         )}
       </motion.div>
