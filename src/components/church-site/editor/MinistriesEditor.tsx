@@ -168,8 +168,14 @@ export function MinistriesEditor({ ministries, onAdd, onUpdate, onDelete, isLoad
       <div className="p-3 rounded-lg border border-dashed border-border/60 space-y-2">
         <div className="flex items-center gap-2">
           <IconPickerButton value={newIcon} onChange={setNewIcon} />
-          <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Nome do ministério" className="flex-1" />
-        </div>
+        <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Nome do ministério" className="flex-1" />
+      </div>
+      <Textarea
+        value={newDescription}
+        onChange={(e) => setNewDescription(e.target.value)}
+        placeholder="Descrição do ministério (use Enter para 2 linhas no card)"
+        rows={2}
+      />
         <Input value={newDescription} onChange={(e) => setNewDescription(e.target.value)} placeholder="Breve descrição do ministério" />
         <Button variant="outline" size="sm" onClick={handleAdd} disabled={!newTitle.trim() || saving}>
           {saving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Plus className="w-4 h-4 mr-1" />}
