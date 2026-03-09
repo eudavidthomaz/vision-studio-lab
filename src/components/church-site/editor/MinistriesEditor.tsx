@@ -176,7 +176,7 @@ export function MinistriesEditor({ ministries, onAdd, onUpdate, onDelete, isLoad
         placeholder="Descrição do ministério (use Enter para 2 linhas no card)"
         rows={2}
       />
-        <Input value={newDescription} onChange={(e) => setNewDescription(e.target.value)} placeholder="Breve descrição do ministério" />
+        
         <Button variant="outline" size="sm" onClick={handleAdd} disabled={!newTitle.trim() || saving}>
           {saving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Plus className="w-4 h-4 mr-1" />}
           Adicionar ministério
