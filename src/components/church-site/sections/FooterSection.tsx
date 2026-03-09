@@ -1,11 +1,13 @@
 import React from "react";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
+import { StaticGridPattern } from "@/components/ui/static-grid-pattern";
 import { cn } from "@/lib/utils";
 import { Instagram, Youtube, MessageCircle, MapPin, Facebook } from "lucide-react";
 import type { ChurchSiteConfig } from "@/types/churchSite";
 
 interface FooterSectionProps {
   config: ChurchSiteConfig;
+  isPreview?: boolean;
 }
 
 export function FooterSection({ config }: FooterSectionProps) {
