@@ -24,6 +24,7 @@ import {
   ArrowLeft,
   Save,
   Smartphone,
+  Tablet,
   Monitor,
   ChevronDown,
   Palette,
