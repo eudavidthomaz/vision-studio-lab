@@ -115,29 +115,8 @@ export default function SiteEditor() {
     }
   }, [site, localConfig]);
 
-  // Sync ministries and events from site (they come from separate tables)
-  // Use ref-based comparison to prevent infinite re-render loops
-  const prevMinistriesRef = useRef<string>("");
-  const prevEventsRef = useRef<string>("");
-
-  useEffect(() => {
-    if (!site || !localConfig) return;
-    const ministriesKey = JSON.stringify(site.ministries.map(m => m.id + m.title + m.icon));
-    const eventsKey = JSON.stringify(site.events.map(e => e.id + e.title + e.date));
-
-    const ministriesChanged = ministriesKey !== prevMinistriesRef.current;
-    const eventsChanged = eventsKey !== prevEventsRef.current;
-
-    if (ministriesChanged || eventsChanged) {
-      prevMinistriesRef.current = ministriesKey;
-      prevEventsRef.current = eventsKey;
-      setLocalConfig(prev => prev ? {
-        ...prev,
-        ministries: site.ministries,
-        events: site.events,
-      } : prev);
-    }
-  }, [site?.ministries, site?.events]);
+  // Debounced config for preview — prevents re-render on every keystroke
+  const previewConfig = useDebounce(localConfig, 300);
 
   // Auth check
   useEffect(() => {
