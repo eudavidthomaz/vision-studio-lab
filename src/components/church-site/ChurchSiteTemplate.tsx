@@ -159,8 +159,8 @@ function ChurchSiteTemplateInner({ config, isPreview = false }: ChurchSiteTempla
         <TabsContent value="sobre" className="mt-0 outline-none">
           <TabContentWrapper isPreview={isPreview} tabKey="sobre">
             <GridPattern isPreview={isPreview} className={gridClass} />
-            {sectionsVisibility.about && <AboutSection config={config} />}
-            {sectionsVisibility.ministries && <MinistriesSection config={config} />}
+            {sectionsVisibility.about && <AboutSection config={config} isPreview={isPreview} />}
+            {sectionsVisibility.ministries && <MinistriesSection config={config} isPreview={isPreview} />}
           </TabContentWrapper>
         </TabsContent>
 
