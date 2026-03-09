@@ -23,7 +23,8 @@ interface ScheduleSectionProps {
 }
 
 export function ScheduleSection({ config }: ScheduleSectionProps) {
-  const { schedule, contact } = config;
+  const { schedule, contact, sectionTitles } = config;
+  const titles = sectionTitles?.schedule;
 
   if (schedule.length === 0 && !contact.address) return null;
 
