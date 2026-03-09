@@ -117,6 +117,7 @@ export interface ChurchSiteSectionTitle {
 
 export interface ChurchSiteSectionTitles {
   firstTime: ChurchSiteSectionTitle;
+  schedule: ChurchSiteSectionTitle;
   about: ChurchSiteSectionTitle;
   ministries: ChurchSiteSectionTitle;
   media: ChurchSiteSectionTitle;
