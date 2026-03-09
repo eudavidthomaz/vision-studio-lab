@@ -1,6 +1,23 @@
-
-
 # Plano: Feature "Site da Igreja" — Template Multi-Tenant
+
+## Status de Implementação
+
+| # | Tarefa | Status |
+|---|--------|--------|
+| 1 | Criar tabela `church_sites` + RLS | ✅ Concluído |
+| 2 | Criar tabelas auxiliares (`events`, `ministries`) | ✅ Concluído |
+| 3 | Criar tipos TypeScript (`src/types/churchSite.ts`) | ✅ Concluído |
+| 4 | Criar hook `useChurchSite` | ✅ Concluído |
+| 5 | Refatorar Bio.tsx → seções isoladas | 🔲 Pendente |
+| 6 | Criar `ChurchSiteTemplate.tsx` | 🔲 Pendente |
+| 7 | Criar página pública `/igreja/:slug` | 🔲 Pendente |
+| 8 | Criar página `/sites` (listagem) | 🔲 Pendente |
+| 9 | Criar editor com preview | 🔲 Pendente |
+| 10 | Implementar auto-save | 🔲 Pendente |
+| 11 | Sistema de publicação com validação de slug | 🔲 Pendente |
+| 12 | Adicionar rotas no App.tsx | 🔲 Pendente |
+
+---
 
 ## Visão Geral
 
@@ -31,9 +48,9 @@ Transformar a página `/bio` atual em um **produto SaaS escalável** onde cada u
 
 ---
 
-## Fase 1: Infraestrutura de Dados
+## Fase 1: Infraestrutura de Dados ✅
 
-### Tabela `church_sites`
+### Tabela `church_sites` ✅
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
@@ -55,16 +72,21 @@ Transformar a página `/bio` atual em um **produto SaaS escalável** onde cada u
 | `seo` | jsonb | Title, description, og_image |
 | `created_at` / `updated_at` | timestamp | Controle |
 
-### Tabelas Auxiliares
+### Tabelas Auxiliares ✅
 
 - **`church_site_events`**: `id, site_id, title, date, time, tag, order`
 - **`church_site_ministries`**: `id, site_id, title, description, icon, order`
 
-### RLS Policies
+### RLS Policies ✅
 
 - SELECT/UPDATE/DELETE: `auth.uid() = user_id`
 - INSERT: `auth.uid() = user_id`
 - SELECT público: `is_published = true` (para renderização da página pública)
+
+### Função de Validação de Slug ✅
+
+- `is_slug_reserved(slug)` - Verifica slugs reservados
+- Trigger `check_slug_not_reserved` - Impede uso de slugs reservados
 
 ---
 
@@ -102,9 +124,9 @@ src/
 │   ├── SiteEditor.tsx                ← Editor com preview
 │   └── ChurchSite.tsx                ← /igreja/:slug (público)
 ├── hooks/
-│   └── useChurchSite.tsx             ← CRUD do site
+│   └── useChurchSite.tsx             ← CRUD do site ✅
 └── types/
-    └── churchSite.ts                 ← Tipagem TypeScript
+    └── churchSite.ts                 ← Tipagem TypeScript ✅
 ```
 
 ### Transformação do Bio.tsx
@@ -156,7 +178,7 @@ O arquivo atual `Bio.tsx` será congelado como referência. O novo `ChurchSiteTe
 5. `is_published = true`
 6. Site acessível em `/igreja/:slug`
 
-### Validação de Slug
+### Validação de Slug ✅
 
 - Lowercase, sem espaços
 - Apenas letras, números, hífens
@@ -178,123 +200,10 @@ Rota Pública:
 
 ---
 
-## Detalhes Técnicos
+## Próximos Passos
 
-### TypeScript Interfaces
-
-```typescript
-interface ChurchSiteConfig {
-  id: string;
-  slug: string;
-  isPublished: boolean;
-  branding: {
-    name: string;
-    tagline: string;
-    logoUrl?: string;
-    primaryColor: string;
-    secondaryColor: string;
-  };
-  contact: {
-    whatsapp: string;
-    email: string;
-    address: string;
-    mapsUrl: string;
-  };
-  socialLinks: {
-    instagram?: string;
-    youtube?: string;
-    facebook?: string;
-  };
-  hero: {
-    title: string;
-    subtitle: string;
-    coverImageUrl?: string;
-    showVisitButton: boolean;
-    showMapButton: boolean;
-    showYoutubeButton: boolean;
-    showWhatsappButton: boolean;
-  };
-  schedule: Array<{ day: string; times: string[] }>;
-  faq: Array<{ question: string; answer: string }>;
-  about: {
-    description: string;
-    values: Array<{ icon: string; title: string; content: string }>;
-  };
-  ministries: Array<{ id: string; title: string; description: string[]; icon: string }>;
-  events: Array<{ date: string; title: string; time: string; tag: string }>;
-  media: {
-    youtubeEmbedUrl?: string;
-    youtubeChannelUrl?: string;
-  };
-  giving: {
-    description: string;
-    pixKey?: string;
-    showSection: boolean;
-  };
-  sectionsVisibility: {
-    hero: boolean;
-    firstTime: boolean;
-    schedule: boolean;
-    about: boolean;
-    ministries: boolean;
-    media: boolean;
-    events: boolean;
-    prayer: boolean;
-    contact: boolean;
-    giving: boolean;
-  };
-  themeConfig: {
-    defaultMode: 'light' | 'dark';
-    allowToggle: boolean;
-  };
-  seo: {
-    title: string;
-    description: string;
-    ogImageUrl?: string;
-  };
-}
-```
-
----
-
-## Ordem de Implementação
-
-| # | Tarefa | Dependência |
-|---|--------|-------------|
-| 1 | Criar tabela `church_sites` + RLS | — |
-| 2 | Criar tabelas auxiliares (`events`, `ministries`) | 1 |
-| 3 | Criar tipos TypeScript | 1 |
-| 4 | Criar hook `useChurchSite` | 1, 3 |
-| 5 | Refatorar Bio.tsx → seções isoladas | 3 |
-| 6 | Criar `ChurchSiteTemplate.tsx` | 5 |
-| 7 | Criar página pública `/igreja/:slug` | 6 |
-| 8 | Criar página `/sites` (listagem) | 4 |
-| 9 | Criar editor com preview | 4, 6 |
-| 10 | Implementar auto-save | 9 |
-| 11 | Sistema de publicação com validação de slug | 9 |
-| 12 | Adicionar rotas no App.tsx | 7, 8, 9 |
-
----
-
-## Considerações de Segurança
-
-1. **RLS rigoroso**: Cada usuário só acessa seu próprio site
-2. **Validação de slug**: Server-side para evitar colisões
-3. **Sanitização**: XSS protection em campos de texto
-4. **Rate limiting**: Para criação de sites
-5. **Isolamento de tema**: Página pública não afeta app interno
-
----
-
-## Preparação Antes da Implementação
-
-Antes de começar a codar, precisamos:
-
-1. ✅ Congelar `/bio` como template de referência
-2. ✅ Criar migration para tabelas
-3. ✅ Definir schema JSON completo
-4. ✅ Criar tipos TypeScript
-5. ✅ Estruturar pastas de componentes
-
-**Pronto para iniciar?**
-
+1. **Refatorar Bio.tsx** → Extrair seções para componentes isolados
+2. **Criar ChurchSiteTemplate.tsx** → Template data-driven
+3. **Criar página /igreja/:slug** → Rota pública
+4. **Criar página /sites** → Listagem e criação
+5. **Criar editor** → Painel de edição com preview
