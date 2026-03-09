@@ -5,7 +5,7 @@ import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { MapPin, Clock, Youtube, MessageCircle } from "lucide-react";
+import { MapPin, Clock, Youtube, MessageCircle, ImageIcon } from "lucide-react";
 import type { ChurchSiteConfig } from "@/types/churchSite";
 
 interface HeroSectionProps {
@@ -15,7 +15,6 @@ interface HeroSectionProps {
 export function HeroSection({ config }: HeroSectionProps) {
   const { branding, hero, contact, socialLinks, schedule } = config;
 
-  // Format schedule for display
   const scheduleText = schedule
     .map((s) => `${s.day} ${s.times.join(" e ")}`)
     .join(" · ");
@@ -35,6 +34,15 @@ export function HeroSection({ config }: HeroSectionProps) {
       <ContainerScrollHero
         titleComponent={
           <div className="flex flex-col items-center gap-3 sm:gap-4 px-4">
+            {/* Church Logo */}
+            {branding.logoUrl && (
+              <img
+                src={branding.logoUrl}
+                alt={`Logo ${branding.name}`}
+                className="w-16 h-16 sm:w-20 sm:h-20 object-contain rounded-xl"
+              />
+            )}
+
             <span className="text-xs sm:text-sm text-muted-foreground uppercase tracking-[0.2em] font-medium">
               {hero.welcomeLabel || 'Bem-vindo'}
             </span>
@@ -116,8 +124,9 @@ export function HeroSection({ config }: HeroSectionProps) {
             className="w-full h-full object-cover rounded-2xl"
           />
         ) : (
-          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-            <span className="text-4xl font-bold text-primary/30">{branding.name}</span>
+          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 flex flex-col items-center justify-center gap-3">
+            <ImageIcon className="w-12 h-12 text-muted-foreground/30" />
+            <span className="text-sm text-muted-foreground/40">Adicione um vídeo ou imagem de capa</span>
           </div>
         )}
       </ContainerScrollHero>

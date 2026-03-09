@@ -11,7 +11,6 @@ interface FooterSectionProps {
 export function FooterSection({ config }: FooterSectionProps) {
   const { branding, contact, socialLinks, schedule } = config;
 
-  // Format schedule for display
   const scheduleText = schedule
     .map((s) => `${s.day} ${s.times.join(" e ")}`)
     .join(" · ");
@@ -36,10 +35,20 @@ export function FooterSection({ config }: FooterSectionProps) {
       />
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 max-w-4xl mx-auto">
-          <div className="text-center md:text-left">
-            <h3 className="font-bold text-foreground text-base sm:text-lg mb-2">{branding.name}</h3>
+          <div className="text-center md:text-left flex flex-col items-center md:items-start gap-2">
+            {/* Church Logo + Name */}
+            <div className="flex items-center gap-3">
+              {branding.logoUrl && (
+                <img
+                  src={branding.logoUrl}
+                  alt={`Logo ${branding.name}`}
+                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-lg"
+                />
+              )}
+              <h3 className="font-bold text-foreground text-base sm:text-lg">{branding.name}</h3>
+            </div>
             {contact.address && (
-              <p className="text-muted-foreground text-xs sm:text-sm mb-1">{contact.address}</p>
+              <p className="text-muted-foreground text-xs sm:text-sm">{contact.address}</p>
             )}
             {scheduleText && (
               <p className="text-muted-foreground text-xs sm:text-sm">{scheduleText}</p>
