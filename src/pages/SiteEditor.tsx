@@ -579,7 +579,7 @@ export default function SiteEditor() {
                 </EditorSection>
 
                 {/* Social Links */}
-                <EditorSection title="Redes Sociais" icon={<Globe className="w-4 h-4 text-primary" />}>
+                <EditorSection title="Redes Sociais" icon={<Share2 className="w-4 h-4 text-primary" />}>
                   <div className="space-y-3">
                     <div>
                       <Label>Instagram</Label>
