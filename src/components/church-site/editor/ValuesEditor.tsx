@@ -105,7 +105,7 @@ export function ValuesEditor({ values, onChange }: ValuesEditorProps) {
 
       {values.length === 0 && (
         <p className="text-xs text-muted-foreground text-center py-2">
-          Adicione os valores/pilares da sua igreja (ex: Palavra, Comunhão, Missão).
+          Descreva a identidade da sua igreja: missão, visão, valores e crenças.
         </p>
       )}
     </div>

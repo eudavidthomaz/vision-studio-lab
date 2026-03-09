@@ -462,7 +462,7 @@ export default function SiteEditor() {
                       />
                     </div>
                     <div>
-                      <Label className="mb-2 block">Valores / Pilares</Label>
+                      <Label className="mb-2 block">Identidade da Igreja (Missão, Visão, Valores)</Label>
                       <ValuesEditor
                         values={localConfig.about.values}
                         onChange={(values) => updateNestedConfig("about", "values", values)}

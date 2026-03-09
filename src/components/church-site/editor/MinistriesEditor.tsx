@@ -213,9 +213,14 @@ function MinistryEditForm({
         <IconPickerButton value={icon} onChange={setIcon} />
         <Input value={title} onChange={(e) => setTitle(e.target.value)} className="flex-1 font-medium" />
       </div>
-      <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrição" />
+      <Textarea
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        placeholder="Descrição (use Enter para 2 linhas)"
+        rows={2}
+      />
       <div className="flex gap-2">
-        <Button size="sm" onClick={() => onSave({ title, description: description.trim() ? [description.trim()] : [], icon })} disabled={saving}>
+        <Button size="sm" onClick={() => onSave({ title, description: description.trim() ? description.trim().split("\n").filter(Boolean) : [], icon })} disabled={saving}>
           {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null} Salvar
         </Button>
         <Button size="sm" variant="ghost" onClick={onCancel}>Cancelar</Button>
