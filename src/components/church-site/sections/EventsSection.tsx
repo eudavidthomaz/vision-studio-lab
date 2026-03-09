@@ -22,6 +22,7 @@ const stagger = {
 
 interface EventsSectionProps {
   config: ChurchSiteConfig;
+  isPreview?: boolean;
 }
 
 function formatEventDate(dateStr: string): { day: string; month: string } {
