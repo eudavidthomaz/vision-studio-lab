@@ -14,6 +14,154 @@ export type Database = {
   }
   public: {
     Tables: {
+      church_site_events: {
+        Row: {
+          created_at: string | null
+          event_date: string
+          event_time: string | null
+          id: string
+          site_id: string
+          sort_order: number | null
+          tag: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_date: string
+          event_time?: string | null
+          id?: string
+          site_id: string
+          sort_order?: number | null
+          tag?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_date?: string
+          event_time?: string | null
+          id?: string
+          site_id?: string
+          sort_order?: number | null
+          tag?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "church_site_events_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "church_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      church_site_ministries: {
+        Row: {
+          created_at: string | null
+          description: string[] | null
+          icon: string | null
+          id: string
+          site_id: string
+          sort_order: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string[] | null
+          icon?: string | null
+          id?: string
+          site_id: string
+          sort_order?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string[] | null
+          icon?: string | null
+          id?: string
+          site_id?: string
+          sort_order?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "church_site_ministries_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "church_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      church_sites: {
+        Row: {
+          about: Json | null
+          branding: Json | null
+          contact: Json | null
+          created_at: string | null
+          faq: Json | null
+          giving: Json | null
+          hero: Json | null
+          id: string
+          is_published: boolean | null
+          media: Json | null
+          schedule: Json | null
+          sections_visibility: Json | null
+          seo: Json | null
+          slug: string
+          social_links: Json | null
+          theme_config: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          about?: Json | null
+          branding?: Json | null
+          contact?: Json | null
+          created_at?: string | null
+          faq?: Json | null
+          giving?: Json | null
+          hero?: Json | null
+          id?: string
+          is_published?: boolean | null
+          media?: Json | null
+          schedule?: Json | null
+          sections_visibility?: Json | null
+          seo?: Json | null
+          slug: string
+          social_links?: Json | null
+          theme_config?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          about?: Json | null
+          branding?: Json | null
+          contact?: Json | null
+          created_at?: string | null
+          faq?: Json | null
+          giving?: Json | null
+          hero?: Json | null
+          id?: string
+          is_published?: boolean | null
+          media?: Json | null
+          schedule?: Json | null
+          sections_visibility?: Json | null
+          seo?: Json | null
+          slug?: string
+          social_links?: Json | null
+          theme_config?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       content_library: {
         Row: {
           content: Json
@@ -933,6 +1081,7 @@ export type Database = {
         Args: { _feature: string; _user_id: string }
         Returns: Json
       }
+      is_slug_reserved: { Args: { check_slug: string }; Returns: boolean }
       reset_monthly_quotas: { Args: never; Returns: undefined }
       search_content_by_tags: {
         Args: { _tags: string[]; _user_id: string }
