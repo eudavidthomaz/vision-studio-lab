@@ -65,7 +65,7 @@ export function EventsSection({ config, isPreview = false }: EventsSectionProps)
             return (
               <motion.div
                 key={event.id || i}
-                variants={fadeIn}
+                variants={isPreview ? undefined : fadeIn}
                 className="snap-center flex-shrink-0 w-[260px] sm:w-[280px] md:w-auto"
               >
                 <Card className="p-5 sm:p-6 h-full">
