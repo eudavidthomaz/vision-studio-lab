@@ -216,28 +216,12 @@ export default function SiteEditor() {
     setHasChanges(true);
   }, []);
 
-  if (!user) return null;
-
-  if (isLoading || !localConfig) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="space-y-4 text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">Carregando editor...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Memoize preview to prevent re-renders on every keystroke
   const MemoizedChurchSiteTemplate = useMemo(() => React.memo(ChurchSiteTemplate), []);
 
-  if (!site) {
-    navigate("/sites");
-    return null;
-  }
+  if (!user) return null;
 
-  if (!localConfig) {
+  if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="space-y-4 text-center">
@@ -246,6 +230,11 @@ export default function SiteEditor() {
         </div>
       </div>
     );
+  }
+
+  if (!site || !localConfig) {
+    navigate("/sites");
+    return null;
   }
 
   return (
