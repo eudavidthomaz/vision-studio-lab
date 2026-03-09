@@ -110,6 +110,23 @@ export interface ChurchSiteSeo {
   ogImageUrl?: string | null;
 }
 
+// NEW: Section Titles Configuration
+export interface ChurchSiteSectionTitle {
+  title: string;
+  subtitle: string;
+}
+
+export interface ChurchSiteSectionTitles {
+  firstTime: ChurchSiteSectionTitle;
+  about: ChurchSiteSectionTitle;
+  ministries: ChurchSiteSectionTitle;
+  media: ChurchSiteSectionTitle;
+  events: ChurchSiteSectionTitle;
+  prayer: ChurchSiteSectionTitle;
+  contact: ChurchSiteSectionTitle;
+  giving: ChurchSiteSectionTitle;
+}
+
 // ---------------------
 // Main Interface
 // ---------------------
@@ -133,6 +150,7 @@ export interface ChurchSiteConfig {
   sectionsVisibility: ChurchSiteSectionsVisibility;
   themeConfig: ChurchSiteThemeConfig;
   seo: ChurchSiteSeo;
+  sectionTitles: ChurchSiteSectionTitles;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -158,6 +176,7 @@ export interface ChurchSiteRow {
   sections_visibility: ChurchSiteSectionsVisibility;
   theme_config: ChurchSiteThemeConfig;
   seo: ChurchSiteSeo;
+  section_titles?: ChurchSiteSectionTitles;
   created_at: string;
   updated_at: string;
 }
@@ -237,6 +256,41 @@ export const DEFAULT_SEO: ChurchSiteSeo = {
   ogImageUrl: null,
 };
 
+export const DEFAULT_SECTION_TITLES: ChurchSiteSectionTitles = {
+  firstTime: {
+    title: 'É sua primeira vez por aqui?',
+    subtitle: 'Queremos tornar sua visita leve, simples e acolhedora. Aqui você encontra uma comunidade que ama a Deus, ama pessoas e deseja caminhar com você.',
+  },
+  about: {
+    title: 'Quem somos',
+    subtitle: 'Somos uma igreja comprometida com o evangelho de Jesus, com a centralidade da Palavra e com uma vida cristã vivida em comunidade.',
+  },
+  ministries: {
+    title: 'Há um lugar para você aqui',
+    subtitle: 'A vida da igreja acontece de muitas formas ao longo da semana.',
+  },
+  media: {
+    title: 'Assista e conheça mais',
+    subtitle: 'Acompanhe nossas mensagens, cultos e conteúdos para conhecer melhor a visão da igreja.',
+  },
+  events: {
+    title: 'Próximos encontros',
+    subtitle: 'Fique por dentro dos próximos cultos e eventos especiais.',
+  },
+  prayer: {
+    title: 'Podemos orar por você?',
+    subtitle: 'Você não precisa caminhar sozinho. Envie seu pedido de oração. Nossa equipe terá alegria em interceder pela sua vida.',
+  },
+  contact: {
+    title: 'Fale com a gente',
+    subtitle: 'Estamos aqui para ajudar você.',
+  },
+  giving: {
+    title: 'Dízimos e ofertas',
+    subtitle: 'Sua generosidade coopera com a missão, o cuidado com pessoas e o avanço da obra de Deus.',
+  },
+};
+
 // ---------------------
 // Transform Functions
 // ---------------------
@@ -261,6 +315,7 @@ export function transformRowToConfig(row: ChurchSiteRow, ministries: ChurchSiteM
     sectionsVisibility: row.sections_visibility ?? DEFAULT_SECTIONS_VISIBILITY,
     themeConfig: row.theme_config ?? DEFAULT_THEME_CONFIG,
     seo: row.seo ?? DEFAULT_SEO,
+    sectionTitles: row.section_titles ?? DEFAULT_SECTION_TITLES,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -283,6 +338,7 @@ export function transformConfigToRow(config: Partial<ChurchSiteConfig>): Partial
   if (config.sectionsVisibility !== undefined) row.sections_visibility = config.sectionsVisibility;
   if (config.themeConfig !== undefined) row.theme_config = config.themeConfig;
   if (config.seo !== undefined) row.seo = config.seo;
+  if (config.sectionTitles !== undefined) row.section_titles = config.sectionTitles;
   
   return row;
 }

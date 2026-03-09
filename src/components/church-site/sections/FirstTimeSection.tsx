@@ -29,7 +29,8 @@ interface FirstTimeSectionProps {
 }
 
 export function FirstTimeSection({ config }: FirstTimeSectionProps) {
-  const { faq, contact } = config;
+  const { faq, contact, sectionTitles } = config;
+  const titles = sectionTitles?.firstTime;
 
   if (faq.length === 0) return null;
 
@@ -38,10 +39,10 @@ export function FirstTimeSection({ config }: FirstTimeSectionProps) {
       <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
         <motion.div variants={fadeIn} className="text-center mb-10 md:mb-14">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
-            É sua primeira vez por aqui?
+            {titles?.title || "É sua primeira vez por aqui?"}
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            Queremos tornar sua visita leve, simples e acolhedora. Aqui você encontra uma comunidade que ama a Deus, ama pessoas e deseja caminhar com você.
+            {titles?.subtitle || "Queremos tornar sua visita leve, simples e acolhedora. Aqui você encontra uma comunidade que ama a Deus, ama pessoas e deseja caminhar com você."}
           </p>
         </motion.div>
 

@@ -24,9 +24,15 @@ interface PrayerSectionProps {
 }
 
 export function PrayerSection({ config }: PrayerSectionProps) {
-  const { contact } = config;
+  const { contact, sectionTitles } = config;
+  const titles = sectionTitles?.prayer;
 
   if (!contact.whatsapp) return null;
+
+  // Split subtitle into two parts if it contains a period
+  const subtitleParts = (titles?.subtitle || "Você não precisa caminhar sozinho. Envie seu pedido de oração. Nossa equipe terá alegria em interceder pela sua vida.").split(". ");
+  const firstPart = subtitleParts[0] ? subtitleParts[0] + "." : "";
+  const secondPart = subtitleParts.slice(1).join(". ");
 
   return (
     <section className="container mx-auto px-4 py-12 md:py-20">
@@ -51,14 +57,19 @@ export function PrayerSection({ config }: PrayerSectionProps) {
                 </div>
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
-                Podemos orar por você?
+                {titles?.title || "Podemos orar por você?"}
               </h2>
-              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-2">
-                Você não precisa caminhar sozinho.
-              </p>
-              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-8">
-                Envie seu pedido de oração. Nossa equipe terá alegria em interceder pela sua vida.
-              </p>
+              {firstPart && (
+                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-2">
+                  {firstPart}
+                </p>
+              )}
+              {secondPart && (
+                <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-8">
+                  {secondPart}
+                </p>
+              )}
+              {!secondPart && firstPart && <div className="mb-8" />}
               <Button variant="solid" asChild className="min-h-[48px]">
                 <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer">
                   <Heart className="w-4 h-4" /> Enviar pedido de oração

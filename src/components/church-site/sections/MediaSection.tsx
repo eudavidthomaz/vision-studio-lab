@@ -23,7 +23,8 @@ interface MediaSectionProps {
 }
 
 export function MediaSection({ config }: MediaSectionProps) {
-  const { media, socialLinks, branding } = config;
+  const { media, socialLinks, branding, sectionTitles } = config;
+  const titles = sectionTitles?.media;
 
   if (!media.youtubeEmbedUrl && !socialLinks.youtube) return null;
 
@@ -32,10 +33,10 @@ export function MediaSection({ config }: MediaSectionProps) {
       <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
         <motion.div variants={fadeIn} className="text-center mb-10 md:mb-14">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
-            Assista e conheça mais
+            {titles?.title || "Assista e conheça mais"}
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            Acompanhe nossas mensagens, cultos e conteúdos para conhecer melhor a visão da igreja.
+            {titles?.subtitle || "Acompanhe nossas mensagens, cultos e conteúdos para conhecer melhor a visão da igreja."}
           </p>
         </motion.div>
 

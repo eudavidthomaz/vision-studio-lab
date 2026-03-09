@@ -37,7 +37,8 @@ function formatEventDate(dateStr: string): { day: string; month: string } {
 }
 
 export function EventsSection({ config }: EventsSectionProps) {
-  const { events } = config;
+  const { events, sectionTitles } = config;
+  const titles = sectionTitles?.events;
 
   if (events.length === 0) return null;
 
@@ -46,10 +47,10 @@ export function EventsSection({ config }: EventsSectionProps) {
       <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
         <motion.div variants={fadeIn} className="text-center mb-10 md:mb-14">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
-            Próximos encontros
+            {titles?.title || "Próximos encontros"}
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            Fique por dentro dos próximos cultos e eventos especiais.
+            {titles?.subtitle || "Fique por dentro dos próximos cultos e eventos especiais."}
           </p>
         </motion.div>
 
