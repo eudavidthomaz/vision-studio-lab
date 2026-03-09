@@ -105,7 +105,6 @@ export default function SiteEditor() {
     addEvent,
     updateEvent,
     deleteEvent,
-    refetch,
   } = useChurchSite();
 
   // Initialize local config from site
