@@ -150,8 +150,8 @@ function ChurchSiteTemplateInner({ config, isPreview = false }: ChurchSiteTempla
         <TabsContent value="inicio" className="mt-0 outline-none">
           <TabContentWrapper isPreview={isPreview} tabKey="inicio">
             <GridPattern isPreview={isPreview} className={gridClass} />
-            {sectionsVisibility.firstTime && <FirstTimeSection config={config} />}
-            {sectionsVisibility.schedule && <ScheduleSection config={config} />}
+            {sectionsVisibility.firstTime && <FirstTimeSection config={config} isPreview={isPreview} />}
+            {sectionsVisibility.schedule && <ScheduleSection config={config} isPreview={isPreview} />}
           </TabContentWrapper>
         </TabsContent>
 
