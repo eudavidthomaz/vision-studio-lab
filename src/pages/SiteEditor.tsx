@@ -138,23 +138,24 @@ export default function SiteEditor() {
     setHasChanges(true);
   }, []);
 
-  const updateNestedConfig = useCallback(<
-    K extends keyof ChurchSiteConfig,
-    NK extends keyof ChurchSiteConfig[K]
-  >(
-    key: K,
-    nestedKey: NK,
-    value: ChurchSiteConfig[K][NK]
+  const updateNestedConfig = useCallback((
+    key: keyof ChurchSiteConfig,
+    nestedKey: string,
+    value: unknown
   ) => {
     setLocalConfig((prev) => {
       if (!prev) return prev;
-      return {
-        ...prev,
-        [key]: {
-          ...prev[key],
-          [nestedKey]: value,
-        },
-      };
+      const existing = prev[key];
+      if (typeof existing === "object" && existing !== null && !Array.isArray(existing)) {
+        return {
+          ...prev,
+          [key]: {
+            ...(existing as Record<string, unknown>),
+            [nestedKey]: value,
+          },
+        };
+      }
+      return prev;
     });
     setHasChanges(true);
   }, []);
