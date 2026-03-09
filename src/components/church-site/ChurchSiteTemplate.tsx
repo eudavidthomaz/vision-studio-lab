@@ -168,8 +168,8 @@ function ChurchSiteTemplateInner({ config, isPreview = false }: ChurchSiteTempla
         <TabsContent value="midia" className="mt-0 outline-none">
           <TabContentWrapper isPreview={isPreview} tabKey="midia">
             <GridPattern isPreview={isPreview} className={gridClass} />
-            {sectionsVisibility.media && <MediaSection config={config} />}
-            {sectionsVisibility.events && <EventsSection config={config} />}
+            {sectionsVisibility.media && <MediaSection config={config} isPreview={isPreview} />}
+            {sectionsVisibility.events && <EventsSection config={config} isPreview={isPreview} />}
           </TabContentWrapper>
         </TabsContent>
 
