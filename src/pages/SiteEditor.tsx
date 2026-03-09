@@ -55,6 +55,7 @@ import { ValuesEditor } from "@/components/church-site/editor/ValuesEditor";
 import { MinistriesEditor } from "@/components/church-site/editor/MinistriesEditor";
 import { EventsEditor } from "@/components/church-site/editor/EventsEditor";
 import { ImageUpload } from "@/components/church-site/editor/ImageUpload";
+import { SectionTitlesEditor } from "@/components/church-site/editor/SectionTitlesEditor";
 
 // Editor section component
 interface EditorSectionProps {
