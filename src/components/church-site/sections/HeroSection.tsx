@@ -50,7 +50,7 @@ export function HeroSection({ config }: HeroSectionProps) {
               {hero.title || branding.name}
             </h1>
             <p className="text-muted-foreground text-xs sm:text-sm md:text-base max-w-md text-center leading-relaxed">
-              {hero.subtitle || branding.tagline}
+              {hero.subtitle}
             </p>
 
             {schedule.length > 0 && (

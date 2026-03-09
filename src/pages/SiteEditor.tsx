@@ -317,14 +317,6 @@ export default function SiteEditor() {
                         Usado no rodapé, SEO e identificação da marca
                       </p>
                     </div>
-                    <div>
-                      <Label>Slogan / Tagline</Label>
-                      <Input
-                        value={localConfig.branding.tagline}
-                        onChange={(e) => updateNestedConfig("branding", "tagline", e.target.value)}
-                        placeholder="Um lugar de fé e comunhão"
-                      />
-                    </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label>Cor Primária</Label>
