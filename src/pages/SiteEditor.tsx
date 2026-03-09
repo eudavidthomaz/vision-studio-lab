@@ -44,6 +44,8 @@ import {
   Heart,
   CalendarDays,
   Share2,
+  Eye,
+  PenLine,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
