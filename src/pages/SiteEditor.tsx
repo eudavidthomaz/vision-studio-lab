@@ -170,7 +170,6 @@ export default function SiteEditor() {
     try {
       await updateSite.mutateAsync({ id: currentSite.id, updates: currentConfig });
       setHasChanges(false);
-      toast.success("Alterações salvas");
     } catch (error) {
       toast.error("Erro ao salvar");
     } finally {
