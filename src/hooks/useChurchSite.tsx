@@ -18,6 +18,7 @@ import {
   DEFAULT_SECTIONS_VISIBILITY,
   DEFAULT_THEME_CONFIG,
   DEFAULT_SEO,
+  DEFAULT_SECTION_TITLES,
   generateSlugFromName,
 } from '@/types/churchSite';
 import type { Json } from '@/integrations/supabase/types';
