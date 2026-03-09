@@ -120,7 +120,7 @@ export function ChurchSiteTemplate({ config, isPreview = false }: ChurchSiteTemp
                 duration={4}
                 className={cn(
                   "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
-                  "fill-primary/10 stroke-primary/10"
+                  "fill-church-primary/10 stroke-church-primary/10"
                 )}
               />
               {sectionsVisibility.about && <AboutSection config={config} />}
