@@ -29,9 +29,7 @@ export function PrayerSection({ config }: PrayerSectionProps) {
 
   if (!contact.whatsapp) return null;
 
-  const subtitleParts = (titles?.subtitle || "Você não precisa caminhar sozinho. Envie seu pedido de oração. Nossa equipe terá alegria em interceder pela sua vida.").split(". ");
-  const firstPart = subtitleParts[0] ? subtitleParts[0] + "." : "";
-  const secondPart = subtitleParts.slice(1).join(". ");
+  const subtitle = titles?.subtitle || "Você não precisa caminhar sozinho. Envie seu pedido de oração. Nossa equipe terá alegria em interceder pela sua vida.";
 
   return (
     <section className="container mx-auto px-4 py-12 md:py-20">
