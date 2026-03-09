@@ -474,7 +474,6 @@ export default function SiteEditor() {
                 <EditorSection title="Ministérios" icon={<Heart className="w-4 h-4 text-primary" />}>
                   <MinistriesEditor
                     ministries={localConfig.ministries}
-                    siteId={site.id}
                     onAdd={async (ministry) => {
                       const result = await addMinistry.mutateAsync({ siteId: site.id, ministry });
                       setLocalConfig(prev => prev ? {
