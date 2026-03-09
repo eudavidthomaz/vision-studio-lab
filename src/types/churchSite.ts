@@ -224,7 +224,6 @@ export const DEFAULT_ABOUT: ChurchSiteAbout = {
 
 export const DEFAULT_MEDIA: ChurchSiteMedia = {
   youtubeEmbedUrl: null,
-  youtubeChannelUrl: null,
 };
 
 export const DEFAULT_GIVING: ChurchSiteGiving = {
