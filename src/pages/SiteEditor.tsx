@@ -362,6 +362,14 @@ export default function SiteEditor() {
                       />
                     </div>
                     <div>
+                      <Label>Label de Boas-vindas</Label>
+                      <Input
+                        value={localConfig.hero.welcomeLabel}
+                        onChange={(e) => updateNestedConfig("hero", "welcomeLabel", e.target.value)}
+                        placeholder="Bem-vindo"
+                      />
+                    </div>
+                    <div>
                       <Label>Título Principal</Label>
                       <Input
                         value={localConfig.hero.title}
