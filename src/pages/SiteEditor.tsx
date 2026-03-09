@@ -711,6 +711,18 @@ export default function SiteEditor() {
                         rows={3}
                       />
                     </div>
+                    <div>
+                      <Label>Imagem de compartilhamento (og:image)</Label>
+                      <ImageUpload
+                        value={localConfig.seo.ogImageUrl}
+                        onChange={(url) => updateNestedConfig("seo", "ogImageUrl", url)}
+                        folder="og-images"
+                        label="og:image"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Imagem exibida ao compartilhar o link do site em redes sociais. Recomendado: 1200×630px.
+                      </p>
+                    </div>
                   </div>
                 </EditorSection>
               </div>

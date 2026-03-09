@@ -78,7 +78,6 @@ export interface ChurchSiteEvent {
 
 export interface ChurchSiteMedia {
   youtubeEmbedUrl?: string | null;
-  youtubeChannelUrl?: string | null;
 }
 
 export interface ChurchSiteGiving {
@@ -225,7 +224,6 @@ export const DEFAULT_ABOUT: ChurchSiteAbout = {
 
 export const DEFAULT_MEDIA: ChurchSiteMedia = {
   youtubeEmbedUrl: null,
-  youtubeChannelUrl: null,
 };
 
 export const DEFAULT_GIVING: ChurchSiteGiving = {
