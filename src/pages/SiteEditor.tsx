@@ -58,6 +58,15 @@ import { EventsEditor } from "@/components/church-site/editor/EventsEditor";
 import { ImageUpload } from "@/components/church-site/editor/ImageUpload";
 import { SectionTitlesEditor } from "@/components/church-site/editor/SectionTitlesEditor";
 
+const PREVIEW_BREAKPOINTS = [
+  { label: "Fluid",          width: 0,    icon: Monitor },
+  { label: "Desktop · 1280", width: 1280, icon: Monitor },
+  { label: "Laptop · 1024",  width: 1024, icon: Monitor },
+  { label: "Tablet · 768",   width: 768,  icon: Tablet },
+  { label: "Mobile · 640",   width: 640,  icon: Smartphone },
+  { label: "Mobile · 375",   width: 375,  icon: Smartphone },
+] as const;
+
 // Editor section component
 interface EditorSectionProps {
   title: string;
