@@ -763,13 +763,14 @@ export default function SiteEditor() {
 
           {/* Preview Panel */}
           <ResizablePanel defaultSize={65}>
-            <div className="h-full bg-muted/30 flex items-center justify-center p-4 overflow-hidden">
+            <div className="h-full bg-muted/30 flex items-start justify-center p-4 overflow-auto">
               <div
-                className={`bg-background rounded-lg shadow-2xl overflow-hidden transition-all duration-300 ${
-                  previewMode === "mobile"
-                    ? "w-[375px] h-[667px]"
-                    : "w-full h-full max-w-[1200px]"
-                }`}
+                className="bg-background rounded-lg shadow-2xl overflow-hidden transition-all duration-300 mx-auto"
+                style={{
+                  width: previewWidth === 0 ? '100%' : `${previewWidth}px`,
+                  maxWidth: '100%',
+                  height: previewWidth === 0 ? '100%' : '85vh',
+                }}
               >
                 <div className="h-full overflow-auto">
                   {previewConfig && <ChurchSiteTemplate config={previewConfig} isPreview />}
