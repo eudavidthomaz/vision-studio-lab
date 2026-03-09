@@ -1,209 +1,144 @@
-# Plano: Feature "Site da Igreja" — Template Multi-Tenant
 
-## Status de Implementação
 
-| # | Tarefa | Status |
-|---|--------|--------|
-| 1 | Criar tabela `church_sites` + RLS | ✅ Concluído |
-| 2 | Criar tabelas auxiliares (`events`, `ministries`) | ✅ Concluído |
-| 3 | Criar tipos TypeScript (`src/types/churchSite.ts`) | ✅ Concluído |
-| 4 | Criar hook `useChurchSite` | ✅ Concluído |
-| 5 | Refatorar Bio.tsx → seções isoladas | 🔲 Pendente |
-| 6 | Criar `ChurchSiteTemplate.tsx` | 🔲 Pendente |
-| 7 | Criar página pública `/igreja/:slug` | 🔲 Pendente |
-| 8 | Criar página `/sites` (listagem) | 🔲 Pendente |
-| 9 | Criar editor com preview | 🔲 Pendente |
-| 10 | Implementar auto-save | 🔲 Pendente |
-| 11 | Sistema de publicação com validação de slug | 🔲 Pendente |
-| 12 | Adicionar rotas no App.tsx | 🔲 Pendente |
+# Plano de Execução — Auditoria P0 a P3
+
+## P0 — Bugs Críticos
+
+### 1. FooterSection: adicionar `isPreview`
+**Arquivo:** `src/components/church-site/sections/FooterSection.tsx`
+- Aceitar `isPreview?: boolean` na interface
+- Quando `isPreview=true`: usar `StaticGridPattern` em vez de `AnimatedGridPattern`
+- Quando `isPreview=false`: manter `AnimatedGridPattern` intacto
+
+**Arquivo:** `src/components/church-site/ChurchSiteTemplate.tsx` L188
+- Passar `isPreview={isPreview}` para `<FooterSection>`
+
+### 2. Remover dead code
+**Arquivo:** `src/pages/SiteEditor.tsx`
+- L45: trocar import `Image` por `Share2` (será usado no P2 para o ícone de Redes Sociais)
+- L108: remover `refetch` do destructuring de `useChurchSite()`
+- L478: remover `siteId={site.id}` de `<MinistriesEditor>`
+- L513: remover `siteId={site.id}` de `<EventsEditor>`
+
+**Arquivo:** `src/components/church-site/editor/MinistriesEditor.tsx`
+- L57: remover `siteId: string` da interface
+- L64: remover `siteId` do destructuring
+
+**Arquivo:** `src/components/church-site/editor/EventsEditor.tsx`
+- L10: remover `siteId: string` da interface
+- L16: remover `siteId` do destructuring
 
 ---
 
-## Visão Geral
+## P1 — Performance do Preview
 
-Transformar a página `/bio` atual em um **produto SaaS escalável** onde cada usuário pode criar, editar e publicar seu próprio site de igreja através de um painel administrativo dentro do app.
+### 3. GlassCard: modo estático
+**Arquivo:** `src/components/ui/glass-card.tsx`
+- Adicionar prop `isStatic?: boolean`
+- Quando `isStatic=true`:
+  - Renderizar `<div>` em vez de `<motion.div>` / `<motion.button>`
+  - Não renderizar `SparklesCore`
+  - Não registrar `onMouseMove` / `onMouseEnter` / `onMouseLeave`
+  - Usar `bg-card` em vez de hardcoded `hsl(240 10% 5%)` (também corrige P2.8)
+  - Manter os gradients de glow como divs estáticos (opacidade fixa 0.7 / 0.65)
+  - Manter glass reflection como div estático
+- Quando `isStatic=false` (default): zero alterações
+
+### 4. Propagar `isPreview` para seções que usam GlassCard
+**Arquivos afetados (cada um recebe `isPreview?: boolean` na interface e passa `isStatic={isPreview}` para GlassCard):**
+- `FirstTimeSection.tsx` — 1 GlassCard
+- `ScheduleSection.tsx` — 2 GlassCards
+- `ContactSection.tsx` — até 4 GlassCards
+- `GivingSection.tsx` — 1 GlassCard
+- `PrayerSection.tsx` — 1 GlassCard + SparklesCore standalone (condicionar a `!isPreview`)
+
+**Arquivo:** `src/components/church-site/ChurchSiteTemplate.tsx`
+- Passar `isPreview={isPreview}` para: `FirstTimeSection`, `ScheduleSection`, `AboutSection`, `MinistriesSection`, `ContactSection`, `PrayerSection`, `GivingSection`
+
+### 5. AboutSection: desligar RadialOrbitalTimeline no preview
+**Arquivo:** `src/components/church-site/sections/AboutSection.tsx`
+- Aceitar `isPreview?: boolean`
+- Quando `isPreview=true`: renderizar valores como lista estática (cards simples com ícone + título + conteúdo) em vez de `RadialOrbitalTimeline`
+- Quando `isPreview=false`: manter `RadialOrbitalTimeline` intacto
+
+### 6. Seções com `motion.div whileInView`: bypass no preview
+Para cada seção que recebe `isPreview`, quando `isPreview=true`:
+- Substituir `initial="hidden" whileInView="visible"` por `initial="visible" animate="visible"` (renderiza imediatamente sem observer)
+- Alternativa mais simples: usar `initial={false}` que desabilita animação de entrada
 
 ---
 
-## Arquitetura Proposta
+## P2 — UX
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                        FRONTEND                                  │
-├─────────────────────────────────────────────────────────────────┤
-│  /sites              → Listagem + CTA criar site                │
-│  /sites/editor       → Painel de edição com preview             │
-│  /igreja/:slug       → Página pública (template renderizado)    │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       DATABASE                                   │
-├─────────────────────────────────────────────────────────────────┤
-│  church_sites        → Configuração completa do site            │
-│  church_site_events  → Agenda de eventos (1:N)                  │
-│  church_site_ministries → Ministérios (1:N)                     │
-└─────────────────────────────────────────────────────────────────┘
+### 7. Confirmação de exclusão para ministérios
+**Arquivo:** `src/components/church-site/editor/MinistriesEditor.tsx`
+- Importar `AlertDialog` do shadcn
+- Envolver botão de delete em `AlertDialog` com mensagem "Tem certeza que deseja excluir este ministério?"
+- Chamar `handleDelete` apenas no `onAction` do AlertDialog
+
+### 8. Confirmação de exclusão para eventos
+**Arquivo:** `src/components/church-site/editor/EventsEditor.tsx`
+- Mesma lógica do item 7
+
+### 9. Ícone duplicado na sidebar
+**Arquivo:** `src/pages/SiteEditor.tsx` L585
+- Trocar `<Globe className="w-4 h-4 text-primary" />` por `<Share2 className="w-4 h-4 text-primary" />` na seção "Redes Sociais"
+
+---
+
+## P3 — Limpeza Arquitetural
+
+### 10. updateMinistry: filtrar undefined
+**Arquivo:** `src/hooks/useChurchSite.tsx` L317-332
+- Construir objeto de update apenas com campos presentes (não `undefined`):
+```tsx
+const updatePayload: Record<string, unknown> = {};
+if (updates.title !== undefined) updatePayload.title = updates.title;
+if (updates.description !== undefined) updatePayload.description = updates.description;
+if (updates.icon !== undefined) updatePayload.icon = updates.icon;
+if (updates.sortOrder !== undefined) updatePayload.sort_order = updates.sortOrder;
+```
+- Mesma lógica para `updateEvent`
+
+### 11. Mover MinistryGlowCard
+- De `src/components/bio/MinistryGlowCard.tsx` para `src/components/church-site/MinistryGlowCard.tsx`
+- Atualizar import em `MinistriesSection.tsx` (L4)
+- Atualizar import em `Bio.tsx` (se referenciado)
+
+### 12. updateSite: filtrar ministries/events antes de transformConfigToRow
+**Arquivo:** `src/pages/SiteEditor.tsx` L150
+- Antes de chamar `updateSite.mutateAsync`, criar cópia do config sem `ministries` e `events`:
+```tsx
+const { ministries, events, ...siteConfig } = currentConfig;
+await updateSite.mutateAsync({ id: currentSite.id, updates: siteConfig });
 ```
 
 ---
 
-## Fase 1: Infraestrutura de Dados ✅
+## Arquivos Totais
 
-### Tabela `church_sites` ✅
+| Arquivo | Fase |
+|---------|------|
+| `FooterSection.tsx` | P0 |
+| `ChurchSiteTemplate.tsx` | P0 + P1 |
+| `SiteEditor.tsx` | P0 + P2 + P3 |
+| `MinistriesEditor.tsx` | P0 + P2 |
+| `EventsEditor.tsx` | P0 + P2 |
+| `glass-card.tsx` | P1 |
+| `FirstTimeSection.tsx` | P1 |
+| `ScheduleSection.tsx` | P1 |
+| `ContactSection.tsx` | P1 |
+| `GivingSection.tsx` | P1 |
+| `PrayerSection.tsx` | P1 |
+| `AboutSection.tsx` | P1 |
+| `useChurchSite.tsx` | P3 |
+| `MinistryGlowCard.tsx` | P3 (mover) |
+| `MinistriesSection.tsx` | P3 (update import) |
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `user_id` | uuid | FK → auth.users |
-| `slug` | text | Único, URL pública |
-| `is_published` | boolean | Se está visível |
-| `branding` | jsonb | Nome, tagline, logo_url, cores |
-| `contact` | jsonb | WhatsApp, email, endereço, maps_url |
-| `social_links` | jsonb | Instagram, YouTube, Facebook, etc. |
-| `hero` | jsonb | Título, subtítulo, imagem, botões ativos |
-| `about` | jsonb | Quem somos, valores (array de 3) |
-| `schedule` | jsonb | Horários dos cultos |
-| `faq` | jsonb | Perguntas frequentes (array) |
-| `media` | jsonb | YouTube embed, playlist |
-| `giving` | jsonb | PIX, instruções de oferta |
-| `sections_visibility` | jsonb | Toggles para cada seção |
-| `theme_config` | jsonb | Modo padrão (light/dark), cores |
-| `seo` | jsonb | Title, description, og_image |
-| `created_at` / `updated_at` | timestamp | Controle |
+## Garantias
 
-### Tabelas Auxiliares ✅
+- Zero alteração no site público (`isPreview=false` nunca muda)
+- GlassCard `isStatic` mantém mesma hierarquia HTML e classes visuais — só remove SparklesCore, motion e mouse tracking
+- AboutSection preview usa lista estática com mesmos dados — só remove RadialOrbitalTimeline
+- Delete confirmations seguem padrão existente do projeto (AlertDialog em Sites.tsx)
 
-- **`church_site_events`**: `id, site_id, title, date, time, tag, order`
-- **`church_site_ministries`**: `id, site_id, title, description, icon, order`
-
-### RLS Policies ✅
-
-- SELECT/UPDATE/DELETE: `auth.uid() = user_id`
-- INSERT: `auth.uid() = user_id`
-- SELECT público: `is_published = true` (para renderização da página pública)
-
-### Função de Validação de Slug ✅
-
-- `is_slug_reserved(slug)` - Verifica slugs reservados
-- Trigger `check_slug_not_reserved` - Impede uso de slugs reservados
-
----
-
-## Fase 2: Refatoração do Template
-
-### Estrutura de Arquivos
-
-```text
-src/
-├── components/
-│   └── church-site/
-│       ├── ChurchSiteTemplate.tsx    ← Template principal (recebe config)
-│       ├── sections/
-│       │   ├── HeroSection.tsx
-│       │   ├── FirstTimeSection.tsx
-│       │   ├── ScheduleSection.tsx
-│       │   ├── AboutSection.tsx
-│       │   ├── MinistriesSection.tsx
-│       │   ├── MediaSection.tsx
-│       │   ├── EventsSection.tsx
-│       │   ├── PrayerSection.tsx
-│       │   ├── ContactSection.tsx
-│       │   ├── GivingSection.tsx
-│       │   └── FooterSection.tsx
-│       └── editor/
-│           ├── SiteEditor.tsx        ← Painel principal
-│           ├── BrandingEditor.tsx
-│           ├── SectionsEditor.tsx
-│           ├── ContactEditor.tsx
-│           ├── EventsEditor.tsx
-│           ├── MinistriesEditor.tsx
-│           └── PreviewPane.tsx
-├── pages/
-│   ├── Sites.tsx                     ← Listagem
-│   ├── SiteEditor.tsx                ← Editor com preview
-│   └── ChurchSite.tsx                ← /igreja/:slug (público)
-├── hooks/
-│   └── useChurchSite.tsx             ← CRUD do site ✅
-└── types/
-    └── churchSite.ts                 ← Tipagem TypeScript ✅
-```
-
-### Transformação do Bio.tsx
-
-O arquivo atual `Bio.tsx` será congelado como referência. O novo `ChurchSiteTemplate.tsx`:
-
-1. Recebe `config: ChurchSiteConfig` como prop
-2. Renderiza seções condicionalmente baseado em `sections_visibility`
-3. Usa dados do config ao invés de hardcoded
-4. Mantém estrutura visual idêntica
-
----
-
-## Fase 3: Sistema de Edição
-
-### Painel do Editor (2 colunas)
-
-| Esquerda (40%) | Direita (60%) |
-|----------------|---------------|
-| Accordion com seções | Preview responsivo |
-| Campos de formulário | Atualiza em tempo real |
-| Toggles de visibilidade | Desktop/Mobile switch |
-
-### Seções Editáveis
-
-1. **Marca & Identidade**: Nome, tagline, logo, cores
-2. **Hero**: Título, subtítulo, imagem de fundo, CTAs
-3. **Primeira Vez**: FAQ items (add/remove/reorder)
-4. **Horários**: Dias e horários dos cultos
-5. **Sobre Nós**: Texto institucional, 3 valores
-6. **Ministérios**: Lista com ícone, título, descrição
-7. **Mídia**: Link do YouTube, embed
-8. **Agenda**: Eventos com data, horário, tag
-9. **Oração**: Texto do pedido de oração
-10. **Contato**: WhatsApp, Instagram, Email, Maps
-11. **Ofertas**: Texto, chave PIX
-12. **SEO**: Title, description
-
----
-
-## Fase 4: Publicação
-
-### Fluxo
-
-1. Usuário edita site no painel
-2. Auto-save a cada mudança (debounced)
-3. Clica em "Publicar"
-4. Sistema valida slug único
-5. `is_published = true`
-6. Site acessível em `/igreja/:slug`
-
-### Validação de Slug ✅
-
-- Lowercase, sem espaços
-- Apenas letras, números, hífens
-- Único no sistema
-- Reservados: `admin`, `api`, `app`, etc.
-
----
-
-## Fase 5: Rotas e Navegação
-
-```text
-Rotas Protegidas (requer auth):
-├── /sites                    → Lista do site do usuário
-└── /sites/editor             → Editor completo
-
-Rota Pública:
-└── /igreja/:slug             → Renderiza ChurchSiteTemplate
-```
-
----
-
-## Próximos Passos
-
-1. **Refatorar Bio.tsx** → Extrair seções para componentes isolados
-2. **Criar ChurchSiteTemplate.tsx** → Template data-driven
-3. **Criar página /igreja/:slug** → Rota pública
-4. **Criar página /sites** → Listagem e criação
-5. **Criar editor** → Painel de edição com preview
