@@ -1,7 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import RadialOrbitalTimeline from "@/components/RadialOrbitalTimeline";
-import { Card } from "@/components/ui/card";
 import {
   BookOpen,
   Heart,
