@@ -18,6 +18,7 @@ export function FooterSection({ config }: FooterSectionProps) {
   const socialItems = [
     { icon: Instagram, href: socialLinks.instagram, label: "Instagram" },
     { icon: Youtube, href: socialLinks.youtube, label: "YouTube" },
+    { icon: Facebook, href: socialLinks.facebook, label: "Facebook" },
     { icon: MessageCircle, href: contact.whatsapp, label: "WhatsApp" },
     { icon: MapPin, href: contact.mapsUrl, label: "Mapa" },
   ].filter(item => item.href);

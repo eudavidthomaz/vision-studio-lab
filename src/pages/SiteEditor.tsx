@@ -590,8 +590,6 @@ export default function SiteEditor() {
                   </div>
                 </EditorSection>
 
-                {/* Media Section - YouTube is now configured in Hero */}
-
                 {/* Giving Section */}
                 <EditorSection title="Dízimos e Ofertas" icon={<HandHeart className="w-4 h-4 text-primary" />}>
                   <div className="space-y-3">

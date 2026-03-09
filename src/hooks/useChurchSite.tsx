@@ -184,6 +184,7 @@ export function useChurchSite() {
           sections_visibility: toJson(DEFAULT_SECTIONS_VISIBILITY),
           theme_config: toJson(DEFAULT_THEME_CONFIG),
           seo: toJson({ ...DEFAULT_SEO, title: churchName }),
+          section_titles: toJson(DEFAULT_SECTION_TITLES),
         })
         .select()
         .single();

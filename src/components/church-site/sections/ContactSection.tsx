@@ -22,6 +22,7 @@ interface ContactSectionProps {
 }
 
 export function ContactSection({ config }: ContactSectionProps) {
+  // Anchor for "Quero visitar" scroll target
   const { contact, socialLinks, sectionTitles } = config;
   const titles = sectionTitles?.contact;
 
