@@ -28,6 +28,7 @@ export interface ChurchSiteSocialLinks {
 }
 
 export interface ChurchSiteHero {
+  welcomeLabel: string;
   title: string;
   subtitle: string;
   coverImageUrl?: string | null;
