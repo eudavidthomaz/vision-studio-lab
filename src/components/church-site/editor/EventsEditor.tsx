@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,7 +86,9 @@ export function EventsEditor({ events, onAdd, onUpdate, onDelete }: EventsEditor
               <div className="flex-1">
                 <span className="text-sm font-medium">{event.title}</span>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs text-muted-foreground">{event.date}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {(() => { try { return format(parseISO(event.date), "d MMM yyyy", { locale: ptBR }); } catch { return event.date; } })()}
+                  </span>
                   {event.time && <span className="text-xs text-muted-foreground">• {event.time}</span>}
                   {event.tag && (
                     <span className="text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary">{event.tag}</span>
