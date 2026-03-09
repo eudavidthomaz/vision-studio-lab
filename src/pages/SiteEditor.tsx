@@ -8,9 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   ResizablePanelGroup,
@@ -25,7 +23,6 @@ import {
 import {
   ArrowLeft,
   Save,
-  Eye,
   Smartphone,
   Monitor,
   ChevronDown,
@@ -41,10 +38,23 @@ import {
   Loader2,
   Globe,
   Check,
+  Clock,
+  HelpCircle,
+  Heart,
+  CalendarDays,
+  Image,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { ChurchSiteConfig } from "@/types/churchSite";
+
+// Editor components
+import { FaqEditor } from "@/components/church-site/editor/FaqEditor";
+import { ScheduleEditor } from "@/components/church-site/editor/ScheduleEditor";
+import { ValuesEditor } from "@/components/church-site/editor/ValuesEditor";
+import { MinistriesEditor } from "@/components/church-site/editor/MinistriesEditor";
+import { EventsEditor } from "@/components/church-site/editor/EventsEditor";
+import { ImageUpload } from "@/components/church-site/editor/ImageUpload";
 
 // Editor section component
 interface EditorSectionProps {
@@ -83,7 +93,19 @@ export default function SiteEditor() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
-  const { site, isLoading, updateSite, togglePublish } = useChurchSite();
+  const { 
+    site, 
+    isLoading, 
+    updateSite, 
+    togglePublish,
+    addMinistry,
+    updateMinistry,
+    deleteMinistry,
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    refetch,
+  } = useChurchSite();
 
   // Initialize local config from site
   useEffect(() => {
@@ -91,6 +113,17 @@ export default function SiteEditor() {
       setLocalConfig(site);
     }
   }, [site, localConfig]);
+
+  // Sync ministries and events from site (they come from separate tables)
+  useEffect(() => {
+    if (site && localConfig) {
+      setLocalConfig(prev => prev ? {
+        ...prev,
+        ministries: site.ministries,
+        events: site.events,
+      } : prev);
+    }
+  }, [site?.ministries, site?.events]);
 
   // Auth check
   useEffect(() => {
@@ -254,6 +287,15 @@ export default function SiteEditor() {
                 <EditorSection title="Marca & Identidade" icon={<Palette className="w-4 h-4 text-primary" />} defaultOpen>
                   <div className="space-y-3">
                     <div>
+                      <Label>Logo da Igreja</Label>
+                      <ImageUpload
+                        value={localConfig.branding.logoUrl}
+                        onChange={(url) => updateNestedConfig("branding", "logoUrl", url)}
+                        folder="logos"
+                        label="logo"
+                      />
+                    </div>
+                    <div>
                       <Label>Nome da Igreja</Label>
                       <Input
                         value={localConfig.branding.name}
@@ -310,6 +352,15 @@ export default function SiteEditor() {
                 <EditorSection title="Hero / Capa" icon={<Layout className="w-4 h-4 text-primary" />}>
                   <div className="space-y-3">
                     <div>
+                      <Label>Imagem de Capa</Label>
+                      <ImageUpload
+                        value={localConfig.hero.coverImageUrl}
+                        onChange={(url) => updateNestedConfig("hero", "coverImageUrl", url)}
+                        folder="covers"
+                        label="capa"
+                      />
+                    </div>
+                    <div>
                       <Label>Título Principal</Label>
                       <Input
                         value={localConfig.hero.title}
@@ -360,6 +411,78 @@ export default function SiteEditor() {
                       </div>
                     </div>
                   </div>
+                </EditorSection>
+
+                {/* Schedule Section - NEW */}
+                <EditorSection title="Horários dos Cultos" icon={<Clock className="w-4 h-4 text-primary" />}>
+                  <ScheduleEditor
+                    items={localConfig.schedule}
+                    onChange={(items) => updateConfig("schedule", items)}
+                  />
+                </EditorSection>
+
+                {/* FAQ Section - NEW */}
+                <EditorSection title="Primeira Vez (FAQ)" icon={<HelpCircle className="w-4 h-4 text-primary" />}>
+                  <FaqEditor
+                    items={localConfig.faq}
+                    onChange={(items) => updateConfig("faq", items)}
+                  />
+                </EditorSection>
+
+                {/* About Section with Values - ENHANCED */}
+                <EditorSection title="Sobre Nós" icon={<Users className="w-4 h-4 text-primary" />}>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Descrição da igreja</Label>
+                      <Textarea
+                        value={localConfig.about.description}
+                        onChange={(e) => updateNestedConfig("about", "description", e.target.value)}
+                        placeholder="Somos uma igreja comprometida com o evangelho..."
+                        rows={4}
+                      />
+                    </div>
+                    <div>
+                      <Label className="mb-2 block">Valores / Pilares</Label>
+                      <ValuesEditor
+                        values={localConfig.about.values}
+                        onChange={(values) => updateNestedConfig("about", "values", values)}
+                      />
+                    </div>
+                  </div>
+                </EditorSection>
+
+                {/* Ministries Section - NEW */}
+                <EditorSection title="Ministérios" icon={<Heart className="w-4 h-4 text-primary" />}>
+                  <MinistriesEditor
+                    ministries={localConfig.ministries}
+                    siteId={site.id}
+                    onAdd={async (ministry) => {
+                      await addMinistry.mutateAsync({ siteId: site.id, ministry });
+                    }}
+                    onUpdate={async (id, updates) => {
+                      await updateMinistry.mutateAsync({ id, updates });
+                    }}
+                    onDelete={async (id) => {
+                      await deleteMinistry.mutateAsync(id);
+                    }}
+                  />
+                </EditorSection>
+
+                {/* Events Section - NEW */}
+                <EditorSection title="Eventos / Agenda" icon={<CalendarDays className="w-4 h-4 text-primary" />}>
+                  <EventsEditor
+                    events={localConfig.events}
+                    siteId={site.id}
+                    onAdd={async (event) => {
+                      await addEvent.mutateAsync({ siteId: site.id, event });
+                    }}
+                    onUpdate={async (id, updates) => {
+                      await updateEvent.mutateAsync({ id, updates });
+                    }}
+                    onDelete={async (id) => {
+                      await deleteEvent.mutateAsync(id);
+                    }}
+                  />
                 </EditorSection>
 
                 {/* Contact Section */}
@@ -444,21 +567,6 @@ export default function SiteEditor() {
                       <p className="text-xs text-muted-foreground mt-1">
                         Use o formato embed: youtube-nocookie.com/embed/VIDEO_ID
                       </p>
-                    </div>
-                  </div>
-                </EditorSection>
-
-                {/* About Section */}
-                <EditorSection title="Sobre Nós" icon={<Users className="w-4 h-4 text-primary" />}>
-                  <div className="space-y-3">
-                    <div>
-                      <Label>Descrição da igreja</Label>
-                      <Textarea
-                        value={localConfig.about.description}
-                        onChange={(e) => updateNestedConfig("about", "description", e.target.value)}
-                        placeholder="Somos uma igreja comprometida com o evangelho..."
-                        rows={4}
-                      />
                     </div>
                   </div>
                 </EditorSection>
