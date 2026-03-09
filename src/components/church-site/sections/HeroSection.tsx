@@ -4,8 +4,8 @@ import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { StaticGridPattern } from "@/components/ui/static-grid-pattern";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { MapPin, Clock, Youtube, MessageCircle, ImageIcon } from "lucide-react";
+import { cn, normalizeYoutubeEmbedUrl } from "@/lib/utils";
+import { MapPin, Clock, Youtube, MessageCircle, ImageIcon, AlertCircle } from "lucide-react";
 import type { ChurchSiteConfig } from "@/types/churchSite";
 
 interface HeroSectionProps {
