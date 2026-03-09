@@ -131,6 +131,20 @@ export default function SiteEditor() {
   // Debounced config for preview — prevents re-render on every keystroke
   const previewConfig = useDebounce(localConfig, 300);
 
+  // Compact viewport detection
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 1023px)");
+    const onChange = () => {
+      const compact = mql.matches;
+      setIsCompact(compact);
+      if (compact) setPreviewWidth(0);
+    };
+    mql.addEventListener("change", onChange);
+    setIsCompact(mql.matches);
+    if (mql.matches) setPreviewWidth(0);
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
   // Auth check
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
