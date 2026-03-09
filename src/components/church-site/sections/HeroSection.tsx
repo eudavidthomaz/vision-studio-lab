@@ -36,7 +36,7 @@ export function HeroSection({ config }: HeroSectionProps) {
         titleComponent={
           <div className="flex flex-col items-center gap-3 sm:gap-4 px-4">
             <span className="text-xs sm:text-sm text-muted-foreground uppercase tracking-[0.2em] font-medium">
-              Bem-vindo
+              {hero.welcomeLabel || 'Bem-vindo'}
             </span>
             <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/50 leading-tight text-center">
               {hero.title || branding.name}

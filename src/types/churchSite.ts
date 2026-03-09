@@ -208,6 +208,7 @@ export const DEFAULT_SOCIAL_LINKS: ChurchSiteSocialLinks = {
 };
 
 export const DEFAULT_HERO: ChurchSiteHero = {
+  welcomeLabel: 'Bem-vindo',
   title: 'Bem-vindo à nossa Igreja',
   subtitle: 'Um lugar de fé, amor e comunhão',
   coverImageUrl: null,
