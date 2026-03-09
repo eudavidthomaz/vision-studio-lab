@@ -177,9 +177,9 @@ function ChurchSiteTemplateInner({ config, isPreview = false }: ChurchSiteTempla
         <TabsContent value="contato" className="mt-0 outline-none">
           <TabContentWrapper isPreview={isPreview} tabKey="contato">
             <GridPattern isPreview={isPreview} className={gridClass} />
-            {sectionsVisibility.prayer && <PrayerSection config={config} />}
-            {sectionsVisibility.contact && <ContactSection config={config} />}
-            {sectionsVisibility.giving && <GivingSection config={config} />}
+            {sectionsVisibility.prayer && <PrayerSection config={config} isPreview={isPreview} />}
+            {sectionsVisibility.contact && <ContactSection config={config} isPreview={isPreview} />}
+            {sectionsVisibility.giving && <GivingSection config={config} isPreview={isPreview} />}
           </TabContentWrapper>
         </TabsContent>
       </Tabs>
