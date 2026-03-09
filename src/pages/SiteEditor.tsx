@@ -303,6 +303,9 @@ export default function SiteEditor() {
                         onChange={(e) => updateNestedConfig("branding", "name", e.target.value)}
                         placeholder="Igreja Presbiteriana Central"
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Usado no rodapé, SEO e identificação da marca
+                      </p>
                     </div>
                     <div>
                       <Label>Slogan / Tagline</Label>
@@ -370,12 +373,15 @@ export default function SiteEditor() {
                       />
                     </div>
                     <div>
-                      <Label>Título Principal</Label>
+                      <Label>Título do Hero</Label>
                       <Input
                         value={localConfig.hero.title}
                         onChange={(e) => updateNestedConfig("hero", "title", e.target.value)}
-                        placeholder="Bem-vindo à nossa Igreja"
+                        placeholder="Ex: Bem-vindo à Igreja Central"
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Título exibido em destaque na capa do site
+                      </p>
                     </div>
                     <div>
                       <Label>Subtítulo</Label>
