@@ -116,16 +116,28 @@ export function HeroSection({ config, isPreview = false }: HeroSectionProps) {
     </div>
   );
 
+  // Normalize YouTube URL for embedding
+  const embedUrl = config.media.youtubeEmbedUrl
+    ? normalizeYoutubeEmbedUrl(config.media.youtubeEmbedUrl)
+    : null;
+
   // Shared media content — identical in both modes
   const mediaContent = config.media.youtubeEmbedUrl ? (
-    <iframe
-      src={config.media.youtubeEmbedUrl}
-      className="w-full h-full rounded-2xl border-none"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowFullScreen
-      loading="lazy"
-      title={`Última transmissão - ${branding.name}`}
-    />
+    embedUrl ? (
+      <iframe
+        src={embedUrl}
+        className="w-full h-full rounded-2xl border-none"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        loading="lazy"
+        title={`Última transmissão - ${branding.name}`}
+      />
+    ) : (
+      <div className="w-full h-full rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 flex flex-col items-center justify-center gap-3">
+        <AlertCircle className="w-10 h-10 text-destructive/40" />
+        <span className="text-sm text-muted-foreground/50">URL do vídeo inválida</span>
+      </div>
+    )
   ) : hero.coverImageUrl ? (
     <img
       src={hero.coverImageUrl}
