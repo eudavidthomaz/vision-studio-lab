@@ -1,7 +1,7 @@
 import React from "react";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { cn } from "@/lib/utils";
-import { Instagram, Youtube, MessageCircle, MapPin } from "lucide-react";
+import { Instagram, Youtube, MessageCircle, MapPin, Facebook } from "lucide-react";
 import type { ChurchSiteConfig } from "@/types/churchSite";
 
 interface FooterSectionProps {
