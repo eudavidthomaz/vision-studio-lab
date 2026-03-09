@@ -10,7 +10,7 @@ interface FooterSectionProps {
   isPreview?: boolean;
 }
 
-export function FooterSection({ config }: FooterSectionProps) {
+export function FooterSection({ config, isPreview = false }: FooterSectionProps) {
   const { branding, contact, socialLinks, schedule } = config;
 
   const scheduleText = schedule
