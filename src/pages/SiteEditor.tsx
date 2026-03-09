@@ -303,6 +303,9 @@ export default function SiteEditor() {
                         onChange={(e) => updateNestedConfig("branding", "name", e.target.value)}
                         placeholder="Igreja Presbiteriana Central"
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Usado no rodapé, SEO e identificação da marca
+                      </p>
                     </div>
                     <div>
                       <Label>Slogan / Tagline</Label>
