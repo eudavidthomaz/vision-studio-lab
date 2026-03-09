@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, GripVertical } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import type { ChurchSiteFaqItem } from "@/types/churchSite";
 
 interface FaqEditorProps {
@@ -36,7 +36,6 @@ export function FaqEditor({ items, onChange }: FaqEditorProps) {
       {items.map((item, index) => (
         <div key={index} className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-2">
           <div className="flex items-start gap-2">
-            <GripVertical className="w-4 h-4 text-muted-foreground mt-2.5 shrink-0" />
             <div className="flex-1 space-y-2">
               <Input
                 value={item.question}

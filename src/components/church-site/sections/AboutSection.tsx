@@ -70,8 +70,13 @@ export function AboutSection({ config }: AboutSectionProps) {
             {titles?.title || "Quem somos"}
           </h2>
           <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            {about.description || titles?.subtitle || "Somos uma igreja comprometida com o evangelho de Jesus, com a centralidade da Palavra e com uma vida cristã vivida em comunidade."}
+            {titles?.subtitle || "Somos uma igreja comprometida com o evangelho de Jesus, com a centralidade da Palavra e com uma vida cristã vivida em comunidade."}
           </p>
+          {about.description && (
+            <p className="text-muted-foreground text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mt-3">
+              {about.description}
+            </p>
+          )}
         </motion.div>
 
         {timelineData.length > 0 && (

@@ -1,24 +1,55 @@
-import React from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, BookOpen, Heart, Sparkles, Users, Star, Globe, HandHeart, Church, Music, Flame } from "lucide-react";
 import type { ChurchSiteValue } from "@/types/churchSite";
 
-const ICON_OPTIONS = [
-  { value: "BookOpen", label: "📖 Bíblia" },
-  { value: "Heart", label: "❤️ Coração" },
-  { value: "Sparkles", label: "✨ Brilho" },
-  { value: "Users", label: "👥 Pessoas" },
-  { value: "Star", label: "⭐ Estrela" },
-  { value: "Globe", label: "🌍 Mundo" },
-  { value: "HandHeart", label: "🤝 Servir" },
-  { value: "Cross", label: "✝️ Cruz" },
-  { value: "Music", label: "🎵 Música" },
-  { value: "Flame", label: "🔥 Chama" },
+const VALUE_ICONS: { value: string; label: string; Icon: React.ElementType }[] = [
+  { value: "BookOpen", label: "Bíblia", Icon: BookOpen },
+  { value: "Heart", label: "Coração", Icon: Heart },
+  { value: "Sparkles", label: "Brilho", Icon: Sparkles },
+  { value: "Users", label: "Pessoas", Icon: Users },
+  { value: "Star", label: "Estrela", Icon: Star },
+  { value: "Globe", label: "Mundo", Icon: Globe },
+  { value: "HandHeart", label: "Servir", Icon: HandHeart },
+  { value: "Church", label: "Igreja", Icon: Church },
+  { value: "Music", label: "Música", Icon: Music },
+  { value: "Flame", label: "Chama", Icon: Flame },
 ];
+
+function ValueIconPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const selected = VALUE_ICONS.find((i) => i.value === value) || VALUE_ICONS[1];
+  const SelectedIcon = selected.Icon;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="icon" className="shrink-0 w-10 h-10" type="button">
+          <SelectedIcon className="w-4 h-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-52 p-2" align="start">
+        <div className="grid grid-cols-5 gap-1">
+          {VALUE_ICONS.map(({ value: v, label, Icon }) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => { onChange(v); setOpen(false); }}
+              className={`flex flex-col items-center gap-1 p-2 rounded-md text-xs hover:bg-accent transition-colors ${v === value ? "bg-accent ring-1 ring-primary" : ""}`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="truncate w-full text-center text-[10px] text-muted-foreground">{label}</span>
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 interface ValuesEditorProps {
   values: ChurchSiteValue[];
@@ -46,18 +77,7 @@ export function ValuesEditor({ values, onChange }: ValuesEditorProps) {
       {values.map((val, index) => (
         <div key={index} className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-2">
           <div className="flex items-center gap-2">
-            <Select value={val.icon} onValueChange={(v) => handleUpdate(index, "icon", v)}>
-              <SelectTrigger className="w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ICON_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ValueIconPicker value={val.icon} onChange={(v) => handleUpdate(index, "icon", v)} />
             <Input
               value={val.title}
               onChange={(e) => handleUpdate(index, "title", e.target.value)}

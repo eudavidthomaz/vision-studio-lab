@@ -23,7 +23,8 @@ interface ScheduleSectionProps {
 }
 
 export function ScheduleSection({ config }: ScheduleSectionProps) {
-  const { schedule, contact } = config;
+  const { schedule, contact, sectionTitles } = config;
+  const titles = sectionTitles?.schedule;
 
   if (schedule.length === 0 && !contact.address) return null;
 
@@ -44,7 +45,7 @@ export function ScheduleSection({ config }: ScheduleSectionProps) {
                   <div className="p-2.5 rounded-lg bg-church-primary/10">
                     <Clock className="w-5 h-5 text-church-primary" />
                   </div>
-                  <h3 className="font-semibold text-foreground text-lg">Horários dos cultos</h3>
+                  <h3 className="font-semibold text-foreground text-lg">{titles?.title || "Horários dos cultos"}</h3>
                 </div>
                 <div className="space-y-3">
                   {schedule.map((s, index) => (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useChurchSite } from "@/hooks/useChurchSite";
@@ -116,8 +116,21 @@ export default function SiteEditor() {
   }, [site, localConfig]);
 
   // Sync ministries and events from site (they come from separate tables)
+  // Use ref-based comparison to prevent infinite re-render loops
+  const prevMinistriesRef = useRef<string>("");
+  const prevEventsRef = useRef<string>("");
+
   useEffect(() => {
-    if (site && localConfig) {
+    if (!site || !localConfig) return;
+    const ministriesKey = JSON.stringify(site.ministries.map(m => m.id + m.title + m.icon));
+    const eventsKey = JSON.stringify(site.events.map(e => e.id + e.title + e.date));
+
+    const ministriesChanged = ministriesKey !== prevMinistriesRef.current;
+    const eventsChanged = eventsKey !== prevEventsRef.current;
+
+    if (ministriesChanged || eventsChanged) {
+      prevMinistriesRef.current = ministriesKey;
+      prevEventsRef.current = eventsKey;
       setLocalConfig(prev => prev ? {
         ...prev,
         ministries: site.ministries,
@@ -157,7 +170,6 @@ export default function SiteEditor() {
     try {
       await updateSite.mutateAsync({ id: currentSite.id, updates: currentConfig });
       setHasChanges(false);
-      toast.success("Alterações salvas");
     } catch (error) {
       toast.error("Erro ao salvar");
     } finally {
@@ -204,9 +216,12 @@ export default function SiteEditor() {
     setHasChanges(true);
   }, []);
 
+  // Memoize preview to prevent re-renders on every keystroke
+  const MemoizedChurchSiteTemplate = useMemo(() => React.memo(ChurchSiteTemplate), []);
+
   if (!user) return null;
 
-  if (isLoading || !localConfig) {
+  if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="space-y-4 text-center">
@@ -217,7 +232,7 @@ export default function SiteEditor() {
     );
   }
 
-  if (!site) {
+  if (!site || !localConfig) {
     navigate("/sites");
     return null;
   }
@@ -734,7 +749,7 @@ export default function SiteEditor() {
                 }`}
               >
                 <div className="h-full overflow-auto">
-                  <ChurchSiteTemplate config={localConfig} isPreview />
+                  <MemoizedChurchSiteTemplate config={localConfig} isPreview />
                 </div>
               </div>
             </div>

@@ -117,6 +117,7 @@ export interface ChurchSiteSectionTitle {
 
 export interface ChurchSiteSectionTitles {
   firstTime: ChurchSiteSectionTitle;
+  schedule: ChurchSiteSectionTitle;
   about: ChurchSiteSectionTitle;
   ministries: ChurchSiteSectionTitle;
   media: ChurchSiteSectionTitle;
@@ -258,6 +259,10 @@ export const DEFAULT_SECTION_TITLES: ChurchSiteSectionTitles = {
   firstTime: {
     title: 'É sua primeira vez por aqui?',
     subtitle: 'Queremos tornar sua visita leve, simples e acolhedora. Aqui você encontra uma comunidade que ama a Deus, ama pessoas e deseja caminhar com você.',
+  },
+  schedule: {
+    title: 'Horários dos cultos',
+    subtitle: 'Confira os dias e horários dos nossos cultos e programações.',
   },
   about: {
     title: 'Quem somos',
