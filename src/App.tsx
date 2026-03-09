@@ -41,8 +41,9 @@ function LegacyContentRedirect() {
 }
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-  <QueryClientProvider client={queryClient}>
+  <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
+    <QueryClientProvider client={queryClient}>
+
     <TooltipProvider>
       <GeometricBackground />
       <Toaster />

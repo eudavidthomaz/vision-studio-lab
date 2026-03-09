@@ -2,9 +2,31 @@ import React from "react";
 import { useTheme } from "next-themes";
 import "./theme-switch.css";
 
-const ThemeSwitch = () => {
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === "dark";
+export type ThemeName = "light" | "dark";
+
+export type ThemeSwitchProps = {
+  /** When provided, ThemeSwitch becomes controlled and will NOT mutate global theme. */
+  theme?: ThemeName;
+  /** Used only in controlled mode. */
+  setTheme?: (theme: ThemeName) => void;
+  /** Accessibility label for the checkbox input. */
+  ariaLabel?: string;
+};
+
+const ThemeSwitch: React.FC<ThemeSwitchProps> = ({
+  theme: controlledTheme,
+  setTheme: setControlledTheme,
+  ariaLabel,
+}) => {
+  const { theme: globalTheme, setTheme: setGlobalTheme } = useTheme();
+
+  const resolvedTheme: ThemeName =
+    controlledTheme ?? (globalTheme === "dark" ? "dark" : "light");
+
+  const setTheme: (theme: ThemeName) => void =
+    setControlledTheme ?? ((t) => setGlobalTheme(t));
+
+  const isDark = resolvedTheme === "dark";
 
   return (
     <label className="theme-switch">
@@ -13,11 +35,16 @@ const ThemeSwitch = () => {
         className="theme-switch__checkbox"
         checked={isDark}
         onChange={() => setTheme(isDark ? "light" : "dark")}
+        aria-label={ariaLabel ?? "Alternar tema"}
       />
       <div className="theme-switch__container">
         <div className="theme-switch__clouds" />
         <div className="theme-switch__stars-container">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 144 55"
+            fill="none"
+          >
             <path
               fillRule="evenodd"
               clipRule="evenodd"
