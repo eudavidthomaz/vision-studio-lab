@@ -64,16 +64,6 @@ const ThemeSwitch: React.FC<ThemeSwitchProps> = ({
 };
 
 export default ThemeSwitch;
-
-      <input
-        type="checkbox"
-        className="theme-switch__checkbox"
-        checked={isDark}
-        onChange={() => setTheme(isDark ? "light" : "dark")}
-      />
-      <div className="theme-switch__container">
-        <div className="theme-switch__clouds" />
-        <div className="theme-switch__stars-container">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none">
             <path
               fillRule="evenodd"
