@@ -266,31 +266,56 @@ export default function SiteEditor() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Breakpoint selector */}
-          <div className="flex items-center border border-border/40 rounded-lg p-1 gap-0.5">
-            {PREVIEW_BREAKPOINTS.map((bp) => {
-              const Icon = bp.icon;
-              const isActive = previewWidth === bp.width;
-              return (
-                <Button
-                  key={bp.width}
-                  variant={isActive ? "solid" : "ghost"}
-                  size="sm"
-                  onClick={() => setPreviewWidth(bp.width)}
-                  className={`px-2.5 text-xs ${isActive ? "ring-2 ring-primary/50" : ""}`}
-                  title={bp.label}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  <span className="hidden xl:inline ml-1">{bp.label}</span>
-                </Button>
-              );
-            })}
-          </div>
+          {/* Compact: Edit/Preview toggle */}
+          {isCompact ? (
+            <div className="flex items-center border border-border/40 rounded-lg p-1 gap-0.5">
+              <Button
+                variant={editorMode === "edit" ? "solid" : "ghost"}
+                size="sm"
+                onClick={() => setEditorMode("edit")}
+                className={`px-3 text-xs ${editorMode === "edit" ? "ring-2 ring-primary/50" : ""}`}
+              >
+                <PenLine className="w-3.5 h-3.5" />
+                <span className="ml-1">Editar</span>
+              </Button>
+              <Button
+                variant={editorMode === "preview" ? "solid" : "ghost"}
+                size="sm"
+                onClick={() => setEditorMode("preview")}
+                className={`px-3 text-xs ${editorMode === "preview" ? "ring-2 ring-primary/50" : ""}`}
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span className="ml-1">Preview</span>
+              </Button>
+            </div>
+          ) : (
+            /* Desktop: Breakpoint selector */
+            <div className="flex items-center border border-border/40 rounded-lg p-1 gap-0.5">
+              {PREVIEW_BREAKPOINTS.map((bp) => {
+                const Icon = bp.icon;
+                const isActive = previewWidth === bp.width;
+                return (
+                  <Button
+                    key={bp.width}
+                    variant={isActive ? "solid" : "ghost"}
+                    size="sm"
+                    onClick={() => setPreviewWidth(bp.width)}
+                    className={`px-2.5 text-xs ${isActive ? "ring-2 ring-primary/50" : ""}`}
+                    title={bp.label}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span className="hidden xl:inline ml-1">{bp.label}</span>
+                  </Button>
+                );
+              })}
+            </div>
+          )}
 
           <Button
             variant="outline"
             onClick={() => togglePublish.mutate({ id: site.id, publish: !site.isPublished })}
             disabled={togglePublish.isPending}
+            className={isCompact ? "hidden sm:inline-flex" : ""}
           >
             {site.isPublished ? "Despublicar" : "Publicar"}
           </Button>
@@ -303,7 +328,9 @@ export default function SiteEditor() {
             ) : (
               <Check className="w-4 h-4" />
             )}
-            {isSaving ? "Salvando..." : hasChanges ? "Salvar" : "Salvo"}
+            <span className={isCompact ? "hidden sm:inline" : ""}>
+              {isSaving ? "Salvando..." : hasChanges ? "Salvar" : "Salvo"}
+            </span>
           </Button>
         </div>
       </header>
