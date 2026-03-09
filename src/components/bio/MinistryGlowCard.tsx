@@ -12,13 +12,11 @@ const MinistryGlowCard: FC<MinistryGlowCardProps> = ({ title, description, icon 
     <Card className="relative overflow-hidden rounded-xl border border-border/40 bg-card p-0">
       {/* Radial glow mask over grid lines */}
       <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_top_left,black_30%,transparent_70%)]">
-        {/* Horizontal grid lines */}
         <div className="absolute inset-0 flex flex-col justify-between">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={`h-${i}`} className="w-full border-b border-dashed border-border/20" />
           ))}
         </div>
-        {/* Vertical grid lines */}
         <div className="absolute inset-0 flex flex-row justify-between">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={`v-${i}`} className="h-full border-r border-dashed border-border/20" />
@@ -30,18 +28,16 @@ const MinistryGlowCard: FC<MinistryGlowCardProps> = ({ title, description, icon 
       <div className="relative z-10 p-6 flex flex-col gap-4">
         {/* Icon with radial glow */}
         <div className="relative">
-          <div className="absolute -top-2 -left-2 w-16 h-16 rounded-full bg-primary/15 blur-xl" />
-          <div className="relative w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+          <div className="absolute -top-2 -left-2 w-16 h-16 rounded-full bg-church-primary/15 blur-xl" />
+          <div className="relative w-10 h-10 rounded-xl bg-church-primary/10 border-church-primary/20 border flex items-center justify-center text-church-primary">
             {icon}
           </div>
         </div>
 
-        {/* Title */}
         <h3 className="text-lg font-bold text-foreground tracking-tight">
           {title}
         </h3>
 
-        {/* Description lines */}
         <div className="flex flex-col gap-1">
           {description.map((line, idx) => (
             <p key={idx} className="text-sm text-muted-foreground leading-relaxed">
@@ -52,9 +48,9 @@ const MinistryGlowCard: FC<MinistryGlowCardProps> = ({ title, description, icon 
 
         {/* Decorative bottom dots */}
         <div className="flex items-center gap-1.5 pt-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-          <div className="w-1.5 h-1.5 rounded-full bg-primary/25" />
-          <div className="w-1.5 h-1.5 rounded-full bg-primary/15" />
+          <div className="w-1.5 h-1.5 rounded-full bg-church-primary/40" />
+          <div className="w-1.5 h-1.5 rounded-full bg-church-primary/25" />
+          <div className="w-1.5 h-1.5 rounded-full bg-church-primary/15" />
         </div>
       </div>
 
