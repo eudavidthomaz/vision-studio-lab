@@ -20,26 +20,29 @@ const stagger = {
 
 interface ScheduleSectionProps {
   config: ChurchSiteConfig;
+  isPreview?: boolean;
 }
 
-export function ScheduleSection({ config }: ScheduleSectionProps) {
+export function ScheduleSection({ config, isPreview = false }: ScheduleSectionProps) {
   const { schedule, contact, sectionTitles } = config;
   const titles = sectionTitles?.schedule;
 
   if (schedule.length === 0 && !contact.address) return null;
 
+  const motionProps = isPreview
+    ? { initial: false as const }
+    : { initial: "hidden" as const, whileInView: "visible" as const, viewport: { once: true } };
+
   return (
     <section className="container mx-auto px-4 pb-16 md:pb-24">
       <motion.div
         variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
+        {...motionProps}
         className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto"
       >
         {schedule.length > 0 && (
-          <motion.div variants={fadeIn}>
-            <GlassCard glowColor="primary" className="p-6 sm:p-8 h-full">
+          <motion.div variants={isPreview ? undefined : fadeIn}>
+            <GlassCard glowColor="primary" className="p-6 sm:p-8 h-full" isStatic={isPreview}>
               <div className="relative z-[10]">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="p-2.5 rounded-lg bg-church-primary/10">
@@ -61,8 +64,8 @@ export function ScheduleSection({ config }: ScheduleSectionProps) {
         )}
 
         {contact.address && (
-          <motion.div variants={fadeIn}>
-            <GlassCard glowColor="cyan" className="p-6 sm:p-8 h-full">
+          <motion.div variants={isPreview ? undefined : fadeIn}>
+            <GlassCard glowColor="cyan" className="p-6 sm:p-8 h-full" isStatic={isPreview}>
               <div className="relative z-[10]">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="p-2.5 rounded-lg bg-church-primary/10">

@@ -20,18 +20,23 @@ const stagger = {
 
 interface MediaSectionProps {
   config: ChurchSiteConfig;
+  isPreview?: boolean;
 }
 
-export function MediaSection({ config }: MediaSectionProps) {
+export function MediaSection({ config, isPreview = false }: MediaSectionProps) {
   const { media, socialLinks, branding, sectionTitles } = config;
   const titles = sectionTitles?.media;
 
   if (!media.youtubeEmbedUrl && !socialLinks.youtube) return null;
 
+  const motionProps = isPreview
+    ? { initial: false as const }
+    : { initial: "hidden" as const, whileInView: "visible" as const, viewport: { once: true } };
+
   return (
     <section className="container mx-auto px-4 py-12 md:py-20">
-      <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-        <motion.div variants={fadeIn} className="text-center mb-10 md:mb-14">
+      <motion.div variants={stagger} {...motionProps}>
+        <motion.div variants={isPreview ? undefined : fadeIn} className="text-center mb-10 md:mb-14">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
             {titles?.title || "Assista e conheça mais"}
           </h2>
@@ -41,7 +46,7 @@ export function MediaSection({ config }: MediaSectionProps) {
         </motion.div>
 
         {media.youtubeEmbedUrl && (
-          <motion.div variants={fadeIn} className="max-w-3xl mx-auto">
+          <motion.div variants={isPreview ? undefined : fadeIn} className="max-w-3xl mx-auto">
             <Card className="overflow-hidden">
               <div className="aspect-video">
                 <iframe
@@ -58,7 +63,7 @@ export function MediaSection({ config }: MediaSectionProps) {
         )}
 
         {socialLinks.youtube && (
-          <motion.div variants={fadeIn} className="flex flex-wrap justify-center gap-3 mt-8">
+          <motion.div variants={isPreview ? undefined : fadeIn} className="flex flex-wrap justify-center gap-3 mt-8">
             <Button variant="solid" size="sm" asChild className="min-h-[44px]">
               <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer">
                 <Play className="w-4 h-4" /> Assistir ao vivo

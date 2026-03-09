@@ -315,14 +315,15 @@ export function useChurchSite() {
 
   const updateMinistry = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ChurchSiteMinistry> }) => {
+      const payload: Record<string, unknown> = {};
+      if (updates.title !== undefined) payload.title = updates.title;
+      if (updates.description !== undefined) payload.description = updates.description;
+      if (updates.icon !== undefined) payload.icon = updates.icon;
+      if (updates.sortOrder !== undefined) payload.sort_order = updates.sortOrder;
+
       const { data, error } = await supabase
         .from('church_site_ministries')
-        .update({
-          title: updates.title,
-          description: updates.description,
-          icon: updates.icon,
-          sort_order: updates.sortOrder,
-        })
+        .update(payload)
         .eq('id', id)
         .select()
         .single();
@@ -365,15 +366,16 @@ export function useChurchSite() {
 
   const updateEvent = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ChurchSiteEvent> }) => {
+      const payload: Record<string, unknown> = {};
+      if (updates.title !== undefined) payload.title = updates.title;
+      if (updates.date !== undefined) payload.event_date = updates.date;
+      if (updates.time !== undefined) payload.event_time = updates.time;
+      if (updates.tag !== undefined) payload.tag = updates.tag;
+      if (updates.sortOrder !== undefined) payload.sort_order = updates.sortOrder;
+
       const { data, error } = await supabase
         .from('church_site_events')
-        .update({
-          title: updates.title,
-          event_date: updates.date,
-          event_time: updates.time,
-          tag: updates.tag,
-          sort_order: updates.sortOrder,
-        })
+        .update(payload)
         .eq('id', id)
         .select()
         .single();

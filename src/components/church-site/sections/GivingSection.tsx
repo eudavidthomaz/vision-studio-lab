@@ -21,9 +21,10 @@ const stagger = {
 
 interface GivingSectionProps {
   config: ChurchSiteConfig;
+  isPreview?: boolean;
 }
 
-export function GivingSection({ config }: GivingSectionProps) {
+export function GivingSection({ config, isPreview = false }: GivingSectionProps) {
   const { giving, contact, sectionTitles } = config;
   const [copied, setCopied] = React.useState(false);
   const titles = sectionTitles?.giving;
@@ -42,16 +43,18 @@ export function GivingSection({ config }: GivingSectionProps) {
     }
   };
 
+  const motionProps = isPreview
+    ? { initial: false as const }
+    : { initial: "hidden" as const, whileInView: "visible" as const, viewport: { once: true } };
+
   return (
     <section className="container mx-auto px-4 pb-16 md:pb-24">
       <motion.div
         variants={stagger}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
+        {...motionProps}
         className="max-w-2xl mx-auto"
       >
-        <motion.div variants={fadeIn} className="text-center">
+        <motion.div variants={isPreview ? undefined : fadeIn} className="text-center">
           <div className="flex justify-center mb-5">
             <div className="p-3 rounded-xl bg-church-primary/10">
               <HandHeart className="w-7 h-7 text-church-primary" />
@@ -66,7 +69,7 @@ export function GivingSection({ config }: GivingSectionProps) {
 
           {giving.pixKey ? (
             <div className="space-y-4">
-              <GlassCard glowColor="primary" className="p-4 sm:p-6 max-w-sm mx-auto">
+              <GlassCard glowColor="primary" className="p-4 sm:p-6 max-w-sm mx-auto" isStatic={isPreview}>
                 <div className="relative z-[10]">
                   <p className="text-xs text-muted-foreground mb-2">Chave PIX</p>
                   <div className="flex items-center gap-2 justify-center">

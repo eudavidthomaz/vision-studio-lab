@@ -2,6 +2,17 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Plus, Trash2, Loader2, Pencil, Baby, Users, Handshake, BookOpen, Music, Heart, Church, Star, Globe, Mic, Camera, Shield, Sparkles } from "lucide-react";
 import type { ChurchSiteMinistry } from "@/types/churchSite";
 
@@ -54,14 +65,13 @@ function IconPickerButton({ value, onChange }: { value: string; onChange: (v: st
 
 interface MinistriesEditorProps {
   ministries: ChurchSiteMinistry[];
-  siteId: string;
   onAdd: (ministry: Omit<ChurchSiteMinistry, "id">) => Promise<void>;
   onUpdate: (id: string, updates: Partial<ChurchSiteMinistry>) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   isLoading?: boolean;
 }
 
-export function MinistriesEditor({ ministries, siteId, onAdd, onUpdate, onDelete, isLoading }: MinistriesEditorProps) {
+export function MinistriesEditor({ ministries, onAdd, onUpdate, onDelete, isLoading }: MinistriesEditorProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
@@ -127,9 +137,27 @@ export function MinistriesEditor({ ministries, siteId, onAdd, onUpdate, onDelete
                 <Button variant="ghost" size="icon" onClick={() => setEditingId(ministry.id)}>
                   <Pencil className="w-3.5 h-3.5" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(ministry.id)} className="text-destructive hover:text-destructive">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Excluir ministério</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja excluir o ministério "{ministry.title}"? Esta ação não pode ser desfeita.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete(ministry.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Excluir
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             )}
           </div>

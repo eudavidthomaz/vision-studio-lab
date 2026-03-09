@@ -150,8 +150,8 @@ function ChurchSiteTemplateInner({ config, isPreview = false }: ChurchSiteTempla
         <TabsContent value="inicio" className="mt-0 outline-none">
           <TabContentWrapper isPreview={isPreview} tabKey="inicio">
             <GridPattern isPreview={isPreview} className={gridClass} />
-            {sectionsVisibility.firstTime && <FirstTimeSection config={config} />}
-            {sectionsVisibility.schedule && <ScheduleSection config={config} />}
+            {sectionsVisibility.firstTime && <FirstTimeSection config={config} isPreview={isPreview} />}
+            {sectionsVisibility.schedule && <ScheduleSection config={config} isPreview={isPreview} />}
           </TabContentWrapper>
         </TabsContent>
 
@@ -159,8 +159,8 @@ function ChurchSiteTemplateInner({ config, isPreview = false }: ChurchSiteTempla
         <TabsContent value="sobre" className="mt-0 outline-none">
           <TabContentWrapper isPreview={isPreview} tabKey="sobre">
             <GridPattern isPreview={isPreview} className={gridClass} />
-            {sectionsVisibility.about && <AboutSection config={config} />}
-            {sectionsVisibility.ministries && <MinistriesSection config={config} />}
+            {sectionsVisibility.about && <AboutSection config={config} isPreview={isPreview} />}
+            {sectionsVisibility.ministries && <MinistriesSection config={config} isPreview={isPreview} />}
           </TabContentWrapper>
         </TabsContent>
 
@@ -168,8 +168,8 @@ function ChurchSiteTemplateInner({ config, isPreview = false }: ChurchSiteTempla
         <TabsContent value="midia" className="mt-0 outline-none">
           <TabContentWrapper isPreview={isPreview} tabKey="midia">
             <GridPattern isPreview={isPreview} className={gridClass} />
-            {sectionsVisibility.media && <MediaSection config={config} />}
-            {sectionsVisibility.events && <EventsSection config={config} />}
+            {sectionsVisibility.media && <MediaSection config={config} isPreview={isPreview} />}
+            {sectionsVisibility.events && <EventsSection config={config} isPreview={isPreview} />}
           </TabContentWrapper>
         </TabsContent>
 
@@ -177,15 +177,15 @@ function ChurchSiteTemplateInner({ config, isPreview = false }: ChurchSiteTempla
         <TabsContent value="contato" className="mt-0 outline-none">
           <TabContentWrapper isPreview={isPreview} tabKey="contato">
             <GridPattern isPreview={isPreview} className={gridClass} />
-            {sectionsVisibility.prayer && <PrayerSection config={config} />}
-            {sectionsVisibility.contact && <ContactSection config={config} />}
-            {sectionsVisibility.giving && <GivingSection config={config} />}
+            {sectionsVisibility.prayer && <PrayerSection config={config} isPreview={isPreview} />}
+            {sectionsVisibility.contact && <ContactSection config={config} isPreview={isPreview} />}
+            {sectionsVisibility.giving && <GivingSection config={config} isPreview={isPreview} />}
           </TabContentWrapper>
         </TabsContent>
       </Tabs>
 
       {/* Footer */}
-      <FooterSection config={config} />
+      <FooterSection config={config} isPreview={isPreview} />
     </div>
   );
 }

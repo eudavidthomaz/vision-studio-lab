@@ -21,9 +21,10 @@ const stagger = {
 
 interface PrayerSectionProps {
   config: ChurchSiteConfig;
+  isPreview?: boolean;
 }
 
-export function PrayerSection({ config }: PrayerSectionProps) {
+export function PrayerSection({ config, isPreview = false }: PrayerSectionProps) {
   const { contact, sectionTitles } = config;
   const titles = sectionTitles?.prayer;
 
@@ -31,22 +32,28 @@ export function PrayerSection({ config }: PrayerSectionProps) {
 
   const subtitle = titles?.subtitle || "Você não precisa caminhar sozinho. Envie seu pedido de oração. Nossa equipe terá alegria em interceder pela sua vida.";
 
+  const motionProps = isPreview
+    ? { initial: false as const }
+    : { initial: "hidden" as const, whileInView: "visible" as const, viewport: { once: true } };
+
   return (
     <section className="container mx-auto px-4 py-12 md:py-20">
-      <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-        <motion.div variants={fadeIn} className="max-w-2xl mx-auto">
-          <GlassCard glowColor="cyan" className="p-8 sm:p-12 text-center relative overflow-hidden">
-            <div className="absolute inset-0 z-[4] pointer-events-none">
-              <SparklesCore
-                background="transparent"
-                minSize={0.4}
-                maxSize={1.2}
-                particleDensity={25}
-                particleColor="#06b6d4"
-                speed={1.5}
-                className="w-full h-full"
-              />
-            </div>
+      <motion.div variants={stagger} {...motionProps}>
+        <motion.div variants={isPreview ? undefined : fadeIn} className="max-w-2xl mx-auto">
+          <GlassCard glowColor="cyan" className="p-8 sm:p-12 text-center relative overflow-hidden" isStatic={isPreview}>
+            {!isPreview && (
+              <div className="absolute inset-0 z-[4] pointer-events-none">
+                <SparklesCore
+                  background="transparent"
+                  minSize={0.4}
+                  maxSize={1.2}
+                  particleDensity={25}
+                  particleColor="#06b6d4"
+                  speed={1.5}
+                  className="w-full h-full"
+                />
+              </div>
+            )}
             <div className="relative z-[10]">
               <div className="flex justify-center mb-5">
                 <div className="p-3 rounded-xl bg-church-primary/10">

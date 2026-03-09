@@ -1,14 +1,16 @@
 import React from "react";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
+import { StaticGridPattern } from "@/components/ui/static-grid-pattern";
 import { cn } from "@/lib/utils";
 import { Instagram, Youtube, MessageCircle, MapPin, Facebook } from "lucide-react";
 import type { ChurchSiteConfig } from "@/types/churchSite";
 
 interface FooterSectionProps {
   config: ChurchSiteConfig;
+  isPreview?: boolean;
 }
 
-export function FooterSection({ config }: FooterSectionProps) {
+export function FooterSection({ config, isPreview = false }: FooterSectionProps) {
   const { branding, contact, socialLinks, schedule } = config;
 
   const scheduleText = schedule
@@ -25,15 +27,26 @@ export function FooterSection({ config }: FooterSectionProps) {
 
   return (
     <footer className="relative border-t border-border/30 py-10 md:py-14">
-      <AnimatedGridPattern
-        numSquares={15}
-        maxOpacity={0.06}
-        duration={5}
-        className={cn(
-          "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]",
-          "fill-church-primary/10 stroke-church-primary/10"
-        )}
-      />
+      {isPreview ? (
+        <StaticGridPattern
+          numSquares={15}
+          maxOpacity={0.06}
+          className={cn(
+            "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]",
+            "fill-church-primary/10 stroke-church-primary/10"
+          )}
+        />
+      ) : (
+        <AnimatedGridPattern
+          numSquares={15}
+          maxOpacity={0.06}
+          duration={5}
+          className={cn(
+            "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]",
+            "fill-church-primary/10 stroke-church-primary/10"
+          )}
+        />
+      )}
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8 max-w-4xl mx-auto">
           <div className="text-center md:text-left flex flex-col items-center md:items-start gap-2">

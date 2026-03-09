@@ -42,7 +42,7 @@ import {
   HelpCircle,
   Heart,
   CalendarDays,
-  Image,
+  Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -105,7 +105,6 @@ export default function SiteEditor() {
     addEvent,
     updateEvent,
     deleteEvent,
-    refetch,
   } = useChurchSite();
 
   // Initialize local config from site
@@ -147,7 +146,8 @@ export default function SiteEditor() {
     
     setIsSaving(true);
     try {
-      await updateSite.mutateAsync({ id: currentSite.id, updates: currentConfig });
+      const { ministries, events, ...siteConfig } = currentConfig;
+      await updateSite.mutateAsync({ id: currentSite.id, updates: siteConfig });
       setHasChanges(false);
     } catch (error) {
       toast.error("Erro ao salvar");
@@ -475,7 +475,6 @@ export default function SiteEditor() {
                 <EditorSection title="Ministérios" icon={<Heart className="w-4 h-4 text-primary" />}>
                   <MinistriesEditor
                     ministries={localConfig.ministries}
-                    siteId={site.id}
                     onAdd={async (ministry) => {
                       const result = await addMinistry.mutateAsync({ siteId: site.id, ministry });
                       setLocalConfig(prev => prev ? {
@@ -510,7 +509,6 @@ export default function SiteEditor() {
                 <EditorSection title="Eventos / Agenda" icon={<CalendarDays className="w-4 h-4 text-primary" />}>
                   <EventsEditor
                     events={localConfig.events}
-                    siteId={site.id}
                     onAdd={async (event) => {
                       const result = await addEvent.mutateAsync({ siteId: site.id, event });
                       setLocalConfig(prev => prev ? {
@@ -582,7 +580,7 @@ export default function SiteEditor() {
                 </EditorSection>
 
                 {/* Social Links */}
-                <EditorSection title="Redes Sociais" icon={<Globe className="w-4 h-4 text-primary" />}>
+                <EditorSection title="Redes Sociais" icon={<Share2 className="w-4 h-4 text-primary" />}>
                   <div className="space-y-3">
                     <div>
                       <Label>Instagram</Label>

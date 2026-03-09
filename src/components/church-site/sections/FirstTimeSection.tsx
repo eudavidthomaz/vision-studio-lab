@@ -26,18 +26,23 @@ const stagger = {
 
 interface FirstTimeSectionProps {
   config: ChurchSiteConfig;
+  isPreview?: boolean;
 }
 
-export function FirstTimeSection({ config }: FirstTimeSectionProps) {
+export function FirstTimeSection({ config, isPreview = false }: FirstTimeSectionProps) {
   const { faq, contact, sectionTitles } = config;
   const titles = sectionTitles?.firstTime;
 
   if (faq.length === 0) return null;
 
+  const motionProps = isPreview
+    ? { initial: false as const }
+    : { initial: "hidden" as const, whileInView: "visible" as const, viewport: { once: true } };
+
   return (
     <section className="container mx-auto px-4 py-12 md:py-20">
-      <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-        <motion.div variants={fadeIn} className="text-center mb-10 md:mb-14">
+      <motion.div variants={stagger} {...motionProps}>
+        <motion.div variants={isPreview ? undefined : fadeIn} className="text-center mb-10 md:mb-14">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
             {titles?.title || "É sua primeira vez por aqui?"}
           </h2>
@@ -46,8 +51,8 @@ export function FirstTimeSection({ config }: FirstTimeSectionProps) {
           </p>
         </motion.div>
 
-        <motion.div variants={fadeIn} className="max-w-2xl mx-auto">
-          <GlassCard className="p-6 sm:p-8">
+        <motion.div variants={isPreview ? undefined : fadeIn} className="max-w-2xl mx-auto">
+          <GlassCard className="p-6 sm:p-8" isStatic={isPreview}>
             <Accordion type="single" collapsible className="w-full">
               {faq.map((item, i) => (
                 <AccordionItem key={i} value={`faq-${i}`} className="border-border/20">
@@ -64,7 +69,7 @@ export function FirstTimeSection({ config }: FirstTimeSectionProps) {
         </motion.div>
 
         {contact.whatsapp && (
-          <motion.div variants={fadeIn} className="flex justify-center mt-8">
+          <motion.div variants={isPreview ? undefined : fadeIn} className="flex justify-center mt-8">
             <Button variant="solid" asChild className="min-h-[48px]">
               <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="w-4 h-4" /> Quero planejar minha visita

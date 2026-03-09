@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import MinistryGlowCard from "@/components/bio/MinistryGlowCard";
+import MinistryGlowCard from "@/components/church-site/MinistryGlowCard";
 import {
   Baby,
   Users,
@@ -34,7 +34,6 @@ const stagger = {
   },
 };
 
-// Icon mapping for ministries
 const ministryIcons: Record<string, React.ElementType> = {
   Baby,
   Users,
@@ -54,18 +53,23 @@ const ministryIcons: Record<string, React.ElementType> = {
 
 interface MinistriesSectionProps {
   config: ChurchSiteConfig;
+  isPreview?: boolean;
 }
 
-export function MinistriesSection({ config }: MinistriesSectionProps) {
+export function MinistriesSection({ config, isPreview = false }: MinistriesSectionProps) {
   const { ministries, contact, sectionTitles } = config;
   const titles = sectionTitles?.ministries;
 
   if (ministries.length === 0) return null;
 
+  const motionProps = isPreview
+    ? { initial: false as const }
+    : { initial: "hidden" as const, whileInView: "visible" as const, viewport: { once: true } };
+
   return (
     <section className="container mx-auto px-4 pb-16 md:pb-24">
-      <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-        <motion.div variants={fadeIn} className="text-center mb-8 md:mb-12">
+      <motion.div variants={stagger} {...motionProps}>
+        <motion.div variants={isPreview ? undefined : fadeIn} className="text-center mb-8 md:mb-12">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
             {titles?.title || "Há um lugar para você aqui"}
           </h2>
@@ -74,7 +78,7 @@ export function MinistriesSection({ config }: MinistriesSectionProps) {
           </p>
         </motion.div>
 
-        <motion.div variants={fadeIn} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+        <motion.div variants={isPreview ? undefined : fadeIn} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
           {ministries.map((ministry) => {
             const Icon = ministryIcons[ministry.icon] || Heart;
             return (
@@ -89,7 +93,7 @@ export function MinistriesSection({ config }: MinistriesSectionProps) {
         </motion.div>
 
         {contact.whatsapp && (
-          <motion.div variants={fadeIn} className="flex justify-center mt-8">
+          <motion.div variants={isPreview ? undefined : fadeIn} className="flex justify-center mt-8">
             <Button variant="outline" asChild className="min-h-[48px]">
               <a href={contact.whatsapp} target="_blank" rel="noopener noreferrer">
                 Quero saber mais <ArrowRight className="w-4 h-4" />

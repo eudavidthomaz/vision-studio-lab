@@ -19,10 +19,10 @@ const stagger = {
 
 interface ContactSectionProps {
   config: ChurchSiteConfig;
+  isPreview?: boolean;
 }
 
-export function ContactSection({ config }: ContactSectionProps) {
-  // Anchor for "Quero visitar" scroll target
+export function ContactSection({ config, isPreview = false }: ContactSectionProps) {
   const { contact, socialLinks, sectionTitles } = config;
   const titles = sectionTitles?.contact;
 
@@ -35,10 +35,14 @@ export function ContactSection({ config }: ContactSectionProps) {
 
   if (contactItems.length === 0) return null;
 
+  const motionProps = isPreview
+    ? { initial: false as const }
+    : { initial: "hidden" as const, whileInView: "visible" as const, viewport: { once: true } };
+
   return (
     <section id="church-contact-section" className="container mx-auto px-4 pb-12 md:pb-16">
-      <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-        <motion.div variants={fadeIn} className="text-center mb-10">
+      <motion.div variants={stagger} {...motionProps}>
+        <motion.div variants={isPreview ? undefined : fadeIn} className="text-center mb-10">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
             {titles?.title || "Fale com a gente"}
           </h2>
@@ -49,9 +53,9 @@ export function ContactSection({ config }: ContactSectionProps) {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-2xl mx-auto">
           {contactItems.map((item) => (
-            <motion.div key={item.label} variants={fadeIn}>
+            <motion.div key={item.label} variants={isPreview ? undefined : fadeIn}>
               <a href={item.href!} target="_blank" rel="noopener noreferrer" className="block">
-                <GlassCard glowColor={item.glow} className="p-5 sm:p-6 text-center cursor-pointer hover:scale-[1.02] transition-transform">
+                <GlassCard glowColor={item.glow} className="p-5 sm:p-6 text-center cursor-pointer hover:scale-[1.02] transition-transform" isStatic={isPreview}>
                   <div className="relative z-[10] flex flex-col items-center gap-3">
                     <div className="p-3 rounded-xl bg-church-primary/10">
                       <item.icon className="w-5 h-5 text-church-primary" />
