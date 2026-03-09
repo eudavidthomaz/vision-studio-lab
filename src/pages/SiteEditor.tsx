@@ -146,7 +146,8 @@ export default function SiteEditor() {
     
     setIsSaving(true);
     try {
-      await updateSite.mutateAsync({ id: currentSite.id, updates: currentConfig });
+      const { ministries, events, ...siteConfig } = currentConfig;
+      await updateSite.mutateAsync({ id: currentSite.id, updates: siteConfig });
       setHasChanges(false);
     } catch (error) {
       toast.error("Erro ao salvar");
