@@ -36,7 +36,7 @@ export function ContactSection({ config }: ContactSectionProps) {
   if (contactItems.length === 0) return null;
 
   return (
-    <section className="container mx-auto px-4 pb-12 md:pb-16">
+    <section id="church-contact-section" className="container mx-auto px-4 pb-12 md:pb-16">
       <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
         <motion.div variants={fadeIn} className="text-center mb-10">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">

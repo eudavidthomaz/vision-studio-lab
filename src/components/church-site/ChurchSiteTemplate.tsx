@@ -56,7 +56,7 @@ export function ChurchSiteTemplate({ config, isPreview = false }: ChurchSiteTemp
       className={cn(
         "min-h-screen bg-background overflow-x-hidden",
         siteTheme === "dark" ? "bio-theme-dark" : "bio-theme-light",
-        isPreview && "pointer-events-auto"
+        isPreview && "pointer-events-auto isolate"
       )}
     >
       {/* Theme Toggle */}
