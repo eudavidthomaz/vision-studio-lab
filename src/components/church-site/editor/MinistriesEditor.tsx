@@ -85,7 +85,7 @@ export function MinistriesEditor({ ministries, onAdd, onUpdate, onDelete, isLoad
     try {
       await onAdd({
         title: newTitle.trim(),
-        description: newDescription.trim() ? [newDescription.trim()] : [],
+        description: newDescription.trim() ? newDescription.trim().split("\n").filter(Boolean) : [],
         icon: newIcon,
         sortOrder: ministries.length,
       });
