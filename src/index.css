@@ -511,7 +511,10 @@ All colors MUST be HSL.
 .bg-church-primary { background-color: var(--church-primary); }
 .bg-church-primary\/5 { background-color: color-mix(in srgb, var(--church-primary) 5%, transparent); }
 .bg-church-primary\/10 { background-color: color-mix(in srgb, var(--church-primary) 10%, transparent); }
+.bg-church-primary\/15 { background-color: color-mix(in srgb, var(--church-primary) 15%, transparent); }
 .bg-church-primary\/20 { background-color: color-mix(in srgb, var(--church-primary) 20%, transparent); }
+.bg-church-primary\/25 { background-color: color-mix(in srgb, var(--church-primary) 25%, transparent); }
+.bg-church-primary\/40 { background-color: color-mix(in srgb, var(--church-primary) 40%, transparent); }
 .border-church-primary\/20 { border-color: color-mix(in srgb, var(--church-primary) 20%, transparent); }
 .border-church-primary\/30 { border-color: color-mix(in srgb, var(--church-primary) 30%, transparent); }
 .text-church-primary\/70 { color: color-mix(in srgb, var(--church-primary) 70%, transparent); }

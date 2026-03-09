@@ -49,7 +49,7 @@ const ministryIcons: Record<string, React.ElementType> = {
   Camera,
   Shield,
   Sparkles,
-  HandHeart: Heart,
+  HandHeart,
 };
 
 interface MinistriesSectionProps {
