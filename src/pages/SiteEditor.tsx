@@ -365,6 +365,17 @@ export default function SiteEditor() {
                       />
                     </div>
                     <div>
+                      <Label>Vídeo do YouTube (embed)</Label>
+                      <Input
+                        value={localConfig.media.youtubeEmbedUrl || ""}
+                        onChange={(e) => updateNestedConfig("media", "youtubeEmbedUrl", e.target.value || null)}
+                        placeholder="https://www.youtube-nocookie.com/embed/VIDEO_ID"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1.5 bg-muted/50 rounded-md p-2">
+                        💡 Escolha entre um <strong>vídeo do YouTube</strong> ou uma <strong>imagem de capa</strong>. Se ambos forem preenchidos, o vídeo terá prioridade.
+                      </p>
+                    </div>
+                    <div>
                       <Label>Label de Boas-vindas</Label>
                       <Input
                         value={localConfig.hero.welcomeLabel}
