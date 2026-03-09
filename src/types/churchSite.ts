@@ -78,7 +78,6 @@ export interface ChurchSiteEvent {
 
 export interface ChurchSiteMedia {
   youtubeEmbedUrl?: string | null;
-  youtubeChannelUrl?: string | null;
 }
 
 export interface ChurchSiteGiving {
