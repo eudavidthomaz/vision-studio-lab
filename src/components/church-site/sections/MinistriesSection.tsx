@@ -17,6 +17,7 @@ import {
   Camera,
   Shield,
   Sparkles,
+  HandHeart,
 } from "lucide-react";
 import type { ChurchSiteConfig, ChurchSiteMinistry } from "@/types/churchSite";
 
