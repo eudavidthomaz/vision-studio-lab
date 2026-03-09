@@ -37,15 +37,19 @@ function formatEventDate(dateStr: string): { day: string; month: string } {
   }
 }
 
-export function EventsSection({ config }: EventsSectionProps) {
+export function EventsSection({ config, isPreview = false }: EventsSectionProps) {
   const { events, sectionTitles } = config;
   const titles = sectionTitles?.events;
 
   if (events.length === 0) return null;
 
+  const motionProps = isPreview
+    ? { initial: false as const }
+    : { initial: "hidden" as const, whileInView: "visible" as const, viewport: { once: true } };
+
   return (
     <section className="container mx-auto px-4 pb-16 md:pb-24">
-      <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+      <motion.div variants={stagger} {...motionProps}>
         <motion.div variants={fadeIn} className="text-center mb-10 md:mb-14">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-3">
             {titles?.title || "Próximos encontros"}
