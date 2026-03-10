@@ -21,6 +21,7 @@ import { YouTubeCreatorCard } from "@/components/YouTubeCreatorCard";
 import { ScheduleCreatorCard } from "@/components/ScheduleCreatorCard";
 import { YouTubeTranscriptModal } from "@/components/YouTubeTranscriptModal";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { ChurchSiteCreatorCard } from "@/components/ChurchSiteCreatorCard";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -357,6 +358,10 @@ const Dashboard = () => {
             
             <section>
               <ScheduleCreatorCard onClick={() => navigate('/escalas')} />
+            </section>
+
+            <section>
+              <ChurchSiteCreatorCard onClick={() => navigate('/sites')} />
             </section>
 
             <section>
