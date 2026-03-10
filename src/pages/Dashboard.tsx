@@ -21,6 +21,7 @@ import { YouTubeCreatorCard } from "@/components/YouTubeCreatorCard";
 import { ScheduleCreatorCard } from "@/components/ScheduleCreatorCard";
 import { YouTubeTranscriptModal } from "@/components/YouTubeTranscriptModal";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { ChurchSiteCreatorCard } from "@/components/ChurchSiteCreatorCard";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
