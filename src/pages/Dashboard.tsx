@@ -361,6 +361,10 @@ const Dashboard = () => {
             </section>
 
             <section>
+              <ChurchSiteCreatorCard onClick={() => navigate('/sites')} />
+            </section>
+
+            <section>
               <RecentContentSection />
             </section>
 
