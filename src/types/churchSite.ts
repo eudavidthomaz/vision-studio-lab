@@ -76,7 +76,8 @@ export interface ChurchSiteEvent {
 }
 
 export interface ChurchSiteMedia {
-  youtubeEmbedUrl?: string | null;
+  youtubeEmbedUrl?: string | null;   // Hero
+  mediaVideoUrl?: string | null;     // Seção "Assista e conheça mais"
 }
 
 export interface ChurchSiteGiving {
@@ -223,6 +224,7 @@ export const DEFAULT_ABOUT: ChurchSiteAbout = {
 
 export const DEFAULT_MEDIA: ChurchSiteMedia = {
   youtubeEmbedUrl: null,
+  mediaVideoUrl: null,
 };
 
 export const DEFAULT_GIVING: ChurchSiteGiving = {

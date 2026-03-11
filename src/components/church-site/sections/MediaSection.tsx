@@ -28,10 +28,10 @@ export function MediaSection({ config, isPreview = false }: MediaSectionProps) {
   const { media, socialLinks, branding, sectionTitles } = config;
   const titles = sectionTitles?.media;
 
-  if (!media.youtubeEmbedUrl && !socialLinks.youtube) return null;
+  if (!media.mediaVideoUrl && !socialLinks.youtube) return null;
 
-  const embedUrl = media.youtubeEmbedUrl
-    ? normalizeYoutubeEmbedUrl(media.youtubeEmbedUrl)
+  const embedUrl = media.mediaVideoUrl
+    ? normalizeYoutubeEmbedUrl(media.mediaVideoUrl)
     : null;
 
   const motionProps = isPreview
@@ -50,7 +50,7 @@ export function MediaSection({ config, isPreview = false }: MediaSectionProps) {
           </p>
         </motion.div>
 
-        {media.youtubeEmbedUrl && (
+        {media.mediaVideoUrl && (
           <motion.div variants={isPreview ? undefined : fadeIn} className="max-w-3xl mx-auto">
             <Card className="overflow-hidden">
               <div className="aspect-video">

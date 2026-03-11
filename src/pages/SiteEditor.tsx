@@ -200,14 +200,25 @@ function EditorPanelContent({
             />
           </div>
           <div>
-            <Label>Vídeo do YouTube (embed)</Label>
+            <Label>Vídeo do YouTube (Hero)</Label>
             <Input
               value={localConfig.media.youtubeEmbedUrl || ""}
               onChange={(e) => updateNestedConfig("media", "youtubeEmbedUrl", e.target.value || null)}
-              placeholder="https://www.youtube-nocookie.com/embed/VIDEO_ID"
+              placeholder="https://youtube.com/watch?v=..."
             />
             <p className="text-xs text-muted-foreground mt-1.5 bg-muted/50 rounded-md p-2">
-              💡 Escolha entre um <strong>vídeo do YouTube</strong> ou uma <strong>imagem de capa</strong>. Se ambos forem preenchidos, o vídeo terá prioridade.
+              💡 Vídeo exibido na primeira dobra (Hero). Se preenchido, terá prioridade sobre a imagem de capa.
+            </p>
+          </div>
+          <div>
+            <Label>Vídeo da seção "Assista e conheça mais"</Label>
+            <Input
+              value={localConfig.media.mediaVideoUrl || ""}
+              onChange={(e) => updateNestedConfig("media", "mediaVideoUrl", e.target.value || null)}
+              placeholder="https://youtube.com/watch?v=..."
+            />
+            <p className="text-xs text-muted-foreground mt-1.5 bg-muted/50 rounded-md p-2">
+              💡 Vídeo exibido na seção de mídia. Pode ser diferente do vídeo da Hero.
             </p>
           </div>
           <div>
