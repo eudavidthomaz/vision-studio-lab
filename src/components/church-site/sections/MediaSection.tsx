@@ -50,7 +50,7 @@ export function MediaSection({ config, isPreview = false }: MediaSectionProps) {
           </p>
         </motion.div>
 
-        {media.youtubeEmbedUrl && (
+        {media.mediaVideoUrl && (
           <motion.div variants={isPreview ? undefined : fadeIn} className="max-w-3xl mx-auto">
             <Card className="overflow-hidden">
               <div className="aspect-video">
