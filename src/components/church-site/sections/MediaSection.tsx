@@ -2,7 +2,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Video, Youtube } from "lucide-react";
+import { Play, Video, Youtube, AlertCircle } from "lucide-react";
+import { normalizeYoutubeEmbedUrl } from "@/lib/utils";
 import type { ChurchSiteConfig } from "@/types/churchSite";
 
 const fadeIn = {
@@ -29,6 +30,10 @@ export function MediaSection({ config, isPreview = false }: MediaSectionProps) {
 
   if (!media.youtubeEmbedUrl && !socialLinks.youtube) return null;
 
+  const embedUrl = media.youtubeEmbedUrl
+    ? normalizeYoutubeEmbedUrl(media.youtubeEmbedUrl)
+    : null;
+
   const motionProps = isPreview
     ? { initial: false as const }
     : { initial: "hidden" as const, whileInView: "visible" as const, viewport: { once: true } };
@@ -49,14 +54,21 @@ export function MediaSection({ config, isPreview = false }: MediaSectionProps) {
           <motion.div variants={isPreview ? undefined : fadeIn} className="max-w-3xl mx-auto">
             <Card className="overflow-hidden">
               <div className="aspect-video">
-                <iframe
-                  src={media.youtubeEmbedUrl}
-                  className="w-full h-full border-none"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  loading="lazy"
-                  title={`Mensagens - ${branding.name}`}
-                />
+                {embedUrl ? (
+                  <iframe
+                    src={embedUrl}
+                    className="w-full h-full border-none"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    loading="lazy"
+                    title={`Mensagens - ${branding.name}`}
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-muted/20">
+                    <AlertCircle className="w-10 h-10 text-destructive/40" />
+                    <span className="text-sm text-muted-foreground/50">URL do vídeo inválida</span>
+                  </div>
+                )}
               </div>
             </Card>
           </motion.div>
