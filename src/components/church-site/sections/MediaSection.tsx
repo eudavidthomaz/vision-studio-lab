@@ -2,7 +2,8 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Video, Youtube } from "lucide-react";
+import { Play, Video, Youtube, AlertCircle } from "lucide-react";
+import { normalizeYoutubeEmbedUrl } from "@/lib/utils";
 import type { ChurchSiteConfig } from "@/types/churchSite";
 
 const fadeIn = {
