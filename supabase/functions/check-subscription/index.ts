@@ -107,8 +107,30 @@ serve(async (req) => {
     }
     
     if (!customerId) {
-      logStep("No customer found after all fallbacks, returning free status");
-      // SECURITY FIX: Delete existing roles and insert free role to ensure only one role per user
+      logStep("No customer found after all fallbacks");
+
+      // Check if user has a manually-assigned premium role (team/pro)
+      // If so, preserve it — these are intentional overrides by admins
+      const { data: manualRole } = await supabaseClient
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      if (manualRole?.role === 'team' || manualRole?.role === 'pro') {
+        logStep("Preserving manually-assigned role (no Stripe customer)", { role: manualRole.role });
+        return new Response(JSON.stringify({
+          subscribed: true,
+          role: manualRole.role,
+          product_id: null,
+          subscription_end: null
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      logStep("Setting free role");
       await supabaseClient
         .from('user_roles')
         .delete()
