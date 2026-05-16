@@ -1,209 +1,109 @@
-# Plano: Feature "Site da Igreja" — Template Multi-Tenant
+## Perícia Técnica — Controle de Acesso de Pagantes
 
-## Status de Implementação
+### 🔬 Evidências coletadas do banco (provas conclusivas)
 
-| # | Tarefa | Status |
-|---|--------|--------|
-| 1 | Criar tabela `church_sites` + RLS | ✅ Concluído |
-| 2 | Criar tabelas auxiliares (`events`, `ministries`) | ✅ Concluído |
-| 3 | Criar tipos TypeScript (`src/types/churchSite.ts`) | ✅ Concluído |
-| 4 | Criar hook `useChurchSite` | ✅ Concluído |
-| 5 | Refatorar Bio.tsx → seções isoladas | 🔲 Pendente |
-| 6 | Criar `ChurchSiteTemplate.tsx` | 🔲 Pendente |
-| 7 | Criar página pública `/igreja/:slug` | 🔲 Pendente |
-| 8 | Criar página `/sites` (listagem) | 🔲 Pendente |
-| 9 | Criar editor com preview | 🔲 Pendente |
-| 10 | Implementar auto-save | 🔲 Pendente |
-| 11 | Sistema de publicação com validação de slug | 🔲 Pendente |
-| 12 | Adicionar rotas no App.tsx | 🔲 Pendente |
+**Query 1 — Distribuição de papéis vs assinaturas:**
+- 15 usuários com role premium (`pro`/`team`)
+- 11 subscriptions `active`, 3 `past_due`, 5 `canceled`
 
----
+**Query 2 — Inconsistências críticas detectadas:**
 
-## Visão Geral
+| user_id | role atual | status Stripe | current_period_end | Diagnóstico |
+|---|---|---|---|---|
+| afb4298a… | **pro** | **past_due** | NULL | 🚨 Inadimplente com acesso |
+| 2a4c6e60… | **pro** | **past_due** | NULL | 🚨 Inadimplente com acesso |
+| 537577b5… | **pro** | **past_due** | NULL | 🚨 Inadimplente com acesso |
+| fb8cd204… | **team** | (sem subscription) | NULL | ⚠️ Manual, sem rastreio |
 
-Transformar a página `/bio` atual em um **produto SaaS escalável** onde cada usuário pode criar, editar e publicar seu próprio site de igreja através de um painel administrativo dentro do app.
+**Query 3 — Coluna `current_period_end` está 100% NULL em TODAS as linhas** (active, past_due, canceled). O sistema não tem como tomar decisão temporal sem essa data.
 
 ---
 
-## Arquitetura Proposta
+### 🎯 Causa raiz (3 falhas combinadas)
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                        FRONTEND                                  │
-├─────────────────────────────────────────────────────────────────┤
-│  /sites              → Listagem + CTA criar site                │
-│  /sites/editor       → Painel de edição com preview             │
-│  /igreja/:slug       → Página pública (template renderizado)    │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                       DATABASE                                   │
-├─────────────────────────────────────────────────────────────────┤
-│  church_sites        → Configuração completa do site            │
-│  church_site_events  → Agenda de eventos (1:N)                  │
-│  church_site_ministries → Ministérios (1:N)                     │
-└─────────────────────────────────────────────────────────────────┘
+**Falha #1 — `stripe-webhook` em `invoice.payment_failed` (linha 266-283):**
+```ts
+await supabase.from('subscriptions').update({ status: 'past_due' })
+  .eq('stripe_subscription_id', subscriptionId);
+// ❌ NÃO degrada user_roles
+```
+Quando uma fatura falha, marca subscription como past_due mas **mantém role pro/team**. Esta é a causa direta dos 3 usuários inadimplentes com acesso.
+
+**Falha #2 — `stripe-webhook` em `customer.subscription.updated` (linhas 159-165):**
+```ts
+if (status === 'active') { …promote… }
+else if (status === 'canceled' || status === 'unpaid') { …degrade… }
+// ❌ past_due, incomplete_expired, paused: nenhuma ação
+```
+Estados intermediários nunca degradam o role.
+
+**Falha #3 — `check-subscription` (frontend) só roda no login:**
+- Lista `status: "active"` apenas — past_due seria detectado como sem assinatura ativa e degradaria role pro→free.
+- **MAS** só executa quando o usuário abre o app. Se o inadimplente parar de logar, role nunca degrada.
+- Não há job/cron que valide periodicamente.
+
+**Falha #4 (corolário) — `current_period_end` nunca persistida em estados não-ativos:**
+Webhook só popula a data quando `active`. Em past_due/canceled fica NULL, impedindo qualquer regra do tipo "se period_end < now() então free".
+
+---
+
+### 🛠️ Solução cirúrgica e definitiva
+
+**1. Corrigir `stripe-webhook/index.ts` (raiz da regressão):**
+
+a) `invoice.payment_failed`: degradar role para `free` e popular `current_period_end` a partir do `invoice.lines.data[0].period.end` (ou retrieve da subscription).
+
+b) `customer.subscription.updated`: cobrir TODOS os estados não-ativos com matriz explícita:
+```ts
+const PREMIUM_STATUSES = ['active', 'trialing'];
+if (PREMIUM_STATUSES.includes(status)) {
+  // promote to role mapped from product
+} else {
+  // ['past_due','unpaid','canceled','incomplete','incomplete_expired','paused']
+  // degrade to free
+}
 ```
 
----
+c) `customer.subscription.deleted`: já correto, manter.
 
-## Fase 1: Infraestrutura de Dados ✅
+d) Sempre persistir `current_period_end` e `status` em qualquer evento, independente do resultado.
 
-### Tabela `church_sites` ✅
+**2. Endurecer `check-subscription/index.ts`:**
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | uuid | PK |
-| `user_id` | uuid | FK → auth.users |
-| `slug` | text | Único, URL pública |
-| `is_published` | boolean | Se está visível |
-| `branding` | jsonb | Nome, tagline, logo_url, cores |
-| `contact` | jsonb | WhatsApp, email, endereço, maps_url |
-| `social_links` | jsonb | Instagram, YouTube, Facebook, etc. |
-| `hero` | jsonb | Título, subtítulo, imagem, botões ativos |
-| `about` | jsonb | Quem somos, valores (array de 3) |
-| `schedule` | jsonb | Horários dos cultos |
-| `faq` | jsonb | Perguntas frequentes (array) |
-| `media` | jsonb | YouTube embed, playlist |
-| `giving` | jsonb | PIX, instruções de oferta |
-| `sections_visibility` | jsonb | Toggles para cada seção |
-| `theme_config` | jsonb | Modo padrão (light/dark), cores |
-| `seo` | jsonb | Title, description, og_image |
-| `created_at` / `updated_at` | timestamp | Controle |
+a) Trocar `status: "active"` por buscar a subscription mais recente do customer (qualquer status) e decidir role pelo status + `current_period_end > now()`.
 
-### Tabelas Auxiliares ✅
+b) Remover o "preserve manual role" silencioso (linha 116-128) — quando não há customer no Stripe, NÃO promover. Roles manuais devem ser tratados com flag explícita (ex.: coluna `manual_override boolean` em `user_roles`) e não como side-effect.
 
-- **`church_site_events`**: `id, site_id, title, date, time, tag, order`
-- **`church_site_ministries`**: `id, site_id, title, description, icon, order`
+**3. Job/Edge Function de reconciliação periódica (`reconcile-subscriptions`):**
 
-### RLS Policies ✅
+- Executa diariamente (cron job no Supabase ou GitHub Actions chamando a function).
+- Itera por todos os `user_roles` com role ∈ {pro, team, admin←skip}.
+- Para cada um, busca subscription no Stripe (por user_id em `subscriptions.stripe_customer_id`).
+- Se não houver subscription `active|trialing` → degrada para `free`.
+- Loga em `security_audit_log` toda degradação para auditoria.
+- Esta é a rede de segurança caso o webhook falhe.
 
-- SELECT/UPDATE/DELETE: `auth.uid() = user_id`
-- INSERT: `auth.uid() = user_id`
-- SELECT público: `is_published = true` (para renderização da página pública)
+**4. Migração de correção imediata (one-shot):**
 
-### Função de Validação de Slug ✅
+- Rebaixar os 3 usuários past_due para `free` agora.
+- Decisão pendente: o usuário `fb8cd204` (team manual, sem sub) — manter como override admin ou degradar? Pergunto antes de executar.
 
-- `is_slug_reserved(slug)` - Verifica slugs reservados
-- Trigger `check_slug_not_reserved` - Impede uso de slugs reservados
+**5. Constraint de integridade no DB:**
+
+Trigger `validate_role_subscription`: ao INSERT/UPDATE em `user_roles` com role ∈ {pro,team}, exigir que exista linha em `subscriptions` com `status IN ('active','trialing')` OU flag `manual_override=true`. Bloqueia regressões futuras na origem.
 
 ---
 
-## Fase 2: Refatoração do Template
+### 📋 Ordem de execução proposta
 
-### Estrutura de Arquivos
+1. Corrigir `stripe-webhook` (cobre todos os estados + persiste period_end).
+2. Endurecer `check-subscription` (decisão por status + data, não só "active").
+3. Migração: adicionar `manual_override` em `user_roles` + trigger de validação.
+4. Migração one-shot: degradar os 3 past_due, marcar `fb8cd204` como override (se confirmado).
+5. Criar `reconcile-subscriptions` edge function + agendar cron diário.
 
-```text
-src/
-├── components/
-│   └── church-site/
-│       ├── ChurchSiteTemplate.tsx    ← Template principal (recebe config)
-│       ├── sections/
-│       │   ├── HeroSection.tsx
-│       │   ├── FirstTimeSection.tsx
-│       │   ├── ScheduleSection.tsx
-│       │   ├── AboutSection.tsx
-│       │   ├── MinistriesSection.tsx
-│       │   ├── MediaSection.tsx
-│       │   ├── EventsSection.tsx
-│       │   ├── PrayerSection.tsx
-│       │   ├── ContactSection.tsx
-│       │   ├── GivingSection.tsx
-│       │   └── FooterSection.tsx
-│       └── editor/
-│           ├── SiteEditor.tsx        ← Painel principal
-│           ├── BrandingEditor.tsx
-│           ├── SectionsEditor.tsx
-│           ├── ContactEditor.tsx
-│           ├── EventsEditor.tsx
-│           ├── MinistriesEditor.tsx
-│           └── PreviewPane.tsx
-├── pages/
-│   ├── Sites.tsx                     ← Listagem
-│   ├── SiteEditor.tsx                ← Editor com preview
-│   └── ChurchSite.tsx                ← /igreja/:slug (público)
-├── hooks/
-│   └── useChurchSite.tsx             ← CRUD do site ✅
-└── types/
-    └── churchSite.ts                 ← Tipagem TypeScript ✅
-```
+### ❓ Decisões necessárias antes de implementar
 
-### Transformação do Bio.tsx
-
-O arquivo atual `Bio.tsx` será congelado como referência. O novo `ChurchSiteTemplate.tsx`:
-
-1. Recebe `config: ChurchSiteConfig` como prop
-2. Renderiza seções condicionalmente baseado em `sections_visibility`
-3. Usa dados do config ao invés de hardcoded
-4. Mantém estrutura visual idêntica
-
----
-
-## Fase 3: Sistema de Edição
-
-### Painel do Editor (2 colunas)
-
-| Esquerda (40%) | Direita (60%) |
-|----------------|---------------|
-| Accordion com seções | Preview responsivo |
-| Campos de formulário | Atualiza em tempo real |
-| Toggles de visibilidade | Desktop/Mobile switch |
-
-### Seções Editáveis
-
-1. **Marca & Identidade**: Nome, tagline, logo, cores
-2. **Hero**: Título, subtítulo, imagem de fundo, CTAs
-3. **Primeira Vez**: FAQ items (add/remove/reorder)
-4. **Horários**: Dias e horários dos cultos
-5. **Sobre Nós**: Texto institucional, 3 valores
-6. **Ministérios**: Lista com ícone, título, descrição
-7. **Mídia**: Link do YouTube, embed
-8. **Agenda**: Eventos com data, horário, tag
-9. **Oração**: Texto do pedido de oração
-10. **Contato**: WhatsApp, Instagram, Email, Maps
-11. **Ofertas**: Texto, chave PIX
-12. **SEO**: Title, description
-
----
-
-## Fase 4: Publicação
-
-### Fluxo
-
-1. Usuário edita site no painel
-2. Auto-save a cada mudança (debounced)
-3. Clica em "Publicar"
-4. Sistema valida slug único
-5. `is_published = true`
-6. Site acessível em `/igreja/:slug`
-
-### Validação de Slug ✅
-
-- Lowercase, sem espaços
-- Apenas letras, números, hífens
-- Único no sistema
-- Reservados: `admin`, `api`, `app`, etc.
-
----
-
-## Fase 5: Rotas e Navegação
-
-```text
-Rotas Protegidas (requer auth):
-├── /sites                    → Lista do site do usuário
-└── /sites/editor             → Editor completo
-
-Rota Pública:
-└── /igreja/:slug             → Renderiza ChurchSiteTemplate
-```
-
----
-
-## Próximos Passos
-
-1. **Refatorar Bio.tsx** → Extrair seções para componentes isolados
-2. **Criar ChurchSiteTemplate.tsx** → Template data-driven
-3. **Criar página /igreja/:slug** → Rota pública
-4. **Criar página /sites** → Listagem e criação
-5. **Criar editor** → Painel de edição com preview
+1. O usuário `fb8cd204-ec84-43af-8651-a5e6b05330a9` (team sem subscription) é um override administrativo legítimo (cortesia/staff) ou deve ser degradado?
+2. Posso assumir que `trialing` também concede acesso premium? (padrão sim)
+3. Período de carência para `past_due`: degradar imediatamente no `invoice.payment_failed` ou aguardar X dias? (Stripe normalmente faz 3–4 tentativas em ~3 semanas antes de virar `canceled`/`unpaid`)

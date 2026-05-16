@@ -900,6 +900,10 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          manual_override: boolean
+          override_granted_at: string | null
+          override_granted_by: string | null
+          override_reason: string | null
           role: Database["public"]["Enums"]["app_role"]
           updated_at: string
           user_id: string
@@ -907,6 +911,10 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          manual_override?: boolean
+          override_granted_at?: string | null
+          override_granted_by?: string | null
+          override_reason?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
           user_id: string
@@ -914,6 +922,10 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          manual_override?: boolean
+          override_granted_at?: string | null
+          override_granted_by?: string | null
+          override_reason?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
           user_id?: string
@@ -1068,6 +1080,10 @@ export type Database = {
         }
         Returns: Json
       }
+      degrade_user_to_free: {
+        Args: { _reason: string; _user_id: string }
+        Returns: undefined
+      }
       generate_random_token: { Args: { length: number }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
@@ -1085,6 +1101,14 @@ export type Database = {
         Returns: Json
       }
       is_slug_reserved: { Args: { check_slug: string }; Returns: boolean }
+      promote_user_role: {
+        Args: {
+          _reason: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
       reset_monthly_quotas: { Args: never; Returns: undefined }
       search_content_by_tags: {
         Args: { _tags: string[]; _user_id: string }
