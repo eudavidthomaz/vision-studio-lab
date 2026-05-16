@@ -7,10 +7,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PRODUCT_TO_ROLE: Record<string, string> = {
+const PRODUCT_TO_ROLE: Record<string, "pro" | "team"> = {
   'prod_TYdDZJuSPTQgsn': 'pro',
   'prod_TYdDnWDdVthKIs': 'team',
 };
+
+const PREMIUM_STATUSES = new Set(['active', 'trialing']);
 
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -18,9 +20,7 @@ const logStep = (step: string, details?: unknown) => {
 };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
@@ -29,8 +29,6 @@ serve(async (req) => {
   );
 
   try {
-    logStep("Function started");
-
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
@@ -44,177 +42,130 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if user has admin role - admins bypass Stripe check
+    // ADMIN bypass
     const { data: currentRole } = await supabaseClient
       .from('user_roles')
-      .select('role')
+      .select('role, manual_override, override_reason')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (currentRole?.role === 'admin') {
-      logStep("User is admin, bypassing Stripe check");
       return new Response(JSON.stringify({
-        subscribed: true,
-        role: 'admin',
-        product_id: null,
-        subscription_end: null
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+        subscribed: true, role: 'admin', product_id: null, subscription_end: null,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+    }
+
+    // MANUAL OVERRIDE bypass (explicit, audited)
+    if (currentRole?.manual_override && (currentRole.role === 'pro' || currentRole.role === 'team')) {
+      logStep("Manual override active", { role: currentRole.role, reason: currentRole.override_reason });
+      return new Response(JSON.stringify({
+        subscribed: true, role: currentRole.role, product_id: null, subscription_end: null,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    
-    let customerId: string | null = null;
 
-    // Step 1: Check if we have a saved customer ID in subscriptions table
+    // Resolve customer
+    let customerId: string | null = null;
     const { data: existingSub } = await supabaseClient
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
+    if (existingSub?.stripe_customer_id) customerId = existingSub.stripe_customer_id;
 
-    if (existingSub?.stripe_customer_id) {
-      customerId = existingSub.stripe_customer_id;
-      logStep("Using saved customer ID from subscriptions table", { customerId });
-    }
-
-    // Step 2: Fallback - search by email
     if (!customerId) {
       const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-      if (customers.data.length > 0) {
-        customerId = customers.data[0].id;
-        logStep("Found customer by email", { customerId });
-      }
+      if (customers.data.length > 0) customerId = customers.data[0].id;
     }
 
-    // Step 3: Fallback - search subscriptions by metadata
     if (!customerId) {
       try {
         const subsSearch = await stripe.subscriptions.search({
-          query: `metadata['user_id']:'${user.id}'`,
-          limit: 1,
+          query: `metadata['user_id']:'${user.id}'`, limit: 1,
         });
-        
-        if (subsSearch.data.length > 0) {
-          customerId = subsSearch.data[0].customer as string;
-          logStep("Found customer by subscription metadata", { customerId });
-        }
-      } catch (searchError) {
-        logStep("Subscription search failed, continuing without", { error: String(searchError) });
+        if (subsSearch.data.length > 0) customerId = subsSearch.data[0].customer as string;
+      } catch (e) {
+        logStep("Subscription search failed", { error: String(e) });
       }
     }
-    
+
     if (!customerId) {
-      logStep("No customer found after all fallbacks");
+      logStep("No customer found → degrading to free");
+      await supabaseClient.rpc('degrade_user_to_free', {
+        _user_id: user.id, _reason: 'check-subscription:no_customer',
+      });
+      return new Response(JSON.stringify({
+        subscribed: false, role: 'free', product_id: null, subscription_end: null,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+    }
 
-      // Check if user has a manually-assigned premium role (team/pro)
-      // If so, preserve it — these are intentional overrides by admins
-      const { data: manualRole } = await supabaseClient
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .single();
+    // Get MOST RECENT subscription (any status) — not just "active"
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId, status: "all", limit: 10,
+    });
 
-      if (manualRole?.role === 'team' || manualRole?.role === 'pro') {
-        logStep("Preserving manually-assigned role (no Stripe customer)", { role: manualRole.role });
-        return new Response(JSON.stringify({
-          subscribed: true,
-          role: manualRole.role,
-          product_id: null,
-          subscription_end: null
-        }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        });
-      }
+    // Pick the one with premium status, or the most recent if none premium
+    const premium = subscriptions.data.find(s => PREMIUM_STATUSES.has(s.status));
+    const chosen = premium || subscriptions.data[0];
 
-      logStep("Setting free role");
-      await supabaseClient
-        .from('user_roles')
-        .delete()
-        .eq('user_id', user.id);
-      await supabaseClient
-        .from('user_roles')
-        .insert({ user_id: user.id, role: 'free' });
-      
-      return new Response(JSON.stringify({ 
-        subscribed: false, 
-        role: 'free',
-        product_id: null,
-        subscription_end: null 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
+    if (!chosen) {
+      logStep("Customer has no subscriptions → degrading");
+      await supabaseClient.rpc('degrade_user_to_free', {
+        _user_id: user.id, _reason: 'check-subscription:no_subscriptions',
+      });
+      return new Response(JSON.stringify({
+        subscribed: false, role: 'free', product_id: null, subscription_end: null,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+    }
+
+    const status = chosen.status;
+    const productId = chosen.items.data[0]?.price?.product as string;
+    const priceId = chosen.items.data[0]?.price?.id;
+    const role = PRODUCT_TO_ROLE[productId] || 'free';
+    const subscriptionEnd = chosen.current_period_end
+      ? new Date(chosen.current_period_end * 1000).toISOString() : null;
+    const subscriptionStart = chosen.current_period_start
+      ? new Date(chosen.current_period_start * 1000).toISOString() : null;
+
+    // ALWAYS persist subscription state
+    await supabaseClient.from('subscriptions').upsert({
+      user_id: user.id,
+      stripe_customer_id: customerId,
+      stripe_subscription_id: chosen.id,
+      stripe_price_id: priceId,
+      status,
+      current_period_start: subscriptionStart,
+      current_period_end: subscriptionEnd,
+      cancel_at_period_end: chosen.cancel_at_period_end ?? false,
+    }, { onConflict: 'user_id' });
+
+    const isPremium = PREMIUM_STATUSES.has(status) && role !== 'free';
+
+    if (isPremium) {
+      await supabaseClient.rpc('promote_user_role', {
+        _user_id: user.id, _role: role, _reason: `check-subscription:${status}`,
+      });
+    } else {
+      await supabaseClient.rpc('degrade_user_to_free', {
+        _user_id: user.id, _reason: `check-subscription:${status}`,
       });
     }
 
-    logStep("Found Stripe customer", { customerId });
-
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
-    });
-    
-    const hasActiveSub = subscriptions.data.length > 0;
-    let productId: string | null = null;
-    let subscriptionEnd: string | null = null;
-    let role = 'free';
-
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      productId = subscription.items.data[0].price.product as string;
-      role = PRODUCT_TO_ROLE[productId] || 'free';
-      logStep("Active subscription found", { subscriptionId: subscription.id, productId, role, endDate: subscriptionEnd });
-    } else {
-      logStep("No active subscription found");
-    }
-
-    // SECURITY FIX: Delete existing roles and insert new role to ensure only one role per user
-    await supabaseClient
-      .from('user_roles')
-      .delete()
-      .eq('user_id', user.id);
-    await supabaseClient
-      .from('user_roles')
-      .insert({ user_id: user.id, role: role });
-    logStep("User role updated", { role });
-
-    // Update subscriptions table
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      await supabaseClient
-        .from('subscriptions')
-        .upsert({
-          user_id: user.id,
-          stripe_customer_id: customerId,
-          stripe_subscription_id: subscription.id,
-          stripe_price_id: subscription.items.data[0].price.id,
-          status: 'active',
-          current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-          current_period_end: subscriptionEnd,
-          cancel_at_period_end: subscription.cancel_at_period_end,
-        }, { onConflict: 'user_id' });
-    }
+    logStep("Reconciled", { status, role: isPremium ? role : 'free' });
 
     return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
-      role,
-      product_id: productId,
-      subscription_end: subscriptionEnd
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+      subscribed: isPremium,
+      role: isPremium ? role : 'free',
+      product_id: isPremium ? productId : null,
+      subscription_end: subscriptionEnd,
+      status,
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500,
     });
   }
 });
