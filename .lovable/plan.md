@@ -1,57 +1,52 @@
+## Objetivo
+Provar via banco que o webhook Stripe agora está sendo chamado e está reconciliando `subscriptions` + `user_roles` corretamente em tempo real (sem depender do `check-subscription`).
 
-# Perícia: Upgrades de assinantes nas últimas 48h
+## Passos da perícia (somente leitura no banco + logs)
 
-## 1. Resultado direto
+### 1. Confirmar entrega de eventos do Stripe
+- `supabase--edge_function_logs(function_name="stripe-webhook")` — verificar últimos eventos recebidos: `[STRIPE-WEBHOOK] Event received`, tipo (`checkout.session.completed`, `customer.subscription.*`, `invoice.payment_*`) e ausência de `Signature verification failed`.
+- `supabase--analytics_query` em `function_edge_logs` filtrando `function_id` do stripe-webhook nas últimas 2h — contar status 200 vs 4xx/5xx.
 
-**10 novos assinantes nas últimas 48h. Todos os 10 estão com role `pro` ativa no banco.** Zero órfãos, zero pagantes sem upgrade.
-
-```text
-email                                  status   role  promovido_em (UTC)
-─────────────────────────────────────  ───────  ────  ───────────────────
-ricardo.barbosa.lima@gmail.com         active   pro   2026-05-26 04:06
-helenraquelcosta1@gmail.com            active   pro   2026-05-26 01:23
-jp_anf@hotmail.com                     active   pro   2026-05-25 18:28
-contato@ipdauniversal.com.br           active   pro   2026-05-26 03:32
-chamaviva.samuelsylva903@gmail.com     active   pro   2026-05-25 19:36
-igrejabatistamaranata.oficial@gmail    active   pro   2026-05-25 13:01
-felipe.ludwig.schimid@gmail.com        active   pro   2026-05-26 01:20
-videirabarradobugres@gmail.com         active   pro   2026-05-24 22:51
-amaliafreitas@me.com                   active   pro   2026-05-24 18:08
-midiaquadrangular.ap@gmail.com         active   pro   2026-05-24 15:00
+### 2. Provar reconciliação em tempo real
+Query em `security_audit_log` (últimas 2h):
+```sql
+SELECT created_at, user_id, event_type, metadata->>'reason' AS reason
+FROM security_audit_log
+WHERE event_type IN ('role_promoted','role_degraded_to_free')
+  AND created_at > now() - interval '2 hours'
+ORDER BY created_at DESC;
 ```
+- **Prova de sucesso**: `reason` começando com `checkout.completed:`, `customer.subscription.*:`, `invoice.paid:` ou `invoice.payment_failed:` (não mais só `check-subscription:`).
 
-100% dos assinantes recentes têm `subscriptions.status='active'` + `user_roles.role='pro'`. Coerência total Stripe ↔ DB.
-
-## 2. Achado importante (não bloqueante, mas relevante)
-
-**Todos os 10 upgrades foram disparados pela camada 2 (`check-subscription`), nenhum pela camada 1 (`stripe-webhook`).**
-
-Evidência no `security_audit_log`:
-```text
-reason em 100% dos role_promoted: "check-subscription:active"
-reason esperado se webhook funcionasse: "checkout.completed:active"
+### 3. Coerência Stripe ↔ DB nos últimos 7 dias
+```sql
+SELECT s.user_id, s.status, s.current_period_end, s.cancel_at_period_end,
+       ur.role, s.updated_at
+FROM subscriptions s
+LEFT JOIN user_roles ur ON ur.user_id = s.user_id
+WHERE s.updated_at > now() - interval '7 days'
+ORDER BY s.updated_at DESC;
 ```
+Validar:
+- `status='active'` → `role IN ('pro','team')`
+- `status IN ('past_due','canceled','unpaid')` → `role='free'`
+- `current_period_end` preenchido (não NULL)
 
-Implicações:
-- O upgrade **só acontece quando o usuário abre o app** (no login o `useSubscription` chama `check-subscription`). 
-- Se o usuário pagar e **não abrir o app**, ele fica `free` no banco até abrir.
-- Casos observados: `ricardo.barbosa.lima` pagou às 03:14, virou pro às 04:06 → **52 min de atraso**.
-- O webhook do Stripe provavelmente está: (a) não configurado para esses eventos, (b) com endpoint/secret errado, ou (c) falhando silenciosamente.
+### 4. Teste ativo (live fire) via Stripe API
+Usando `stripe--stripe_api_execute`:
+- a) **Listar** as 3 subscriptions mais recentes (`GetSubscriptions`) e pegar uma de teste.
+- b) **Disparar evento real**: fazer um `update` trivial na subscription (ex.: `metadata.test_ping=now`) via `PostSubscriptionsSubscription`. Isso força o Stripe a emitir `customer.subscription.updated` → o webhook deve receber.
+- c) Aguardar ~5s, reler `security_audit_log` filtrando pelo `user_id` correspondente — deve aparecer linha nova com `reason='customer.subscription.updated:active'` e `created_at` posterior ao ping.
+- d) Reler `subscriptions.updated_at` desse user — deve refletir o instante do webhook.
 
-Sintoma adicional: `current_period_start` e `current_period_end` estão **NULL em todas as 10 linhas** — o webhook persistiria esses campos a partir do payload do Stripe; o `check-subscription` também persiste, mas a coluna ficou NULL, sugerindo que a versão da API Stripe (`2025-08-27.basil`) não está retornando esses campos no `subscriptions.list` no mesmo nível esperado (ficaram em `items[].current_period_*` no novo schema).
+### 5. Teste de degradação (opcional, não destrutivo)
+Pegar um customer de teste em sandbox e simular `invoice.payment_failed` via dashboard ou — se preferir não tocar produção — apenas validar via logs históricos se algum `past_due` já foi capturado.
 
-## 3. Risco prático
+## Entregável
+Relatório no chat com:
+- Contagem de eventos recebidos pelo webhook nas últimas 2h
+- Linhas do `security_audit_log` provando promotions/degradations via webhook
+- Resultado do "live ping" (timestamp do disparo vs timestamp do audit log) — esta é a prova cirúrgica de que o webhook está vivo
+- Tabela de coerência `subscriptions.status` ↔ `user_roles.role`
 
-- **Upgrade não-instantâneo**: usuário paga e pode ver tela "free" até dar refresh / logar de novo.
-- **Sem `current_period_end`**: não conseguimos aplicar grace period nem mostrar "sua próxima cobrança em X".
-- **Downgrade futuro**: se Stripe mandar `invoice.payment_failed` por webhook e o webhook estiver quebrado, o usuário inadimplente **continua com pro até o cron das 03:00 UTC** rodar.
-
-## 4. Plano de correção (próximo passo, se aprovado)
-
-1. **Diagnosticar webhook**: ler logs de `stripe-webhook` das últimas 48h para confirmar se eventos `checkout.session.completed` chegaram (e falharam) ou nem chegaram (endpoint desalinhado no Stripe Dashboard).
-2. **Corrigir leitura de `current_period_start/end`** em `check-subscription` e `stripe-webhook` para a API Stripe `2025-08-27.basil` (ler de `subscription.items.data[0].current_period_*` como fallback).
-3. **Backfill** dos 10 registros atuais via reconcile manual após o fix.
-4. **Reduzir cron** para 1h (de 24h) enquanto webhook não estiver 100% — janela máxima de inconsistência cai para 1h.
-5. **Realtime em `user_roles`** para o frontend rebaixar/promover instantaneamente sem refresh.
-
-Diga "implementar" para eu seguir com o passo 1 (diagnóstico de logs do webhook) e os fixes daí em diante.
+Sem alterações de código nem schema. Apenas leitura + 1 update inócuo de metadata no Stripe.
