@@ -123,10 +123,12 @@ serve(async (req) => {
     const productId = chosen.items.data[0]?.price?.product as string;
     const priceId = chosen.items.data[0]?.price?.id;
     const role = PRODUCT_TO_ROLE[productId] || 'free';
-    const subscriptionEnd = chosen.current_period_end
-      ? new Date(chosen.current_period_end * 1000).toISOString() : null;
-    const subscriptionStart = chosen.current_period_start
-      ? new Date(chosen.current_period_start * 1000).toISOString() : null;
+    // Stripe API 2025-08-27.basil: period dates live on the item, not the sub root.
+    const itemAny = chosen.items.data[0] as any;
+    const periodEndUnix = (itemAny?.current_period_end as number) ?? (chosen as any).current_period_end ?? null;
+    const periodStartUnix = (itemAny?.current_period_start as number) ?? (chosen as any).current_period_start ?? null;
+    const subscriptionEnd = periodEndUnix ? new Date(periodEndUnix * 1000).toISOString() : null;
+    const subscriptionStart = periodStartUnix ? new Date(periodStartUnix * 1000).toISOString() : null;
 
     // ALWAYS persist subscription state
     await supabaseClient.from('subscriptions').upsert({

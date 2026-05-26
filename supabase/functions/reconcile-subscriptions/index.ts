@@ -64,6 +64,10 @@ serve(async (req) => {
           if (premium) {
             isPremium = true;
             stripeStatus = premium.status;
+            // Stripe API 2025-08-27.basil: period dates live on the item.
+            const item: any = premium.items.data[0];
+            const pStart = item?.current_period_start ?? (premium as any).current_period_start ?? null;
+            const pEnd = item?.current_period_end ?? (premium as any).current_period_end ?? null;
             // Sync the row
             await supabase.from('subscriptions').upsert({
               user_id: u.user_id,
@@ -71,10 +75,8 @@ serve(async (req) => {
               stripe_subscription_id: premium.id,
               stripe_price_id: premium.items.data[0]?.price?.id,
               status: premium.status,
-              current_period_start: premium.current_period_start
-                ? new Date(premium.current_period_start * 1000).toISOString() : null,
-              current_period_end: premium.current_period_end
-                ? new Date(premium.current_period_end * 1000).toISOString() : null,
+              current_period_start: pStart ? new Date(pStart * 1000).toISOString() : null,
+              current_period_end: pEnd ? new Date(pEnd * 1000).toISOString() : null,
               cancel_at_period_end: premium.cancel_at_period_end ?? false,
             }, { onConflict: 'user_id' });
           } else if (subs.data[0]) {

@@ -1,86 +1,57 @@
-# Perícia: Liberação e Remoção Automática de Recursos por Assinatura
 
-## Evidências reais do banco (consultadas agora)
+# Perícia: Upgrades de assinantes nas últimas 48h
 
-### 1. Defesas estruturais ativas
+## 1. Resultado direto
 
-```text
-pg_trigger:
-  trg_validate_premium_role  ON public.user_roles   ENABLED ✅
-  on_auth_user_created_role  ON auth.users          ENABLED ✅
-
-cron.job:
-  reconcile-subscriptions-daily   schedule: 0 3 * * *   active: true ✅
-  → chama POST /functions/v1/reconcile-subscriptions todo dia 03:00 UTC
-```
-
-### 2. Consistência global agora (auditoria forense)
+**10 novos assinantes nas últimas 48h. Todos os 10 estão com role `pro` ativa no banco.** Zero órfãos, zero pagantes sem upgrade.
 
 ```text
-roles_premium (pro+team) ............... 12
-subs_ativas (active|trialing) .......... 11
-overrides_manuais (admin) ..............  1   → 11 + 1 = 12 ✔ bate
-premium_sem_sub_ativa ..................  0   ✅ nenhum órfão
-past_due (Stripe) ......................  3
-past_due_com_premium_BUG ...............  0   ✅ nenhum atrasado com acesso
+email                                  status   role  promovido_em (UTC)
+─────────────────────────────────────  ───────  ────  ───────────────────
+ricardo.barbosa.lima@gmail.com         active   pro   2026-05-26 04:06
+helenraquelcosta1@gmail.com            active   pro   2026-05-26 01:23
+jp_anf@hotmail.com                     active   pro   2026-05-25 18:28
+contato@ipdauniversal.com.br           active   pro   2026-05-26 03:32
+chamaviva.samuelsylva903@gmail.com     active   pro   2026-05-25 19:36
+igrejabatistamaranata.oficial@gmail    active   pro   2026-05-25 13:01
+felipe.ludwig.schimid@gmail.com        active   pro   2026-05-26 01:20
+videirabarradobugres@gmail.com         active   pro   2026-05-24 22:51
+amaliafreitas@me.com                   active   pro   2026-05-24 18:08
+midiaquadrangular.ap@gmail.com         active   pro   2026-05-24 15:00
 ```
 
-Toda conta `pro`/`team` no banco possui (a) assinatura `active|trialing` no Stripe OU (b) `manual_override=true`. **Zero inconsistência.**
+100% dos assinantes recentes têm `subscriptions.status='active'` + `user_roles.role='pro'`. Coerência total Stripe ↔ DB.
 
-### 3. Prova de degradação automática (audit log)
+## 2. Achado importante (não bloqueante, mas relevante)
 
+**Todos os 10 upgrades foram disparados pela camada 2 (`check-subscription`), nenhum pela camada 1 (`stripe-webhook`).**
+
+Evidência no `security_audit_log`:
 ```text
-security_audit_log (event_type=role_degraded_to_free):
-  2026-05-16 05:57:11  user=afb4298a...  reason=forensic_audit_past_due ✅
-  2026-05-16 05:57:11  user=2a4c6e60...  reason=forensic_audit_past_due ✅
-  2026-05-16 05:57:11  user=537577b5...  reason=forensic_audit_past_due ✅
+reason em 100% dos role_promoted: "check-subscription:active"
+reason esperado se webhook funcionasse: "checkout.completed:active"
 ```
 
-Os 3 usuários que estavam `past_due` no Stripe foram rebaixados a `free` automaticamente pela `degrade_user_to_free()` e o evento ficou registrado.
+Implicações:
+- O upgrade **só acontece quando o usuário abre o app** (no login o `useSubscription` chama `check-subscription`). 
+- Se o usuário pagar e **não abrir o app**, ele fica `free` no banco até abrir.
+- Casos observados: `ricardo.barbosa.lima` pagou às 03:14, virou pro às 04:06 → **52 min de atraso**.
+- O webhook do Stripe provavelmente está: (a) não configurado para esses eventos, (b) com endpoint/secret errado, ou (c) falhando silenciosamente.
 
-### 4. Fluxo garantido (3 camadas redundantes)
+Sintoma adicional: `current_period_start` e `current_period_end` estão **NULL em todas as 10 linhas** — o webhook persistiria esses campos a partir do payload do Stripe; o `check-subscription` também persiste, mas a coluna ficou NULL, sugerindo que a versão da API Stripe (`2025-08-27.basil`) não está retornando esses campos no `subscriptions.list` no mesmo nível esperado (ficaram em `items[].current_period_*` no novo schema).
 
-```text
-PAGAMENTO OK                           PAGAMENTO FALHA / CANCELAMENTO
-─────────────                          ──────────────────────────────
-Stripe checkout.session.completed      Stripe invoice.payment_failed
-        │                                     │
-        ▼                                     ▼
-stripe-webhook (camada 1, instantâneo)  stripe-webhook
-  promote_user_role(pro|team)             degrade_user_to_free()
-  INSERT subscriptions(status=active)     UPDATE subscriptions(status=past_due)
-        │                                     │
-        ▼                                     ▼
-check-subscription (camada 2, no login)  check-subscription
-  reconcilia se status ∉ {active,trialing} → rebaixa
-        │                                     │
-        ▼                                     ▼
-reconcile-subscriptions (camada 3, cron diário 03:00 UTC)
-  itera Stripe x DB, corrige drift, loga em security_audit_log
-        │
-        ▼
-TRIGGER trg_validate_premium_role (defesa final no banco)
-  bloqueia QUALQUER INSERT/UPDATE de user_roles para pro/team
-  sem subscription active/trialing e sem manual_override
-  → torna estado inválido fisicamente impossível
-```
+## 3. Risco prático
 
-## Conclusão técnica
+- **Upgrade não-instantâneo**: usuário paga e pode ver tela "free" até dar refresh / logar de novo.
+- **Sem `current_period_end`**: não conseguimos aplicar grace period nem mostrar "sua próxima cobrança em X".
+- **Downgrade futuro**: se Stripe mandar `invoice.payment_failed` por webhook e o webhook estiver quebrado, o usuário inadimplente **continua com pro até o cron das 03:00 UTC** rodar.
 
-**Provado:**
-1. Trigger `trg_validate_premium_role` ativo no banco — impossível atribuir `pro`/`team` sem assinatura válida.
-2. Cron `reconcile-subscriptions-daily` ativo — varredura diária Stripe↔DB.
-3. Webhook `stripe-webhook` cobre `checkout.session.completed`, `customer.subscription.updated`, `invoice.payment_failed`, `customer.subscription.deleted` com a matriz `PREMIUM_STATUSES = ['active','trialing']`.
-4. `check-subscription` valida no login e periodicamente no frontend.
-5. Audit log mostra 3 degradações reais executadas e logadas.
-6. Snapshot atual: 0 órfãos, 0 atrasados com acesso indevido.
+## 4. Plano de correção (próximo passo, se aprovado)
 
-## Próxima ação (opcional, sem código nesta etapa)
+1. **Diagnosticar webhook**: ler logs de `stripe-webhook` das últimas 48h para confirmar se eventos `checkout.session.completed` chegaram (e falharam) ou nem chegaram (endpoint desalinhado no Stripe Dashboard).
+2. **Corrigir leitura de `current_period_start/end`** em `check-subscription` e `stripe-webhook` para a API Stripe `2025-08-27.basil` (ler de `subscription.items.data[0].current_period_*` como fallback).
+3. **Backfill** dos 10 registros atuais via reconcile manual após o fix.
+4. **Reduzir cron** para 1h (de 24h) enquanto webhook não estiver 100% — janela máxima de inconsistência cai para 1h.
+5. **Realtime em `user_roles`** para o frontend rebaixar/promover instantaneamente sem refresh.
 
-Posso ainda adicionar, se você quiser fechar 100%:
-
-- **Realtime na UI**: `user_roles` no canal `supabase_realtime` para o front rebaixar acesso na hora (sem precisar refresh) quando o webhook degradar.
-- **Backfill de `current_period_end`**: hoje está NULL em todas as linhas — preencher via reconcile para permitir "graça" de N dias antes de degradar `past_due` (regra de negócio configurável).
-- **Cron mais agressivo**: rodar reconcile a cada 1h em vez de 24h (janela máxima de inconsistência cai de 24h para 1h).
-
-Diga qual desses três (ou todos) você quer que eu implemente.
+Diga "implementar" para eu seguir com o passo 1 (diagnóstico de logs do webhook) e os fixes daí em diante.
