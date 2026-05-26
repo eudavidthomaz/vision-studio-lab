@@ -14,6 +14,20 @@ function safeTimestamp(unix: number | null | undefined): string | null {
   return new Date(unix * 1000).toISOString();
 }
 
+/**
+ * Stripe API 2025-08-27.basil moved current_period_start/end from the
+ * Subscription root onto each SubscriptionItem. Read from item first,
+ * fall back to root for older payloads.
+ */
+function periodStart(sub: Stripe.Subscription): number | null {
+  const item = sub.items?.data?.[0] as any;
+  return (item?.current_period_start as number) ?? (sub as any).current_period_start ?? null;
+}
+function periodEnd(sub: Stripe.Subscription): number | null {
+  const item = sub.items?.data?.[0] as any;
+  return (item?.current_period_end as number) ?? (sub as any).current_period_end ?? null;
+}
+
 const logStep = (step: string, details?: unknown) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
