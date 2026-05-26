@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
         await supabase.from('subscriptions').update({
           status: 'canceled',
           cancel_at_period_end: false,
-          current_period_end: safeTimestamp(subscription.current_period_end),
+          current_period_end: safeTimestamp(periodEnd(subscription)),
         }).eq('stripe_subscription_id', subscription.id);
 
         await supabase.rpc('degrade_user_to_free', {
