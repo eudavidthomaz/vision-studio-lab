@@ -84,8 +84,8 @@ Deno.serve(async (req) => {
       stripe_subscription_id: subscription.id,
       stripe_price_id: priceId,
       status,
-      current_period_start: safeTimestamp(subscription.current_period_start),
-      current_period_end: safeTimestamp(subscription.current_period_end),
+      current_period_start: safeTimestamp(periodStart(subscription)),
+      current_period_end: safeTimestamp(periodEnd(subscription)),
       cancel_at_period_end: subscription.cancel_at_period_end ?? false,
     }, { onConflict: 'user_id' });
 
