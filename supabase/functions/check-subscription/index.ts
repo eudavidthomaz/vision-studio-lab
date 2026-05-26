@@ -129,8 +129,6 @@ serve(async (req) => {
     const periodStartUnix = (itemAny?.current_period_start as number) ?? (chosen as any).current_period_start ?? null;
     const subscriptionEnd = periodEndUnix ? new Date(periodEndUnix * 1000).toISOString() : null;
     const subscriptionStart = periodStartUnix ? new Date(periodStartUnix * 1000).toISOString() : null;
-    const subscriptionStart = chosen.current_period_start
-      ? new Date(chosen.current_period_start * 1000).toISOString() : null;
 
     // ALWAYS persist subscription state
     await supabaseClient.from('subscriptions').upsert({
