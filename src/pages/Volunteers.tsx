@@ -251,6 +251,15 @@ export default function Volunteers() {
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>Gestão de voluntários — Midias.app</title>
+        <meta name="description" content="Cadastre, organize e escale voluntários da sua igreja com confirmação por link e relatórios de participação." />
+        <link rel="canonical" href="https://midias.app/voluntarios" />
+        <meta property="og:title" content="Gestão de voluntários — Midias.app" />
+        <meta property="og:description" content="Organize e escale voluntários da sua igreja com inteligência e relatórios." />
+        <meta property="og:url" content="https://midias.app/voluntarios" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
