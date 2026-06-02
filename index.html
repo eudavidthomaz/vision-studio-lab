@@ -26,9 +26,30 @@
     <meta name="twitter:description" content="Transforme suas pregações em uma semana completa de conteúdo digital estratégico." />
     <meta name="twitter:image" content="https://midias.app/og-image.png" />
     
-    <!-- Robots & Canonical -->
+    <!-- Robots (per-route canonical is set via react-helmet-async) -->
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://midias.app/" />
+
+    <!-- Organization / WebSite structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Midias.app",
+        "alternateName": "Ide.On",
+        "url": "https://midias.app/",
+        "logo": "https://midias.app/logo.png",
+        "description": "IA que transforma pregações em conteúdo digital para igrejas: posts, stories, reels, carrosséis e estudos bíblicos.",
+        "sameAs": []
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Midias.app",
+        "url": "https://midias.app/"
+      }
+    </script>
     
     <!-- Fonts loaded locally via @font-face in index.css -->
 
