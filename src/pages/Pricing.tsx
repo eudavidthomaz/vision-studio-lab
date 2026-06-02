@@ -8,6 +8,7 @@ import { PLAN_PRICES } from '@/hooks/useQuota';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { Helmet } from 'react-helmet-async';
 
 const PLANS = [
   {
