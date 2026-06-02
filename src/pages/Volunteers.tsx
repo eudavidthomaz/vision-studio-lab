@@ -27,6 +27,7 @@ import { VolunteerFormModal } from "@/components/volunteers/VolunteerFormModal";
 import { VolunteerAvailabilityBadge } from "@/components/volunteers/VolunteerAvailabilityBadge";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { Helmet } from "react-helmet-async";
 
 /* ─── Mobile volunteer card ─── */
 function MobileVolunteerCard({
