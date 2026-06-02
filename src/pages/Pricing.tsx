@@ -124,6 +124,30 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>Planos e preços — Midias.app para igrejas</title>
+        <meta name="description" content="Compare os planos Free, Pro e Team do Midias.app. Conteúdo ilimitado a partir de pregações, geração de imagens com IA e captação ao vivo." />
+        <link rel="canonical" href="https://midias.app/pricing" />
+        <meta property="og:title" content="Planos e preços — Midias.app" />
+        <meta property="og:description" content="Escolha o plano ideal para a sua igreja: Free, Pro ou Team. Conteúdo ilimitado gerado a partir das suas pregações." />
+        <meta property="og:url" content="https://midias.app/pricing" />
+        <meta property="og:type" content="website" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "Midias.app",
+          "description": "Plataforma de IA que transforma pregações em conteúdo digital para igrejas.",
+          "brand": { "@type": "Brand", "name": "Midias.app" },
+          "offers": PLANS.map((p) => ({
+            "@type": "Offer",
+            "name": p.name,
+            "price": p.price,
+            "priceCurrency": "BRL",
+            "url": "https://midias.app/pricing",
+            "availability": "https://schema.org/InStock"
+          }))
+        })}</script>
+      </Helmet>
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <Button
           variant="ghost"
