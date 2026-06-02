@@ -335,7 +335,7 @@ const Auth = () => {
                 <div className="absolute -inset-2 rounded-2xl bg-primary/20 blur-xl" />
                 <img 
                   src={logoIdeon} 
-                  alt="Ide.On" 
+                  alt="Logo do Ide.On - Midias.app" 
                   className="relative h-16 w-16 rounded-xl object-contain" 
                 />
               </div>
