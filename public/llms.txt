@@ -1,0 +1,15 @@
+# Midias.app
+
+> Transforme pregações em uma semana de conteúdo digital: posts, stories, reels, carrosséis e estudos bíblicos — com IA fiel à teologia.
+
+Midias.app (também conhecido como Ide.On) é uma plataforma de IA para igrejas e equipes de mídia cristã. A partir de um áudio de pregação, gera automaticamente conteúdo pronto para Instagram, Facebook, YouTube e WhatsApp, mantendo referências bíblicas e tom pastoral.
+
+## Pages
+
+- [Início](/): Visão geral do produto, como funciona e depoimentos.
+- [Planos e preços](/pricing): Comparativo dos planos Free, Pro e Team.
+- [Instalar app](/instalar): Como instalar o PWA no celular ou desktop.
+
+## Optional
+
+- [Entrar / Criar conta](/auth): Login e cadastro de novos usuários.
