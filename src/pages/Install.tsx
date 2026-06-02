@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Download, Smartphone, Monitor, Apple, CheckCircle2, ArrowLeft } from 'lucide-react';
 import logoIdeon from "@/assets/logo-ideon.png";
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
