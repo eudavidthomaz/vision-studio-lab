@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Download, Smartphone, Monitor, Apple, CheckCircle2, ArrowLeft } from 'lucide-react';
 import logoIdeon from "@/assets/logo-ideon.png";
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -78,6 +79,15 @@ const Install = () => {
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>Instalar Midias.app no celular ou desktop</title>
+        <meta name="description" content="Instale o app Midias.app na sua tela inicial para acesso rápido às ferramentas de IA para igrejas. Compatível com iOS, Android e desktop." />
+        <link rel="canonical" href="https://midias.app/instalar" />
+        <meta property="og:title" content="Instalar Midias.app" />
+        <meta property="og:description" content="Tenha o Ide.On sempre à mão: instale o PWA no seu celular ou desktop." />
+        <meta property="og:url" content="https://midias.app/instalar" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <div className="container max-w-2xl mx-auto px-4 py-8">
         <Button 
           variant="ghost" 
@@ -91,7 +101,7 @@ const Install = () => {
         <div className="text-center mb-8">
           <img 
             src={logoIdeon} 
-            alt="Ide.On" 
+            alt="Logo do Ide.On - Midias.app" 
             className="h-20 w-20 mx-auto mb-4 rounded-2xl object-contain"
           />
           <h1 className="text-3xl font-bold mb-2">Instalar Midias.app</h1>

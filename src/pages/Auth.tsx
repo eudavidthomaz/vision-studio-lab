@@ -12,6 +12,7 @@ import { Loader2, AlertTriangle, Mail, Lock, Eye, EyeClosed, ArrowRight } from "
 import logoIdeon from "@/assets/logo-ideon.png";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 
 // Tradução de mensagens de erro do Supabase para português
 const translateAuthError = (errorMessage: string): string => {
@@ -227,6 +228,15 @@ const Auth = () => {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background">
+      <Helmet>
+        <title>Entrar ou criar conta — Midias.app</title>
+        <meta name="description" content="Acesse sua conta Midias.app ou crie uma gratuitamente para transformar pregações em conteúdo digital com IA." />
+        <link rel="canonical" href="https://midias.app/auth" />
+        <meta property="og:title" content="Entrar ou criar conta — Midias.app" />
+        <meta property="og:description" content="Acesse o Ide.On e comece a gerar uma semana de conteúdo a partir da sua pregação." />
+        <meta property="og:url" content="https://midias.app/auth" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       {/* Background gradient */}
       <div 
         className="absolute inset-0 z-0"
@@ -325,7 +335,7 @@ const Auth = () => {
                 <div className="absolute -inset-2 rounded-2xl bg-primary/20 blur-xl" />
                 <img 
                   src={logoIdeon} 
-                  alt="Ide.On" 
+                  alt="Logo do Ide.On - Midias.app" 
                   className="relative h-16 w-16 rounded-xl object-contain" 
                 />
               </div>
@@ -419,6 +429,7 @@ const Auth = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors z-10"
                     tabIndex={-1}
                   >
