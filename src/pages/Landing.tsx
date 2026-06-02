@@ -342,7 +342,7 @@ const Landing = () => {
         <div className="container mx-auto px-4 py-8 md:py-12">
           <div className="flex flex-col items-center gap-3">
             <div className="flex items-center gap-2">
-              <img src={logoIdeon} alt="Ide.On" className="h-6 w-6 rounded-lg object-contain" />
+              <img src={logoIdeon} alt="Logo do Ide.On - Midias.app" className="h-6 w-6 rounded-lg object-contain" />
               <span className="text-lg font-gunterz uppercase text-foreground">Ide.On</span>
             </div>
             <p className="text-xs md:text-sm text-muted-foreground">
