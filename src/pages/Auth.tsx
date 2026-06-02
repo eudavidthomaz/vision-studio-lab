@@ -228,6 +228,15 @@ const Auth = () => {
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden bg-background">
+      <Helmet>
+        <title>Entrar ou criar conta — Midias.app</title>
+        <meta name="description" content="Acesse sua conta Midias.app ou crie uma gratuitamente para transformar pregações em conteúdo digital com IA." />
+        <link rel="canonical" href="https://midias.app/auth" />
+        <meta property="og:title" content="Entrar ou criar conta — Midias.app" />
+        <meta property="og:description" content="Acesse o Ide.On e comece a gerar uma semana de conteúdo a partir da sua pregação." />
+        <meta property="og:url" content="https://midias.app/auth" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       {/* Background gradient */}
       <div 
         className="absolute inset-0 z-0"
