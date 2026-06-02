@@ -12,6 +12,7 @@ import { Loader2, AlertTriangle, Mail, Lock, Eye, EyeClosed, ArrowRight } from "
 import logoIdeon from "@/assets/logo-ideon.png";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 
 // Tradução de mensagens de erro do Supabase para português
 const translateAuthError = (errorMessage: string): string => {
