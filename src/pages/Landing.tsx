@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Helmet } from "react-helmet-async";
 import { Zap, Target, CheckCircle2, ArrowRight, BookOpen, Users, Layout, BookMarked } from "lucide-react";
 import logoIdeon from "@/assets/logo-ideon.png";
 import { ContainerScrollHero } from "@/components/ContainerScrollHero";
