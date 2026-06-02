@@ -74,12 +74,30 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>Midias.app — IA para transformar pregações em conteúdo</title>
+        <meta name="description" content="Do altar ao feed: a IA do Ide.On transforma sua pregação em uma semana de posts, stories, reels e carrosséis com fundamento bíblico." />
+        <link rel="canonical" href="https://midias.app/" />
+        <meta property="og:title" content="Midias.app — IA para transformar pregações em conteúdo" />
+        <meta property="og:description" content="Transforme sua pregação em uma semana completa de conteúdo digital com IA fiel à teologia." />
+        <meta property="og:url" content="https://midias.app/" />
+        <meta property="og:type" content="website" />
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": faqItems.map((f) => ({
+            "@type": "Question",
+            "name": f.q,
+            "acceptedAnswer": { "@type": "Answer", "text": f.a }
+          }))
+        })}</script>
+      </Helmet>
       {/* Header */}
       <header className="border-b border-border bg-background/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <img src={logoIdeon} alt="Ide.On" className="h-8 w-8 rounded-lg object-contain" />
-            <h1 className="text-2xl font-brother uppercase text-foreground">Ide.On</h1>
+            <img src={logoIdeon} alt="Logo do Ide.On - Midias.app" className="h-8 w-8 rounded-lg object-contain" />
+            <span className="text-2xl font-brother uppercase text-foreground">Ide.On</span>
           </div>
           <Button
             onClick={() => navigate("/auth")}
@@ -95,11 +113,9 @@ const Landing = () => {
         titleComponent={
         <>
             <p className="text-sm md:text-base text-muted-foreground mb-4">Beta Aberto · Uso 100% Gratuito</p>
-            <h2 className="sm:text-4xl md:text-5xl lg:text-6xl font-gunterz uppercase text-foreground mb-4 text-2xl">
-              A câmera desliga.
-              <br />
-              A missão continua.
-            </h2>
+            <h1 className="sm:text-4xl md:text-5xl lg:text-6xl font-gunterz uppercase text-foreground mb-4 text-2xl">
+              Ide.On — IA para transformar pregações em conteúdo
+            </h1>
             <p className="sm:text-lg md:text-xl text-muted-foreground mb-6 max-w-2xl mx-auto text-sm">
               Do altar ao feed: transforme sua pregação em uma semana de conteúdo com fundamento bíblico.
             </p>
