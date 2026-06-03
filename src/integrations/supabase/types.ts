@@ -466,6 +466,169 @@ export type Database = {
           },
         ]
       }
+      klap_exports: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          klap_export_id: string
+          project_id: string
+          src_url: string | null
+          status: string
+          user_id: string
+          watermark: boolean
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          klap_export_id: string
+          project_id: string
+          src_url?: string | null
+          status?: string
+          user_id: string
+          watermark?: boolean
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          klap_export_id?: string
+          project_id?: string
+          src_url?: string | null
+          status?: string
+          user_id?: string
+          watermark?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "klap_exports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "klap_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      klap_projects: {
+        Row: {
+          created_at: string
+          duration: number | null
+          id: string
+          job_id: string
+          klap_folder_id: string | null
+          klap_project_id: string
+          name: string | null
+          raw: Json
+          updated_at: string
+          user_id: string
+          virality_score: number | null
+          virality_score_explanation: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration?: number | null
+          id?: string
+          job_id: string
+          klap_folder_id?: string | null
+          klap_project_id: string
+          name?: string | null
+          raw?: Json
+          updated_at?: string
+          user_id: string
+          virality_score?: number | null
+          virality_score_explanation?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration?: number | null
+          id?: string
+          job_id?: string
+          klap_folder_id?: string | null
+          klap_project_id?: string
+          name?: string | null
+          raw?: Json
+          updated_at?: string
+          user_id?: string
+          virality_score?: number | null
+          virality_score_explanation?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "klap_projects_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "klap_video_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      klap_users: {
+        Row: {
+          created_at: string
+          klap_user_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          klap_user_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          klap_user_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      klap_video_jobs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          job_type: string
+          klap_task_id: string | null
+          options: Json
+          output_id: string | null
+          output_type: string | null
+          source_video_url: string
+          task_status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_type: string
+          klap_task_id?: string | null
+          options?: Json
+          output_id?: string | null
+          output_type?: string | null
+          source_video_url: string
+          task_status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          job_type?: string
+          klap_task_id?: string | null
+          options?: Json
+          output_id?: string | null
+          output_type?: string | null
+          source_video_url?: string
+          task_status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_logs: {
         Row: {
           channel: string
