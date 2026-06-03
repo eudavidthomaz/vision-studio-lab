@@ -25,6 +25,7 @@ import Bio from "./pages/Bio";
 import Sites from "./pages/Sites";
 import SiteEditor from "./pages/SiteEditor";
 import ChurchSite from "./pages/ChurchSite";
+import VideoEditor from "./pages/VideoEditor";
 
 const queryClient = new QueryClient({
   defaultOptions: {
