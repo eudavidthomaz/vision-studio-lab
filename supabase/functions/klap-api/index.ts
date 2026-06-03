@@ -1,6 +1,5 @@
 // Klap API router (action-based). All actions require auth + allowlist.
 // Never logs secrets, tokens, or full source URLs.
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   createAuthenticatedClient,
   validateInput,
@@ -32,11 +31,19 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function decodeJwtPayload(token: string): Record<string, unknown> {
+  const payload = token.split('.')[1];
+  if (!payload) throw new Error('missing_payload');
+  const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+  return JSON.parse(atob(padded));
+}
+
 function getEmailFromToken(req: Request): string | null {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '');
   if (!token) return null;
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = decodeJwtPayload(token);
     return (payload.email as string | undefined)?.toLowerCase() ?? null;
   } catch {
     return null;
@@ -85,11 +92,6 @@ async function ensureKlapUser(supabase: any, userId: string): Promise<string> {
     .upsert({ user_id: userId, klap_user_id: klapUserId });
   if (upErr) throw new Error(`db_upsert_klap_user:${upErr.message}`);
   return klapUserId;
-}
-
-function maskUrl(u: string | null | undefined): string {
-  if (!u) return '';
-  return u.length > 24 ? `${u.slice(0, 18)}…(${u.length})` : u;
 }
 
 interface Ctx {
@@ -253,16 +255,16 @@ async function actionCreateEmbedUrl(ctx: Ctx, body: any) {
   if (!project) return json({ error: 'not_found', success: false }, 404);
 
   const klapUserId = await ensureKlapUser(ctx.supabase, ctx.userId);
-  const tokenRes = await klapFetch(`/users/${klapUserId}/tokens`, {
+  const tokenRes = await klapFetch(`/users/${encodeURIComponent(klapUserId)}/tokens`, {
     method: 'POST',
     body: JSON.stringify({}),
-  }, klapUserId);
+  });
   if (!tokenRes.ok) {
     return json({ error: 'klap_upstream_error', status: tokenRes.status, success: false }, 502);
   }
-  const token = tokenRes.data?.token || tokenRes.data?.access_token;
+  const token = tokenRes.data?.external_access_token || tokenRes.data?.token || tokenRes.data?.access_token;
   if (!token) return json({ error: 'no_token', success: false }, 502);
-  const embed_url = `https://app.klap.app/embed/${project.klap_project_id}#external_access_token=${token}`;
+  const embed_url = `https://app.klap.app/embed/${encodeURIComponent(project.klap_project_id)}#external_access_token=${encodeURIComponent(token)}`;
   return json({ embed_url });
 }
 
@@ -277,13 +279,16 @@ async function actionStartExport(ctx: Ctx, body: any) {
   if (!project) return json({ error: 'not_found', success: false }, 404);
 
   const klapUserId = await ensureKlapUser(ctx.supabase, ctx.userId);
-  const watermark = body.watermark !== false;
+  const projectPathId = encodeURIComponent(project.klap_project_id);
   const path = project.klap_folder_id
-    ? `/projects/${project.klap_folder_id}/${project.klap_project_id}/exports`
-    : `/projects/${project.klap_project_id}/exports`;
+    ? `/projects/${encodeURIComponent(project.klap_folder_id)}/${projectPathId}/exports`
+    : `/projects/${projectPathId}/exports`;
+  const exportBody = typeof body.watermark === 'object' && body.watermark !== null
+    ? { watermark: body.watermark }
+    : {};
   const exportRes = await klapFetch(path, {
     method: 'POST',
-    body: JSON.stringify({ watermark }),
+    body: JSON.stringify(exportBody),
   }, klapUserId);
   if (!exportRes.ok) {
     return json({ error: 'klap_upstream_error', status: exportRes.status, success: false }, 502);
@@ -296,7 +301,9 @@ async function actionStartExport(ctx: Ctx, body: any) {
       project_id: project.id,
       klap_export_id: exportId,
       status: exportRes.data?.status || 'processing',
-      watermark,
+      watermark: Boolean(body.watermark),
+      src_url: exportRes.data?.src_url || null,
+      finished_at: exportRes.data?.finished_at || (exportRes.data?.status === 'ready' ? new Date().toISOString() : null),
     })
     .select()
     .single();
@@ -323,9 +330,11 @@ async function actionRefreshExport(ctx: Ctx, body: any) {
   if (!project) return json({ error: 'not_found', success: false }, 404);
 
   const klapUserId = await ensureKlapUser(ctx.supabase, ctx.userId);
+  const projectPathId = encodeURIComponent(project.klap_project_id);
+  const exportPathId = encodeURIComponent(exp.klap_export_id);
   const path = project.klap_folder_id
-    ? `/projects/${project.klap_folder_id}/${project.klap_project_id}/exports/${exp.klap_export_id}`
-    : `/projects/${project.klap_project_id}/exports/${exp.klap_export_id}`;
+    ? `/projects/${encodeURIComponent(project.klap_folder_id)}/${projectPathId}/exports/${exportPathId}`
+    : `/projects/${projectPathId}/exports/${exportPathId}`;
   const res = await klapFetch(path, { method: 'GET' }, klapUserId);
   if (!res.ok) return json({ error: 'klap_upstream_error', status: res.status, success: false }, 502);
 

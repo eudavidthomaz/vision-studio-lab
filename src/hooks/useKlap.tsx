@@ -146,7 +146,7 @@ export function useCreateEmbedUrl() {
 export function useStartExport() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { klap_project_id: string; watermark?: boolean; project_id: string }) =>
+    mutationFn: (input: { klap_project_id: string; watermark?: { src_url: string; pos_x?: number; pos_y?: number; scale?: number }; project_id: string }) =>
       invoke<{ export: KlapExport }>('start_export', input),
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ['klap-exports', vars.project_id] });
