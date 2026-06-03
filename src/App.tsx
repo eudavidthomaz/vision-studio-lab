@@ -25,6 +25,7 @@ import Bio from "./pages/Bio";
 import Sites from "./pages/Sites";
 import SiteEditor from "./pages/SiteEditor";
 import ChurchSite from "./pages/ChurchSite";
+import VideoEditor from "./pages/VideoEditor";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -72,6 +73,7 @@ const App = () => (
           <Route path="/sites" element={<Sites />} />
           <Route path="/sites/editor" element={<SiteEditor />} />
           <Route path="/igreja/:slug" element={<ChurchSite />} />
+          <Route path="/editor-video" element={<VideoEditor />} />
           {/* Legacy redirects */}
           <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />
           <Route path="/conteudo/:id" element={<LegacyContentRedirect />} />

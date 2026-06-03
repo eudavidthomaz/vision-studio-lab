@@ -10,6 +10,7 @@ export const RATE_LIMITS = {
   'generate-volunteer-schedule': { max: 20, windowMinutes: 60 }, // 20 per hour
   'generate-smart-schedule': { max: 20, windowMinutes: 60 }, // 20 per hour
   'volunteer-reports': { max: 30, windowMinutes: 60 }, // 30 per hour
+  'klap-api': { max: 60, windowMinutes: 60 }, // 60 per hour (covers all klap actions)
 };
 
 export interface ValidationRule {
