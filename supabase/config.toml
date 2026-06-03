@@ -61,3 +61,5 @@ project_id = "imitktxtunqovyqsmplb"
     verify_jwt = true
   [functions.volunteer-reports]
     verify_jwt = false
+  [functions.klap-api]
+    verify_jwt = true
