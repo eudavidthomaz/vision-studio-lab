@@ -37,10 +37,10 @@ async function invoke<T>(action: string, payload: Record<string, unknown> = {}):
   const { data, error } = await supabase.functions.invoke('klap-api', {
     body: { action, ...payload },
   });
-  if (error) throw new Error(error.message);
   if (data && typeof data === 'object' && 'success' in data && data.success === false) {
-    throw new Error((data as any).error || 'Erro ao processar vídeo');
+    throw new Error((data as any).message || (data as any).error || 'Erro ao processar vídeo');
   }
+  if (error) throw new Error(error.message);
   return data as T;
 }
 

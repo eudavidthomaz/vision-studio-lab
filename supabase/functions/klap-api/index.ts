@@ -50,11 +50,28 @@ function getEmailFromToken(req: Request): string | null {
   }
 }
 
+type KlapResponse = { ok: boolean; status: number; data: any; message: string | null };
+
+function firstString(...values: unknown[]): string | null {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) return value;
+  }
+  return null;
+}
+
+function getPayloadObject(data: any): any {
+  return data?.data && typeof data.data === 'object' ? data.data : data;
+}
+
+function getKlapMessage(data: any): string | null {
+  return firstString(data?.error, data?.message, data?.detail, data?.description, data?.descriptions);
+}
+
 async function klapFetch(
   path: string,
   init: RequestInit,
   klapUserId?: string,
-): Promise<{ ok: boolean; status: number; data: any }> {
+): Promise<KlapResponse> {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${KLAP_KEY}`,
     'Content-Type': 'application/json',
@@ -63,13 +80,16 @@ async function klapFetch(
   if (klapUserId) headers['X-On-Behalf-Of'] = klapUserId;
 
   const res = await fetch(`${KLAP_BASE}${path}`, { ...init, headers });
+  const text = await res.text();
   let data: any = null;
-  try {
-    data = await res.json();
-  } catch {
-    data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { message: text.slice(0, 300) };
+    }
   }
-  return { ok: res.ok, status: res.status, data };
+  return { ok: res.ok, status: res.status, data, message: getKlapMessage(data) };
 }
 
 async function ensureKlapUser(supabase: any, userId: string): Promise<string> {
@@ -92,6 +112,65 @@ async function ensureKlapUser(supabase: any, userId: string): Promise<string> {
     .upsert({ user_id: userId, klap_user_id: klapUserId });
   if (upErr) throw new Error(`db_upsert_klap_user:${upErr.message}`);
   return klapUserId;
+}
+
+function createKlapProjectExportPath(projectId: string, folderId?: string | null, exportId?: string | null): string {
+  const projectPathId = encodeURIComponent(projectId);
+  const base = folderId
+    ? `/projects/${encodeURIComponent(folderId)}/${projectPathId}/exports`
+    : `/projects/${projectPathId}/exports`;
+  return exportId ? `${base}/${encodeURIComponent(exportId)}` : base;
+}
+
+function extractFolderId(project: any): string | null {
+  return firstString(project?.klap_folder_id, project?.folder_id, project?.folderId, project?.raw?.folder_id, project?.raw?.folderId);
+}
+
+function extractKlapProjectId(project: any): string | null {
+  return firstString(project?.klap_project_id, project?.project_id, project?.projectId, project?.id);
+}
+
+async function resolveFolderId(ctx: Ctx, klapUserId: string, project: any): Promise<string | null> {
+  const existingFolderId = extractFolderId(project);
+  if (existingFolderId) return existingFolderId;
+
+  const klapProjectId = extractKlapProjectId(project);
+  if (!klapProjectId) return null;
+
+  const projectRes = await klapFetch(`/projects/${encodeURIComponent(klapProjectId)}`, { method: 'GET' }, klapUserId);
+  const projectData = getPayloadObject(projectRes.data);
+  const resolvedFolderId = extractFolderId(projectData);
+  if (projectRes.ok && resolvedFolderId && project?.id) {
+    await ctx.supabase
+      .from('klap_projects')
+      .update({ klap_folder_id: resolvedFolderId })
+      .eq('id', project.id)
+      .eq('user_id', ctx.userId);
+  }
+  return resolvedFolderId;
+}
+
+function extractToken(data: any): string | null {
+  const payload = getPayloadObject(data);
+  return firstString(
+    payload?.external_access_token,
+    payload?.externalAccessToken,
+    payload?.access_token,
+    payload?.accessToken,
+    payload?.token,
+  );
+}
+
+function extractExport(data: any): any {
+  return data?.export && typeof data.export === 'object' ? data.export : getPayloadObject(data);
+}
+
+function extractProjects(data: any): any[] {
+  if (Array.isArray(data)) return data;
+  const payload = getPayloadObject(data);
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.projects)) return payload.projects;
+  return [];
 }
 
 interface Ctx {
@@ -150,7 +229,8 @@ async function startTask(ctx: Ctx, body: any, type: 'video-to-shorts' | 'video-t
     return json({ error: 'klap_upstream_error', status: klap.status, success: false }, 502);
   }
 
-  const taskId = klap.data?.id || klap.data?.task_id;
+  const taskData = getPayloadObject(klap.data);
+  const taskId = firstString(taskData?.id, taskData?.task_id, taskData?.taskId);
   const { data: jobRow, error: jobErr } = await ctx.supabase
     .from('klap_video_jobs')
     .insert({
@@ -159,7 +239,7 @@ async function startTask(ctx: Ctx, body: any, type: 'video-to-shorts' | 'video-t
       source_video_url: body.source_video_url,
       options: payload,
       klap_task_id: taskId,
-      task_status: klap.data?.status || 'processing',
+      task_status: firstString(taskData?.status) || 'processing',
     })
     .select()
     .single();
@@ -184,9 +264,10 @@ async function actionRefreshTask(ctx: Ctx, body: any) {
   if (!taskRes.ok) {
     return json({ error: 'klap_upstream_error', status: taskRes.status, success: false }, 502);
   }
-  const status = taskRes.data?.status || 'processing';
-  const outputType = taskRes.data?.output_type ?? null;
-  const outputId = taskRes.data?.output_id ?? null;
+  const taskData = getPayloadObject(taskRes.data);
+  const status = firstString(taskData?.status) || 'processing';
+  const outputType = taskData?.output_type ?? taskData?.outputType ?? (job.job_type === 'video-to-shorts' ? 'folder' : 'project');
+  const outputId = firstString(taskData?.output_id, taskData?.outputId, taskData?.project_id, taskData?.projectId) ?? null;
 
   await ctx.supabase
     .from('klap_video_jobs')
@@ -194,7 +275,7 @@ async function actionRefreshTask(ctx: Ctx, body: any) {
       task_status: status,
       output_type: outputType,
       output_id: outputId,
-      error_message: status === 'error' ? (taskRes.data?.error || 'unknown') : null,
+      error_message: status === 'error' ? (getKlapMessage(taskData) || 'unknown') : null,
     })
     .eq('id', job.id)
     .eq('user_id', ctx.userId);
@@ -203,8 +284,10 @@ async function actionRefreshTask(ctx: Ctx, body: any) {
   if (status === 'ready' && outputId) {
     if (outputType === 'folder') {
       const folderRes = await klapFetch(`/projects/${outputId}`, { method: 'GET' }, klapUserId);
-      if (folderRes.ok && Array.isArray(folderRes.data)) {
-        for (const p of folderRes.data) {
+      const folderProjects = extractProjects(folderRes.data);
+      if (folderRes.ok && folderProjects.length > 0) {
+        for (const p of folderProjects) {
+          if (!p?.id) continue;
           await ctx.supabase.from('klap_projects').upsert({
             user_id: ctx.userId,
             job_id: job.id,
@@ -220,13 +303,13 @@ async function actionRefreshTask(ctx: Ctx, body: any) {
       }
     } else if (outputType === 'project') {
       const pRes = await klapFetch(`/projects/${outputId}`, { method: 'GET' }, klapUserId);
-      if (pRes.ok && pRes.data) {
-        const p = pRes.data;
+      const p = getPayloadObject(pRes.data);
+      if (pRes.ok && p) {
         await ctx.supabase.from('klap_projects').upsert({
           user_id: ctx.userId,
           job_id: job.id,
           klap_project_id: p.id ?? outputId,
-          klap_folder_id: null,
+          klap_folder_id: extractFolderId(p),
           name: p.name ?? null,
           virality_score: p.virality_score ?? null,
           virality_score_explanation: p.virality_score_explanation ?? null,
@@ -248,7 +331,7 @@ async function actionCreateEmbedUrl(ctx: Ctx, body: any) {
   validateInput('klap_project_id', { value: body.klap_project_id, type: 'string', required: true });
   const { data: project } = await ctx.supabase
     .from('klap_projects')
-    .select('klap_project_id, user_id')
+    .select('id, klap_project_id, klap_folder_id, raw, user_id')
     .eq('klap_project_id', body.klap_project_id)
     .eq('user_id', ctx.userId)
     .maybeSingle();
@@ -262,6 +345,10 @@ async function actionCreateEmbedUrl(ctx: Ctx, body: any) {
   if (!tokenRes.ok) {
     return json({ error: 'klap_upstream_error', status: tokenRes.status, success: false }, 502);
   }
+  const token = extractToken(tokenRes.data);
+  const klapProjectId = extractKlapProjectId(project);
+  if (!token || !klapProjectId) return json({ error: 'klap_embed_token_error', success: false }, 502);
+  const embed_url = `https://app.klap.app/embed/${encodeURIComponent(klapProjectId)}#external_access_token=${token}`;
   const token = tokenRes.data?.external_access_token || tokenRes.data?.token || tokenRes.data?.access_token;
   if (!token) return json({ error: 'no_token', success: false }, 502);
   const embed_url = `https://app.klap.app/embed/${encodeURIComponent(project.klap_project_id)}#external_access_token=${encodeURIComponent(token)}`;
@@ -272,13 +359,29 @@ async function actionStartExport(ctx: Ctx, body: any) {
   validateInput('klap_project_id', { value: body.klap_project_id, type: 'string', required: true });
   const { data: project } = await ctx.supabase
     .from('klap_projects')
-    .select('id, klap_project_id, klap_folder_id')
+    .select('id, klap_project_id, klap_folder_id, raw')
     .eq('klap_project_id', body.klap_project_id)
     .eq('user_id', ctx.userId)
     .maybeSingle();
   if (!project) return json({ error: 'not_found', success: false }, 404);
 
   const klapUserId = await ensureKlapUser(ctx.supabase, ctx.userId);
+  const klapProjectId = extractKlapProjectId(project);
+  if (!klapProjectId) return json({ error: 'project_missing_klap_id', success: false }, 500);
+
+  const folderId = await resolveFolderId(ctx, klapUserId, project);
+  const exportBody = typeof body.watermark === 'object' && body.watermark !== null
+    ? { watermark: body.watermark }
+    : null;
+  const exportInit: RequestInit = {
+    method: 'POST',
+    ...(exportBody ? { body: JSON.stringify(exportBody) } : {}),
+  };
+
+  let exportRes = await klapFetch(createKlapProjectExportPath(klapProjectId, folderId), exportInit, klapUserId);
+  if (!exportRes.ok && folderId) {
+    exportRes = await klapFetch(createKlapProjectExportPath(klapProjectId, null), exportInit, klapUserId);
+  }
   const projectPathId = encodeURIComponent(project.klap_project_id);
   const path = project.klap_folder_id
     ? `/projects/${encodeURIComponent(project.klap_folder_id)}/${projectPathId}/exports`
@@ -291,15 +394,29 @@ async function actionStartExport(ctx: Ctx, body: any) {
     body: JSON.stringify(exportBody),
   }, klapUserId);
   if (!exportRes.ok) {
-    return json({ error: 'klap_upstream_error', status: exportRes.status, success: false }, 502);
+    return json({
+      error: 'klap_upstream_error',
+      status: exportRes.status,
+      message: exportRes.message ?? 'Erro ao iniciar exportação no Klap',
+      success: false,
+    }, 502);
   }
-  const exportId = exportRes.data?.id || exportRes.data?.export_id;
+
+  const exportData = extractExport(exportRes.data);
+  const exportId = firstString(exportData?.id, exportData?.export_id, exportData?.exportId);
+  if (!exportId) return json({ error: 'klap_export_missing_id', success: false }, 502);
+
+  const status = firstString(exportData?.status) || 'processing';
   const { data: row, error } = await ctx.supabase
     .from('klap_exports')
     .insert({
       user_id: ctx.userId,
       project_id: project.id,
       klap_export_id: exportId,
+      status,
+      watermark: Boolean(body.watermark),
+      src_url: firstString(exportData?.src_url, exportData?.srcUrl, exportData?.url),
+      finished_at: firstString(exportData?.finished_at, exportData?.finishedAt) || (status === 'ready' ? new Date().toISOString() : null),
       status: exportRes.data?.status || 'processing',
       watermark: Boolean(body.watermark),
       src_url: exportRes.data?.src_url || null,
@@ -323,13 +440,33 @@ async function actionRefreshExport(ctx: Ctx, body: any) {
 
   const { data: project } = await ctx.supabase
     .from('klap_projects')
-    .select('klap_project_id, klap_folder_id')
+    .select('klap_project_id, klap_folder_id, raw')
     .eq('id', exp.project_id)
     .eq('user_id', ctx.userId)
     .maybeSingle();
   if (!project) return json({ error: 'not_found', success: false }, 404);
 
   const klapUserId = await ensureKlapUser(ctx.supabase, ctx.userId);
+  const klapProjectId = extractKlapProjectId(project);
+  if (!klapProjectId) return json({ error: 'project_missing_klap_id', success: false }, 500);
+
+  const folderId = await resolveFolderId(ctx, klapUserId, { ...project, id: exp.project_id });
+  let res = await klapFetch(createKlapProjectExportPath(klapProjectId, folderId, exp.klap_export_id), { method: 'GET' }, klapUserId);
+  if (!res.ok && folderId) {
+    res = await klapFetch(createKlapProjectExportPath(klapProjectId, null, exp.klap_export_id), { method: 'GET' }, klapUserId);
+  }
+  if (!res.ok) {
+    return json({
+      error: 'klap_upstream_error',
+      status: res.status,
+      message: res.message ?? 'Erro ao atualizar exportação no Klap',
+      success: false,
+    }, 502);
+  }
+
+  const exportData = extractExport(res.data);
+  const status = firstString(exportData?.status) || 'processing';
+  const src_url = firstString(exportData?.src_url, exportData?.srcUrl, exportData?.url);
   const projectPathId = encodeURIComponent(project.klap_project_id);
   const exportPathId = encodeURIComponent(exp.klap_export_id);
   const path = project.klap_folder_id
@@ -345,8 +482,8 @@ async function actionRefreshExport(ctx: Ctx, body: any) {
     .update({
       status,
       src_url,
-      finished_at: status === 'ready' ? new Date().toISOString() : null,
-      error_message: status === 'error' ? (res.data?.error || 'unknown') : null,
+      finished_at: firstString(exportData?.finished_at, exportData?.finishedAt) || (status === 'ready' ? new Date().toISOString() : null),
+      error_message: status === 'error' ? (getKlapMessage(exportData) || 'unknown') : null,
     })
     .eq('id', exp.id)
     .eq('user_id', ctx.userId);

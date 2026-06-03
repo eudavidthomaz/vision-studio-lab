@@ -12,6 +12,7 @@ type KlapFrame = {
   mode: KlapFrameMode;
   project: KlapProject;
   url: string | null;
+  error: string | null;
 };
 
 export default function JobProjects({ jobId }: { jobId: string }) {
@@ -20,6 +21,14 @@ export default function JobProjects({ jobId }: { jobId: string }) {
   const embed = useCreateEmbedUrl();
 
   const openKlapFrame = async (project: KlapProject, mode: KlapFrameMode) => {
+    setFrame({ mode, project, url: null, error: null });
+    try {
+      const res = await embed.mutateAsync(project.klap_project_id);
+      if (!res?.embed_url) throw new Error('O Klap não retornou uma URL de acesso.');
+      setFrame({ mode, project, url: res.embed_url, error: null });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Erro ao gerar acesso ao Klap.';
+      setFrame({ mode, project, url: null, error: message });
     setFrame({ mode, project, url: null });
     const res = await embed.mutateAsync(project.klap_project_id).catch(() => null);
     if (res?.embed_url) {
@@ -73,12 +82,25 @@ export default function JobProjects({ jobId }: { jobId: string }) {
           <div className="h-[85dvh] bg-black">
             {frame?.url ? (
               <iframe
+                key={frame.url}
+                src={frame.url}
+                title={frame.mode === 'preview' ? 'Visualização Klap' : 'Editor Klap'}
+                className="w-full h-full"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals"
                 src={frame.url}
                 title={frame.mode === 'preview' ? 'Visualização Klap' : 'Editor Klap'}
                 className="w-full h-full"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
                 allow="clipboard-read; clipboard-write; autoplay; fullscreen"
               />
+            ) : frame?.error ? (
+              <div className="h-full flex flex-col gap-3 items-center justify-center p-6 text-center">
+                <p className="font-medium text-destructive">Não foi possível abrir o Klap sem login.</p>
+                <p className="max-w-md text-sm text-muted-foreground">{frame.error}</p>
+                <Button variant="outline" onClick={() => openKlapFrame(frame.project, frame.mode)}>
+                  Tentar novamente
+                </Button>
+              </div>
             ) : (
               <div className="h-full flex flex-col gap-3 items-center justify-center text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin" />
