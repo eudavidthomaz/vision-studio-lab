@@ -349,6 +349,9 @@ async function actionCreateEmbedUrl(ctx: Ctx, body: any) {
   const klapProjectId = extractKlapProjectId(project);
   if (!token || !klapProjectId) return json({ error: 'klap_embed_token_error', success: false }, 502);
   const embed_url = `https://app.klap.app/embed/${encodeURIComponent(klapProjectId)}#external_access_token=${token}`;
+  const token = tokenRes.data?.external_access_token || tokenRes.data?.token || tokenRes.data?.access_token;
+  if (!token) return json({ error: 'no_token', success: false }, 502);
+  const embed_url = `https://app.klap.app/embed/${encodeURIComponent(project.klap_project_id)}#external_access_token=${encodeURIComponent(token)}`;
   return json({ embed_url });
 }
 
@@ -379,6 +382,17 @@ async function actionStartExport(ctx: Ctx, body: any) {
   if (!exportRes.ok && folderId) {
     exportRes = await klapFetch(createKlapProjectExportPath(klapProjectId, null), exportInit, klapUserId);
   }
+  const projectPathId = encodeURIComponent(project.klap_project_id);
+  const path = project.klap_folder_id
+    ? `/projects/${encodeURIComponent(project.klap_folder_id)}/${projectPathId}/exports`
+    : `/projects/${projectPathId}/exports`;
+  const exportBody = typeof body.watermark === 'object' && body.watermark !== null
+    ? { watermark: body.watermark }
+    : {};
+  const exportRes = await klapFetch(path, {
+    method: 'POST',
+    body: JSON.stringify(exportBody),
+  }, klapUserId);
   if (!exportRes.ok) {
     return json({
       error: 'klap_upstream_error',
@@ -403,6 +417,10 @@ async function actionStartExport(ctx: Ctx, body: any) {
       watermark: Boolean(body.watermark),
       src_url: firstString(exportData?.src_url, exportData?.srcUrl, exportData?.url),
       finished_at: firstString(exportData?.finished_at, exportData?.finishedAt) || (status === 'ready' ? new Date().toISOString() : null),
+      status: exportRes.data?.status || 'processing',
+      watermark: Boolean(body.watermark),
+      src_url: exportRes.data?.src_url || null,
+      finished_at: exportRes.data?.finished_at || (exportRes.data?.status === 'ready' ? new Date().toISOString() : null),
     })
     .select()
     .single();
@@ -449,6 +467,16 @@ async function actionRefreshExport(ctx: Ctx, body: any) {
   const exportData = extractExport(res.data);
   const status = firstString(exportData?.status) || 'processing';
   const src_url = firstString(exportData?.src_url, exportData?.srcUrl, exportData?.url);
+  const projectPathId = encodeURIComponent(project.klap_project_id);
+  const exportPathId = encodeURIComponent(exp.klap_export_id);
+  const path = project.klap_folder_id
+    ? `/projects/${encodeURIComponent(project.klap_folder_id)}/${projectPathId}/exports/${exportPathId}`
+    : `/projects/${projectPathId}/exports/${exportPathId}`;
+  const res = await klapFetch(path, { method: 'GET' }, klapUserId);
+  if (!res.ok) return json({ error: 'klap_upstream_error', status: res.status, success: false }, 502);
+
+  const status = res.data?.status || 'processing';
+  const src_url = res.data?.src_url || res.data?.url || null;
   await ctx.supabase
     .from('klap_exports')
     .update({

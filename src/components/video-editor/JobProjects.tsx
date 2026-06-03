@@ -29,6 +29,10 @@ export default function JobProjects({ jobId }: { jobId: string }) {
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Erro ao gerar acesso ao Klap.';
       setFrame({ mode, project, url: null, error: message });
+    setFrame({ mode, project, url: null });
+    const res = await embed.mutateAsync(project.klap_project_id).catch(() => null);
+    if (res?.embed_url) {
+      setFrame({ mode, project, url: res.embed_url });
     }
   };
 
@@ -83,6 +87,10 @@ export default function JobProjects({ jobId }: { jobId: string }) {
                 title={frame.mode === 'preview' ? 'Visualização Klap' : 'Editor Klap'}
                 className="w-full h-full"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals"
+                src={frame.url}
+                title={frame.mode === 'preview' ? 'Visualização Klap' : 'Editor Klap'}
+                className="w-full h-full"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
                 allow="clipboard-read; clipboard-write; autoplay; fullscreen"
               />
             ) : frame?.error ? (
