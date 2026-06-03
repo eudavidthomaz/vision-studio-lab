@@ -80,7 +80,10 @@ async function ensureKlapUser(supabase: any, userId: string): Promise<string> {
   const klapUserId = created.data?.id || created.data?.user_id;
   if (!klapUserId) throw new Error('klap_user_create_no_id');
 
-  await supabase.from('klap_users').upsert({ user_id: userId, klap_user_id: klapUserId });
+  const { error: upErr } = await supabase
+    .from('klap_users')
+    .upsert({ user_id: userId, klap_user_id: klapUserId });
+  if (upErr) throw new Error(`db_upsert_klap_user:${upErr.message}`);
   return klapUserId;
 }
 
