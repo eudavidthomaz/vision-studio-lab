@@ -37,10 +37,10 @@ async function invoke<T>(action: string, payload: Record<string, unknown> = {}):
   const { data, error } = await supabase.functions.invoke('klap-api', {
     body: { action, ...payload },
   });
-  if (error) throw new Error(error.message);
   if (data && typeof data === 'object' && 'success' in data && data.success === false) {
-    throw new Error((data as any).error || 'Erro ao processar vídeo');
+    throw new Error((data as any).message || (data as any).error || 'Erro ao processar vídeo');
   }
+  if (error) throw new Error(error.message);
   return data as T;
 }
 
@@ -146,7 +146,7 @@ export function useCreateEmbedUrl() {
 export function useStartExport() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { klap_project_id: string; watermark?: boolean; project_id: string }) =>
+    mutationFn: (input: { klap_project_id: string; watermark?: { src_url: string; pos_x?: number; pos_y?: number; scale?: number }; project_id: string }) =>
       invoke<{ export: KlapExport }>('start_export', input),
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ['klap-exports', vars.project_id] });

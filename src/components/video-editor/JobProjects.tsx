@@ -3,21 +3,33 @@ import { useKlapProjects, KlapProject, useCreateEmbedUrl } from '@/hooks/useKlap
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { Eye, Edit3, Download, Loader2 } from 'lucide-react';
+import { Eye, Edit3, Loader2 } from 'lucide-react';
 import ExportButton from './ExportButton';
+
+type KlapFrameMode = 'preview' | 'editor';
+
+type KlapFrame = {
+  mode: KlapFrameMode;
+  project: KlapProject;
+  url: string | null;
+  error: string | null;
+};
 
 export default function JobProjects({ jobId }: { jobId: string }) {
   const { data: projects, isLoading } = useKlapProjects(jobId);
-  const [preview, setPreview] = useState<KlapProject | null>(null);
-  const [embedUrl, setEmbedUrl] = useState<string | null>(null);
-  const [embedFor, setEmbedFor] = useState<KlapProject | null>(null);
+  const [frame, setFrame] = useState<KlapFrame | null>(null);
   const embed = useCreateEmbedUrl();
 
-  const openEditor = async (p: KlapProject) => {
-    setEmbedFor(p);
-    setEmbedUrl(null);
-    const res = await embed.mutateAsync(p.klap_project_id).catch(() => null);
-    if (res?.embed_url) setEmbedUrl(res.embed_url);
+  const openKlapFrame = async (project: KlapProject, mode: KlapFrameMode) => {
+    setFrame({ mode, project, url: null, error: null });
+    try {
+      const res = await embed.mutateAsync(project.klap_project_id);
+      if (!res?.embed_url) throw new Error('O Klap não retornou uma URL de acesso.');
+      setFrame({ mode, project, url: res.embed_url, error: null });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Erro ao gerar acesso ao Klap.';
+      setFrame({ mode, project, url: null, error: message });
+    }
   };
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando projetos…</p>;
@@ -44,10 +56,10 @@ export default function JobProjects({ jobId }: { jobId: string }) {
               </div>
             )}
             <div className="flex flex-wrap gap-2 pt-1">
-              <Button size="sm" variant="outline" onClick={() => setPreview(p)} className="gap-1.5">
-                <Eye className="h-3.5 w-3.5" /> Preview
+              <Button size="sm" variant="outline" onClick={() => openKlapFrame(p, 'preview')} className="gap-1.5">
+                <Eye className="h-3.5 w-3.5" /> Visualizar
               </Button>
-              <Button size="sm" variant="outline" onClick={() => openEditor(p)} className="gap-1.5">
+              <Button size="sm" variant="outline" onClick={() => openKlapFrame(p, 'editor')} className="gap-1.5">
                 <Edit3 className="h-3.5 w-3.5" /> Editor
               </Button>
               <ExportButton projectId={p.id} klapProjectId={p.klap_project_id} />
@@ -56,41 +68,35 @@ export default function JobProjects({ jobId }: { jobId: string }) {
         ))}
       </div>
 
-      <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
-        <DialogContent className="max-w-3xl w-[95vw] p-0 overflow-hidden">
-          <DialogHeader className="p-4 pb-0">
-            <DialogTitle>{preview?.name || 'Preview'}</DialogTitle>
-          </DialogHeader>
-          {preview && (
-            <div className="aspect-[9/16] w-full max-h-[85dvh] bg-black">
-              <iframe
-                src={`https://klap.app/player/${preview.klap_project_id}`}
-                title="Preview"
-                className="w-full h-full"
-                allow="autoplay; fullscreen"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!embedFor} onOpenChange={(o) => { if (!o) { setEmbedFor(null); setEmbedUrl(null); } }}>
+      <Dialog open={!!frame} onOpenChange={(o) => { if (!o) setFrame(null); }}>
         <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden">
           <DialogHeader className="p-4 pb-0">
-            <DialogTitle>Editor — {embedFor?.name || ''}</DialogTitle>
+            <DialogTitle>
+              {frame?.mode === 'preview' ? 'Visualizar' : 'Editor'} — {frame?.project.name || 'Projeto Klap'}
+            </DialogTitle>
           </DialogHeader>
           <div className="h-[85dvh] bg-black">
-            {embedUrl ? (
+            {frame?.url ? (
               <iframe
-                src={embedUrl}
-                title="Editor Klap"
+                key={frame.url}
+                src={frame.url}
+                title={frame.mode === 'preview' ? 'Visualização Klap' : 'Editor Klap'}
                 className="w-full h-full"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
-                allow="clipboard-write; autoplay; fullscreen"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals"
+                allow="clipboard-read; clipboard-write; autoplay; fullscreen"
               />
+            ) : frame?.error ? (
+              <div className="h-full flex flex-col gap-3 items-center justify-center p-6 text-center">
+                <p className="font-medium text-destructive">Não foi possível abrir o Klap sem login.</p>
+                <p className="max-w-md text-sm text-muted-foreground">{frame.error}</p>
+                <Button variant="outline" onClick={() => openKlapFrame(frame.project, frame.mode)}>
+                  Tentar novamente
+                </Button>
+              </div>
             ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
+              <div className="h-full flex flex-col gap-3 items-center justify-center text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="text-sm">Gerando acesso seguro ao Klap…</span>
               </div>
             )}
           </div>
