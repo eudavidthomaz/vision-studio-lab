@@ -108,6 +108,7 @@ export function useStartJob() {
       language?: string;
       target_clip_count?: number;
       max_clip_count?: number;
+      min_duration?: number;
       max_duration?: number;
       editing_options?: Record<string, boolean>;
       dimensions?: { width: number; height: number };

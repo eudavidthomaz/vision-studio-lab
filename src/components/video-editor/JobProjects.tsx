@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { Eye, Edit3, Loader2, AlertCircle, ExternalLink } from 'lucide-react';
+import { Edit3, Loader2, AlertCircle, ExternalLink } from 'lucide-react';
 import ExportButton from './ExportButton';
 
 export default function JobProjects({ jobId }: { jobId: string }) {
@@ -78,11 +78,14 @@ export default function JobProjects({ jobId }: { jobId: string }) {
               </div>
             )}
             <div className="flex flex-wrap gap-2 pt-1">
-              <Button size="sm" variant="outline" onClick={() => open(p)} className="gap-1.5">
-                <Eye className="h-3.5 w-3.5" /> Preview
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => open(p)} className="gap-1.5">
-                <Edit3 className="h-3.5 w-3.5" /> Editor
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => open(p)}
+                className="gap-1.5"
+                title="Player oficial da Klap — edite cortes, legendas e baixe."
+              >
+                <Edit3 className="h-3.5 w-3.5" /> Abrir editor
               </Button>
               <ExportButton projectId={p.id} klapProjectId={p.klap_project_id} />
             </div>
