@@ -3,21 +3,27 @@ import { useKlapProjects, KlapProject, useCreateEmbedUrl } from '@/hooks/useKlap
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { Eye, Edit3, Download, Loader2 } from 'lucide-react';
+import { Eye, Edit3, Loader2, AlertCircle } from 'lucide-react';
 import ExportButton from './ExportButton';
 
 export default function JobProjects({ jobId }: { jobId: string }) {
   const { data: projects, isLoading } = useKlapProjects(jobId);
-  const [preview, setPreview] = useState<KlapProject | null>(null);
+  const [openFor, setOpenFor] = useState<KlapProject | null>(null);
   const [embedUrl, setEmbedUrl] = useState<string | null>(null);
-  const [embedFor, setEmbedFor] = useState<KlapProject | null>(null);
+  const [embedError, setEmbedError] = useState<string | null>(null);
   const embed = useCreateEmbedUrl();
 
-  const openEditor = async (p: KlapProject) => {
-    setEmbedFor(p);
+  const open = async (p: KlapProject) => {
+    setOpenFor(p);
     setEmbedUrl(null);
-    const res = await embed.mutateAsync(p.klap_project_id).catch(() => null);
-    if (res?.embed_url) setEmbedUrl(res.embed_url);
+    setEmbedError(null);
+    try {
+      const res = await embed.mutateAsync(p.klap_project_id);
+      if (res?.embed_url) setEmbedUrl(res.embed_url);
+      else setEmbedError('Não foi possível gerar o link do player.');
+    } catch (e: any) {
+      setEmbedError(e?.message || 'Erro ao gerar player.');
+    }
   };
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando projetos…</p>;
@@ -44,10 +50,10 @@ export default function JobProjects({ jobId }: { jobId: string }) {
               </div>
             )}
             <div className="flex flex-wrap gap-2 pt-1">
-              <Button size="sm" variant="outline" onClick={() => setPreview(p)} className="gap-1.5">
+              <Button size="sm" variant="outline" onClick={() => open(p)} className="gap-1.5">
                 <Eye className="h-3.5 w-3.5" /> Preview
               </Button>
-              <Button size="sm" variant="outline" onClick={() => openEditor(p)} className="gap-1.5">
+              <Button size="sm" variant="outline" onClick={() => open(p)} className="gap-1.5">
                 <Edit3 className="h-3.5 w-3.5" /> Editor
               </Button>
               <ExportButton projectId={p.id} klapProjectId={p.klap_project_id} />
@@ -56,34 +62,21 @@ export default function JobProjects({ jobId }: { jobId: string }) {
         ))}
       </div>
 
-      <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
-        <DialogContent className="max-w-3xl w-[95vw] p-0 overflow-hidden">
-          <DialogHeader className="p-4 pb-0">
-            <DialogTitle>{preview?.name || 'Preview'}</DialogTitle>
-          </DialogHeader>
-          {preview && (
-            <div className="aspect-[9/16] w-full max-h-[85dvh] bg-black">
-              <iframe
-                src={`https://klap.app/player/${preview.klap_project_id}`}
-                title="Preview"
-                className="w-full h-full"
-                allow="autoplay; fullscreen"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!embedFor} onOpenChange={(o) => { if (!o) { setEmbedFor(null); setEmbedUrl(null); } }}>
+      <Dialog open={!!openFor} onOpenChange={(o) => { if (!o) { setOpenFor(null); setEmbedUrl(null); setEmbedError(null); } }}>
         <DialogContent className="max-w-5xl w-[95vw] p-0 overflow-hidden">
           <DialogHeader className="p-4 pb-0">
-            <DialogTitle>Editor — {embedFor?.name || ''}</DialogTitle>
+            <DialogTitle className="truncate">{openFor?.name || 'Editor'}</DialogTitle>
           </DialogHeader>
           <div className="h-[85dvh] bg-black">
-            {embedUrl ? (
+            {embedError ? (
+              <div className="h-full flex flex-col items-center justify-center gap-2 text-destructive p-6 text-center">
+                <AlertCircle className="h-6 w-6" />
+                <p className="text-sm">{embedError}</p>
+              </div>
+            ) : embedUrl ? (
               <iframe
                 src={embedUrl}
-                title="Editor Klap"
+                title="Klap"
                 className="w-full h-full"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"
                 allow="clipboard-write; autoplay; fullscreen"
