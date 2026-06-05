@@ -269,7 +269,7 @@ async function actionCreateEmbedUrl(ctx: Ctx, body: any) {
     tokenRes.data?.token ||
     tokenRes.data?.access_token;
   if (!token) return json({ error: 'no_token', success: false }, 502);
-  const embed_url = `https://app.klap.app/embed/${project.klap_project_id}#external_access_token=${token}`;
+  const embed_url = `${KLAP_EMBED_BASE}/embed/${project.klap_project_id}#external_access_token=${token}`;
   return json({ embed_url });
 }
 
