@@ -283,9 +283,8 @@ async function actionStartExport(ctx: Ctx, body: any) {
     .eq('user_id', ctx.userId)
     .maybeSingle();
   if (!project) return json({ error: 'not_found', success: false }, 404);
-  if (!project.klap_folder_id) {
-    return json({ error: 'project_has_no_folder', success: false }, 400);
-  }
+
+
 
   const klapUserId = await ensureKlapUser(ctx.supabase, ctx.userId);
   // Klap API only documents watermark as an object: { src_url, pos_x?, pos_y?, scale? }
@@ -297,7 +296,11 @@ async function actionStartExport(ctx: Ctx, body: any) {
   }
   const persistedWm = (requestBody.watermark as Record<string, unknown> | undefined) ?? null;
 
-  const path = `/projects/${project.klap_folder_id}/${project.klap_project_id}/exports`;
+  // Folder-scoped path for video-to-shorts outputs; flat path for standalone
+  // video-to-video projects (which have no folder).
+  const path = project.klap_folder_id
+    ? `/projects/${project.klap_folder_id}/${project.klap_project_id}/exports`
+    : `/projects/${project.klap_project_id}/exports`;
   const exportRes = await klapFetch(path, {
     method: 'POST',
     body: JSON.stringify(requestBody),
