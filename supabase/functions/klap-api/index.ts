@@ -19,6 +19,9 @@ const corsHeaders = {
 
 const KLAP_BASE = Deno.env.get('KLAP_API_BASE_URL') || 'https://api.klap.app/v2';
 const KLAP_KEY = Deno.env.get('KLAP_API_KEY') || '';
+// Embed host: docs say app.klap.app, but that subdomain is offline (DNS → ghs.googlehosted.com, TLS handshake fails).
+// klap.app (no subdomain) is the live Next.js player. Override via env if Klap restores the documented host.
+const KLAP_EMBED_BASE = (Deno.env.get('KLAP_EMBED_BASE_URL') || 'https://klap.app').replace(/\/+$/, '');
 const ALLOWED_EMAILS = (Deno.env.get('KLAP_ALLOWED_EMAILS') ||
   'contato@ligadafotografia.com.br')
   .split(',')
@@ -266,7 +269,7 @@ async function actionCreateEmbedUrl(ctx: Ctx, body: any) {
     tokenRes.data?.token ||
     tokenRes.data?.access_token;
   if (!token) return json({ error: 'no_token', success: false }, 502);
-  const embed_url = `https://app.klap.app/embed/${project.klap_project_id}#external_access_token=${token}`;
+  const embed_url = `${KLAP_EMBED_BASE}/embed/${project.klap_project_id}#external_access_token=${token}`;
   return json({ embed_url });
 }
 

@@ -1,27 +1,42 @@
-## Diagnóstico
+## Causa raiz comprovada
 
-A URL gerada pelo edge function está correta conforme `docs.klap.app/usecases/managed-users` §4:
-`https://app.klap.app/embed/{project_id}#external_access_token={token}` — verificado em `supabase/functions/klap-api/index.ts:269` retornando 200 OK com token válido.
+O iframe fica em branco / mostra "não foi possível encontrar o IP" porque o host documentado pela Klap (`app.klap.app`) **está fora do ar em produção**. Provas:
 
-O iframe carrega (session replay confirma o nó `<iframe title="Klap">` montado) mas renderiza tela branca. Causa mais provável: o atributo `sandbox` em `src/components/video-editor/JobProjects.tsx:81` está bloqueando recursos que o SPA do Klap precisa (storage cross-origin, popups de auth, workers). Combinar `allow-same-origin` + `allow-scripts` num documento de outra origem é uma configuração que vários navegadores tratam como suspeita e que quebra apps SPA que dependem de IndexedDB/Service Worker.
+- DNS de `app.klap.app` aponta para `ghs.googlehosted.com` (Google Sites), não para o app Next.js da Klap.
+- `curl -I https://app.klap.app/` e `curl -I https://app.klap.app/embed/L30jhjrUhfIA` retornam **zero bytes** (handshake TLS sem resposta).
+- Já `https://klap.app/embed/L30jhjrUhfIA` retorna **HTTP/2 200** com o HTML real do player Next.js da Klap (mesma SPA, com os chunks `_next/...`).
+- Token gerado pela edge function `create_embed_url` está correto e válido: a response da `POST /functions/v1/klap-api` traz `embed_url` com `#external_access_token=...`. O backend está OK — o problema é puramente o **host** da URL.
 
-Minha correção anterior foi incompleta porque assumi que o `sandbox` seria neutro para o embed do Klap — não é; o embed é uma aplicação completa e não tolera sandbox restritivo.
+Minha correção anterior foi incompleta porque segui literalmente a doc `docs.klap.app/usecases/managed-users` (`https://app.klap.app/embed/{id}#external_access_token=...`), sem validar que esse subdomínio está realmente servindo conteúdo. A documentação da Klap está desatualizada — o player atual da plataforma roda em `klap.app` (sem subdomínio).
 
-## Mudanças
+## Correção
 
-**Único arquivo:** `src/components/video-editor/JobProjects.tsx`
+Mudança cirúrgica, 1 linha de código + 1 fallback de env:
 
-1. Remover o atributo `sandbox` do `<iframe>` (manter apenas `allow="clipboard-write; autoplay; fullscreen; encrypted-media"` e `referrerPolicy="no-referrer-when-downgrade"`).
-2. Adicionar `allowFullScreen` e `loading="eager"`.
-3. Adicionar botão "Abrir em nova aba" no header do `DialogContent` que faz `window.open(embedUrl, '_blank', 'noopener')` — fallback garantido caso o navegador do usuário bloqueie o embed por política de terceiros (Safari ITP, Brave, etc.).
-4. Adicionar `<DialogDescription>` (corrige o warning de acessibilidade já presente no console).
-5. Após 8 s sem evento `load` no iframe, exibir banner discreto sugerindo o fallback de nova aba (sem trocar a UI, só um aviso).
+### `supabase/functions/klap-api/index.ts`
+
+1. Adicionar (perto do topo, junto de `KLAP_BASE`):
+   ```ts
+   const KLAP_EMBED_BASE = Deno.env.get('KLAP_EMBED_BASE_URL') || 'https://klap.app';
+   ```
+2. Em `actionCreateEmbedUrl` (linha 269), trocar:
+   ```ts
+   const embed_url = `https://app.klap.app/embed/${project.klap_project_id}#external_access_token=${token}`;
+   ```
+   por:
+   ```ts
+   const embed_url = `${KLAP_EMBED_BASE}/embed/${project.klap_project_id}#external_access_token=${token}`;
+   ```
+
+Sem mudanças no frontend, no banco, nas RLS, no fluxo de export, no `JobProjects.tsx`. Sem migração.
 
 ## Validação
 
-- Verificar no preview real: clicar Preview → iframe deve renderizar o player do Klap dentro de 2–3 s.
-- Se persistir branco, o botão "Abrir em nova aba" prova que a URL é válida e isola o problema como restrição de embedding do navegador, não do app.
+1. Redeploy automático da função `klap-api`.
+2. Testar `create_embed_url` via `supabase--curl_edge_functions` e conferir que `embed_url` agora começa com `https://klap.app/embed/...`.
+3. Validar via browser real (`view_preview`) clicando em "Preview" — o iframe deve carregar o player. Tirar screenshot como prova.
+4. Se ainda houver tela branca após a troca, a causa será outra (CSP / X-Frame-Options), e nesse caso o botão "Abrir em nova aba" já existente serve de fallback imediato, sem nova correção especulativa.
 
-## Fora de escopo
+## Fora de escopo (intencional)
 
-Nenhuma mudança em edge function, banco, hooks ou export. Apenas o componente do modal de preview.
+Os outros bugs do audit (export de `video-to-video`, watermark jsonb, dual timers, etc.) **não bloqueiam** o que o usuário relatou ("preview e editor não funcionam"). Não vou tocá-los nesta correção para manter o blast radius mínimo. Posso abrir issues separadas depois, se você quiser.
