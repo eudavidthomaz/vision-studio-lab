@@ -477,7 +477,7 @@ export type Database = {
           src_url: string | null
           status: string
           user_id: string
-          watermark: boolean
+          watermark: Json | null
         }
         Insert: {
           created_at?: string
@@ -489,7 +489,7 @@ export type Database = {
           src_url?: string | null
           status?: string
           user_id: string
-          watermark?: boolean
+          watermark?: Json | null
         }
         Update: {
           created_at?: string
@@ -501,7 +501,7 @@ export type Database = {
           src_url?: string | null
           status?: string
           user_id?: string
-          watermark?: boolean
+          watermark?: Json | null
         }
         Relationships: [
           {

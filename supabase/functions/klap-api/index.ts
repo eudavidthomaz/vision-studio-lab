@@ -256,15 +256,20 @@ async function actionCreateEmbedUrl(ctx: Ctx, body: any) {
   const tokenRes = await klapFetch(`/users/${klapUserId}/tokens`, {
     method: 'POST',
     body: JSON.stringify({}),
-  }, klapUserId);
+  });
   if (!tokenRes.ok) {
     return json({ error: 'klap_upstream_error', status: tokenRes.status, success: false }, 502);
   }
-  const token = tokenRes.data?.token || tokenRes.data?.access_token;
+  // Klap returns { external_access_token: "..." } per docs.klap.app/usecases/managed-users
+  const token =
+    tokenRes.data?.external_access_token ||
+    tokenRes.data?.token ||
+    tokenRes.data?.access_token;
   if (!token) return json({ error: 'no_token', success: false }, 502);
   const embed_url = `https://app.klap.app/embed/${project.klap_project_id}#external_access_token=${token}`;
   return json({ embed_url });
 }
+
 
 async function actionStartExport(ctx: Ctx, body: any) {
   validateInput('klap_project_id', { value: body.klap_project_id, type: 'string', required: true });
@@ -275,17 +280,27 @@ async function actionStartExport(ctx: Ctx, body: any) {
     .eq('user_id', ctx.userId)
     .maybeSingle();
   if (!project) return json({ error: 'not_found', success: false }, 404);
+  if (!project.klap_folder_id) {
+    return json({ error: 'project_has_no_folder', success: false }, 400);
+  }
 
   const klapUserId = await ensureKlapUser(ctx.supabase, ctx.userId);
-  const watermark = body.watermark !== false;
-  const path = project.klap_folder_id
-    ? `/projects/${project.klap_folder_id}/${project.klap_project_id}/exports`
-    : `/projects/${project.klap_project_id}/exports`;
+  // Klap API only documents watermark as an object: { src_url, pos_x?, pos_y?, scale? }
+  // If omitted, Klap applies its default watermark. Booleans are rejected.
+  const requestBody: Record<string, unknown> = {};
+  const wm = body.watermark;
+  if (wm && typeof wm === 'object' && typeof (wm as any).src_url === 'string') {
+    requestBody.watermark = wm;
+  }
+  const persistedWm = (requestBody.watermark as Record<string, unknown> | undefined) ?? null;
+
+  const path = `/projects/${project.klap_folder_id}/${project.klap_project_id}/exports`;
   const exportRes = await klapFetch(path, {
     method: 'POST',
-    body: JSON.stringify({ watermark }),
+    body: JSON.stringify(requestBody),
   }, klapUserId);
   if (!exportRes.ok) {
+    await logSecurityEvent(ctx.supabase, ctx.userId, 'klap_export_failed', 'klap-api', false, `status:${exportRes.status}`);
     return json({ error: 'klap_upstream_error', status: exportRes.status, success: false }, 502);
   }
   const exportId = exportRes.data?.id || exportRes.data?.export_id;
@@ -296,13 +311,14 @@ async function actionStartExport(ctx: Ctx, body: any) {
       project_id: project.id,
       klap_export_id: exportId,
       status: exportRes.data?.status || 'processing',
-      watermark,
+      watermark: persistedWm,
     })
     .select()
     .single();
   if (error) throw new Error(`db_insert_export:${error.message}`);
   return json({ export: row });
 }
+
 
 async function actionRefreshExport(ctx: Ctx, body: any) {
   validateInput('export_id', { value: body.export_id, type: 'string', required: true });
@@ -323,10 +339,12 @@ async function actionRefreshExport(ctx: Ctx, body: any) {
   if (!project) return json({ error: 'not_found', success: false }, 404);
 
   const klapUserId = await ensureKlapUser(ctx.supabase, ctx.userId);
-  const path = project.klap_folder_id
-    ? `/projects/${project.klap_folder_id}/${project.klap_project_id}/exports/${exp.klap_export_id}`
-    : `/projects/${project.klap_project_id}/exports/${exp.klap_export_id}`;
+  if (!project.klap_folder_id) {
+    return json({ error: 'project_has_no_folder', success: false }, 400);
+  }
+  const path = `/projects/${project.klap_folder_id}/${project.klap_project_id}/exports/${exp.klap_export_id}`;
   const res = await klapFetch(path, { method: 'GET' }, klapUserId);
+
   if (!res.ok) return json({ error: 'klap_upstream_error', status: res.status, success: false }, 502);
 
   const status = res.data?.status || 'processing';

@@ -29,9 +29,10 @@ export type KlapExport = {
   project_id: string;
   status: 'processing' | 'ready' | 'error' | string;
   src_url: string | null;
-  watermark: boolean;
+  watermark: Record<string, unknown> | null;
   created_at: string;
 };
+
 
 async function invoke<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
   const { data, error } = await supabase.functions.invoke('klap-api', {
@@ -146,7 +147,7 @@ export function useCreateEmbedUrl() {
 export function useStartExport() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: { klap_project_id: string; watermark?: boolean; project_id: string }) =>
+    mutationFn: (input: { klap_project_id: string; watermark?: Record<string, unknown>; project_id: string }) =>
       invoke<{ export: KlapExport }>('start_export', input),
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ['klap-exports', vars.project_id] });
@@ -155,6 +156,7 @@ export function useStartExport() {
     onError: (e: any) => toast.error('Erro ao exportar', { description: e.message }),
   });
 }
+
 
 export function useRefreshExport() {
   const qc = useQueryClient();
