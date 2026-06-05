@@ -345,10 +345,9 @@ async function actionRefreshExport(ctx: Ctx, body: any) {
   if (!project) return json({ error: 'not_found', success: false }, 404);
 
   const klapUserId = await ensureKlapUser(ctx.supabase, ctx.userId);
-  if (!project.klap_folder_id) {
-    return json({ error: 'project_has_no_folder', success: false }, 400);
-  }
-  const path = `/projects/${project.klap_folder_id}/${project.klap_project_id}/exports/${exp.klap_export_id}`;
+  const path = project.klap_folder_id
+    ? `/projects/${project.klap_folder_id}/${project.klap_project_id}/exports/${exp.klap_export_id}`
+    : `/projects/${project.klap_project_id}/exports/${exp.klap_export_id}`;
   const res = await klapFetch(path, { method: 'GET' }, klapUserId);
 
   if (!res.ok) return json({ error: 'klap_upstream_error', status: res.status, success: false }, 502);
