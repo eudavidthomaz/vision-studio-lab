@@ -15,6 +15,8 @@ export default function CreateJobCard() {
   const [mode, setMode] = useState<'shorts' | 'video'>('shorts');
   const [language, setLanguage] = useState('auto');
   const [targetClips, setTargetClips] = useState<number>(10);
+  const [maxClips, setMaxClips] = useState<number>(15);
+  const [minDuration, setMinDuration] = useState<number>(15);
   const [maxDuration, setMaxDuration] = useState<number>(60);
   const [captions, setCaptions] = useState(true);
   const [reframe, setReframe] = useState(true);
@@ -28,19 +30,31 @@ export default function CreateJobCard() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!/^https:\/\/.+/i.test(url)) return;
-    start.mutate({
-      mode,
-      source_video_url: url.trim(),
-      language,
-      target_clip_count: mode === 'shorts' ? targetClips : undefined,
-      max_duration: mode === 'shorts' ? maxDuration : undefined,
-      editing_options: {
-        captions, reframe, emojis, intro_title: introTitle, remove_silences: removeSilences,
+    start.mutate(
+      {
+        mode,
+        source_video_url: url.trim(),
+        language,
+        target_clip_count: mode === 'shorts' ? targetClips : undefined,
+        max_clip_count: mode === 'shorts' ? maxClips : undefined,
+        min_duration: mode === 'shorts' ? minDuration : undefined,
+        max_duration: mode === 'shorts' ? maxDuration : undefined,
+        editing_options: {
+          captions,
+          // reframe only applies to video-to-shorts per Klap docs
+          ...(mode === 'shorts' ? { reframe } : {}),
+          emojis,
+          intro_title: introTitle,
+          remove_silences: removeSilences,
+        },
+        // Force 9:16 only when generating vertical shorts; keep source aspect otherwise.
+        dimensions: mode === 'shorts' && reframe ? { width: 1080, height: 1920 } : undefined,
+        transcription_context: context.trim() || undefined,
       },
-      dimensions: { width: 1080, height: 1920 },
-      transcription_context: context.trim() || undefined,
-    });
-    if (!start.isError) setUrl('');
+      {
+        onSuccess: () => setUrl(''),
+      },
+    );
   };
 
   return (
@@ -100,6 +114,16 @@ export default function CreateJobCard() {
                       onChange={(e) => setTargetClips(Number(e.target.value))} />
                   </div>
                   <div className="space-y-2">
+                    <Label>Nº máx. de cortes</Label>
+                    <Input type="number" min={1} max={30} value={maxClips}
+                      onChange={(e) => setMaxClips(Number(e.target.value))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Duração mín. (s)</Label>
+                    <Input type="number" min={5} max={180} value={minDuration}
+                      onChange={(e) => setMinDuration(Number(e.target.value))} />
+                  </div>
+                  <div className="space-y-2">
                     <Label>Duração máx. (s)</Label>
                     <Input type="number" min={10} max={180} value={maxDuration}
                       onChange={(e) => setMaxDuration(Number(e.target.value))} />
@@ -109,7 +133,9 @@ export default function CreateJobCard() {
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <ToggleRow label="Legendas" checked={captions} onChange={setCaptions} />
-              <ToggleRow label="Reframe vertical" checked={reframe} onChange={setReframe} />
+              {mode === 'shorts' && (
+                <ToggleRow label="Reframe vertical (9:16)" checked={reframe} onChange={setReframe} />
+              )}
               <ToggleRow label="Emojis" checked={emojis} onChange={setEmojis} />
               <ToggleRow label="Título de abertura" checked={introTitle} onChange={setIntroTitle} />
               <ToggleRow label="Remover silêncios" checked={removeSilences} onChange={setRemoveSilences} />

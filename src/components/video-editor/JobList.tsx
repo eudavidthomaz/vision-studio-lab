@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useKlapJobs, useRefreshTask, KlapJob } from '@/hooks/useKlap';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,16 +11,18 @@ export default function JobList() {
   const { data: jobs, isLoading } = useKlapJobs();
   const refresh = useRefreshTask();
 
-  // Auto-refresh task status for processing jobs via the edge function (server-side fetch)
+  // Single 30s server-side sync for processing jobs. useKlapJobs already
+  // polls the DB every 15s; this only forces Klap → DB reconciliation.
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
   useEffect(() => {
     if (!jobs) return;
-    const processing = jobs.filter((j) => j.task_status === 'processing');
-    if (processing.length === 0) return;
+    const processingIds = jobs.filter((j) => j.task_status === 'processing').map((j) => j.id);
+    if (processingIds.length === 0) return;
     const t = setInterval(() => {
-      processing.forEach((j) => refresh.mutate(j.id));
-    }, 20000);
+      processingIds.forEach((id) => refreshRef.current.mutate(id));
+    }, 30000);
     return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs?.map((j) => `${j.id}:${j.task_status}`).join(',')]);
 
   if (isLoading) {
@@ -63,8 +65,8 @@ function JobRow({ job, onRefresh, refreshing }: { job: KlapJob; onRefresh: () =>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant={statusVariant as any}>{labelFor(job.task_status)}</Badge>
-          {job.task_status === 'processing' && (
-            <Button size="sm" variant="ghost" onClick={onRefresh} disabled={refreshing}>
+          {(job.task_status === 'processing' || job.task_status === 'error') && (
+            <Button size="sm" variant="ghost" onClick={onRefresh} disabled={refreshing} title="Sincronizar com a Klap">
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </Button>
           )}
