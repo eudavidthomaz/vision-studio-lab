@@ -78,6 +78,10 @@ const Auth = () => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        if (nextPath) {
+          window.location.href = nextPath;
+          return;
+        }
         navigate("/dashboard", { replace: true });
       }
     };
@@ -85,6 +89,10 @@ const Auth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && event === 'SIGNED_IN') {
+        if (nextPath) {
+          window.location.href = nextPath;
+          return;
+        }
         const hasSeenWelcome = localStorage.getItem("ide-on-welcome-seen");
         if (!hasSeenWelcome) {
           navigate("/welcome", { replace: true });
