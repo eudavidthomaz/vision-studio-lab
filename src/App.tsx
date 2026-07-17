@@ -27,6 +27,9 @@ import SiteEditor from "./pages/SiteEditor";
 import ChurchSite from "./pages/ChurchSite";
 import VideoEditor from "./pages/VideoEditor";
 import OAuthConsent from "./pages/OAuthConsent";
+import Support from "./pages/Support";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -75,6 +78,10 @@ const App = () => (
           <Route path="/sites/editor" element={<SiteEditor />} />
           <Route path="/igreja/:slug" element={<ChurchSite />} />
           <Route path="/editor-video" element={<VideoEditor />} />
+          {/* Public legal & support pages */}
+          <Route path="/suporte" element={<Support />} />
+          <Route path="/privacidade" element={<Privacy />} />
+          <Route path="/termos" element={<Terms />} />
           {/* OAuth 2.1 consent screen (Managed Cloud Auth) */}
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           {/* Legacy redirects */}
