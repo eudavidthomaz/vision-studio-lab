@@ -1,0 +1,10 @@
+/.well-known/openai-apps-challenge
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: no-store
+
+/.well-known/oauth-protected-resource
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: no-store
+
+/mcp
+  Cache-Control: no-store

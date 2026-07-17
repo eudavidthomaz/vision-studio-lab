@@ -1,0 +1,176 @@
+{
+    "$schema": "https://developers.openai.com/apps-sdk/schemas/chatgpt-app-submission.v1.json",
+    "schema_version": 1,
+    "app_info": {
+        "display_name": "Ide.On",
+        "subtitle": "Church content tools",
+        "description": "Ide.On helps church teams use ChatGPT to look up their authenticated church workspace data, including sermons, generated content, volunteers, volunteer schedules, and published church site records. The app supports read-only planning and review workflows so users can reference ministry content and operations data while preparing communications and next steps.",
+        "category": "PRODUCTIVITY"
+    },
+    "tools": {
+        "whoami": {
+            "annotations": {
+                "readOnlyHint": true,
+                "openWorldHint": false,
+                "destructiveHint": false
+            },
+            "justifications": {
+                "read_only_justification": "Only retrieves the authenticated user's identity and profile details without creating or updating records.",
+                "open_world_justification": "Does not write to public internet state or external third-party systems.",
+                "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+            }
+        },
+        "list_sermons": {
+            "annotations": {
+                "readOnlyHint": true,
+                "openWorldHint": false,
+                "destructiveHint": false
+            },
+            "justifications": {
+                "read_only_justification": "Only lists sermons that belong to the authenticated user and does not modify sermon records.",
+                "open_world_justification": "Does not publish, send, or change any public or third-party system state.",
+                "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+            }
+        },
+        "get_sermon": {
+            "annotations": {
+                "readOnlyHint": true,
+                "openWorldHint": false,
+                "destructiveHint": false
+            },
+            "justifications": {
+                "read_only_justification": "Only fetches one sermon owned by the authenticated user and returns its transcript and summary.",
+                "open_world_justification": "Does not publish, send, or change any public or third-party system state.",
+                "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+            }
+        },
+        "list_content": {
+            "annotations": {
+                "readOnlyHint": true,
+                "openWorldHint": false,
+                "destructiveHint": false
+            },
+            "justifications": {
+                "read_only_justification": "Only searches and lists content-library records for the authenticated user without changing them.",
+                "open_world_justification": "Does not publish content or change any public or external system state.",
+                "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+            }
+        },
+        "get_content": {
+            "annotations": {
+                "readOnlyHint": true,
+                "openWorldHint": false,
+                "destructiveHint": false
+            },
+            "justifications": {
+                "read_only_justification": "Only retrieves a selected content-library item owned by the authenticated user.",
+                "open_world_justification": "Does not publish content or change any public or external system state.",
+                "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+            }
+        },
+        "list_volunteers": {
+            "annotations": {
+                "readOnlyHint": true,
+                "openWorldHint": false,
+                "destructiveHint": false
+            },
+            "justifications": {
+                "read_only_justification": "Only lists volunteer records for the authenticated user without creating or updating volunteers.",
+                "open_world_justification": "Does not contact volunteers or change any public or third-party system state.",
+                "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+            }
+        },
+        "list_schedules": {
+            "annotations": {
+                "readOnlyHint": true,
+                "openWorldHint": false,
+                "destructiveHint": false
+            },
+            "justifications": {
+                "read_only_justification": "Only lists volunteer schedule assignments for the authenticated user and optional filters.",
+                "open_world_justification": "Does not notify volunteers, publish schedules, or change external system state.",
+                "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+            }
+        },
+        "list_church_sites": {
+            "annotations": {
+                "readOnlyHint": true,
+                "openWorldHint": false,
+                "destructiveHint": false
+            },
+            "justifications": {
+                "read_only_justification": "Only lists church site records owned by the authenticated user and derives URLs for already published sites.",
+                "open_world_justification": "Does not publish, unpublish, or alter any church site or public web state.",
+                "destructive_justification": "Does not delete, overwrite, revoke access, or perform irreversible actions."
+            }
+        }
+    },
+    "test_cases": [
+        {
+            "description": "Confirm the signed-in user's Ide.On profile before helping with workspace-specific planning.",
+            "user_prompt": "Quem sou eu no Ide.On e qual igreja est\u00e1 associada ao meu perfil?",
+            "file_attachment_urls": null,
+            "tools_triggered": "whoami",
+            "expected_output": "Returns the authenticated user's profile details and explains that the data comes from their Ide.On account.",
+            "expected_output_url": null
+        },
+        {
+            "description": "List recent sermons so the user can choose one to repurpose into content.",
+            "user_prompt": "Liste minhas \u00faltimas 10 prega\u00e7\u00f5es dispon\u00edveis no Ide.On para eu escolher uma para transformar em posts.",
+            "file_attachment_urls": null,
+            "tools_triggered": "list_sermons",
+            "expected_output": "Shows recent sermon records with identifiers, status, summaries, and creation dates when available.",
+            "expected_output_url": null
+        },
+        {
+            "description": "Fetch a specific sermon selected by the user for review and content planning.",
+            "user_prompt": "Abra a prega\u00e7\u00e3o 11111111-1111-4111-8111-111111111111 e resuma os principais pontos para redes sociais.",
+            "file_attachment_urls": null,
+            "tools_triggered": "get_sermon",
+            "expected_output": "Retrieves the requested sermon if it belongs to the user and uses its transcript and summary to answer.",
+            "expected_output_url": null
+        },
+        {
+            "description": "Find draft content-library items by status and topic before a publishing review.",
+            "user_prompt": "Encontre na minha biblioteca conte\u00fados em rascunho sobre devocional para eu revisar hoje.",
+            "file_attachment_urls": null,
+            "tools_triggered": "list_content",
+            "expected_output": "Returns matching content-library items with titles, content types, pillars, statuses, favorites, and creation dates.",
+            "expected_output_url": null
+        },
+        {
+            "description": "Review ministry operations data by listing volunteer schedules and church sites.",
+            "user_prompt": "Mostre minhas escalas de volunt\u00e1rios desta semana e depois liste os sites de igreja publicados.",
+            "file_attachment_urls": null,
+            "tools_triggered": "list_schedules, list_church_sites",
+            "expected_output": "Lists schedule assignments for the requested date range and church site records, including URLs only for already published sites.",
+            "expected_output_url": null
+        }
+    ],
+    "negative_test_cases": [
+        {
+            "description": "Do not trigger for requests to create or publish public social media posts.",
+            "user_prompt": "Publique agora este post no Instagram da minha igreja.",
+            "file_attachment_urls": null,
+            "tools_triggered": null,
+            "expected_output": "The app should not be invoked because the MCP tools only read Ide.On data and cannot publish to social networks.",
+            "expected_output_url": null
+        },
+        {
+            "description": "Do not trigger for unrelated general Bible study requests that do not need Ide.On workspace data.",
+            "user_prompt": "Explique Jo\u00e3o 3:16 sem usar dados da minha conta.",
+            "file_attachment_urls": null,
+            "tools_triggered": null,
+            "expected_output": "The app should not be invoked because the user is asking for general knowledge rather than Ide.On account data.",
+            "expected_output_url": null
+        },
+        {
+            "description": "Do not trigger for destructive account or database administration requests.",
+            "user_prompt": "Apague todos os volunt\u00e1rios antigos do banco de dados.",
+            "file_attachment_urls": null,
+            "tools_triggered": null,
+            "expected_output": "The app should not be invoked because it does not provide destructive or administrative write actions.",
+            "expected_output_url": null
+        }
+    ]
+}
