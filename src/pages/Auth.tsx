@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
@@ -49,8 +49,13 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { trackEvent } = useAnalytics();
+
+  // Preserve a same-origin `next` path (e.g. OAuth consent URL) across auth flows.
+  const rawNext = searchParams.get("next") ?? "";
+  const nextPath = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "";
 
   // 3D card tilt
   const mouseX = useMotionValue(0);
@@ -73,6 +78,10 @@ const Auth = () => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
+        if (nextPath) {
+          window.location.href = nextPath;
+          return;
+        }
         navigate("/dashboard", { replace: true });
       }
     };
@@ -80,6 +89,10 @@ const Auth = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && event === 'SIGNED_IN') {
+        if (nextPath) {
+          window.location.href = nextPath;
+          return;
+        }
         const hasSeenWelcome = localStorage.getItem("ide-on-welcome-seen");
         if (!hasSeenWelcome) {
           navigate("/welcome", { replace: true });
@@ -101,7 +114,7 @@ const Auth = () => {
     setGoogleLoading(true);
     try {
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}${nextPath || ""}`,
       });
       if (error) {
         toast({
@@ -171,13 +184,17 @@ const Auth = () => {
           title: "Bem-vindo!",
           description: "Login realizado com sucesso.",
         });
-        navigate("/dashboard");
+        if (nextPath) {
+          window.location.href = nextPath;
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}${nextPath || "/"}`,
           },
         });
         
@@ -187,9 +204,13 @@ const Auth = () => {
         
         toast({
           title: "Conta criada!",
-          description: "Redirecionando para boas-vindas...",
+          description: "Redirecionando...",
         });
-        navigate("/welcome");
+        if (nextPath) {
+          window.location.href = nextPath;
+        } else {
+          navigate("/welcome");
+        }
       }
     } catch (error: any) {
       const errorMessage = error.message || 'Erro desconhecido';

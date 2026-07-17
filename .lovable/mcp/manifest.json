@@ -1,0 +1,233 @@
+{
+  "version": 1,
+  "sdk_version": "0.23.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://imitktxtunqovyqsmplb.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "ideon-mcp",
+      "version": "0.1.0",
+      "title": "Ide.On"
+    },
+    "tools": [
+      {
+        "name": "whoami",
+        "title": "Who am I",
+        "description": "Returns the signed-in Ide.On user's id, email and profile (full_name, church, city).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_sermons",
+        "title": "List sermons",
+        "description": "List the signed-in user's sermons (id, status, summary, created_at), newest first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20,
+              "description": "How many sermons to return (max 50)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_sermon",
+        "title": "Get sermon",
+        "description": "Fetch a single sermon (transcript + summary) by id. Must belong to the signed-in user.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The sermon id."
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_content",
+        "title": "List content library",
+        "description": "List items from the signed-in user's content library. Optional filters by content_type, pilar, status, and free-text search over title.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            },
+            "content_type": {
+              "type": "string",
+              "description": "Filter by content_type (e.g. 'Reel', 'Carrossel', 'Post')."
+            },
+            "pilar": {
+              "type": "string",
+              "description": "Filter by strategic pillar."
+            },
+            "status": {
+              "type": "string",
+              "description": "Filter by status (e.g. 'draft', 'published')."
+            },
+            "search": {
+              "type": "string",
+              "description": "Case-insensitive title search."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_content",
+        "title": "Get content item",
+        "description": "Fetch a full content-library item (including the generated content JSON) by id.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_volunteers",
+        "title": "List volunteers",
+        "description": "List the signed-in user's volunteers.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100
+            },
+            "search": {
+              "type": "string",
+              "description": "Case-insensitive name search."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_schedules",
+        "title": "List volunteer schedules",
+        "description": "List volunteer schedule assignments for the signed-in user. Optionally filter by date range and status.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100
+            },
+            "from_date": {
+              "type": "string",
+              "description": "ISO date (YYYY-MM-DD) lower bound on service_date."
+            },
+            "to_date": {
+              "type": "string",
+              "description": "ISO date (YYYY-MM-DD) upper bound on service_date."
+            },
+            "status": {
+              "type": "string",
+              "description": "Filter by status (e.g. 'pending', 'confirmed', 'declined')."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_church_sites",
+        "title": "List church sites",
+        "description": "List church sites owned by the signed-in user (id, slug, is_published, published URL).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
