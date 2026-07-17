@@ -351,6 +351,11 @@ const Landing = () => {
             <p className="text-xs text-muted-foreground">
               Transformando pregações em impacto digital
             </p>
+            <nav className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground mt-2">
+              <a href="/suporte" className="hover:text-primary transition-colors">Suporte</a>
+              <a href="/privacidade" className="hover:text-primary transition-colors">Privacidade</a>
+              <a href="/termos" className="hover:text-primary transition-colors">Termos</a>
+            </nav>
           </div>
         </div>
       </footer>
