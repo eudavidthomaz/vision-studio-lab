@@ -47,6 +47,57 @@ Plataforma de IA para criar conteúdo evangelístico impactante para redes socia
 - **EXALTAR**: Adoração e louvor
 - **ENVIAR**: Mobilizar para missões
 
+
+## 🤖 App no ChatGPT via MCP
+
+O MCP do projeto já está publicado pelo Lovable e a parte do repositório já está pronta para ser usada pelo ChatGPT.
+
+**URL do servidor MCP**: `https://imitktxtunqovyqsmplb.supabase.co/functions/v1/mcp`
+
+### Status da criação
+
+- **Pronto no GitHub/Lovable**: o endpoint HTTPS do MCP já existe e deve ser usado como URL do app.
+- **Pendente dentro do ChatGPT**: criar ou atualizar o app em `chatgpt.com/plugins` exige uma sessão autenticada no ChatGPT/OpenAI com Developer mode habilitado. Essa etapa precisa ser executada na conta que será dona do app, porque o ChatGPT salva o app no workspace/conta OpenAI autenticado.
+- **Se um agente tiver acesso autenticado ao ChatGPT**: ele deve criar o app usando exatamente os metadados abaixo e depois validar que o ChatGPT lista as ferramentas do MCP.
+
+### Metadados para criar o app no ChatGPT
+
+Use estes valores ao criar o app em modo desenvolvedor:
+
+| Campo | Valor |
+| --- | --- |
+| Name | `Ide.On` |
+| Description | `Consulte sermões, biblioteca de conteúdos, voluntários, escalas e sites de igreja do Ide.On usando os dados do usuário autenticado.` |
+| MCP server URL | `https://imitktxtunqovyqsmplb.supabase.co/functions/v1/mcp` |
+
+### Checklist de criação no ChatGPT
+
+1. Abrir `https://chatgpt.com/plugins` com a conta/workspace que será dona do app.
+2. Ativar **Developer mode** em **Settings → Security and login**, se ainda não estiver ativo.
+3. Clicar no botão **+** para criar um app em modo desenvolvedor.
+4. Informar os metadados da tabela acima.
+5. Clicar em **Create**.
+6. Confirmar que o ChatGPT exibiu a lista de ferramentas anunciadas pelo MCP.
+7. Abrir uma nova conversa, clicar em **+ → More** e selecionar `Ide.On`.
+8. Testar com um prompt como: `Quais ferramentas do Ide.On estão disponíveis para mim?`
+
+### Ferramentas expostas
+
+O MCP publica ferramentas para consultar, em nome do usuário autenticado, dados como:
+
+- identidade do usuário (`whoami`);
+- sermões;
+- conteúdos da biblioteca;
+- voluntários;
+- escalas;
+- sites de igreja.
+
+As leituras respeitam RLS no Supabase, então cada usuário só acessa os próprios dados.
+
+### Quando atualizar no ChatGPT
+
+Se a lista de ferramentas, descrições ou metadados do MCP mudar, redeploye o projeto no Lovable/Supabase e use **Refresh** na tela do app em **Settings → Plugins** no ChatGPT.
+
 ## 🔒 Segurança
 
 Sistema robusto de segurança implementado:
