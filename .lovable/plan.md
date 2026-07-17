@@ -1,75 +1,75 @@
-## Auditoria: UI/UX × Documentação Klap × Código real
+# Plano: Páginas Públicas de Suporte, Privacidade e Termos
 
-Revisei `klap-api/index.ts`, `useKlap.tsx`, `CreateJobCard.tsx`, `JobList.tsx`, `JobProjects.tsx` e `ExportButton.tsx` contra `docs.klap.app`. Os defeitos abaixo são de paridade — corrigíveis sem mudar arquitetura.
+Criar 3 páginas públicas simples, com textos completos em PT-BR, seguindo o design system existente (GlassCard, tipografia Gunterz/Brother, fundo 3D global, Helmet para SEO) e o padrão das páginas atuais (`Landing`, `Pricing`).
 
----
+## Escopo
 
-### Bugs confirmados
+### 1. `/suporte` — Central de Suporte
+Conteúdo:
+- Cabeçalho (logo + botão "Voltar ao app").
+- Hero: "Como podemos ajudar?" + subtítulo.
+- Canais de contato:
+  - **E-mail**: `contato@midias.app` (SLA de resposta em até 48h úteis).
+  - **WhatsApp**: link `wa.me` (placeholder a confirmar com o usuário — ver seção "Dados a confirmar").
+  - **Instagram**: `@ideon.app` (placeholder).
+- Seção FAQ (Accordion shadcn) com 6–8 perguntas cobrindo: como gerar conteúdo a partir de sermão, quotas do plano gratuito, upgrade/cancelamento, transcrição de áudio, editor de vídeo (Klap), sites de igreja, exclusão de conta/dados.
+- Bloco "Status do sistema" (texto estático apontando para `status.midias.app` — informativo).
+- Footer padrão com links para `/privacidade` e `/termos`.
 
-**1. "Preview" e "Editor" abrem exatamente o mesmo destino**
-Em `JobProjects.tsx:79-86`, os dois botões chamam `open(p)`, que gera **o mesmo** `create_embed_url`. A Klap não expõe dois modos distintos — o embed retornado já é o editor completo (com player). Ter dois botões idênticos é o que está confundindo o usuário.
+### 2. `/privacidade` — Política de Privacidade
+Conteúdo LGPD-compliant, redigido como app-owner (Ide.On / Midias.app):
+- Controlador dos dados, contato do encarregado (DPO) via e-mail de suporte.
+- Dados coletados: cadastro (nome, e-mail), autenticação (Google OAuth opcional), conteúdo enviado pelo usuário (sermões, áudios, transcrições, imagens), dados de uso e telemetria, cookies essenciais.
+- Finalidades: prestação do serviço, geração de conteúdo com IA, billing, comunicação.
+- Bases legais (LGPD art. 7): execução de contrato, consentimento, legítimo interesse.
+- Compartilhamento com subprocessadores (lista genérica, sem afirmar certificações): provedor de infra/banco, gateway de IA, provedor de pagamento (Stripe), transcrição de áudio, e-mail transacional.
+- Retenção: enquanto a conta estiver ativa; exclusão em até 30 dias após solicitação.
+- Direitos do titular (acesso, correção, exclusão, portabilidade, revogação de consentimento) e como exercê-los via `contato@midias.app`.
+- Segurança: RLS, criptografia em trânsito, autenticação — descrito como práticas do app-owner, sem promessas absolutas.
+- Cookies: apenas essenciais para sessão/autenticação.
+- Menores: serviço não direcionado a menores de 13.
+- Atualizações da política e data de vigência.
 
-**2. Export quebra para `video-to-video`**
-`actionStartExport` (klap-api/index.ts:286-288) exige `klap_folder_id`. Mas tasks `video-to-video` retornam `output_type='project'` (sem folder) — o `klap_folder_id` fica `null` e o export devolve 400 `project_has_no_folder`. O endpoint correto para projetos avulsos (sem folder) é `/projects/{project_id}/exports` (docs Klap, seção Exports).
+### 3. `/termos` — Termos de Serviço
+- Aceitação dos termos ao criar conta.
+- Descrição do serviço: plataforma SaaS de geração de conteúdo assistido por IA para igrejas (sermões → posts, stories, reels, carrosséis; sites de igreja; gestão de voluntários; editor de vídeo).
+- Cadastro e responsabilidade da conta/senha.
+- Planos, cobrança recorrente (Stripe), renovação automática, cancelamento a qualquer momento (acesso até fim do ciclo), reembolso conforme legislação (CDC — 7 dias para arrependimento em contratação à distância).
+- Uso aceitável: proibição de conteúdo ilegal, discurso de ódio, proselitismo político-eleitoral (alinhado ao guard-rail já existente no backend), spam, engenharia reversa, revenda não autorizada.
+- Propriedade intelectual: o usuário mantém direitos sobre o conteúdo enviado e gerado; concede licença limitada ao Ide.On para operar o serviço. Ide.On detém a plataforma, marca e código.
+- Conteúdo gerado por IA: revisão humana recomendada; usuário é responsável pela publicação final.
+- Limitação de responsabilidade e isenção de garantias (serviço "as is" nos limites do CDC).
+- Suspensão/encerramento por violação.
+- Alterações dos termos com aviso prévio.
+- Lei aplicável (Brasil) e foro.
+- Data de vigência.
 
-**3. Polling duplicado de jobs**
-`useKlapJobs` já tem `refetchInterval: 15s` enquanto há `processing`. `JobList.tsx:19-22` adiciona `setInterval(20s)` chamando `refresh_task` para cada job. Resultado: 2 timers concorrentes + chamadas extras à edge function. Mantenho apenas o refresh server-side (que é o que de fato atualiza o status na Klap).
+## Implementação técnica
 
-**4. URL do form é limpa antes da mutation terminar**
-`CreateJobCard.tsx:43` faz `if (!start.isError) setUrl('')` **síncrono** após `mutate()` (que é fire-and-forget). No primeiro submit `isError` é sempre `false`, então a URL some mesmo se a request falhar depois. Mover para `onSuccess`.
+Arquivos a criar:
+- `src/pages/Support.tsx`
+- `src/pages/Privacy.tsx`
+- `src/pages/Terms.tsx`
 
-**5. Dimensões forçadas a 9:16 mesmo no modo "Editar vídeo único"**
-`CreateJobCard.tsx:40` envia `dimensions: {1080,1920}` para os dois modos. Em `video-to-video` o usuário pode querer manter o aspect original (horizontal). Enviar `dimensions` só quando `reframe` estiver ligado, ou expor seletor 9:16 / 1:1 / 16:9.
+Arquivos a editar:
+- `src/App.tsx`: registrar rotas `/suporte`, `/privacidade`, `/termos` (import estático, seguindo padrão atual).
+- `src/pages/Landing.tsx`: adicionar links de rodapé para as 3 páginas.
+- `public/sitemap.xml`: incluir as 3 novas URLs.
 
-**6. Paridade de opções com a doc Klap (`video-to-shorts`)**
-A doc aceita `min_duration`, `target_duration`, `max_duration`, `target_clip_count`, `max_clip_count`. A UI só expõe `target_clip_count` e `max_duration`. O backend já encaminha os demais (linhas 137-141), mas não há controles. Adicionar `min_duration` e `max_clip_count` em "Opções avançadas".
+Padrões seguidos:
+- `Helmet` com title/description/canonical/og próprios por página.
+- Layout: header minimalista (logo + botão voltar), `GlassCard` para blocos de conteúdo, tipografia `font-gunterz` em H1/H2, `font-brother` no wordmark, prose com `text-muted-foreground` e `text-foreground`.
+- Mobile-first, sem hardcode de cor (tokens semânticos).
+- Sem lógica de negócio, sem chamadas de backend — 100% estático.
 
-**7. Toggle "Reframe vertical" em `video-to-video`**
-A Klap só aceita `reframe` na task `video-to-shorts` (gera cortes verticais). Em `video-to-video` esse toggle não tem efeito documentado. Ocultar quando `mode === 'video'`.
+## Dados a confirmar com o usuário (antes de implementar)
 
-**8. Watermark não configurável**
-`ExportButton.tsx:42` chama `start_export` sem `watermark`. O backend já aceita `{ src_url, pos_x?, pos_y?, scale? }`. Sem UI nem env default, o export sempre usa a marca d'água padrão da Klap. Não é bug, mas é gap vs. a doc. **Fora deste escopo** — registro como issue, não corrijo agora para manter o blast radius.
+Para evitar inventar informações sensíveis, preciso confirmar:
 
-**9. Refresh único na linha "Pronto"**
-`JobList.tsx:67-70` só mostra o botão de refresh quando `status === 'processing'`. Se um job ficou `error` por motivo transiente, não dá pra re-tentar. Adicionar refresh também em estado `error`.
+1. **E-mail de suporte oficial**: uso `contato@midias.app`? Ou outro?
+2. **WhatsApp/Instagram**: incluir? Se sim, quais números/handles?
+3. **Razão social / CNPJ** para os Termos e Política (se pessoa jurídica). Se preferir, uso apenas "Ide.On / Midias.app" sem CNPJ.
+4. **Foro** (comarca) para os Termos.
+5. **DPO / encarregado LGPD**: usar o mesmo e-mail de suporte?
 
----
-
-### Mudanças propostas (cirúrgicas, frontend + 1 ajuste backend)
-
-**`src/components/video-editor/JobProjects.tsx`**
-- Remover o botão "Editor". Manter um único CTA "Abrir editor" (a UI da Klap dentro do iframe já é o editor completo, com play, trim, captions). O botão "Abrir em nova aba" já existe como fallback.
-- Tooltip explicando: "Player oficial da Klap — edite cortes, legendas e baixe."
-
-**`src/components/video-editor/CreateJobCard.tsx`**
-- `setUrl('')` dentro de `onSuccess` do hook (não inline após `mutate`).
-- Ocultar toggle `reframe` em `mode === 'video'`.
-- Em `mode === 'video'`, não enviar `dimensions` (deixa Klap manter o aspect do source).
-- Adicionar inputs `min_duration` e `max_clip_count` no bloco avançado de `shorts`.
-
-**`src/hooks/useKlap.tsx`**
-- Estender tipo de input de `useStartJob` com `min_duration` e `max_clip_count`.
-- Adicionar `onSuccess` que limpa nada (deixar o componente lidar) — ou expor callback. Vou apenas tipar.
-
-**`src/components/video-editor/JobList.tsx`**
-- Remover o `setInterval` duplicado (linhas 15-24). O `refetchInterval` do `useKlapJobs` já mantém o status atualizado para o usuário; o refresh server-side será chamado explicitamente via botão e on-demand quando o usuário abre o card. Para garantir sincronia com a Klap em jobs `processing`, adiciono um único `setInterval` de 30s que chama `refresh_task` **apenas** para jobs `processing` visíveis — sem sobrepor com `refetchInterval` (que só relê do DB).
-- Mostrar botão de refresh também quando `status === 'error'`.
-
-**`supabase/functions/klap-api/index.ts`** (1 correção real de bug)
-- Em `actionStartExport` e `actionRefreshExport`: se `klap_folder_id` for `null`, usar o path `/projects/${klap_project_id}/exports[/${export_id}]` em vez de retornar 400. Isso destrava export para `video-to-video`.
-
----
-
-### Fora de escopo (declarado)
-
-- UI de watermark customizada (registro como follow-up).
-- Suporte a `style_preset_id` configurável (hoje hard-coded como `undefined`).
-- Webhook da Klap para encerrar polling (otimização, não bug).
-
-### Validação
-
-1. Build TS limpo.
-2. `view_preview` em `/editor-video`: confirmar que só existe um botão "Abrir editor" + "Exportar" por card de corte.
-3. `curl_edge_functions` `start_export` em um `video-to-video` real: deve retornar `export` em vez de 400.
-4. Network tab: confirmar 1 chamada `refresh_task` a cada 30s (não 2 timers).
-5. Submeter URL inválida e verificar que o campo não some sozinho.
+Se preferir, sigo com placeholders razoáveis (e-mail `contato@midias.app`, sem WhatsApp/Instagram, sem CNPJ, foro "comarca do domicílio do contratante", DPO = e-mail de suporte) e você ajusta depois.
