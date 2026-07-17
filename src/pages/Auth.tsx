@@ -114,7 +114,7 @@ const Auth = () => {
     setGoogleLoading(true);
     try {
       const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: `${window.location.origin}${nextPath || ""}`,
       });
       if (error) {
         toast({
@@ -184,13 +184,17 @@ const Auth = () => {
           title: "Bem-vindo!",
           description: "Login realizado com sucesso.",
         });
-        navigate("/dashboard");
+        if (nextPath) {
+          window.location.href = nextPath;
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}${nextPath || "/"}`,
           },
         });
         
@@ -200,9 +204,13 @@ const Auth = () => {
         
         toast({
           title: "Conta criada!",
-          description: "Redirecionando para boas-vindas...",
+          description: "Redirecionando...",
         });
-        navigate("/welcome");
+        if (nextPath) {
+          window.location.href = nextPath;
+        } else {
+          navigate("/welcome");
+        }
       }
     } catch (error: any) {
       const errorMessage = error.message || 'Erro desconhecido';
