@@ -12,7 +12,7 @@ export default defineTool({
     to_date: z.string().optional().describe("ISO date (YYYY-MM-DD) upper bound on service_date."),
     status: z.string().optional().describe("Filter by status (e.g. 'pending', 'confirmed', 'declined')."),
   },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async ({ limit, from_date, to_date, status }, ctx) => {
     const guard = requireAuth(ctx); if (guard) return guard;
     const sb = supabaseForUser(ctx);
