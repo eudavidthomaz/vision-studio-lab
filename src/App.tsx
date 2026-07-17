@@ -82,7 +82,8 @@ const App = () => (
           <Route path="/suporte" element={<Support />} />
           <Route path="/privacidade" element={<Privacy />} />
           <Route path="/termos" element={<Terms />} />
-          {/* OAuth 2.1 consent screen (Managed Cloud Auth) */}
+          {/* OAuth 2.1 consent screen (Supabase OAuth Server) */}
+          <Route path="/oauth/consent" element={<OAuthConsent />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           {/* Legacy redirects */}
           <Route path="/meus-conteudos" element={<Navigate to="/biblioteca" replace />} />

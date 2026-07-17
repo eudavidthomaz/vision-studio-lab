@@ -40,7 +40,7 @@ var whoami_default = defineTool({
   title: "Who am I",
   description: "Returns the signed-in Ide.On user's id, email and profile (full_name, church, city).",
   inputSchema: {},
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async (_input, ctx) => {
     const guard = requireAuth(ctx);
     if (guard) return guard;
@@ -61,7 +61,7 @@ var list_sermons_default = defineTool2({
   inputSchema: {
     limit: z.number().int().min(1).max(50).default(20).describe("How many sermons to return (max 50).")
   },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async ({ limit }, ctx) => {
     const guard = requireAuth(ctx);
     if (guard) return guard;
@@ -82,7 +82,7 @@ var get_sermon_default = defineTool3({
   inputSchema: {
     id: z2.string().uuid().describe("The sermon id.")
   },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async ({ id }, ctx) => {
     const guard = requireAuth(ctx);
     if (guard) return guard;
@@ -108,7 +108,7 @@ var list_content_default = defineTool4({
     status: z3.string().optional().describe("Filter by status (e.g. 'draft', 'published')."),
     search: z3.string().optional().describe("Case-insensitive title search.")
   },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async ({ limit, content_type, pilar, status, search }, ctx) => {
     const guard = requireAuth(ctx);
     if (guard) return guard;
@@ -134,7 +134,7 @@ var get_content_default = defineTool5({
   inputSchema: {
     id: z4.string().uuid()
   },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async ({ id }, ctx) => {
     const guard = requireAuth(ctx);
     if (guard) return guard;
@@ -157,7 +157,7 @@ var list_volunteers_default = defineTool6({
     limit: z5.number().int().min(1).max(200).default(100),
     search: z5.string().optional().describe("Case-insensitive name search.")
   },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async ({ limit, search }, ctx) => {
     const guard = requireAuth(ctx);
     if (guard) return guard;
@@ -183,7 +183,7 @@ var list_schedules_default = defineTool7({
     to_date: z6.string().optional().describe("ISO date (YYYY-MM-DD) upper bound on service_date."),
     status: z6.string().optional().describe("Filter by status (e.g. 'pending', 'confirmed', 'declined').")
   },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async ({ limit, from_date, to_date, status }, ctx) => {
     const guard = requireAuth(ctx);
     if (guard) return guard;
@@ -205,7 +205,7 @@ var list_church_sites_default = defineTool8({
   title: "List church sites",
   description: "List church sites owned by the signed-in user (id, slug, is_published, published URL).",
   inputSchema: {},
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async (_input, ctx) => {
     const guard = requireAuth(ctx);
     if (guard) return guard;
