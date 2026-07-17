@@ -8,3 +8,9 @@
 
 /mcp
   Cache-Control: no-store
+/oauth/consent
+  Cache-Control: no-store
+
+/.lovable/oauth/consent
+  Cache-Control: no-store
+

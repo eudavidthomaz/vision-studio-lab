@@ -27,6 +27,24 @@
       ]
     },
     {
+      "source": "/oauth/consent",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/.lovable/oauth/consent",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
       "source": "/mcp",
       "headers": [
         {
