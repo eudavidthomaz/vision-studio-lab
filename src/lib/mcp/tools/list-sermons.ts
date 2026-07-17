@@ -9,7 +9,7 @@ export default defineTool({
   inputSchema: {
     limit: z.number().int().min(1).max(50).default(20).describe("How many sermons to return (max 50)."),
   },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async ({ limit }, ctx) => {
     const guard = requireAuth(ctx); if (guard) return guard;
     const sb = supabaseForUser(ctx);
