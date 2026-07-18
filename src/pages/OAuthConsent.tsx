@@ -1,28 +1,71 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2, Shield, User } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 
-// Local typed wrapper for the beta supabase.auth.oauth namespace.
+// Local typed wrapper for the Supabase OAuth Server namespace.
+type OAuthClient = {
+  name?: string;
+  client_name?: string;
+  client_uri?: string;
+  redirect_uris?: string[];
+};
+
 type AuthzDetails = {
-  client?: { name?: string; client_name?: string; client_uri?: string; redirect_uris?: string[] };
+  authorization_id?: string;
+  client?: OAuthClient;
   scope?: string;
   scopes?: string[];
   redirect_url?: string;
   redirect_to?: string;
 };
+
+type OAuthDecision = {
+  redirect_url?: string;
+  redirect_to?: string;
+};
+
 type OAuthAPI = {
   getAuthorizationDetails: (id: string) => Promise<{ data: AuthzDetails | null; error: { message: string } | null }>;
-  approveAuthorization: (id: string) => Promise<{ data: { redirect_url?: string; redirect_to?: string } | null; error: { message: string } | null }>;
-  denyAuthorization: (id: string) => Promise<{ data: { redirect_url?: string; redirect_to?: string } | null; error: { message: string } | null }>;
+  approveAuthorization: (id: string) => Promise<{ data: OAuthDecision | null; error: { message: string } | null }>;
+  denyAuthorization: (id: string) => Promise<{ data: OAuthDecision | null; error: { message: string } | null }>;
 };
-const oauth = (supabase.auth as unknown as { oauth: OAuthAPI }).oauth;
+
+function getOAuthAPI(): OAuthAPI | null {
+  const oauth = (supabase.auth as unknown as { oauth?: OAuthAPI }).oauth;
+  if (
+    oauth &&
+    typeof oauth.getAuthorizationDetails === "function" &&
+    typeof oauth.approveAuthorization === "function" &&
+    typeof oauth.denyAuthorization === "function"
+  ) {
+    return oauth;
+  }
+  return null;
+}
+
+function authorizationIdFrom(params: URLSearchParams) {
+  return params.get("authorization_id") ?? params.get("authorizationId") ?? "";
+}
+
+function currentPathWithQuery() {
+  return `${window.location.pathname}${window.location.search}`;
+}
+
+function redirectToLogin() {
+  const next = currentPathWithQuery();
+  window.location.href = `/auth?next=${encodeURIComponent(next)}`;
+}
+
+function redirectFrom(data?: OAuthDecision | AuthzDetails | null) {
+  return data?.redirect_url ?? data?.redirect_to;
+}
 
 export default function OAuthConsent() {
   const [params] = useSearchParams();
-  const authorizationId = params.get("authorization_id") ?? "";
+  const authorizationId = useMemo(() => authorizationIdFrom(params), [params]);
   const [details, setDetails] = useState<AuthzDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -31,68 +74,87 @@ export default function OAuthConsent() {
 
   useEffect(() => {
     let active = true;
-    (async () => {
+
+    async function loadAuthorization() {
       if (!authorizationId) {
         setError("Parâmetro authorization_id ausente.");
         setLoading(false);
         return;
       }
-      const { data: sess } = await supabase.auth.getSession();
-      if (!sess.session) {
-        const next = window.location.pathname + window.location.search;
-        window.location.href = "/auth?next=" + encodeURIComponent(next);
+
+      const { data: claimsData } = await supabase.auth.getClaims();
+      if (!claimsData?.claims) {
+        redirectToLogin();
         return;
       }
-      setUserEmail(sess.session.user.email ?? null);
 
-      if (!oauth || typeof oauth.getAuthorizationDetails !== "function") {
-        setError("Servidor OAuth ainda não está ativo. Tente novamente em instantes.");
+      const { data: userData } = await supabase.auth.getUser();
+      if (!active) return;
+      setUserEmail(userData.user?.email ?? null);
+
+      const oauth = getOAuthAPI();
+      if (!oauth) {
+        setError(
+          "A integração OAuth 2.1 não está disponível nesta versão publicada. Habilite Authentication > OAuth Server no Supabase, configure Authorization Path como /.lovable/oauth/consent ou /oauth/consent e publique uma nova build do Ide.On."
+        );
         setLoading(false);
         return;
       }
 
       const { data, error } = await oauth.getAuthorizationDetails(authorizationId);
       if (!active) return;
+
       if (error) {
         setError(error.message);
         setLoading(false);
         return;
       }
-      const immediate = data?.redirect_url ?? data?.redirect_to;
+
+      const immediate = redirectFrom(data);
       if (immediate && !data?.client) {
         window.location.href = immediate;
         return;
       }
+
       setDetails(data);
       setLoading(false);
-    })();
+    }
+
+    loadAuthorization();
+
     return () => {
       active = false;
     };
   }, [authorizationId]);
 
   async function decide(approve: boolean) {
-    setBusy(true);
-    try {
-      const { data, error } = approve
-        ? await oauth.approveAuthorization(authorizationId)
-        : await oauth.denyAuthorization(authorizationId);
-      if (error) {
-        setError(error.message);
-        setBusy(false);
-        return;
-      }
-      const target = data?.redirect_url ?? data?.redirect_to;
-      if (!target) {
-        setError("O servidor de autorização não retornou uma URL de redirecionamento.");
-        setBusy(false);
-        return;
-      }
-      window.location.href = target;
-    } catch (e: any) {
-      setError(e?.message ?? "Falha ao processar a decisão.");
-      setBusy(false);
+    const oauth = getOAuthAPI();
+    if (!oauth) {
+      setError(
+        "A integração OAuth 2.1 não está disponível nesta versão publicada."
+      );
+      return;
     }
+
+    setBusy(true);
+    const { data, error } = approve
+      ? await oauth.approveAuthorization(authorizationId)
+      : await oauth.denyAuthorization(authorizationId);
+
+    if (error) {
+      setError(error.message);
+      setBusy(false);
+      return;
+    }
+
+    const target = redirectFrom(data);
+    if (!target) {
+      setError("O servidor de autorização não retornou uma URL de redirecionamento.");
+      setBusy(false);
+      return;
+    }
+
+    window.location.href = target;
   }
 
   const clientName = details?.client?.name ?? details?.client?.client_name ?? "um aplicativo externo";

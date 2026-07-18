@@ -6,7 +6,7 @@ export default defineTool({
   title: "Who am I",
   description: "Returns the signed-in Ide.On user's id, email and profile (full_name, church, city).",
   inputSchema: {},
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async (_input, ctx) => {
     const guard = requireAuth(ctx); if (guard) return guard;
     const sb = supabaseForUser(ctx);

@@ -10,7 +10,7 @@ export default defineTool({
     limit: z.number().int().min(1).max(200).default(100),
     search: z.string().optional().describe("Case-insensitive name search."),
   },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async ({ limit, search }, ctx) => {
     const guard = requireAuth(ctx); if (guard) return guard;
     const sb = supabaseForUser(ctx);

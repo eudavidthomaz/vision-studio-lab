@@ -8,7 +8,7 @@ import listVolunteers from "./tools/list-volunteers";
 import listSchedules from "./tools/list-schedules";
 import listChurchSites from "./tools/list-church-sites";
 
-const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
+const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "imitktxtunqovyqsmplb";
 
 export default defineMcp({
   name: "ideon-mcp",
