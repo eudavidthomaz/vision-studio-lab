@@ -1,0 +1,6 @@
+{
+  "resource": "https://imitktxtunqovyqsmplb.supabase.co/functions/v1/mcp",
+  "authorization_servers": [
+    "https://imitktxtunqovyqsmplb.supabase.co/auth/v1"
+  ]
+}
