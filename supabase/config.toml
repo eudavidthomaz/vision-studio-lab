@@ -45,6 +45,8 @@ project_id = "imitktxtunqovyqsmplb"
     verify_jwt = false
   [functions.handle-checkout-success]
     verify_jwt = false
+  [functions.openai-apps-challenge]
+    verify_jwt = false
   [functions.process-email-queue]
     verify_jwt = true
   [functions.reconcile-subscriptions]

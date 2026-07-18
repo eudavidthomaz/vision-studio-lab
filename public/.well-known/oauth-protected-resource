@@ -1,5 +1,6 @@
 {
   "resource": "https://imitktxtunqovyqsmplb.supabase.co/functions/v1/mcp",
+  "resource": "https://midias.app/mcp",
   "authorization_servers": [
     "https://imitktxtunqovyqsmplb.supabase.co/auth/v1"
   ]

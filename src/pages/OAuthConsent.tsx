@@ -96,6 +96,7 @@ export default function OAuthConsent() {
       if (!oauth) {
         setError(
           "A integração OAuth 2.1 não está disponível nesta versão publicada. Habilite Authentication > OAuth Server no Supabase, configure Authorization Path como /.lovable/oauth/consent ou /oauth/consent e publique uma nova build do Ide.On."
+          "O servidor OAuth 2.1 do Supabase não está habilitado ou o SDK publicado não inclui as APIs supabase.auth.oauth. Habilite Authentication > OAuth Server no Supabase, configure Authorization Path como /oauth/consent e publique com @supabase/supabase-js atualizado."
         );
         setLoading(false);
         return;
@@ -132,6 +133,7 @@ export default function OAuthConsent() {
     if (!oauth) {
       setError(
         "A integração OAuth 2.1 não está disponível nesta versão publicada."
+        "O servidor OAuth 2.1 do Supabase não está habilitado ou o SDK publicado não inclui as APIs supabase.auth.oauth."
       );
       return;
     }
