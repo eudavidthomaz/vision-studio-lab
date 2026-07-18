@@ -1,0 +1,2 @@
+/mcp https://imitktxtunqovyqsmplb.supabase.co/functions/v1/mcp 200!
+/mcp/* https://imitktxtunqovyqsmplb.supabase.co/functions/v1/mcp/:splat 200!

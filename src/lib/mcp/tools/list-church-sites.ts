@@ -7,7 +7,7 @@ export default defineTool({
   title: "List church sites",
   description: "List church sites owned by the signed-in user (id, slug, is_published, published URL).",
   inputSchema: {},
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async (_input, ctx) => {
     const guard = requireAuth(ctx); if (guard) return guard;
     const sb = supabaseForUser(ctx);

@@ -13,7 +13,7 @@ export default defineTool({
     status: z.string().optional().describe("Filter by status (e.g. 'draft', 'published')."),
     search: z.string().optional().describe("Case-insensitive title search."),
   },
-  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false, destructiveHint: false },
   handler: async ({ limit, content_type, pilar, status, search }, ctx) => {
     const guard = requireAuth(ctx); if (guard) return guard;
     const sb = supabaseForUser(ctx);
